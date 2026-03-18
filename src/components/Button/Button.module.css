@@ -25,13 +25,18 @@
 }
 
 .primary {
-  background-color: var(--color-accent);
+  background: linear-gradient(
+    135deg,
+    #8d6e63 0%,
+    #7c6056 100%
+  );
   color: var(--color-white);
-  box-shadow: var(--shadow-button);
+  box-shadow: 0 6px 18px rgba(45, 42, 38, 0.18);
 }
 
 .primary:hover {
-  background-color: var(--color-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(45, 42, 38, 0.22);
 }
 
 .secondary {

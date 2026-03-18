@@ -1,5 +1,5 @@
 .hero {
-  padding: 40px 0 80px;
+  padding: 40px 0 140px;
 }
 
 .grid {
@@ -92,7 +92,7 @@
 
 @media (max-width: 960px) {
   .hero {
-    padding: 20px 0 56px;
+    padding: 20px 0 88px;
   }
 
   .grid {
