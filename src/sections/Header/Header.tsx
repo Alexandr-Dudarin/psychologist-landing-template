@@ -15,6 +15,7 @@ export function Header() {
             <a href="#pricing">Стоимость</a>
             <a href="#booking">Запись</a>
             <a href="#contacts">Контакты</a>
+            <a href="#faq">FAQ</a>
           </nav>
 
           <Button href="#booking" variant="primary">
