@@ -4,7 +4,7 @@ import styles from "./About.module.css";
 
 export function About() {
   return (
-    <section id="about" className={styles.section}>
+    <section className={`${styles.section} section`}>
       <Container>
         <SectionTitle
           eyebrow="О специалисте"

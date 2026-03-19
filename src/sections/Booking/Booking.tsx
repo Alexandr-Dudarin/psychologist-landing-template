@@ -5,7 +5,7 @@ import styles from "./Booking.module.css";
 
 export function Booking() {
   return (
-    <section id="booking" className={styles.section}>
+    <section id="booking" className={`${styles.section} section`}>
       <Container>
         <div className={styles.wrapper}>
           <div className={styles.content}>

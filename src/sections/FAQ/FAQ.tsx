@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import styles from "./FAQ.module.css";
@@ -19,20 +20,26 @@ const faqItems = [
       "Это зависит от вашего запроса и ситуации. Иногда достаточно нескольких встреч, а в других случаях полезна более длительная и последовательная работа.",
   },
   {
-    question: "Можно ли обратиться, если нет чёткого запроса?",
+    question: "Можно ли обратиться без чёткого запроса?",
     answer:
-      "Да, конечно. Это частая ситуация. На первой встрече мы сможем вместе разобраться, что именно вас беспокоит и в каком направлении лучше двигаться.",
+      "Да, это частая ситуация. На первой встрече мы поможем сформулировать ваш запрос и определить направление работы.",
   },
   {
-    question: "Можно ли отменить или перенести встречу?",
+    question: "Можно ли перенести или отменить встречу?",
     answer:
-      "Да, встречу можно перенести или отменить заранее, предупредив об этом заблаговременно.",
+      "Да, вы можете перенести или отменить встречу, предупредив об этом заранее.",
   },
 ];
 
 export function FAQ() {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const toggle = (index: number) => {
+    setActiveIndex((prev) => (prev === index ? null : index));
+  };
+
   return (
-    <section id="faq" className={styles.section}>
+    <section id="faq" className={`${styles.section} section`}>
       <Container>
         <SectionTitle
           eyebrow="FAQ"
@@ -41,12 +48,30 @@ export function FAQ() {
         />
 
         <div className={styles.list}>
-          {faqItems.map((item) => (
-            <article key={item.question} className={styles.card}>
-              <h3 className={styles.question}>{item.question}</h3>
-              <p className={styles.answer}>{item.answer}</p>
-            </article>
-          ))}
+          {faqItems.map((item, index) => {
+            const isOpen = activeIndex === index;
+
+            return (
+              <div
+                key={item.question}
+                className={`${styles.card} ${isOpen ? styles.open : ""}`}
+              >
+                <button
+                  className={styles.question}
+                  onClick={() => toggle(index)}
+                >
+                  {item.question}
+                  <span className={styles.icon}>
+                    {isOpen ? "−" : "+"}
+                  </span>
+                </button>
+
+                <div className={styles.answerWrapper}>
+                  <p className={styles.answer}>{item.answer}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Container>
     </section>

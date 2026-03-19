@@ -2,8 +2,8 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  padding: 16px 0;
-  background-color: rgba(246, 241, 235, 0.82);
+  padding: 14px 0;
+  background-color: rgba(246, 241, 235, 0.88);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(45, 42, 38, 0.06);
 }
@@ -12,22 +12,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
 }
 
 .logo {
   font-weight: 600;
   font-size: 16px;
   letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .nav {
   display: flex;
-  gap: 24px;
+  align-items: center;
+  gap: 32px;
 }
 
 .nav a {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--color-text-muted);
   transition:
     color var(--transition-base),

@@ -2,10 +2,11 @@ import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import heroImage from "../../assets/images/psychologist.jpg";
 import styles from "./Hero.module.css";
+import { Phone, Send } from "lucide-react";
 
 export function Hero() {
   return (
-    <section className={styles.hero}>
+    <section className={`${styles.section} section`}>
       <Container>
         <div className={styles.grid}>
           <div className={styles.content}>
@@ -25,15 +26,17 @@ export function Hero() {
             </div>
 
             <div className={styles.actions}>
-              <Button href="#booking" variant="primary">
+              <Button variant="primary" href="#booking">
                 Записаться
               </Button>
 
-              <Button href="https://t.me/gordeevaks" variant="secondary" target="_blank" rel="noreferrer">
+              <Button variant="secondary" href="https://t.me/gordeevaks">
+                <Send size={16} />
                 Написать в Telegram
               </Button>
 
-              <Button href="tel:+79182413095" variant="outline">
+              <Button variant="outline" href="tel:+79182413095">
+                <Phone size={16} />
                 Позвонить
               </Button>
             </div>

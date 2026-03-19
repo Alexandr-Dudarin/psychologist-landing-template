@@ -6,7 +6,7 @@
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   align-items: center;
-  gap: 40px;
+  gap: 56px; 
   min-height: calc(100vh - 120px);
 }
 
@@ -122,10 +122,6 @@
 }
 
 @media (max-width: 640px) {
-  .title {
-    line-height: 1;
-  }
-
   .description {
     font-size: 17px;
   }

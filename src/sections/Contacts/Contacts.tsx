@@ -2,10 +2,11 @@ import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import styles from "./Contacts.module.css";
+import { Phone, Send } from "lucide-react";
 
 export function Contacts() {
   return (
-    <section id="contacts" className={styles.section}>
+    <section id="contacts" className={`${styles.section} section`}>
       <Container>
         <div className={styles.wrapper}>
           <div className={styles.left}>
@@ -35,8 +36,9 @@ export function Contacts() {
             <div className={styles.info}>
               <div className={styles.item}>
                 <span className={styles.label}>Телефон</span>
-                <a href="tel:+79182413095" className={styles.link}>
-                  +7 918 241-30-95
+                <a href="tel:+79182413095" className={styles.contactItem}>
+                  <Phone size={18} />
+                  <span className={styles.linkText}>+7 918 241-30-95</span>
                 </a>
               </div>
 
@@ -44,11 +46,12 @@ export function Contacts() {
                 <span className={styles.label}>Telegram</span>
                 <a
                   href="https://t.me/gordeevaks"
-                  className={styles.link}
+                  className={styles.contactItem}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  @gordeevaks
+                  <Send size={18} />
+                  <span className={styles.linkText}>@gordeevaks</span>
                 </a>
               </div>
 

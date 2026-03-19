@@ -4,7 +4,7 @@ import styles from "./Education.module.css";
 
 export function Education() {
   return (
-    <section id="education" className={styles.section}>
+    <section id="education" className={`${styles.section} section`}>
       <Container>
         <SectionTitle
           eyebrow="Квалификация"

@@ -24,7 +24,7 @@ const pricingItems = [
 
 export function Pricing() {
   return (
-    <section id="pricing" className={styles.section}>
+    <section id="pricing" className={`${styles.section} section`}>
       <Container>
         <SectionTitle
           eyebrow="Стоимость"

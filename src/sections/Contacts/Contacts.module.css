@@ -1,5 +1,5 @@
 .section {
-  padding: 100px 0 120px;
+  padding-bottom: 120px;
 }
 
 .wrapper {
@@ -44,15 +44,29 @@
   color: var(--color-text-muted);
 }
 
-.link,
 .text {
   font-size: 18px;
   line-height: 1.5;
   color: var(--color-text);
 }
 
-.link:hover {
+.contactItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text);
+  transition: color var(--transition-base);
+}
+
+.contactItem:hover {
   color: var(--color-accent);
+}
+
+.linkText,
+.text {
+  font-size: 18px;
+  line-height: 1.5;
+  color: inherit;
 }
 
 @media (max-width: 920px) {
