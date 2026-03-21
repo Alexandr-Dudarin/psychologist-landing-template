@@ -12,7 +12,7 @@ export function Hero() {
           <div className={styles.content}>
             <p className={styles.eyebrow}>Психолог · Онлайн-консультации</p>
 
-            <h1 className={styles.title}>Кристина Дударина</h1>
+            <h1 className={styles.title}>Александр Дударин</h1>
 
             <p className={styles.description}>
               Помогаю глубже понять себя, снизить тревогу и выстроить более
@@ -30,12 +30,12 @@ export function Hero() {
                 Записаться
               </Button>
 
-              <Button variant="secondary" href="https://t.me/gordeevaks">
+              <Button variant="secondary" href="https://t.me/Dudarin23">
                 <Send size={16} />
                 Написать в Telegram
               </Button>
 
-              <Button variant="outline" href="tel:+79182413095">
+              <Button variant="outline" href="tel:+79185555555">
                 <Phone size={16} />
                 Позвонить
               </Button>
@@ -47,7 +47,7 @@ export function Hero() {
               <img
                 className={styles.image}
                 src={heroImage}
-                alt="Кристина Дударина, психолог"
+                alt="Александр Дударин, психолог"
               />
             </div>
           </div>

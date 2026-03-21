@@ -68,7 +68,7 @@ export function Header() {
         <Container>
           <div className={styles.row}>
             <a href="#top" className={styles.logo} onClick={handleCloseMenu}>
-              Кристина Дударина
+              Александр Дударин
             </a>
 
             <nav className={styles.nav}>

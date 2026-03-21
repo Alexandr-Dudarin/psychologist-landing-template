@@ -7,7 +7,7 @@ export function Footer() {
       <Container>
         <div className={styles.wrapper}>
           <div className={styles.main}>
-            <h2 className={styles.name}>Кристина Дударина</h2>
+            <h2 className={styles.name}>Александр Дударин</h2>
             <p className={styles.subtitle}>
               Психолог, онлайн-консультации
             </p>
@@ -24,15 +24,15 @@ export function Footer() {
           </div>
 
           <div className={styles.contacts}>
-            <a href="tel:+79182413095">+7 918 241-30-95</a>
-            <a href="https://t.me/gordeevaks" target="_blank" rel="noreferrer">
-              @gordeevaks
+            <a href="tel:+79185555555">+7 918 241-30-95</a>
+            <a href="https://t.me/Dudarin23" target="_blank" rel="noreferrer">
+              @Dudarin23
             </a>
           </div>
         </div>
 
         <div className={styles.bottom}>
-          <p>© {new Date().getFullYear()} Кристина Дударина. Все права защищены.</p>
+          <p>© {new Date().getFullYear()} Александр Дударин. Все права защищены.</p>
           <p>Информация на сайте носит информационный характер.</p>
         </div>
       </Container>

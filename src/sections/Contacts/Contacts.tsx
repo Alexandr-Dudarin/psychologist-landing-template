@@ -20,7 +20,7 @@ export function Contacts() {
           <div className={styles.right}>
             <div className={styles.buttons}>
               <Button
-                href="https://t.me/gordeevaks"
+                href="https://t.me/Dudarin23"
                 variant="primary"
                 target="_blank"
                 rel="noreferrer"
@@ -28,7 +28,7 @@ export function Contacts() {
                 Написать в Telegram
               </Button>
 
-              <Button href="tel:+79182413095" variant="secondary">
+              <Button href="tel:+79185555555" variant="secondary">
                 Позвонить
               </Button>
             </div>
@@ -36,7 +36,7 @@ export function Contacts() {
             <div className={styles.info}>
               <div className={styles.item}>
                 <span className={styles.label}>Телефон</span>
-                <a href="tel:+79182413095" className={styles.contactItem}>
+                <a href="tel:+79185555555" className={styles.contactItem}>
                   <Phone size={18} />
                   <span className={styles.linkText}>+7 918 241-30-95</span>
                 </a>
@@ -45,13 +45,13 @@ export function Contacts() {
               <div className={styles.item}>
                 <span className={styles.label}>Telegram</span>
                 <a
-                  href="https://t.me/gordeevaks"
+                  href="https://t.me/Dudarin23"
                   className={styles.contactItem}
                   target="_blank"
                   rel="noreferrer"
                 >
                   <Send size={18} />
-                  <span className={styles.linkText}>@gordeevaks</span>
+                  <span className={styles.linkText}>@Dudarin23</span>
                 </a>
               </div>
 
