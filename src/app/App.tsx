@@ -7,10 +7,11 @@ import { Booking } from "../sections/Booking/Booking";
 import { Contacts } from "../sections/Contacts/Contacts";
 import { FAQ } from "../sections/FAQ/FAQ";
 import { Footer } from "../sections/Footer/Footer";
+import { Privacy } from "../sections/Privacy/Privacy";
 
 export default function App() {
   return (
-    <>
+    <div id="top">
       <Header />
       <Hero />
       <About />
@@ -19,7 +20,8 @@ export default function App() {
       <Booking />
       <Contacts />
       <FAQ />
+      <Privacy />
       <Footer />
-    </>
+    </div>
   );
 }

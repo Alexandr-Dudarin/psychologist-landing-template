@@ -1,7 +1,7 @@
 .header {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 30;
   padding: 14px 0;
   background-color: rgba(246, 241, 235, 0.88);
   backdrop-filter: blur(14px);
@@ -13,6 +13,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+  position: relative;
 }
 
 .logo {
@@ -40,6 +41,54 @@
   color: var(--color-text);
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.burger {
+  display: none;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.75);
+  color: var(--color-text);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base);
+}
+
+.burger:hover {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.burgerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.28s ease;
+}
+
+.burgerOpen .burgerIcon {
+  transform: rotate(90deg);
+}
+
+/* По умолчанию скрыто */
+.mobileMenu {
+  display: none;
+}
+
+.overlay {
+  display: none;
+}
+
+/* ===== MOBILE ===== */
+
 @media (max-width: 768px) {
   .header {
     padding: 12px 0;
@@ -55,5 +104,90 @@
 
   .logo {
     font-size: 15px;
+  }
+
+  .actions > a {
+    display: none;
+  }
+
+  .burger {
+    display: inline-flex;
+    position: relative;
+    z-index: 32;
+  }
+
+  /* 🔥 ВАЖНО: меню теперь абсолютное → не двигает страницу */
+  .mobileMenu {
+    display: block;
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 0;
+    right: 0;
+    z-index: 32;
+
+    padding: 0 18px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+
+    transform: translateY(-8px);
+
+    border: 1px solid transparent;
+    border-radius: 24px;
+    background-color: rgba(255, 255, 255, 0.96);
+
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+
+    pointer-events: none;
+
+    transition:
+      max-height 0.35s ease,
+      opacity 0.25s ease,
+      transform 0.25s ease,
+      padding 0.25s ease,
+      border-color 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .mobileMenuOpen {
+    padding: 18px;
+    max-height: 500px;
+    opacity: 1;
+    transform: translateY(0);
+
+    border-color: var(--color-border);
+    box-shadow: var(--shadow-soft);
+
+    pointer-events: auto;
+  }
+
+  .mobileNav {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .mobileNav a {
+    font-size: 15px;
+    color: var(--color-text);
+  }
+
+  /* Затемнение фона */
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+
+    background-color: rgba(45, 42, 38, 0);
+    pointer-events: none;
+
+    transition: background-color 0.25s ease;
+  }
+
+  .overlayVisible {
+    background-color: rgba(45, 42, 38, 0.18);
+    pointer-events: auto;
   }
 }

@@ -20,6 +20,7 @@ export function Footer() {
             <a href="#booking">Запись</a>
             <a href="#contacts">Контакты</a>
             <a href="#faq">FAQ</a>
+            <a href="#privacy">Конфиденциальность</a>
           </div>
 
           <div className={styles.contacts}>
