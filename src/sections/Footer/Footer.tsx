@@ -1,4 +1,7 @@
 import { Container } from "../../components/Container/Container";
+import { config } from "../../data/config";
+import { content } from "../../data/content";
+import { profile } from "../../data/profile";
 import styles from "./Footer.module.css";
 
 export function Footer() {
@@ -7,10 +10,8 @@ export function Footer() {
       <Container>
         <div className={styles.wrapper}>
           <div className={styles.main}>
-            <h2 className={styles.name}>Александр Дударин</h2>
-            <p className={styles.subtitle}>
-              Психолог, онлайн-консультации
-            </p>
+            <h2 className={styles.name}>{profile.fullName}</h2>
+            <p className={styles.subtitle}>{profile.role}</p>
           </div>
 
           <div className={styles.links}>
@@ -24,16 +25,19 @@ export function Footer() {
           </div>
 
           <div className={styles.contacts}>
-            <a href="tel:+79185555555">+7 918 555-55-55</a>
-            <a href="https://t.me/Dudarin23" target="_blank" rel="noreferrer">
-              @Dudarin23
+            <a href={config.phoneHref}>{config.phone}</a>
+            <a href={config.telegramHref} target="_blank" rel="noreferrer">
+              {config.telegramUsername}
             </a>
           </div>
         </div>
 
         <div className={styles.bottom}>
-          <p>© {new Date().getFullYear()} Александр Дударин. Все права защищены.</p>
-          <p>Информация на сайте носит информационный характер.</p>
+          <p>
+            © {new Date().getFullYear()} {profile.fullName}.{" "}
+            {content.footer.copyright}
+          </p>
+          <p>{content.footer.note}</p>
         </div>
       </Container>
     </footer>

@@ -1,28 +1,28 @@
+import heroImage from "../../assets/images/hero.png";
+import { Phone, Send } from "lucide-react";
 import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
-import heroImage from "../../assets/images/psychologist.jpg";
+import { content } from "../../data/content";
+import { config } from "../../data/config";
+import { profile } from "../../data/profile";
 import styles from "./Hero.module.css";
-import { Phone, Send } from "lucide-react";
 
 export function Hero() {
   return (
-    <section className={`${styles.section} section`}>
+    <section className={styles.hero}>
       <Container>
         <div className={styles.grid}>
           <div className={styles.content}>
-            <p className={styles.eyebrow}>Психолог · Онлайн-консультации</p>
+            <p className={styles.eyebrow}>{content.hero.eyebrow}</p>
 
-            <h1 className={styles.title}>Александр Дударин</h1>
+            <h1 className={styles.title}>{content.hero.title}</h1>
 
-            <p className={styles.description}>
-              Помогаю глубже понять себя, снизить тревогу и выстроить более
-              устойчивые и здоровые отношения.
-            </p>
+            <p className={styles.description}>{content.hero.description}</p>
 
             <div className={styles.tags}>
-              <span>Семейные отношения</span>
-              <span>Работа с тревогой</span>
-              <span>РПП</span>
+              {content.hero.tags.map((tag) => (
+                <span key={tag}>{tag}</span>
+              ))}
             </div>
 
             <div className={styles.actions}>
@@ -30,12 +30,17 @@ export function Hero() {
                 Записаться
               </Button>
 
-              <Button variant="secondary" href="https://t.me/Dudarin23">
+              <Button
+                variant="secondary"
+                href={config.telegramHref}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <Send size={16} />
                 Написать в Telegram
               </Button>
 
-              <Button variant="outline" href="tel:+79185555555">
+              <Button variant="outline" href={config.phoneHref}>
                 <Phone size={16} />
                 Позвонить
               </Button>
@@ -47,7 +52,7 @@ export function Hero() {
               <img
                 className={styles.image}
                 src={heroImage}
-                alt="Александр Дударин, психолог"
+                alt={profile.imageAlt}
               />
             </div>
           </div>

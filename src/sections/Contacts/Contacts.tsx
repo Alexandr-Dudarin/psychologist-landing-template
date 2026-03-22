@@ -1,8 +1,10 @@
+import { Phone, Send } from "lucide-react";
 import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
+import { config } from "../../data/config";
+import { content } from "../../data/content";
 import styles from "./Contacts.module.css";
-import { Phone, Send } from "lucide-react";
 
 export function Contacts() {
   return (
@@ -11,24 +13,26 @@ export function Contacts() {
         <div className={styles.wrapper}>
           <div className={styles.left}>
             <SectionTitle
-              eyebrow="Контакты"
-              title="Выберите удобный способ связи"
-              description="Вы можете записаться через форму, написать в Telegram или позвонить."
+              eyebrow={content.contacts.eyebrow}
+              title={content.contacts.title}
+              description={content.contacts.description}
             />
           </div>
 
           <div className={styles.right}>
             <div className={styles.buttons}>
               <Button
-                href="https://t.me/Dudarin23"
+                href={config.telegramHref}
                 variant="primary"
                 target="_blank"
                 rel="noreferrer"
               >
+                <Send size={16} />
                 Написать в Telegram
               </Button>
 
-              <Button href="tel:+79185555555" variant="secondary">
+              <Button href={config.phoneHref} variant="secondary">
+                <Phone size={16} />
                 Позвонить
               </Button>
             </div>
@@ -36,28 +40,30 @@ export function Contacts() {
             <div className={styles.info}>
               <div className={styles.item}>
                 <span className={styles.label}>Телефон</span>
-                <a href="tel:+79185555555" className={styles.contactItem}>
+                <a href={config.phoneHref} className={styles.contactItem}>
                   <Phone size={18} />
-                  <span className={styles.linkText}>+7 918 555-55-55</span>
+                  <span className={styles.linkText}>{config.phone}</span>
                 </a>
               </div>
 
               <div className={styles.item}>
                 <span className={styles.label}>Telegram</span>
                 <a
-                  href="https://t.me/Dudarin23"
+                  href={config.telegramHref}
                   className={styles.contactItem}
                   target="_blank"
                   rel="noreferrer"
                 >
                   <Send size={18} />
-                  <span className={styles.linkText}>@Dudarin23</span>
+                  <span className={styles.linkText}>
+                    {config.telegramUsername}
+                  </span>
                 </a>
               </div>
 
               <div className={styles.item}>
                 <span className={styles.label}>Формат</span>
-                <span className={styles.text}>Онлайн-консультации</span>
+                <span className={styles.text}>{content.contacts.format}</span>
               </div>
             </div>
           </div>
