@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { Button } from "../../components/Button/Button";
+import { content } from "../../data/content";
 import styles from "./Booking.module.css";
 
 type FormData = {
@@ -33,27 +34,29 @@ export function Booking() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const booking = content.booking;
+
   const validate = () => {
     const newErrors: Errors = {};
 
     if (!form.name.trim()) {
-      newErrors.name = "Введите имя";
+      newErrors.name = booking.messages.nameError;
     }
 
     if (!form.phone.trim()) {
-      newErrors.phone = "Введите телефон";
+      newErrors.phone = booking.messages.phoneEmptyError;
     } else if (form.phone.replace(/\D/g, "").length < 10) {
-      newErrors.phone = "Введите корректный телефон";
+      newErrors.phone = booking.messages.phoneInvalidError;
     }
 
     if (!form.email.trim()) {
-      newErrors.email = "Введите email";
+      newErrors.email = booking.messages.emailEmptyError;
     } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-      newErrors.email = "Введите корректный email";
+      newErrors.email = booking.messages.emailInvalidError;
     }
 
     if (!form.consent) {
-      newErrors.consent = "Необходимо согласие на обработку персональных данных";
+      newErrors.consent = booking.messages.consentError;
     }
 
     return newErrors;
@@ -116,7 +119,7 @@ export function Booking() {
       });
       setErrors({});
     } catch (error) {
-      setSubmitError("Не удалось отправить заявку. Попробуйте позже.");
+      setSubmitError(booking.messages.error);
     } finally {
       setIsSubmitting(false);
     }
@@ -128,60 +131,58 @@ export function Booking() {
         <div className={styles.wrapper}>
           <div className={styles.content}>
             <SectionTitle
-              eyebrow="Запись"
-              title="Запишитесь на консультацию"
-              description="Оставьте заявку, и я свяжусь с вами в ближайшее время."
+              eyebrow={booking.eyebrow}
+              title={booking.title}
+              description={booking.description}
             />
 
-            <div className={styles.note}>
-              Вы можете кратко описать свой запрос, и я помогу подобрать удобный формат работы.
-            </div>
+            <div className={styles.note}>{booking.note}</div>
           </div>
 
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.field}>
-              <label htmlFor="name">Имя</label>
+              <label htmlFor="name">{booking.fields.name}</label>
               <input
                 id="name"
                 type="text"
                 value={form.name}
                 onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="Ваше имя"
+                placeholder={booking.placeholders.name}
               />
               {errors.name && <span className={styles.error}>{errors.name}</span>}
             </div>
 
             <div className={styles.field}>
-              <label htmlFor="phone">Телефон</label>
+              <label htmlFor="phone">{booking.fields.phone}</label>
               <input
                 id="phone"
                 type="tel"
                 value={form.phone}
                 onChange={(e) => handleChange("phone", e.target.value)}
-                placeholder="+7 (___) ___-__-__"
+                placeholder={booking.placeholders.phone}
               />
               {errors.phone && <span className={styles.error}>{errors.phone}</span>}
             </div>
 
             <div className={styles.field}>
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email">{booking.fields.email}</label>
               <input
                 id="email"
                 type="email"
                 value={form.email}
                 onChange={(e) => handleChange("email", e.target.value)}
-                placeholder="example@mail.com"
+                placeholder={booking.placeholders.email}
               />
               {errors.email && <span className={styles.error}>{errors.email}</span>}
             </div>
 
             <div className={`${styles.field} ${styles.fullWidth}`}>
-              <label htmlFor="message">Сообщение</label>
+              <label htmlFor="message">{booking.fields.message}</label>
               <textarea
                 id="message"
                 value={form.message}
                 onChange={(e) => handleChange("message", e.target.value)}
-                placeholder="Коротко опишите ваш запрос"
+                placeholder={booking.placeholders.message}
               />
             </div>
 
@@ -193,7 +194,7 @@ export function Booking() {
                   onChange={(e) => handleChange("consent", e.target.checked)}
                 />
                 <span>
-                  Я соглашаюсь на обработку персональных данных и принимаю{" "}
+                  {booking.fields.consent}{" "}
                   <a href="#privacy" className={styles.policyLink}>
                     политику конфиденциальности
                   </a>
@@ -206,7 +207,9 @@ export function Booking() {
 
             <div className={styles.actions}>
               <Button type="submit" variant="primary" fullWidth disabled={isSubmitting}>
-                {isSubmitting ? "Отправка..." : "Отправить заявку"}
+                {isSubmitting
+                  ? booking.buttons.loading
+                  : booking.buttons.idle}
               </Button>
             </div>
 
@@ -215,9 +218,7 @@ export function Booking() {
             )}
 
             {isSuccess && (
-              <div className={styles.success}>
-                Спасибо! Ваша заявка отправлена.
-              </div>
+              <div className={styles.success}>{booking.messages.success}</div>
             )}
           </form>
         </div>
