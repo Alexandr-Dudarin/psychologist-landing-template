@@ -1,5 +1,6 @@
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
+import { content } from "../../data/content";
 import styles from "./Privacy.module.css";
 
 export function Privacy() {
@@ -7,33 +8,15 @@ export function Privacy() {
     <section id="privacy" className={`${styles.section} section`}>
       <Container>
         <SectionTitle
-          eyebrow="Конфиденциальность"
-          title="Политика конфиденциальности"
-          description="Краткая информация о том, как обрабатываются данные, оставленные через форму на сайте."
+          eyebrow={content.privacy.eyebrow}
+          title={content.privacy.title}
+          description={content.privacy.description}
         />
 
         <div className={styles.content}>
-          <p>
-            При заполнении формы на сайте пользователь добровольно предоставляет
-            свои персональные данные, включая имя, телефон, адрес электронной почты
-            и иную информацию, указанную в сообщении.
-          </p>
-
-          <p>
-            Эти данные используются исключительно для связи с пользователем,
-            обработки заявки и согласования консультации.
-          </p>
-
-          <p>
-            Персональные данные не передаются третьим лицам, за исключением случаев,
-            когда это необходимо для технической работы сервисов отправки сообщений
-            и писем, используемых на сайте.
-          </p>
-
-          <p>
-            Отправляя форму на сайте, пользователь подтверждает согласие на
-            обработку персональных данных в указанных целях.
-          </p>
+          {content.privacy.paragraphs.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
         </div>
       </Container>
     </section>

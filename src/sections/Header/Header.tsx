@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Container } from "../../components/Container/Container";
 import { Button } from "../../components/Button/Button";
+import { profile } from "../../data/profile";
 import styles from "./Header.module.css";
 
 const navItems = [
@@ -46,7 +47,8 @@ export function Header() {
 
   useEffect(() => {
     const body = document.body;
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
 
     if (isOpen) {
       body.style.overflow = "hidden";
@@ -68,7 +70,7 @@ export function Header() {
         <Container>
           <div className={styles.row}>
             <a href="#top" className={styles.logo} onClick={handleCloseMenu}>
-              Александр Дударин
+              {profile.fullName}
             </a>
 
             <nav className={styles.nav}>
@@ -103,11 +105,7 @@ export function Header() {
           >
             <nav className={styles.mobileNav}>
               {navItems.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  onClick={handleCloseMenu}
-                >
+                <a key={item.href} href={item.href} onClick={handleCloseMenu}>
                   {item.label}
                 </a>
               ))}
