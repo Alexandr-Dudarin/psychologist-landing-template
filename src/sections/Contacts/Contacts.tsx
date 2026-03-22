@@ -38,7 +38,7 @@ export function Contacts() {
                 <span className={styles.label}>Телефон</span>
                 <a href="tel:+79185555555" className={styles.contactItem}>
                   <Phone size={18} />
-                  <span className={styles.linkText}>+7 918 241-30-95</span>
+                  <span className={styles.linkText}>+7 918 555-55-55</span>
                 </a>
               </div>
 

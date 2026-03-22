@@ -24,7 +24,7 @@ export function Footer() {
           </div>
 
           <div className={styles.contacts}>
-            <a href="tel:+79185555555">+7 918 241-30-95</a>
+            <a href="tel:+79185555555">+7 918 555-55-55</a>
             <a href="https://t.me/Dudarin23" target="_blank" rel="noreferrer">
               @Dudarin23
             </a>
