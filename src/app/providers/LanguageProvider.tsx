@@ -36,22 +36,38 @@ function updateCanonical(href: string) {
   }
 }
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-
-    if (saved === "ru" || saved === "en") {
-      return saved;
-    }
-
+function getInitialLanguage(): Language {
+  if (!siteSettings.showLanguageSwitcher) {
     return siteSettings.defaultLanguage;
-  });
+  }
+
+  const saved = localStorage.getItem(STORAGE_KEY);
+
+  if (saved === "ru" || saved === "en") {
+    return saved;
+  }
+
+  return siteSettings.defaultLanguage;
+}
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [language, setLanguageState] = useState<Language>(getInitialLanguage);
 
   const setLanguage = (nextLanguage: Language) => {
+    if (!siteSettings.showLanguageSwitcher) {
+      setLanguageState(siteSettings.defaultLanguage);
+      return;
+    }
+
     setLanguageState(nextLanguage);
   };
 
   useEffect(() => {
+    if (!siteSettings.showLanguageSwitcher && language !== siteSettings.defaultLanguage) {
+      setLanguageState(siteSettings.defaultLanguage);
+      return;
+    }
+
     localStorage.setItem(STORAGE_KEY, language);
 
     const currentSeo = locales[language].seo;

@@ -9,7 +9,7 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const headerRef = useRef<HTMLElement | null>(null);
 
-  const { t, language, setLanguage } = useLanguage();
+  const { t, language, setLanguage, showLanguageSwitcher } = useLanguage();
   const { profile, ui } = t;
 
   const handleToggleMenu = () => {
@@ -75,27 +75,29 @@ export function Header() {
             </nav>
 
             <div className={styles.actions}>
-              <div className={styles.langSwitcher}>
-                <button
-                  type="button"
-                  className={`${styles.langButton} ${
-                    language === "ru" ? styles.langButtonActive : ""
-                  }`}
-                  onClick={() => setLanguage("ru")}
-                >
-                  {ui.language.ru}
-                </button>
+              {showLanguageSwitcher && (
+                <div className={styles.langSwitcher}>
+                  <button
+                    type="button"
+                    className={`${styles.langButton} ${
+                      language === "ru" ? styles.langButtonActive : ""
+                    }`}
+                    onClick={() => setLanguage("ru")}
+                  >
+                    {ui.language.ru}
+                  </button>
 
-                <button
-                  type="button"
-                  className={`${styles.langButton} ${
-                    language === "en" ? styles.langButtonActive : ""
-                  }`}
-                  onClick={() => setLanguage("en")}
-                >
-                  {ui.language.en}
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    className={`${styles.langButton} ${
+                      language === "en" ? styles.langButtonActive : ""
+                    }`}
+                    onClick={() => setLanguage("en")}
+                  >
+                    {ui.language.en}
+                  </button>
+                </div>
+              )}
 
               <Button href="#booking" variant="primary">
                 {ui.buttons.book}
@@ -126,27 +128,29 @@ export function Header() {
               ))}
             </nav>
 
-            <div className={styles.mobileLangSwitcher}>
-              <button
-                type="button"
-                className={`${styles.langButton} ${
-                  language === "ru" ? styles.langButtonActive : ""
-                }`}
-                onClick={() => setLanguage("ru")}
-              >
-                {ui.language.ru}
-              </button>
+            {showLanguageSwitcher && (
+              <div className={styles.mobileLangSwitcher}>
+                <button
+                  type="button"
+                  className={`${styles.langButton} ${
+                    language === "ru" ? styles.langButtonActive : ""
+                  }`}
+                  onClick={() => setLanguage("ru")}
+                >
+                  {ui.language.ru}
+                </button>
 
-              <button
-                type="button"
-                className={`${styles.langButton} ${
-                  language === "en" ? styles.langButtonActive : ""
-                }`}
-                onClick={() => setLanguage("en")}
-              >
-                {ui.language.en}
-              </button>
-            </div>
+                <button
+                  type="button"
+                  className={`${styles.langButton} ${
+                    language === "en" ? styles.langButtonActive : ""
+                  }`}
+                  onClick={() => setLanguage("en")}
+                >
+                  {ui.language.en}
+                </button>
+              </div>
+            )}
 
             <Button href="#booking" variant="primary" fullWidth>
               {ui.buttons.book}
