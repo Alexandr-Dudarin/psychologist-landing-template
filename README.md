@@ -1,73 +1,221 @@
-# React + TypeScript + Vite
+# Psychologist Landing Template
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A reusable commercial landing page template for psychologists and other private practice specialists.
 
-Currently, two official plugins are available:
+Built with **React + Vite + TypeScript**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Live Demo
 
-## React Compiler
+Add your deployed link here:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+`https://psychologist-landing-template.vercel.app/`
 
-## Expanding the ESLint configuration
+## Repository
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+`https://github.com/Alexandr-Dudarin/psychologist-landing-template`
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Overview
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+This project is a reusable landing page template designed for psychologists, consultants, and other service-based professionals.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+It includes a clean responsive layout, configurable content structure, lead form integration, SEO setup, Open Graph preview support, and optional bilingual mode.
+
+The template can be adapted for real client work by updating content files, profile data, SEO settings, media assets, and form delivery settings.
+
+## Key Highlights
+
+- Built as a reusable template for real client projects
+- Supports optional bilingual mode without duplicating the codebase
+- Includes production-oriented form handling with Telegram and email delivery
+- Configurable through centralized data files
+- Prepared for Vercel deployment and social preview sharing
+
+## Features
+
+- Responsive commercial landing page
+- Reusable template structure
+- Hero / About / Education / Pricing / Booking / Contacts / FAQ / Privacy / Footer
+- Burger menu with overlay and outside click close
+- Shared button component
+- Config-driven content
+- SEO meta tags
+- Open Graph / social preview support
+- Favicon support
+- Form validation
+- Lead form submission via `/api/send`
+- Telegram Bot API integration
+- Email delivery via Resend
+- Optional bilingual support (`RU / EN`)
+- Language switcher can be turned on or off through settings
+
+## Tech Stack
+
+- React
+- Vite
+- TypeScript
+- CSS Modules
+- Vercel Serverless Functions
+- Telegram Bot API
+- Resend
+
+## Project Structure
+
+```text
+src/
+  app/
+  assets/
+  components/
+  data/
+    config.ts
+    config.en.ts
+    content.ts
+    content.en.ts
+    profile.ts
+    profile.en.ts
+    seo.ts
+    seo.en.ts
+    i18n.ts
+    siteSettings.ts
+  sections/
+api/
+public/
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Configuration
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Main client-facing content is stored in data files:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- `src/data/profile.ts`
+- `src/data/content.ts`
+- `src/data/config.ts`
+- `src/data/seo.ts`
+
+English content can be configured separately in:
+
+- `src/data/profile.en.ts`
+- `src/data/content.en.ts`
+- `src/data/config.en.ts`
+- `src/data/seo.en.ts`
+
+Language switcher settings:
+
+- `src/data/siteSettings.ts`
+
+Example:
+
+```ts
+export const siteSettings = {
+  defaultLanguage: "ru" as const,
+  showLanguageSwitcher: true,
+};
 ```
+
+Set `showLanguageSwitcher: false` if the client does not need multilingual support.
+
+## Form Handling
+
+The contact form sends requests through:
+
+- `api/send.ts`
+
+Delivery flow:
+
+- Telegram notification via bot
+- Email delivery via Resend
+
+Current logic:
+
+- if Telegram fails, the form does not break
+- if email fails, submission is treated as unsuccessful
+
+## Environment Variables
+
+Example variables:
+
+```env
+TELEGRAM_TOKEN=your_telegram_bot_token
+TELEGRAM_CHAT_ID=your_telegram_chat_id
+OWNER_EMAIL=your_email@example.com
+RESEND_API_KEY=your_resend_api_key
+```
+
+## Open Graph / Social Preview
+
+This project includes:
+
+- Open Graph meta tags
+- Twitter card meta tags
+- custom preview image
+
+Preview image file:
+
+- `public/og-v2.jpg`
+
+Recommended size:
+
+- `1200 x 630`
+
+## Local Development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start development server:
+
+```bash
+npm run dev
+```
+
+## Production Build
+
+```bash
+npm run build
+```
+
+## Deployment
+
+This project is designed to be deployed on **Vercel**.
+
+Recommended deployment flow:
+
+- push repository to GitHub
+- import project into Vercel
+- configure environment variables
+- deploy
+- verify Open Graph preview
+- test form delivery
+
+## Reuse for Client Projects
+
+To adapt this template for a new client, update:
+
+- profile data
+- site content
+- pricing and contact info
+- SEO settings
+- hero image
+- Open Graph image
+- Telegram / email delivery settings
+
+## Why I built this
+
+This project was created as a reusable commercial template for real client work.
+
+The goal was to build a flexible and production-ready landing page that can be quickly adapted for specialists such as psychologists, while still keeping the architecture clean and scalable.
+
+## Future Improvements
+
+- Dark theme
+- More flexible theme customization
+- Better multi-page SEO support
+- Optional CMS/content editing workflow
+- More reusable templates for other expert niches
+
+## Author
+
+Alexander Dudarin
+
+GitHub: https://github.com/Alexandr-Dudarin

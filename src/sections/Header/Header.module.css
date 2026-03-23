@@ -99,7 +99,6 @@
   transform: rotate(90deg);
 }
 
-/* По умолчанию скрыто */
 .mobileMenu {
   display: none;
 }
@@ -137,11 +136,10 @@
     z-index: 32;
   }
 
-  /* 🔥 ВАЖНО: меню теперь абсолютное → не двигает страницу */
   .mobileMenu {
     display: block;
     position: absolute;
-    top: calc(100% + 12px);
+    top: 100%;
     left: 0;
     right: 0;
     z-index: 32;
@@ -151,7 +149,7 @@
     opacity: 0;
     overflow: hidden;
 
-    transform: translateY(-8px);
+    transform: translateY(0);
 
     border: 1px solid transparent;
     border-radius: 24px;
