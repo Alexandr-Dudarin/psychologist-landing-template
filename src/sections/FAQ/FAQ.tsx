@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
-import { content } from "../../data/content";
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import styles from "./FAQ.module.css";
 
 export function FAQ() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const { t } = useLanguage();
+  const { content } = t;
 
   const toggle = (index: number) => {
     setActiveIndex((prev) => (prev === index ? null : index));
@@ -30,8 +32,10 @@ export function FAQ() {
                 className={`${styles.card} ${isOpen ? styles.open : ""}`}
               >
                 <button
+                  type="button"
                   className={styles.question}
                   onClick={() => toggle(index)}
+                  aria-expanded={isOpen}
                 >
                   {item.question}
                   <span className={styles.icon}>{isOpen ? "−" : "+"}</span>

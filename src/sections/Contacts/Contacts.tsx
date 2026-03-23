@@ -2,11 +2,17 @@ import { Phone, Send } from "lucide-react";
 import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
-import { config } from "../../data/config";
-import { content } from "../../data/content";
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import styles from "./Contacts.module.css";
 
 export function Contacts() {
+  const { t, language } = useLanguage();
+  const { config, content, ui } = t;
+
+  const phoneLabel = language === "ru" ? "Телефон" : "Phone";
+  const telegramLabel = "Telegram";
+  const formatLabel = language === "ru" ? "Формат" : "Format";
+
   return (
     <section id="contacts" className={`${styles.section} section`}>
       <Container>
@@ -28,18 +34,18 @@ export function Contacts() {
                 rel="noreferrer"
               >
                 <Send size={16} />
-                Написать в Telegram
+                {ui.buttons.writeTelegram}
               </Button>
 
               <Button href={config.phoneHref} variant="secondary">
                 <Phone size={16} />
-                Позвонить
+                {ui.buttons.call}
               </Button>
             </div>
 
             <div className={styles.info}>
               <div className={styles.item}>
-                <span className={styles.label}>Телефон</span>
+                <span className={styles.label}>{phoneLabel}</span>
                 <a href={config.phoneHref} className={styles.contactItem}>
                   <Phone size={18} />
                   <span className={styles.linkText}>{config.phone}</span>
@@ -47,7 +53,7 @@ export function Contacts() {
               </div>
 
               <div className={styles.item}>
-                <span className={styles.label}>Telegram</span>
+                <span className={styles.label}>{telegramLabel}</span>
                 <a
                   href={config.telegramHref}
                   className={styles.contactItem}
@@ -62,7 +68,7 @@ export function Contacts() {
               </div>
 
               <div className={styles.item}>
-                <span className={styles.label}>Формат</span>
+                <span className={styles.label}>{formatLabel}</span>
                 <span className={styles.text}>{content.contacts.format}</span>
               </div>
             </div>

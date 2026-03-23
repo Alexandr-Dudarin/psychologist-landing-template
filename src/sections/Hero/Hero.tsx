@@ -2,12 +2,13 @@ import heroImage from "../../assets/images/hero.jpg";
 import { Phone, Send } from "lucide-react";
 import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
-import { content } from "../../data/content";
-import { config } from "../../data/config";
-import { profile } from "../../data/profile";
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import styles from "./Hero.module.css";
 
 export function Hero() {
+  const { t } = useLanguage();
+  const { content, config, profile, ui } = t;
+
   return (
     <section className={styles.hero}>
       <Container>
@@ -27,7 +28,7 @@ export function Hero() {
 
             <div className={styles.actions}>
               <Button variant="primary" href="#booking">
-                Записаться
+                {ui.buttons.book}
               </Button>
 
               <Button
@@ -37,12 +38,12 @@ export function Hero() {
                 rel="noreferrer"
               >
                 <Send size={16} />
-                Написать в Telegram
+                {ui.buttons.writeTelegram}
               </Button>
 
               <Button variant="outline" href={config.phoneHref}>
                 <Phone size={16} />
-                Позвонить
+                {ui.buttons.call}
               </Button>
             </div>
           </div>

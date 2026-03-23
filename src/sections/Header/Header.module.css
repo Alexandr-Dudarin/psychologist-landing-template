@@ -47,6 +47,27 @@
   gap: 12px;
 }
 
+.langSwitcher,
+.mobileLangSwitcher {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.langButton {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: inherit;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.langButtonActive {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .burger {
   display: none;
   width: 46px;

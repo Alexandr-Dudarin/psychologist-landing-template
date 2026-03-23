@@ -1,9 +1,12 @@
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
-import { content } from "../../data/content";
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import styles from "./About.module.css";
 
 export function About() {
+  const { t } = useLanguage();
+  const { content } = t;
+
   return (
     <section id="about" className={`${styles.section} section`}>
       <Container>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { Button } from "../../components/Button/Button";
-import { content } from "../../data/content";
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import styles from "./Booking.module.css";
 
 type FormData = {
@@ -21,6 +21,10 @@ type Errors = {
 };
 
 export function Booking() {
+  const { t } = useLanguage();
+  const { content, ui } = t;
+  const booking = content.booking;
+
   const [form, setForm] = useState<FormData>({
     name: "",
     phone: "",
@@ -33,8 +37,6 @@ export function Booking() {
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-
-  const booking = content.booking;
 
   const validate = () => {
     const newErrors: Errors = {};
@@ -118,7 +120,7 @@ export function Booking() {
         consent: false,
       });
       setErrors({});
-    } catch (error) {
+    } catch {
       setSubmitError(booking.messages.error);
     } finally {
       setIsSubmitting(false);
@@ -196,7 +198,7 @@ export function Booking() {
                 <span>
                   {booking.fields.consent}{" "}
                   <a href="#privacy" className={styles.policyLink}>
-                    политику конфиденциальности
+                    {ui.booking.privacyLinkText}
                   </a>
                 </span>
               </label>
@@ -207,9 +209,7 @@ export function Booking() {
 
             <div className={styles.actions}>
               <Button type="submit" variant="primary" fullWidth disabled={isSubmitting}>
-                {isSubmitting
-                  ? booking.buttons.loading
-                  : booking.buttons.idle}
+                {isSubmitting ? booking.buttons.loading : booking.buttons.idle}
               </Button>
             </div>
 

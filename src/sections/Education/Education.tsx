@@ -1,9 +1,12 @@
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
-import { content } from "../../data/content";
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import styles from "./Education.module.css";
 
 export function Education() {
+  const { t } = useLanguage();
+  const { content } = t;
+
   return (
     <section id="education" className={`${styles.section} section`}>
       <Container>

@@ -1,10 +1,11 @@
 import { Container } from "../../components/Container/Container";
-import { config } from "../../data/config";
-import { content } from "../../data/content";
-import { profile } from "../../data/profile";
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import styles from "./Footer.module.css";
 
 export function Footer() {
+  const { t } = useLanguage();
+  const { config, content, profile, ui } = t;
+
   return (
     <footer className={styles.footer}>
       <Container>
@@ -15,13 +16,11 @@ export function Footer() {
           </div>
 
           <div className={styles.links}>
-            <a href="#about">Обо мне</a>
-            <a href="#education">Образование</a>
-            <a href="#pricing">Стоимость</a>
-            <a href="#booking">Запись</a>
-            <a href="#contacts">Контакты</a>
-            <a href="#faq">FAQ</a>
-            <a href="#privacy">Конфиденциальность</a>
+            {ui.navItems.map((item) => (
+              <a key={item.href} href={item.href}>
+                {item.label}
+              </a>
+            ))}
           </div>
 
           <div className={styles.contacts}>

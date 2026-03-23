@@ -2,22 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Container } from "../../components/Container/Container";
 import { Button } from "../../components/Button/Button";
-import { profile } from "../../data/profile";
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import styles from "./Header.module.css";
-
-const navItems = [
-  { href: "#about", label: "Обо мне" },
-  { href: "#education", label: "Образование" },
-  { href: "#pricing", label: "Стоимость" },
-  { href: "#booking", label: "Запись" },
-  { href: "#contacts", label: "Контакты" },
-  { href: "#faq", label: "FAQ" },
-  { href: "#privacy", label: "Конфиденциальность" },
-];
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const headerRef = useRef<HTMLElement | null>(null);
+
+  const { t, language, setLanguage } = useLanguage();
+  const { profile, ui } = t;
 
   const handleToggleMenu = () => {
     setIsOpen((prev) => !prev);
@@ -74,7 +67,7 @@ export function Header() {
             </a>
 
             <nav className={styles.nav}>
-              {navItems.map((item) => (
+              {ui.navItems.map((item) => (
                 <a key={item.href} href={item.href}>
                   {item.label}
                 </a>
@@ -82,15 +75,37 @@ export function Header() {
             </nav>
 
             <div className={styles.actions}>
+              <div className={styles.langSwitcher}>
+                <button
+                  type="button"
+                  className={`${styles.langButton} ${
+                    language === "ru" ? styles.langButtonActive : ""
+                  }`}
+                  onClick={() => setLanguage("ru")}
+                >
+                  {ui.language.ru}
+                </button>
+
+                <button
+                  type="button"
+                  className={`${styles.langButton} ${
+                    language === "en" ? styles.langButtonActive : ""
+                  }`}
+                  onClick={() => setLanguage("en")}
+                >
+                  {ui.language.en}
+                </button>
+              </div>
+
               <Button href="#booking" variant="primary">
-                Записаться
+                {ui.buttons.book}
               </Button>
 
               <button
                 type="button"
                 className={`${styles.burger} ${isOpen ? styles.burgerOpen : ""}`}
                 onClick={handleToggleMenu}
-                aria-label={isOpen ? "Закрыть меню" : "Открыть меню"}
+                aria-label={isOpen ? ui.header.closeMenu : ui.header.openMenu}
                 aria-expanded={isOpen}
               >
                 <span className={styles.burgerIcon}>
@@ -104,15 +119,37 @@ export function Header() {
             className={`${styles.mobileMenu} ${isOpen ? styles.mobileMenuOpen : ""}`}
           >
             <nav className={styles.mobileNav}>
-              {navItems.map((item) => (
+              {ui.navItems.map((item) => (
                 <a key={item.href} href={item.href} onClick={handleCloseMenu}>
                   {item.label}
                 </a>
               ))}
             </nav>
 
+            <div className={styles.mobileLangSwitcher}>
+              <button
+                type="button"
+                className={`${styles.langButton} ${
+                  language === "ru" ? styles.langButtonActive : ""
+                }`}
+                onClick={() => setLanguage("ru")}
+              >
+                {ui.language.ru}
+              </button>
+
+              <button
+                type="button"
+                className={`${styles.langButton} ${
+                  language === "en" ? styles.langButtonActive : ""
+                }`}
+                onClick={() => setLanguage("en")}
+              >
+                {ui.language.en}
+              </button>
+            </div>
+
             <Button href="#booking" variant="primary" fullWidth>
-              Записаться
+              {ui.buttons.book}
             </Button>
           </div>
         </Container>

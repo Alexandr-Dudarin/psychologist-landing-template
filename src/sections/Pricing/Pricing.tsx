@@ -1,11 +1,13 @@
 import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
-import { config } from "../../data/config";
-import { content } from "../../data/content";
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import styles from "./Pricing.module.css";
 
 export function Pricing() {
+  const { t } = useLanguage();
+  const { config, content, ui } = t;
+
   return (
     <section id="pricing" className={`${styles.section} section`}>
       <Container>
@@ -33,7 +35,7 @@ export function Pricing() {
                 variant={item.featured ? "primary" : "secondary"}
                 fullWidth
               >
-                Записаться
+                {ui.buttons.book}
               </Button>
             </article>
           ))}
