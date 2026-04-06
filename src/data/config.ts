@@ -5,6 +5,21 @@ export const config = {
   telegramHref: "https://t.me/Dudarin23",
   email: "hello@example.com",
 
+  analytics: {
+    provider: "yandex-metrika",
+    counterId: 12345678,
+    goals: {
+      formStart: "form_start",
+      formSubmit: "form_submit",
+      telegramClick: "telegram_click",
+      phoneClick: "phone_click",
+      scroll25: "scroll_25",
+      scroll50: "scroll_50",
+      scroll75: "scroll_75",
+      scroll100: "scroll_100",
+    },
+  },
+
   pricing: [
     {
       title: "Первичная консультация",

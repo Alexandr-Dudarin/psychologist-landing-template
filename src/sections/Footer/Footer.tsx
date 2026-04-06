@@ -1,5 +1,6 @@
 import { Container } from "../../components/Container/Container";
 import { useLanguage } from "../../app/providers/LanguageProvider";
+import { trackPhoneClick, trackTelegramClick } from "../../lib/analytics/trackers";
 import styles from "./Footer.module.css";
 
 export function Footer() {
@@ -24,8 +25,16 @@ export function Footer() {
           </div>
 
           <div className={styles.contacts}>
-            <a href={config.phoneHref}>{config.phone}</a>
-            <a href={config.telegramHref} target="_blank" rel="noreferrer">
+            <a href={config.phoneHref} onClick={trackPhoneClick}>
+              {config.phone}
+            </a>
+
+            <a
+              href={config.telegramHref}
+              target="_blank"
+              rel="noreferrer"
+              onClick={trackTelegramClick}
+            >
               {config.telegramUsername}
             </a>
           </div>

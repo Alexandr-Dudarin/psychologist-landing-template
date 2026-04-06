@@ -4,4 +4,8 @@ export const siteSettings = {
 
   defaultTheme: "light" as const,
   showThemeSwitcher: true,
+
+  analytics: {
+    enabled: false,
+  },
 };

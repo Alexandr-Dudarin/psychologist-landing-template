@@ -3,6 +3,7 @@ import { Phone, Send } from "lucide-react";
 import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import { useLanguage } from "../../app/providers/LanguageProvider";
+import { trackPhoneClick, trackTelegramClick } from "../../lib/analytics/trackers";
 import styles from "./Hero.module.css";
 
 export function Hero() {
@@ -36,12 +37,17 @@ export function Hero() {
                 href={config.telegramHref}
                 target="_blank"
                 rel="noreferrer"
+                onClick={trackTelegramClick}
               >
                 <Send size={16} />
                 {ui.buttons.writeTelegram}
               </Button>
 
-              <Button variant="outline" href={config.phoneHref}>
+              <Button
+                variant="outline"
+                href={config.phoneHref}
+                onClick={trackPhoneClick}
+              >
                 <Phone size={16} />
                 {ui.buttons.call}
               </Button>

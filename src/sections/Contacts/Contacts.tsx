@@ -3,6 +3,7 @@ import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { useLanguage } from "../../app/providers/LanguageProvider";
+import { trackPhoneClick, trackTelegramClick } from "../../lib/analytics/trackers";
 import styles from "./Contacts.module.css";
 
 export function Contacts() {
@@ -32,12 +33,17 @@ export function Contacts() {
                 variant="primary"
                 target="_blank"
                 rel="noreferrer"
+                onClick={trackTelegramClick}
               >
                 <Send size={16} />
                 {ui.buttons.writeTelegram}
               </Button>
 
-              <Button href={config.phoneHref} variant="secondary">
+              <Button
+                href={config.phoneHref}
+                variant="secondary"
+                onClick={trackPhoneClick}
+              >
                 <Phone size={16} />
                 {ui.buttons.call}
               </Button>
@@ -46,7 +52,11 @@ export function Contacts() {
             <div className={styles.info}>
               <div className={styles.item}>
                 <span className={styles.label}>{phoneLabel}</span>
-                <a href={config.phoneHref} className={styles.contactItem}>
+                <a
+                  href={config.phoneHref}
+                  className={styles.contactItem}
+                  onClick={trackPhoneClick}
+                >
                   <Phone size={18} />
                   <span className={styles.linkText}>{config.phone}</span>
                 </a>
@@ -59,6 +69,7 @@ export function Contacts() {
                   className={styles.contactItem}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={trackTelegramClick}
                 >
                   <Send size={18} />
                   <span className={styles.linkText}>

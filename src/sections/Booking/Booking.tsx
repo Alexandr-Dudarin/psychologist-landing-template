@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { Button } from "../../components/Button/Button";
 import { useLanguage } from "../../app/providers/LanguageProvider";
+import {
+  trackFormStart,
+  trackFormSubmit,
+} from "../../lib/analytics/trackers";
 import styles from "./Booking.module.css";
 
 type FormData = {
@@ -38,6 +42,8 @@ export function Booking() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const hasTrackedFormStart = useRef(false);
+
   const validate = () => {
     const newErrors: Errors = {};
 
@@ -65,6 +71,11 @@ export function Booking() {
   };
 
   const handleChange = (field: keyof FormData, value: string | boolean) => {
+    if (!hasTrackedFormStart.current) {
+      trackFormStart();
+      hasTrackedFormStart.current = true;
+    }
+
     setForm((prev) => ({ ...prev, [field]: value }));
 
     if (errors[field as keyof Errors]) {
@@ -120,6 +131,8 @@ export function Booking() {
         consent: false,
       });
       setErrors({});
+      trackFormSubmit();
+      hasTrackedFormStart.current = false;
     } catch {
       setSubmitError(booking.messages.error);
     } finally {

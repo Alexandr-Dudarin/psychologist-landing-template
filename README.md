@@ -25,6 +25,7 @@ The template can be adapted for real client work by updating content files, prof
 - Built as a reusable template for real client projects
 - Supports optional bilingual mode (`RU / EN`) without duplicating the codebase
 - Supports optional light / dark theme switching
+- Supports optional analytics integration through Yandex Metrica
 - Includes production-oriented form handling with Telegram and email delivery
 - Configurable through centralized data files and feature flags
 - Prepared for Vercel deployment and social preview sharing
@@ -46,8 +47,11 @@ The template can be adapted for real client work by updating content files, prof
 - Email delivery via Resend
 - Optional bilingual support (`RU / EN`)
 - Optional light / dark theme switching
+- Optional Yandex Metrica integration
+- Yandex Metrica goals for form submit, form start, Telegram click, phone click, and scroll depth
 - Language switcher can be turned on or off through settings
 - Theme switcher can be turned on or off through settings
+- Analytics can be turned on or off through settings
 
 ## Tech Stack
 
@@ -65,6 +69,7 @@ The template can be adapted for real client work by updating content files, prof
 - Structuring content through centralized configuration files
 - Implementing optional product features through settings flags
 - Working with production-oriented form delivery flows
+- Adding optional analytics and goal tracking for landing pages
 - Preparing a project for deployment, SEO, and link preview sharing
 
 ## Project Structure
@@ -119,12 +124,18 @@ export const siteSettings = {
 
   defaultTheme: "light" as const,
   showThemeSwitcher: true,
+
+  analytics: {
+    enabled: false,
+  },
 };
 ```
 
 Set `showLanguageSwitcher: false` if the client does not need multilingual support.
 
 Set `showThemeSwitcher: false` if the client does not need light / dark mode switching.
+
+Set analytics.enabled: true when Yandex Metrica tracking should be enabled for a project.
 
 ## Form Handling
 
@@ -141,6 +152,20 @@ Current logic:
 
 - if Telegram fails, the form does not break
 - if email fails, submission is treated as unsuccessful
+
+## Analytics
+
+This template supports optional Yandex Metrica integration.
+
+Tracked goals include:
+
+- form start
+- successful form submit
+- Telegram click
+- phone click
+- scroll depth: 25 / 50 / 75 / 100%
+
+Analytics can be enabled or disabled through template settings, which makes this feature suitable as an optional paid add-on for client projects.
 
 ## Environment Variables
 
