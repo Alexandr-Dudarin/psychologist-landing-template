@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, Moon, Sun, X } from "lucide-react";
 import { Container } from "../../components/Container/Container";
 import { Button } from "../../components/Button/Button";
 import { useLanguage } from "../../app/providers/LanguageProvider";
+import { useTheme } from "../../app/providers/ThemeProvider";
 import styles from "./Header.module.css";
 
 export function Header() {
@@ -10,6 +11,7 @@ export function Header() {
   const headerRef = useRef<HTMLElement | null>(null);
 
   const { t, language, setLanguage, showLanguageSwitcher } = useLanguage();
+  const { theme, setTheme, showThemeSwitcher } = useTheme();
   const { profile, ui } = t;
 
   const handleToggleMenu = () => {
@@ -99,6 +101,34 @@ export function Header() {
                 </div>
               )}
 
+              {showThemeSwitcher && (
+                <div className={styles.themeSwitcher}>
+                  <button
+                    type="button"
+                    className={`${styles.themeButton} ${
+                      theme === "light" ? styles.themeButtonActive : ""
+                    }`}
+                    onClick={() => setTheme("light")}
+                    aria-label={ui.theme.light}
+                    title={ui.theme.light}
+                  >
+                    <Sun size={16} />
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`${styles.themeButton} ${
+                      theme === "dark" ? styles.themeButtonActive : ""
+                    }`}
+                    onClick={() => setTheme("dark")}
+                    aria-label={ui.theme.dark}
+                    title={ui.theme.dark}
+                  >
+                    <Moon size={16} />
+                  </button>
+                </div>
+              )}
+
               <Button href="#booking" variant="primary">
                 {ui.buttons.book}
               </Button>
@@ -148,6 +178,34 @@ export function Header() {
                   onClick={() => setLanguage("en")}
                 >
                   {ui.language.en}
+                </button>
+              </div>
+            )}
+
+            {showThemeSwitcher && (
+              <div className={styles.mobileThemeSwitcher}>
+                <button
+                  type="button"
+                  className={`${styles.themeButton} ${
+                    theme === "light" ? styles.themeButtonActive : ""
+                  }`}
+                  onClick={() => setTheme("light")}
+                  aria-label={ui.theme.light}
+                  title={ui.theme.light}
+                >
+                  <Sun size={16} />
+                </button>
+
+                <button
+                  type="button"
+                  className={`${styles.themeButton} ${
+                    theme === "dark" ? styles.themeButtonActive : ""
+                  }`}
+                  onClick={() => setTheme("dark")}
+                  aria-label={ui.theme.dark}
+                  title={ui.theme.dark}
+                >
+                  <Moon size={16} />
                 </button>
               </div>
             )}

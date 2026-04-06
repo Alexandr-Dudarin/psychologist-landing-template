@@ -38,6 +38,10 @@ export type LocaleData = {
       ru: string;
       en: string;
     };
+    theme: {
+      light: string;
+      dark: string;
+    };
   };
 };
 
@@ -73,6 +77,10 @@ export const locales: Record<Language, LocaleData> = {
         ru: "RU",
         en: "EN",
       },
+      theme: {
+        light: "Светлая тема",
+        dark: "Тёмная тема",
+      },
     },
   },
 
@@ -106,6 +114,10 @@ export const locales: Record<Language, LocaleData> = {
       language: {
         ru: "RU",
         en: "EN",
+      },
+      theme: {
+        light: "Light theme",
+        dark: "Dark theme",
       },
     },
   },

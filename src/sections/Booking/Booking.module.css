@@ -6,7 +6,7 @@
   padding: 36px;
   border-radius: 32px;
   border: 1px solid var(--color-border);
-  background-color: rgba(255, 255, 255, 0.54);
+  background-color: var(--color-surface);
   backdrop-filter: blur(16px);
   box-shadow: var(--shadow-soft);
 }
@@ -19,7 +19,7 @@
   margin-top: 28px;
   padding: 20px 22px;
   border-radius: 22px;
-  background-color: rgba(255, 255, 255, 0.72);
+  background-color: var(--color-surface-strong);
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
   line-height: 1.7;
@@ -46,9 +46,9 @@
 .field textarea {
   width: 100%;
   padding: 16px 18px;
-  border: 1px solid rgba(45, 42, 38, 0.1);
+  border: 1px solid var(--color-border);
   border-radius: 18px;
-  background-color: rgba(255, 255, 255, 0.88);
+  background-color: var(--color-surface-strong);
   color: var(--color-text);
   outline: none;
   transition:
@@ -59,14 +59,15 @@
 
 .field input::placeholder,
 .field textarea::placeholder {
-  color: #9a938b;
+  color: var(--color-text-muted);
+  opacity: 0.75;
 }
 
 .field input:focus,
 .field textarea:focus {
-  border-color: rgba(141, 110, 99, 0.45);
-  box-shadow: 0 0 0 4px rgba(141, 110, 99, 0.08);
-  background-color: #ffffff;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(141, 110, 99, 0.12);
+  background-color: var(--color-surface-strong);
 }
 
 .field textarea {
@@ -93,14 +94,14 @@
 
 .error {
   font-size: 13px;
-  color: #d32f2f;
+  color: #d96b6b;
 }
 
 .success {
   grid-column: 1 / -1;
   margin-top: 4px;
   font-size: 15px;
-  color: #2e7d32;
+  color: #7fcf98;
 }
 
 .errorMessage {
@@ -108,7 +109,7 @@
   margin-top: 4px;
   font-size: 14px;
   line-height: 1.5;
-  color: #d32f2f;
+  color: #d96b6b;
 }
 
 .checkboxField {

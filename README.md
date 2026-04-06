@@ -6,28 +6,27 @@ Built with **React + Vite + TypeScript**.
 
 ## Live Demo
 
-Add your deployed link here:
-
-`https://psychologist-landing-template.vercel.app/`
+https://psychologist-landing-template.vercel.app/
 
 ## Repository
 
-`https://github.com/Alexandr-Dudarin/psychologist-landing-template`
+https://github.com/Alexandr-Dudarin/psychologist-landing-template
 
 ## Overview
 
-This project is a reusable landing page template designed for psychologists, consultants, and other service-based professionals.
+This project is a reusable commercial landing page template designed for psychologists, consultants, and other service-based professionals.
 
-It includes a clean responsive layout, configurable content structure, lead form integration, SEO setup, Open Graph preview support, and optional bilingual mode.
+It includes a responsive layout, configurable content structure, lead form integration, SEO setup, Open Graph preview support, optional bilingual mode, and optional light / dark theme switching.
 
-The template can be adapted for real client work by updating content files, profile data, SEO settings, media assets, and form delivery settings.
+The template can be adapted for real client work by updating content files, profile data, SEO settings, media assets, form delivery settings, and feature flags.
 
 ## Key Highlights
 
 - Built as a reusable template for real client projects
-- Supports optional bilingual mode without duplicating the codebase
+- Supports optional bilingual mode (`RU / EN`) without duplicating the codebase
+- Supports optional light / dark theme switching
 - Includes production-oriented form handling with Telegram and email delivery
-- Configurable through centralized data files
+- Configurable through centralized data files and feature flags
 - Prepared for Vercel deployment and social preview sharing
 
 ## Features
@@ -46,7 +45,9 @@ The template can be adapted for real client work by updating content files, prof
 - Telegram Bot API integration
 - Email delivery via Resend
 - Optional bilingual support (`RU / EN`)
+- Optional light / dark theme switching
 - Language switcher can be turned on or off through settings
+- Theme switcher can be turned on or off through settings
 
 ## Tech Stack
 
@@ -57,6 +58,14 @@ The template can be adapted for real client work by updating content files, prof
 - Vercel Serverless Functions
 - Telegram Bot API
 - Resend
+
+## What this project demonstrates
+
+- Building reusable front-end templates for commercial use
+- Structuring content through centralized configuration files
+- Implementing optional product features through settings flags
+- Working with production-oriented form delivery flows
+- Preparing a project for deployment, SEO, and link preview sharing
 
 ## Project Structure
 
@@ -97,7 +106,7 @@ English content can be configured separately in:
 - `src/data/config.en.ts`
 - `src/data/seo.en.ts`
 
-Language switcher settings:
+Template feature settings:
 
 - `src/data/siteSettings.ts`
 
@@ -107,10 +116,15 @@ Example:
 export const siteSettings = {
   defaultLanguage: "ru" as const,
   showLanguageSwitcher: true,
+
+  defaultTheme: "light" as const,
+  showThemeSwitcher: true,
 };
 ```
 
 Set `showLanguageSwitcher: false` if the client does not need multilingual support.
+
+Set `showThemeSwitcher: false` if the client does not need light / dark mode switching.
 
 ## Form Handling
 
@@ -199,6 +213,8 @@ To adapt this template for a new client, update:
 - hero image
 - Open Graph image
 - Telegram / email delivery settings
+- language switcher setting
+- theme switcher setting
 
 ## Why I built this
 
@@ -208,7 +224,6 @@ The goal was to build a flexible and production-ready landing page that can be q
 
 ## Future Improvements
 
-- Dark theme
 - More flexible theme customization
 - Better multi-page SEO support
 - Optional CMS/content editing workflow

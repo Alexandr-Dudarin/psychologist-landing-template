@@ -27,27 +27,27 @@
 .primary {
   background: linear-gradient(
     135deg,
-    #8d6e63 0%,
-    #7c6056 100%
+    var(--color-accent) 0%,
+    var(--color-accent-hover) 100%
   );
   color: var(--color-white);
-  box-shadow: 0 6px 18px rgba(45, 42, 38, 0.18);
+  box-shadow: var(--shadow-button);
 }
 
 .primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(45, 42, 38, 0.22);
+  box-shadow: var(--shadow-button);
 }
 
 .secondary {
-  background-color: rgba(255, 255, 255, 0.72);
+  background-color: var(--color-surface);
   color: var(--color-text);
   border-color: var(--color-border);
   backdrop-filter: blur(10px);
 }
 
 .secondary:hover {
-  background-color: rgba(255, 255, 255, 0.92);
+  background-color: var(--color-surface-strong);
 }
 
 .outline {
@@ -57,7 +57,7 @@
 }
 
 .outline:hover {
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: var(--color-surface);
 }
 
 .fullWidth {

@@ -6,16 +6,25 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
   font-family: var(--font-family-base);
   color: var(--color-text);
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 35%),
-    linear-gradient(180deg, #f8f4ef 0%, #f2ebe4 100%);
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.12), transparent 35%),
+    linear-gradient(
+      180deg,
+      var(--color-bg-gradient-start) 0%,
+      var(--color-bg-gradient-end) 100%
+    );
+  transition:
+    background var(--transition-base),
+    color var(--transition-base);
 }
 
 img {
@@ -36,6 +45,7 @@ a {
 
 #root {
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .section {
