@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
+import { pool } from "../db/pool";
 import type {
   PublicRequestPayload,
   PublicRequestSuccessResponse,
@@ -60,6 +61,30 @@ export async function processPublicRequest(
     };
   }
 
+  let createdRequestId: number | null = null;
+
+  try {
+    const insertResult = await pool.query<{ id: number }>(
+      `
+        INSERT INTO requests (name, phone, email, message, status, source)
+        VALUES ($1, $2, $3, $4, 'new', 'website')
+        RETURNING id
+      `,
+      [name, phone, email, message]
+    );
+
+    createdRequestId = insertResult.rows[0]?.id ?? null;
+  } catch (dbError) {
+    console.error("Request insert error:", dbError);
+
+    return {
+      status: 500,
+      body: {
+        error: "Database save failed",
+      },
+    };
+  }
+
   const resend = new Resend(resendApiKey);
 
   let telegramOk = false;
@@ -69,6 +94,7 @@ export async function processPublicRequest(
     try {
       const telegramText =
         `Новая заявка с сайта\n\n` +
+        `ID: ${createdRequestId ?? "-"}\n` +
         `Имя: ${name}\n` +
         `Телефон: ${phone}\n` +
         `Email: ${email}\n` +
@@ -110,6 +136,7 @@ export async function processPublicRequest(
       subject: "Новая заявка с сайта",
       html: `
         <h2>Новая заявка</h2>
+        <p><strong>ID заявки:</strong> ${createdRequestId ?? "-"}</p>
         <p><strong>Имя:</strong> ${name}</p>
         <p><strong>Телефон:</strong> ${phone}</p>
         <p><strong>Email:</strong> ${email}</p>
