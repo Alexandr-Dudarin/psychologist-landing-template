@@ -3,6 +3,7 @@ import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { Button } from "../../components/Button/Button";
 import { useLanguage } from "../../app/providers/LanguageProvider";
+import { createPublicRequest } from "../../lib/api/requests";
 import {
   trackFormStart,
   trackFormSubmit,
@@ -105,22 +106,12 @@ export function Booking() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: form.name,
-          phone: form.phone,
-          email: form.email,
-          message: form.message,
-        }),
+      await createPublicRequest({
+        name: form.name,
+        phone: form.phone,
+        email: form.email,
+        message: form.message,
       });
-
-      if (!response.ok) {
-        throw new Error("Request failed");
-      }
 
       setIsSuccess(true);
       setForm({
