@@ -3,6 +3,7 @@ import {
   getAdminRequests,
   updateAdminRequestStatus,
 } from "../../../lib/api/adminRequests";
+import { createClientFromRequest } from "../../../lib/api/adminClients";
 import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
 import { requestStatuses } from "../../../types/request";
 
@@ -11,6 +12,7 @@ export function RequestsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [savingId, setSavingId] = useState<number | null>(null);
+  const [creatingClientId, setCreatingClientId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -83,6 +85,31 @@ export function RequestsPage() {
       );
     } finally {
       setSavingId(null);
+    }
+  };
+
+  const handleCreateClient = async (requestId: number) => {
+    setCreatingClientId(requestId);
+    setError("");
+
+    try {
+      const result = await createClientFromRequest(requestId);
+
+      setItems((current) =>
+        current.map((item) =>
+          item.id === requestId
+            ? { ...item, clientId: result.item.id }
+            : item
+        )
+      );
+    } catch (createError) {
+      setError(
+        createError instanceof Error
+          ? createError.message
+          : "Failed to create client"
+      );
+    } finally {
+      setCreatingClientId(null);
     }
   };
 
@@ -159,50 +186,75 @@ export function RequestsPage() {
                 <th style={cellHeadStyle}>Email</th>
                 <th style={cellHeadStyle}>Message</th>
                 <th style={cellHeadStyle}>Status</th>
+                <th style={cellHeadStyle}>Client</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
-                <tr key={item.id}>
-                  <td style={cellStyle}>{item.id}</td>
-                  <td style={cellStyle}>
-                    {new Date(item.createdAt).toLocaleString("ru-RU")}
-                  </td>
-                  <td style={cellStyle}>{item.name}</td>
-                  <td style={cellStyle}>{item.phone}</td>
-                  <td style={cellStyle}>{item.email}</td>
-                  <td style={cellStyle}>{item.message || "-"}</td>
-                  <td style={cellStyle}>
-                    <select
-                      value={item.status}
-                      onChange={(e) =>
-                        handleStatusChange(
-                          item.id,
-                          e.target.value as RequestStatus
-                        )
-                      }
-                      disabled={savingId === item.id}
-                      style={{
-                        minWidth: "140px",
-                        padding: "8px 10px",
-                        borderRadius: "8px",
-                        border: "1px solid #ccc",
-                      }}
-                    >
-                      {requestStatuses.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                    {savingId === item.id && (
-                      <div style={{ marginTop: "6px", fontSize: "12px" }}>
-                        Saving...
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {items.map((item) => {
+                const clientAlreadyCreated = item.clientId !== null;
+
+                return (
+                  <tr key={item.id}>
+                    <td style={cellStyle}>{item.id}</td>
+                    <td style={cellStyle}>
+                      {new Date(item.createdAt).toLocaleString("ru-RU")}
+                    </td>
+                    <td style={cellStyle}>{item.name}</td>
+                    <td style={cellStyle}>{item.phone}</td>
+                    <td style={cellStyle}>{item.email}</td>
+                    <td style={cellStyle}>{item.message || "-"}</td>
+                    <td style={cellStyle}>
+                      <select
+                        value={item.status}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            item.id,
+                            e.target.value as RequestStatus
+                          )
+                        }
+                        disabled={savingId === item.id}
+                        style={{
+                          minWidth: "140px",
+                          padding: "8px 10px",
+                          borderRadius: "8px",
+                          border: "1px solid #ccc",
+                        }}
+                      >
+                        {requestStatuses.map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                      {savingId === item.id && (
+                        <div style={{ marginTop: "6px", fontSize: "12px" }}>
+                          Saving...
+                        </div>
+                      )}
+                    </td>
+                    <td style={cellStyle}>
+                      <button
+                        type="button"
+                        onClick={() => handleCreateClient(item.id)}
+                        disabled={creatingClientId === item.id || clientAlreadyCreated}
+                        style={{
+                          padding: "8px 12px",
+                          borderRadius: "8px",
+                          border: "1px solid #ccc",
+                          cursor: "pointer",
+                          background: clientAlreadyCreated ? "#f5f5f5" : "#fff",
+                        }}
+                      >
+                        {clientAlreadyCreated
+                          ? "Created"
+                          : creatingClientId === item.id
+                            ? "Creating..."
+                            : "Create client"}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

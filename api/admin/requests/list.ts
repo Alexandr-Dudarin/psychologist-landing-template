@@ -16,6 +16,7 @@ type RequestRow = {
   status: string;
   source: string;
   created_at: string;
+  client_id: number | null;
 };
 
 function toRequestStatus(value: string): RequestStatus {
@@ -51,7 +52,7 @@ export default async function handler(req: any, res: any) {
     }
 
     values.push(status);
-    conditions.push(`status = $${values.length}`);
+    conditions.push(`r.status = $${values.length}`);
   }
 
   if (search) {
@@ -60,10 +61,10 @@ export default async function handler(req: any, res: any) {
 
     conditions.push(`
       (
-        name ILIKE $${searchParamIndex}
-        OR phone ILIKE $${searchParamIndex}
-        OR email ILIKE $${searchParamIndex}
-        OR message ILIKE $${searchParamIndex}
+        r.name ILIKE $${searchParamIndex}
+        OR r.phone ILIKE $${searchParamIndex}
+        OR r.email ILIKE $${searchParamIndex}
+        OR r.message ILIKE $${searchParamIndex}
       )
     `);
   }
@@ -75,17 +76,20 @@ export default async function handler(req: any, res: any) {
     const result = await pool.query<RequestRow>(
       `
         SELECT
-          id,
-          name,
-          phone,
-          email,
-          message,
-          status,
-          source,
-          created_at
-        FROM requests
+          r.id,
+          r.name,
+          r.phone,
+          r.email,
+          r.message,
+          r.status,
+          r.source,
+          r.created_at,
+          c.id AS client_id
+        FROM requests r
+        LEFT JOIN clients c
+          ON c.first_request_id = r.id
         ${whereClause}
-        ORDER BY created_at DESC
+        ORDER BY r.created_at DESC
       `,
       values
     );
@@ -99,6 +103,7 @@ export default async function handler(req: any, res: any) {
       status: toRequestStatus(row.status),
       source: row.source,
       createdAt: row.created_at,
+      clientId: row.client_id,
     }));
 
     return res.status(200).json({ items });

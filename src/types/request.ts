@@ -34,6 +34,7 @@ export type CrmRequestRecord = {
   status: RequestStatus;
   source: string;
   createdAt: string;
+  clientId: number | null;
 };
 
 export type UpdateRequestStatusPayload = {
