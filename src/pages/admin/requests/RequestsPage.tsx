@@ -1,19 +1,33 @@
 import { useEffect, useState } from "react";
-import { getAdminRequests } from "../../../lib/api/adminRequests";
-import type { CrmRequestRecord } from "../../../types/request";
+import {
+  getAdminRequests,
+  updateAdminRequestStatus,
+} from "../../../lib/api/adminRequests";
+import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
+import { requestStatuses } from "../../../types/request";
 
 export function RequestsPage() {
   const [items, setItems] = useState<CrmRequestRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [savingId, setSavingId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     let isMounted = true;
 
     async function load() {
       try {
-        setError("");
-        const requests = await getAdminRequests();
+        if (isMounted) {
+          setIsLoading(true);
+          setError("");
+        }
+
+        const requests = await getAdminRequests({
+          status: statusFilter,
+          search: searchQuery,
+        });
 
         if (isMounted) {
           setItems(requests);
@@ -38,32 +52,95 @@ export function RequestsPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [statusFilter, searchQuery]);
 
-  if (isLoading) {
-    return (
-      <main>
-        <h1>Requests</h1>
-        <p>Loading...</p>
-      </main>
-    );
-  }
+  const handleStatusChange = async (
+    requestId: number,
+    nextStatus: RequestStatus
+  ) => {
+    const previousItems = items;
 
-  if (error) {
-    return (
-      <main>
-        <h1>Requests</h1>
-        <p style={{ color: "#d96b6b" }}>{error}</p>
-      </main>
+    setItems((current) =>
+      current.map((item) =>
+        item.id === requestId ? { ...item, status: nextStatus } : item
+      )
     );
-  }
+
+    setSavingId(requestId);
+    setError("");
+
+    try {
+      await updateAdminRequestStatus({
+        id: requestId,
+        status: nextStatus,
+      });
+    } catch (updateError) {
+      setItems(previousItems);
+      setError(
+        updateError instanceof Error
+          ? updateError.message
+          : "Failed to update request status"
+      );
+    } finally {
+      setSavingId(null);
+    }
+  };
 
   return (
     <main>
       <h1>Requests</h1>
 
-      {items.length === 0 ? (
-        <p>No requests yet.</p>
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          flexWrap: "wrap",
+          marginTop: "16px",
+          marginBottom: "16px",
+        }}
+      >
+        <select
+          value={statusFilter}
+          onChange={(e) =>
+            setStatusFilter(e.target.value as RequestStatus | "all")
+          }
+          style={{
+            minWidth: "180px",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+          }}
+        >
+          <option value="all">all statuses</option>
+          {requestStatuses.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by name, phone, email, message"
+          style={{
+            minWidth: "320px",
+            maxWidth: "420px",
+            width: "100%",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+          }}
+        />
+      </div>
+
+      {error && <p style={{ color: "#d96b6b" }}>{error}</p>}
+
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : items.length === 0 ? (
+        <p>No requests found.</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table
@@ -95,7 +172,35 @@ export function RequestsPage() {
                   <td style={cellStyle}>{item.phone}</td>
                   <td style={cellStyle}>{item.email}</td>
                   <td style={cellStyle}>{item.message || "-"}</td>
-                  <td style={cellStyle}>{item.status}</td>
+                  <td style={cellStyle}>
+                    <select
+                      value={item.status}
+                      onChange={(e) =>
+                        handleStatusChange(
+                          item.id,
+                          e.target.value as RequestStatus
+                        )
+                      }
+                      disabled={savingId === item.id}
+                      style={{
+                        minWidth: "140px",
+                        padding: "8px 10px",
+                        borderRadius: "8px",
+                        border: "1px solid #ccc",
+                      }}
+                    >
+                      {requestStatuses.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                    {savingId === item.id && (
+                      <div style={{ marginTop: "6px", fontSize: "12px" }}>
+                        Saving...
+                      </div>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

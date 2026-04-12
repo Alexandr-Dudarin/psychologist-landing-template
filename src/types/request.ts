@@ -15,13 +15,28 @@ export type PublicRequestErrorResponse = {
   telegramOk?: boolean;
 };
 
+export const requestStatuses = [
+  "new",
+  "replied",
+  "booked",
+  "completed",
+  "cancelled",
+] as const;
+
+export type RequestStatus = (typeof requestStatuses)[number];
+
 export type CrmRequestRecord = {
   id: number;
   name: string;
   phone: string;
   email: string;
   message: string;
-  status: string;
+  status: RequestStatus;
   source: string;
   createdAt: string;
+};
+
+export type UpdateRequestStatusPayload = {
+  id: number;
+  status: RequestStatus;
 };
