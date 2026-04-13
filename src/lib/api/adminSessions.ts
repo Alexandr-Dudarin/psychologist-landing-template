@@ -31,6 +31,15 @@ type UpdateSessionErrorResponse = {
   error: string;
 };
 
+type DeleteSessionResponse = {
+  success: true;
+  id: number;
+};
+
+type DeleteSessionErrorResponse = {
+  error: string;
+};
+
 export type AdminSessionsFilters = {
   status?: SessionStatus | "all";
   search?: string;
@@ -130,4 +139,31 @@ export async function updateAdminSession(
   }
 
   throw new Error("Не удалось обновить сессию");
+}
+
+export async function deleteAdminSession(id: number): Promise<number> {
+  const response = await fetch("/api/admin/sessions/delete", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id }),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | DeleteSessionResponse
+    | DeleteSessionErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data ? data.error : "Не удалось удалить сессию"
+    );
+  }
+
+  if (data && "id" in data) {
+    return data.id;
+  }
+
+  throw new Error("Не удалось удалить сессию");
 }

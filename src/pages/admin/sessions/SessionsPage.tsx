@@ -5,6 +5,7 @@ import {
   getAdminSessions,
   createAdminSession,
   updateAdminSession,
+  deleteAdminSession,
 } from "../../../lib/api/adminSessions";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmServiceRecord } from "../../../types/service";
@@ -60,6 +61,7 @@ export function SessionsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [statusFilter, setStatusFilter] = useState<SessionStatus | "all">("all");
@@ -360,6 +362,39 @@ export function SessionsPage() {
       );
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteSession = async (id: number) => {
+    const confirmed = window.confirm(
+      "Удалить сессию? Это действие нельзя отменить."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingId(id);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await deleteAdminSession(id);
+      await reloadSessions();
+
+      if (editingSessionId === id) {
+        cancelEditing();
+      }
+
+      setSuccessMessage("Сессия удалена.");
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Не удалось удалить сессию"
+      );
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -675,13 +710,24 @@ export function SessionsPage() {
                   <td style={cellStyle}>{item.status}</td>
                   <td style={cellStyle}>{item.notes || "-"}</td>
                   <td style={cellStyle}>
-                    <button
-                      type="button"
-                      onClick={() => startEditing(item)}
-                      style={buttonStyle}
-                    >
-                      Редактировать
-                    </button>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      <button
+                        type="button"
+                        onClick={() => startEditing(item)}
+                        style={buttonStyle}
+                      >
+                        Редактировать
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSession(item.id)}
+                        disabled={deletingId === item.id}
+                        style={buttonStyle}
+                      >
+                        {deletingId === item.id ? "Удаление..." : "Удалить"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
