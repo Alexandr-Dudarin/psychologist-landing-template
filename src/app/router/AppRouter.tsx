@@ -9,6 +9,7 @@ import { AdminDashboardPage } from "../../pages/admin/dashboard/AdminDashboardPa
 import { RequestsPage } from "../../pages/admin/requests/RequestsPage";
 import { ClientsPage } from "../../pages/admin/clients/ClientsPage";
 import { SessionsPage } from "../../pages/admin/sessions/SessionsPage";
+import { ServicesPage } from "../../pages/admin/services/ServicesPage";
 
 export function AppRouter() {
   return (
@@ -32,6 +33,7 @@ export function AppRouter() {
         <Route path="requests" element={<RequestsPage />} />
         <Route path="clients" element={<ClientsPage />} />
         <Route path="sessions" element={<SessionsPage />} />
+        <Route path="services" element={<ServicesPage />} />
       </Route>
     </Routes>
   );
