@@ -1,4 +1,4 @@
-import type { CrmClientRecord } from "../../types/client";
+import type { CrmClientRecord, ClientStatus } from "../../types/client";
 
 type ListClientsResponse = {
   items: CrmClientRecord[];
@@ -18,8 +18,30 @@ type CreateClientFromRequestErrorResponse = {
   error: string;
 };
 
-export async function getAdminClients(): Promise<CrmClientRecord[]> {
-  const response = await fetch("/api/admin/clients/list");
+export type AdminClientsFilters = {
+  status?: ClientStatus | "all";
+  search?: string;
+};
+
+export async function getAdminClients(
+  filters: AdminClientsFilters = {}
+): Promise<CrmClientRecord[]> {
+  const params = new URLSearchParams();
+
+  if (filters.status) {
+    params.set("status", filters.status);
+  }
+
+  if (filters.search?.trim()) {
+    params.set("search", filters.search.trim());
+  }
+
+  const queryString = params.toString();
+  const url = queryString
+    ? `/api/admin/clients/list?${queryString}`
+    : "/api/admin/clients/list";
+
+  const response = await fetch(url);
 
   const data = (await response.json().catch(() => null)) as
     | ListClientsResponse

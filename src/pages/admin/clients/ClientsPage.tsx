@@ -1,19 +1,29 @@
 import { useEffect, useState } from "react";
 import { getAdminClients } from "../../../lib/api/adminClients";
-import type { CrmClientRecord } from "../../../types/client";
+import type { CrmClientRecord, ClientStatus } from "../../../types/client";
+import { clientStatuses } from "../../../types/client";
 
 export function ClientsPage() {
   const [items, setItems] = useState<CrmClientRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ClientStatus | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     let isMounted = true;
 
     async function load() {
       try {
-        setError("");
-        const clients = await getAdminClients();
+        if (isMounted) {
+          setIsLoading(true);
+          setError("");
+        }
+
+        const clients = await getAdminClients({
+          status: statusFilter,
+          search: searchQuery,
+        });
 
         if (isMounted) {
           setItems(clients);
@@ -38,25 +48,63 @@ export function ClientsPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
-
-  if (isLoading) {
-    return (
-      <main>
-        <h1>Clients</h1>
-        <p>Loading...</p>
-      </main>
-    );
-  }
+  }, [statusFilter, searchQuery]);
 
   return (
     <main>
       <h1>Clients</h1>
 
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          flexWrap: "wrap",
+          marginTop: "16px",
+          marginBottom: "16px",
+        }}
+      >
+        <select
+          value={statusFilter}
+          onChange={(e) =>
+            setStatusFilter(e.target.value as ClientStatus | "all")
+          }
+          style={{
+            minWidth: "180px",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+          }}
+        >
+          <option value="all">all statuses</option>
+          {clientStatuses.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by name, phone, email"
+          style={{
+            minWidth: "320px",
+            maxWidth: "420px",
+            width: "100%",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+          }}
+        />
+      </div>
+
       {error && <p style={{ color: "#d96b6b" }}>{error}</p>}
 
-      {items.length === 0 ? (
-        <p>No clients yet.</p>
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : items.length === 0 ? (
+        <p>No clients found.</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table

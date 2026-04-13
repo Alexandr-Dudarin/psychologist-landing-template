@@ -1,4 +1,6 @@
-export type ClientStatus = "active" | "inactive";
+export const clientStatuses = ["active", "inactive"] as const;
+
+export type ClientStatus = (typeof clientStatuses)[number];
 
 export type CrmClientRecord = {
   id: number;

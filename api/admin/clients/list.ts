@@ -2,6 +2,7 @@
 
 import { pool } from "../../../server/db/pool";
 import type { CrmClientRecord, ClientStatus } from "../../../src/types/client";
+import { clientStatuses } from "../../../src/types/client";
 
 type ClientRow = {
   id: number;
@@ -15,11 +16,19 @@ type ClientRow = {
 };
 
 function toClientStatus(value: string): ClientStatus {
-  if (value === "active" || value === "inactive") {
-    return value;
+  if (clientStatuses.includes(value as ClientStatus)) {
+    return value as ClientStatus;
   }
 
   return "active";
+}
+
+function getSingleQueryValue(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+
+  return value ?? "";
 }
 
 export default async function handler(req: any, res: any) {
@@ -27,20 +36,55 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  try {
-    const result = await pool.query<ClientRow>(`
-      SELECT
-        id,
-        name,
-        phone,
-        email,
-        source,
-        status,
-        first_request_id,
-        created_at
-      FROM clients
-      ORDER BY created_at DESC
+  const status = getSingleQueryValue(req.query?.status).trim();
+  const search = getSingleQueryValue(req.query?.search).trim();
+
+  const conditions: string[] = [];
+  const values: string[] = [];
+
+  if (status && status !== "all") {
+    if (!clientStatuses.includes(status as ClientStatus)) {
+      return res.status(400).json({ error: "Invalid status filter" });
+    }
+
+    values.push(status);
+    conditions.push(`status = $${values.length}`);
+  }
+
+  if (search) {
+    values.push(`%${search}%`);
+    const searchParamIndex = values.length;
+
+    conditions.push(`
+      (
+        name ILIKE $${searchParamIndex}
+        OR phone ILIKE $${searchParamIndex}
+        OR email ILIKE $${searchParamIndex}
+      )
     `);
+  }
+
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  try {
+    const result = await pool.query<ClientRow>(
+      `
+        SELECT
+          id,
+          name,
+          phone,
+          email,
+          source,
+          status,
+          first_request_id,
+          created_at
+        FROM clients
+        ${whereClause}
+        ORDER BY created_at DESC
+      `,
+      values
+    );
 
     const items: CrmClientRecord[] = result.rows.map((row) => ({
       id: row.id,
