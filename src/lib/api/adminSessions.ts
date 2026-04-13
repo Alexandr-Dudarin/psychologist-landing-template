@@ -2,6 +2,7 @@ import type {
   CrmSessionRecord,
   CreateSessionPayload,
   SessionStatus,
+  UpdateSessionPayload,
 } from "../../types/session";
 
 type ListSessionsResponse = {
@@ -18,6 +19,15 @@ type CreateSessionResponse = {
 };
 
 type CreateSessionErrorResponse = {
+  error: string;
+};
+
+type UpdateSessionResponse = {
+  success: true;
+  item: CrmSessionRecord;
+};
+
+type UpdateSessionErrorResponse = {
   error: string;
 };
 
@@ -91,4 +101,33 @@ export async function createAdminSession(
   }
 
   throw new Error("Не удалось создать сессию");
+}
+
+export async function updateAdminSession(
+  payload: UpdateSessionPayload
+): Promise<CrmSessionRecord> {
+  const response = await fetch("/api/admin/sessions/update", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | UpdateSessionResponse
+    | UpdateSessionErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data ? data.error : "Не удалось обновить сессию"
+    );
+  }
+
+  if (data && "item" in data) {
+    return data.item;
+  }
+
+  throw new Error("Не удалось обновить сессию");
 }

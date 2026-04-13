@@ -8,10 +8,10 @@ import type {
 import { sessionStatuses } from "../../../src/types/session";
 
 type SessionRow = {
-  id: number;
-  client_id: number;
+  id: string | number;
+  client_id: string | number;
   client_name: string;
-  service_id: number;
+  service_id: string | number;
   service_title: string;
   scheduled_at: string;
   duration_minutes: number;
@@ -100,13 +100,13 @@ export default async function handler(req: any, res: any) {
     );
 
     const items: CrmSessionRecord[] = result.rows.map((row) => ({
-      id: row.id,
-      clientId: row.client_id,
+      id: Number(row.id),
+      clientId: Number(row.client_id),
       clientName: row.client_name,
-      serviceId: row.service_id,
+      serviceId: Number(row.service_id),
       serviceTitle: row.service_title,
       scheduledAt: row.scheduled_at,
-      durationMinutes: row.duration_minutes,
+      durationMinutes: Number(row.duration_minutes),
       price: Number(row.price),
       status: toSessionStatus(row.status),
       notes: row.notes,

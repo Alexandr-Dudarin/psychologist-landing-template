@@ -4,6 +4,7 @@ import { getAdminServices } from "../../../lib/api/adminServices";
 import {
   getAdminSessions,
   createAdminSession,
+  updateAdminSession,
 } from "../../../lib/api/adminSessions";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmServiceRecord } from "../../../types/service";
@@ -11,6 +12,7 @@ import type {
   CrmSessionRecord,
   CreateSessionPayload,
   SessionStatus,
+  UpdateSessionPayload,
 } from "../../../types/session";
 import { sessionStatuses } from "../../../types/session";
 
@@ -24,7 +26,7 @@ type SessionForm = {
   notes: string;
 };
 
-const initialForm: SessionForm = {
+const initialCreateForm: SessionForm = {
   clientId: "",
   serviceId: "",
   scheduledAt: "",
@@ -34,17 +36,37 @@ const initialForm: SessionForm = {
   notes: "",
 };
 
+const initialEditForm: SessionForm = {
+  clientId: "",
+  serviceId: "",
+  scheduledAt: "",
+  durationMinutes: "60",
+  price: "0",
+  status: "scheduled",
+  notes: "",
+};
+
+function toDateTimeLocalValue(value: string): string {
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60_000);
+  return localDate.toISOString().slice(0, 16);
+}
+
 export function SessionsPage() {
   const [items, setItems] = useState<CrmSessionRecord[]>([]);
   const [clients, setClients] = useState<CrmClientRecord[]>([]);
   const [services, setServices] = useState<CrmServiceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [statusFilter, setStatusFilter] = useState<SessionStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [form, setForm] = useState<SessionForm>(initialForm);
+  const [createForm, setCreateForm] = useState<SessionForm>(initialCreateForm);
+  const [editingSessionId, setEditingSessionId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<SessionForm>(initialEditForm);
 
   const activeServices = useMemo(
     () => services.filter((service) => service.isActive),
@@ -106,25 +128,37 @@ export function SessionsPage() {
     setItems(sessionsData);
   };
 
-  const handleFormChange = (
+  const applyServiceDefaults = (
+    prev: SessionForm,
+    serviceIdValue: string
+  ): SessionForm => {
+    const selectedService = services.find(
+      (service) => service.id === Number(serviceIdValue)
+    );
+
+    if (!selectedService) {
+      return {
+        ...prev,
+        serviceId: serviceIdValue,
+      };
+    }
+
+    return {
+      ...prev,
+      serviceId: serviceIdValue,
+      durationMinutes: String(selectedService.durationMinutes),
+      price: String(selectedService.price),
+    };
+  };
+
+  const handleCreateFormChange = (
     field: keyof SessionForm,
     value: string
   ) => {
     if (field === "serviceId") {
-      const selectedService = services.find(
-        (service) => service.id === Number(value)
-      );
-
-      setForm((prev) => ({
-        ...prev,
-        serviceId: value,
-        durationMinutes: selectedService
-          ? String(selectedService.durationMinutes)
-          : prev.durationMinutes,
-        price: selectedService ? String(selectedService.price) : prev.price,
-      }));
+      setCreateForm((prev) => applyServiceDefaults(prev, value));
     } else {
-      setForm((prev) => ({
+      setCreateForm((prev) => ({
         ...prev,
         [field]: value,
       }));
@@ -139,45 +173,108 @@ export function SessionsPage() {
     }
   };
 
-  const handleCreateSession = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleEditFormChange = (
+    field: keyof SessionForm,
+    value: string
+  ) => {
+    if (field === "serviceId") {
+      setEditForm((prev) => applyServiceDefaults(prev, value));
+    } else {
+      setEditForm((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
 
-    const payload: CreateSessionPayload = {
-      clientId: Number(form.clientId),
-      serviceId: Number(form.serviceId),
-      scheduledAt: form.scheduledAt,
-      durationMinutes: Number(form.durationMinutes),
-      price: Number(form.price),
-      status: form.status,
-      notes: form.notes.trim(),
-      source: "manual",
-    };
+    if (error) {
+      setError("");
+    }
 
+    if (successMessage) {
+      setSuccessMessage("");
+    }
+  };
+
+  const validateCreatePayload = (
+    payload: CreateSessionPayload
+  ): string | null => {
     if (!Number.isInteger(payload.clientId) || payload.clientId <= 0) {
-      setError("Выберите клиента.");
-      return;
+      return "Выберите клиента.";
     }
 
     if (!Number.isInteger(payload.serviceId) || payload.serviceId <= 0) {
-      setError("Выберите услугу.");
-      return;
+      return "Выберите услугу.";
     }
 
     if (!payload.scheduledAt) {
-      setError("Укажите дату и время сессии.");
-      return;
+      return "Укажите дату и время сессии.";
     }
 
     if (
       !Number.isInteger(payload.durationMinutes) ||
       payload.durationMinutes <= 0
     ) {
-      setError("Укажите корректную длительность.");
-      return;
+      return "Укажите корректную длительность.";
     }
 
     if (!Number.isFinite(payload.price) || payload.price < 0) {
-      setError("Укажите корректную цену.");
+      return "Укажите корректную цену.";
+    }
+
+    return null;
+  };
+
+  const validateUpdatePayload = (
+    payload: UpdateSessionPayload
+  ): string | null => {
+    if (!Number.isInteger(payload.id) || payload.id <= 0) {
+      return "Некорректная сессия.";
+    }
+
+    if (!Number.isInteger(payload.clientId) || payload.clientId <= 0) {
+      return "Выберите клиента.";
+    }
+
+    if (!Number.isInteger(payload.serviceId) || payload.serviceId <= 0) {
+      return "Выберите услугу.";
+    }
+
+    if (!payload.scheduledAt) {
+      return "Укажите дату и время сессии.";
+    }
+
+    if (
+      !Number.isInteger(payload.durationMinutes) ||
+      payload.durationMinutes <= 0
+    ) {
+      return "Укажите корректную длительность.";
+    }
+
+    if (!Number.isFinite(payload.price) || payload.price < 0) {
+      return "Укажите корректную цену.";
+    }
+
+    return null;
+  };
+
+  const handleCreateSession = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const payload: CreateSessionPayload = {
+      clientId: Number(createForm.clientId),
+      serviceId: Number(createForm.serviceId),
+      scheduledAt: createForm.scheduledAt,
+      durationMinutes: Number(createForm.durationMinutes),
+      price: Number(createForm.price),
+      status: createForm.status,
+      notes: createForm.notes.trim(),
+      source: "manual",
+    };
+
+    const validationError = validateCreatePayload(payload);
+
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -188,7 +285,7 @@ export function SessionsPage() {
     try {
       await createAdminSession(payload);
       await reloadSessions();
-      setForm(initialForm);
+      setCreateForm(initialCreateForm);
       setSuccessMessage("Сессия создана.");
     } catch (createError) {
       setError(
@@ -198,6 +295,71 @@ export function SessionsPage() {
       );
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const startEditing = (session: CrmSessionRecord) => {
+    setEditingSessionId(session.id);
+    setEditForm({
+      clientId: String(session.clientId),
+      serviceId: String(session.serviceId),
+      scheduledAt: toDateTimeLocalValue(session.scheduledAt),
+      durationMinutes: String(session.durationMinutes),
+      price: String(session.price),
+      status: session.status,
+      notes: session.notes,
+    });
+    setError("");
+    setSuccessMessage("");
+  };
+
+  const cancelEditing = () => {
+    setEditingSessionId(null);
+    setEditForm(initialEditForm);
+  };
+
+  const handleUpdateSession = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (editingSessionId === null) {
+      return;
+    }
+
+    const payload: UpdateSessionPayload = {
+      id: editingSessionId,
+      clientId: Number(editForm.clientId),
+      serviceId: Number(editForm.serviceId),
+      scheduledAt: editForm.scheduledAt,
+      durationMinutes: Number(editForm.durationMinutes),
+      price: Number(editForm.price),
+      status: editForm.status,
+      notes: editForm.notes.trim(),
+    };
+
+    const validationError = validateUpdatePayload(payload);
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setIsUpdating(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await updateAdminSession(payload);
+      await reloadSessions();
+      setSuccessMessage("Сессия обновлена.");
+      cancelEditing();
+    } catch (updateError) {
+      setError(
+        updateError instanceof Error
+          ? updateError.message
+          : "Не удалось обновить сессию"
+      );
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -225,8 +387,8 @@ export function SessionsPage() {
           }}
         >
           <select
-            value={form.clientId}
-            onChange={(e) => handleFormChange("clientId", e.target.value)}
+            value={createForm.clientId}
+            onChange={(e) => handleCreateFormChange("clientId", e.target.value)}
             style={inputStyle}
           >
             <option value="">Выберите клиента</option>
@@ -238,8 +400,8 @@ export function SessionsPage() {
           </select>
 
           <select
-            value={form.serviceId}
-            onChange={(e) => handleFormChange("serviceId", e.target.value)}
+            value={createForm.serviceId}
+            onChange={(e) => handleCreateFormChange("serviceId", e.target.value)}
             style={inputStyle}
           >
             <option value="">Выберите услугу</option>
@@ -252,8 +414,10 @@ export function SessionsPage() {
 
           <input
             type="datetime-local"
-            value={form.scheduledAt}
-            onChange={(e) => handleFormChange("scheduledAt", e.target.value)}
+            value={createForm.scheduledAt}
+            onChange={(e) =>
+              handleCreateFormChange("scheduledAt", e.target.value)
+            }
             style={inputStyle}
           />
 
@@ -261,9 +425,9 @@ export function SessionsPage() {
             type="number"
             min="1"
             step="1"
-            value={form.durationMinutes}
+            value={createForm.durationMinutes}
             onChange={(e) =>
-              handleFormChange("durationMinutes", e.target.value)
+              handleCreateFormChange("durationMinutes", e.target.value)
             }
             placeholder="Длительность в минутах"
             style={inputStyle}
@@ -273,16 +437,16 @@ export function SessionsPage() {
             type="number"
             min="0"
             step="0.01"
-            value={form.price}
-            onChange={(e) => handleFormChange("price", e.target.value)}
+            value={createForm.price}
+            onChange={(e) => handleCreateFormChange("price", e.target.value)}
             placeholder="Цена"
             style={inputStyle}
           />
 
           <select
-            value={form.status}
+            value={createForm.status}
             onChange={(e) =>
-              handleFormChange("status", e.target.value as SessionStatus)
+              handleCreateFormChange("status", e.target.value as SessionStatus)
             }
             style={inputStyle}
           >
@@ -294,23 +458,134 @@ export function SessionsPage() {
           </select>
 
           <textarea
-            value={form.notes}
-            onChange={(e) => handleFormChange("notes", e.target.value)}
+            value={createForm.notes}
+            onChange={(e) => handleCreateFormChange("notes", e.target.value)}
             placeholder="Заметка"
             style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }}
           />
 
           <div>
-            <button
-              type="submit"
-              disabled={isCreating}
-              style={buttonStyle}
-            >
+            <button type="submit" disabled={isCreating} style={buttonStyle}>
               {isCreating ? "Создание..." : "Создать сессию"}
             </button>
           </div>
         </form>
       </section>
+
+      {editingSessionId !== null && (
+        <section
+          style={{
+            marginTop: "20px",
+            marginBottom: "24px",
+            padding: "16px",
+            border: "1px solid #ddd",
+            borderRadius: "12px",
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>Редактировать сессию</h2>
+
+          <form
+            onSubmit={handleUpdateSession}
+            style={{
+              display: "grid",
+              gap: "12px",
+              maxWidth: "720px",
+            }}
+          >
+            <select
+              value={editForm.clientId}
+              onChange={(e) => handleEditFormChange("clientId", e.target.value)}
+              style={inputStyle}
+            >
+              <option value="">Выберите клиента</option>
+              {clients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.name} — {client.phone || client.email || client.id}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={editForm.serviceId}
+              onChange={(e) => handleEditFormChange("serviceId", e.target.value)}
+              style={inputStyle}
+            >
+              <option value="">Выберите услугу</option>
+              {activeServices.map((service) => (
+                <option key={service.id} value={service.id}>
+                  {service.title} — {service.price} ₽ / {service.durationMinutes} мин
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="datetime-local"
+              value={editForm.scheduledAt}
+              onChange={(e) =>
+                handleEditFormChange("scheduledAt", e.target.value)
+              }
+              style={inputStyle}
+            />
+
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={editForm.durationMinutes}
+              onChange={(e) =>
+                handleEditFormChange("durationMinutes", e.target.value)
+              }
+              placeholder="Длительность в минутах"
+              style={inputStyle}
+            />
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={editForm.price}
+              onChange={(e) => handleEditFormChange("price", e.target.value)}
+              placeholder="Цена"
+              style={inputStyle}
+            />
+
+            <select
+              value={editForm.status}
+              onChange={(e) =>
+                handleEditFormChange("status", e.target.value as SessionStatus)
+              }
+              style={inputStyle}
+            >
+              {sessionStatuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+
+            <textarea
+              value={editForm.notes}
+              onChange={(e) => handleEditFormChange("notes", e.target.value)}
+              placeholder="Заметка"
+              style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }}
+            />
+
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <button type="submit" disabled={isUpdating} style={buttonStyle}>
+                {isUpdating ? "Сохранение..." : "Сохранить изменения"}
+              </button>
+
+              <button
+                type="button"
+                onClick={cancelEditing}
+                style={buttonStyle}
+              >
+                Отменить
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
 
       <div
         style={{
@@ -383,6 +658,7 @@ export function SessionsPage() {
                 <th style={cellHeadStyle}>Длительность</th>
                 <th style={cellHeadStyle}>Статус</th>
                 <th style={cellHeadStyle}>Заметка</th>
+                <th style={cellHeadStyle}>Действия</th>
               </tr>
             </thead>
             <tbody>
@@ -398,6 +674,15 @@ export function SessionsPage() {
                   <td style={cellStyle}>{item.durationMinutes} мин</td>
                   <td style={cellStyle}>{item.status}</td>
                   <td style={cellStyle}>{item.notes || "-"}</td>
+                  <td style={cellStyle}>
+                    <button
+                      type="button"
+                      onClick={() => startEditing(item)}
+                      style={buttonStyle}
+                    >
+                      Редактировать
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

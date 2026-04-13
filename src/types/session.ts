@@ -32,3 +32,14 @@ export type CreateSessionPayload = {
   notes?: string;
   source?: string;
 };
+
+export type UpdateSessionPayload = {
+  id: number;
+  clientId: number;
+  serviceId: number;
+  scheduledAt: string;
+  durationMinutes: number;
+  price: number;
+  status: SessionStatus;
+  notes?: string;
+};

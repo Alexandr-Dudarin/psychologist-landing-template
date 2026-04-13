@@ -3,12 +3,12 @@
 import { pool } from "../../../server/db/pool";
 import type {
   CrmSessionRecord,
-  CreateSessionPayload,
   SessionStatus,
 } from "../../../src/types/session";
 import { sessionStatuses } from "../../../src/types/session";
 
 type ParsedPayload = {
+  id: number;
   clientId: number;
   serviceId: number;
   scheduledAt: string;
@@ -16,7 +16,6 @@ type ParsedPayload = {
   price: number;
   status: SessionStatus;
   notes: string;
-  source: string;
 };
 
 type SessionRow = {
@@ -70,6 +69,7 @@ function parseBody(body: any): ParsedPayload | null {
     }
   }
 
+  const id = Number(rawBody?.id);
   const clientId = Number(rawBody?.clientId);
   const serviceId = Number(rawBody?.serviceId);
   const scheduledAt =
@@ -80,13 +80,13 @@ function parseBody(body: any): ParsedPayload | null {
     typeof rawBody?.status === "string" &&
     sessionStatuses.includes(rawBody.status as SessionStatus)
       ? (rawBody.status as SessionStatus)
-      : "scheduled";
+      : null;
   const notes =
     typeof rawBody?.notes === "string" ? rawBody.notes.trim() : "";
-  const source =
-    typeof rawBody?.source === "string" && rawBody.source.trim()
-      ? rawBody.source.trim()
-      : "manual";
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return null;
+  }
 
   if (!Number.isInteger(clientId) || clientId <= 0) {
     return null;
@@ -108,7 +108,12 @@ function parseBody(body: any): ParsedPayload | null {
     return null;
   }
 
+  if (!status) {
+    return null;
+  }
+
   return {
+    id,
     clientId,
     serviceId,
     scheduledAt,
@@ -116,7 +121,6 @@ function parseBody(body: any): ParsedPayload | null {
     price,
     status,
     notes,
-    source,
   };
 }
 
@@ -129,24 +133,23 @@ export default async function handler(req: any, res: any) {
 
   if (!payload) {
     return res.status(400).json({
-      error: "Некорректные данные для создания сессии.",
+      error: "Некорректные данные для обновления сессии.",
     });
   }
 
   try {
-    const result = await pool.query<{ id: string | number }>(
+    const updatedResult = await pool.query<{ id: string | number }>(
       `
-        INSERT INTO sessions (
-          client_id,
-          service_id,
-          scheduled_at,
-          duration_minutes,
-          price,
-          status,
-          notes,
-          source
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        UPDATE sessions
+        SET
+          client_id = $1,
+          service_id = $2,
+          scheduled_at = $3,
+          duration_minutes = $4,
+          price = $5,
+          status = $6,
+          notes = $7
+        WHERE id = $8
         RETURNING id
       `,
       [
@@ -157,11 +160,15 @@ export default async function handler(req: any, res: any) {
         payload.price,
         payload.status,
         payload.notes,
-        payload.source,
+        payload.id,
       ]
     );
 
-    const created = result.rows[0];
+    const updated = updatedResult.rows[0];
+
+    if (!updated) {
+      return res.status(404).json({ error: "Сессия не найдена" });
+    }
 
     const joined = await pool.query<SessionRow>(
       `
@@ -184,7 +191,7 @@ export default async function handler(req: any, res: any) {
         WHERE s.id = $1
         LIMIT 1
       `,
-      [created.id]
+      [updated.id]
     );
 
     return res.status(200).json({
@@ -192,7 +199,7 @@ export default async function handler(req: any, res: any) {
       item: mapSession(joined.rows[0]),
     });
   } catch (error) {
-    console.error("Session create error:", error);
-    return res.status(500).json({ error: "Не удалось создать сессию" });
+    console.error("Session update error:", error);
+    return res.status(500).json({ error: "Не удалось обновить сессию" });
   }
 }
