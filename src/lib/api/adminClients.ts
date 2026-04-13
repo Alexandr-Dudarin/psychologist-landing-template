@@ -1,4 +1,8 @@
-import type { CrmClientRecord, ClientStatus } from "../../types/client";
+import type {
+  CrmClientRecord,
+  ClientStatus,
+  CreateManualClientPayload,
+} from "../../types/client";
 
 type ListClientsResponse = {
   items: CrmClientRecord[];
@@ -15,6 +19,15 @@ type CreateClientFromRequestResponse = {
 };
 
 type CreateClientFromRequestErrorResponse = {
+  error: string;
+};
+
+type CreateManualClientResponse = {
+  success: true;
+  item: CrmClientRecord;
+};
+
+type CreateManualClientErrorResponse = {
   error: string;
 };
 
@@ -88,6 +101,35 @@ export async function createClientFromRequest(
       item: data.item,
       alreadyExisted: data.alreadyExisted,
     };
+  }
+
+  throw new Error("Failed to create client");
+}
+
+export async function createManualClient(
+  payload: CreateManualClientPayload
+): Promise<CrmClientRecord> {
+  const response = await fetch("/api/admin/clients/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | CreateManualClientResponse
+    | CreateManualClientErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data ? data.error : "Failed to create client"
+    );
+  }
+
+  if (data && "item" in data) {
+    return data.item;
   }
 
   throw new Error("Failed to create client");

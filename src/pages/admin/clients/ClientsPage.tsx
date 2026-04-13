@@ -1,14 +1,38 @@
 import { useEffect, useState } from "react";
-import { getAdminClients } from "../../../lib/api/adminClients";
-import type { CrmClientRecord, ClientStatus } from "../../../types/client";
+import {
+  getAdminClients,
+  createManualClient,
+} from "../../../lib/api/adminClients";
+import type {
+  CrmClientRecord,
+  ClientStatus,
+  CreateManualClientPayload,
+} from "../../../types/client";
 import { clientStatuses } from "../../../types/client";
+
+type ManualClientForm = {
+  name: string;
+  phone: string;
+  email: string;
+  source: string;
+};
+
+const initialForm: ManualClientForm = {
+  name: "",
+  phone: "",
+  email: "",
+  source: "manual",
+};
 
 export function ClientsPage() {
   const [items, setItems] = useState<CrmClientRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [statusFilter, setStatusFilter] = useState<ClientStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [form, setForm] = useState<ManualClientForm>(initialForm);
 
   useEffect(() => {
     let isMounted = true;
@@ -50,9 +74,142 @@ export function ClientsPage() {
     };
   }, [statusFilter, searchQuery]);
 
+  const handleFormChange = (
+    field: keyof ManualClientForm,
+    value: string
+  ) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    if (error) {
+      setError("");
+    }
+
+    if (successMessage) {
+      setSuccessMessage("");
+    }
+  };
+
+  const handleCreateClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const payload: CreateManualClientPayload = {
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      email: form.email.trim(),
+      source: form.source.trim() || "manual",
+    };
+
+    if (!payload.name) {
+      setError("Client name is required.");
+      return;
+    }
+
+    if (!payload.phone && !payload.email) {
+      setError("At least phone or email is required.");
+      return;
+    }
+
+    setIsCreating(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await createManualClient(payload);
+
+      const clients = await getAdminClients({
+        status: statusFilter,
+        search: searchQuery,
+      });
+
+      setItems(clients);
+      setForm(initialForm);
+      setSuccessMessage("Client created successfully.");
+    } catch (createError) {
+      setError(
+        createError instanceof Error
+          ? createError.message
+          : "Failed to create client"
+      );
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <main>
       <h1>Clients</h1>
+
+      <section
+        style={{
+          marginTop: "20px",
+          marginBottom: "24px",
+          padding: "16px",
+          border: "1px solid #ddd",
+          borderRadius: "12px",
+        }}
+      >
+        <h2 style={{ marginTop: 0 }}>Create client manually</h2>
+
+        <form
+          onSubmit={handleCreateClient}
+          style={{
+            display: "grid",
+            gap: "12px",
+            maxWidth: "640px",
+          }}
+        >
+          <input
+            type="text"
+            value={form.name}
+            onChange={(e) => handleFormChange("name", e.target.value)}
+            placeholder="Client name"
+            style={inputStyle}
+          />
+
+          <input
+            type="text"
+            value={form.phone}
+            onChange={(e) => handleFormChange("phone", e.target.value)}
+            placeholder="Phone"
+            style={inputStyle}
+          />
+
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => handleFormChange("email", e.target.value)}
+            placeholder="Email"
+            style={inputStyle}
+          />
+
+          <input
+            type="text"
+            value={form.source}
+            onChange={(e) => handleFormChange("source", e.target.value)}
+            placeholder="Source"
+            style={inputStyle}
+          />
+
+          <div>
+            <button
+              type="submit"
+              disabled={isCreating}
+              style={{
+                padding: "10px 14px",
+                borderRadius: "8px",
+                border: "1px solid #ccc",
+                cursor: "pointer",
+                background: "#fff",
+              }}
+            >
+              {isCreating ? "Creating..." : "Create client"}
+            </button>
+          </div>
+        </form>
+      </section>
 
       <div
         style={{
@@ -100,6 +257,7 @@ export function ClientsPage() {
       </div>
 
       {error && <p style={{ color: "#d96b6b" }}>{error}</p>}
+      {successMessage && <p style={{ color: "#2e8b57" }}>{successMessage}</p>}
 
       {isLoading ? (
         <p>Loading...</p>
@@ -134,8 +292,8 @@ export function ClientsPage() {
                     {new Date(item.createdAt).toLocaleString("ru-RU")}
                   </td>
                   <td style={cellStyle}>{item.name}</td>
-                  <td style={cellStyle}>{item.phone}</td>
-                  <td style={cellStyle}>{item.email}</td>
+                  <td style={cellStyle}>{item.phone || "-"}</td>
+                  <td style={cellStyle}>{item.email || "-"}</td>
                   <td style={cellStyle}>{item.source}</td>
                   <td style={cellStyle}>{item.status}</td>
                   <td style={cellStyle}>{item.firstRequestId ?? "-"}</td>
@@ -148,6 +306,13 @@ export function ClientsPage() {
     </main>
   );
 }
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "10px 12px",
+  borderRadius: "8px",
+  border: "1px solid #ccc",
+};
 
 const cellHeadStyle: React.CSSProperties = {
   textAlign: "left",
