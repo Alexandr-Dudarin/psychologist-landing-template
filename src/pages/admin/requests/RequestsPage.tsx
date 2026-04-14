@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLanguage } from "../../../app/providers/LanguageProvider";
 import {
   getAdminRequests,
   updateAdminRequestStatus,
@@ -8,6 +9,7 @@ import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
 import { requestStatuses } from "../../../types/request";
 
 export function RequestsPage() {
+  const { t } = useLanguage();
   const [items, setItems] = useState<CrmRequestRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -39,7 +41,7 @@ export function RequestsPage() {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Failed to load requests"
+              : t.admin.requests.messages.loadError
           );
         }
       } finally {
@@ -81,7 +83,7 @@ export function RequestsPage() {
       setError(
         updateError instanceof Error
           ? updateError.message
-          : "Failed to update request status"
+          : t.admin.requests.messages.updateStatusError
       );
     } finally {
       setSavingId(null);
@@ -106,7 +108,7 @@ export function RequestsPage() {
       setError(
         createError instanceof Error
           ? createError.message
-          : "Failed to create client"
+          : t.admin.requests.messages.createClientError
       );
     } finally {
       setCreatingClientId(null);
@@ -115,7 +117,7 @@ export function RequestsPage() {
 
   return (
     <main>
-      <h1>Requests</h1>
+      <h1>{t.admin.requests.title}</h1>
 
       <div
         style={{
@@ -138,10 +140,10 @@ export function RequestsPage() {
             border: "1px solid #ccc",
           }}
         >
-          <option value="all">all statuses</option>
+          <option value="all">{t.admin.requests.filters.allStatuses}</option>
           {requestStatuses.map((status) => (
             <option key={status} value={status}>
-              {status}
+              {t.admin.requests.statusLabels[status]}
             </option>
           ))}
         </select>
@@ -150,7 +152,7 @@ export function RequestsPage() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by name, phone, email, message"
+          placeholder={t.admin.requests.filters.searchPlaceholder}
           style={{
             minWidth: "320px",
             maxWidth: "420px",
@@ -165,9 +167,9 @@ export function RequestsPage() {
       {error && <p style={{ color: "#d96b6b" }}>{error}</p>}
 
       {isLoading ? (
-        <p>Loading...</p>
+        <p>{t.admin.requests.messages.loading}</p>
       ) : items.length === 0 ? (
-        <p>No requests found.</p>
+        <p>{t.admin.requests.messages.empty}</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table
@@ -180,13 +182,13 @@ export function RequestsPage() {
             <thead>
               <tr>
                 <th style={cellHeadStyle}>ID</th>
-                <th style={cellHeadStyle}>Created</th>
-                <th style={cellHeadStyle}>Name</th>
-                <th style={cellHeadStyle}>Phone</th>
-                <th style={cellHeadStyle}>Email</th>
-                <th style={cellHeadStyle}>Message</th>
-                <th style={cellHeadStyle}>Status</th>
-                <th style={cellHeadStyle}>Client</th>
+                <th style={cellHeadStyle}>{t.admin.requests.table.created}</th>
+                <th style={cellHeadStyle}>{t.admin.requests.table.name}</th>
+                <th style={cellHeadStyle}>{t.admin.requests.table.phone}</th>
+                <th style={cellHeadStyle}>{t.admin.requests.table.email}</th>
+                <th style={cellHeadStyle}>{t.admin.requests.table.message}</th>
+                <th style={cellHeadStyle}>{t.admin.requests.table.status}</th>
+                <th style={cellHeadStyle}>{t.admin.requests.table.client}</th>
               </tr>
             </thead>
             <tbody>
@@ -222,13 +224,13 @@ export function RequestsPage() {
                       >
                         {requestStatuses.map((status) => (
                           <option key={status} value={status}>
-                            {status}
+                            {t.admin.requests.statusLabels[status]}
                           </option>
                         ))}
                       </select>
                       {savingId === item.id && (
                         <div style={{ marginTop: "6px", fontSize: "12px" }}>
-                          Saving...
+                          {t.admin.requests.actions.saving}
                         </div>
                       )}
                     </td>
@@ -246,10 +248,10 @@ export function RequestsPage() {
                         }}
                       >
                         {clientAlreadyCreated
-                          ? "Created"
+                          ? t.admin.requests.actions.created
                           : creatingClientId === item.id
-                            ? "Creating..."
-                            : "Create client"}
+                            ? t.admin.requests.actions.creatingClient
+                            : t.admin.requests.actions.createClient}
                       </button>
                     </td>
                   </tr>

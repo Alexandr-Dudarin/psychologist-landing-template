@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLanguage } from "../../../app/providers/LanguageProvider";
 import {
   getAdminClients,
   createManualClient,
@@ -25,6 +26,7 @@ const initialForm: ManualClientForm = {
 };
 
 export function ClientsPage() {
+  const { t } = useLanguage();
   const [items, setItems] = useState<CrmClientRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -57,7 +59,7 @@ export function ClientsPage() {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Failed to load clients"
+              : t.admin.clients.messages.loadError
           );
         }
       } finally {
@@ -103,12 +105,12 @@ export function ClientsPage() {
     };
 
     if (!payload.name) {
-      setError("Client name is required.");
+      setError(t.admin.clients.messages.nameRequired);
       return;
     }
 
     if (!payload.phone && !payload.email) {
-      setError("At least phone or email is required.");
+      setError(t.admin.clients.messages.phoneOrEmailRequired);
       return;
     }
 
@@ -126,12 +128,12 @@ export function ClientsPage() {
 
       setItems(clients);
       setForm(initialForm);
-      setSuccessMessage("Client created successfully.");
+      setSuccessMessage(t.admin.clients.messages.createSuccess);
     } catch (createError) {
       setError(
         createError instanceof Error
           ? createError.message
-          : "Failed to create client"
+          : t.admin.clients.messages.createError
       );
     } finally {
       setIsCreating(false);
@@ -140,7 +142,7 @@ export function ClientsPage() {
 
   return (
     <main>
-      <h1>Clients</h1>
+      <h1>{t.admin.clients.title}</h1>
 
       <section
         style={{
@@ -151,7 +153,7 @@ export function ClientsPage() {
           borderRadius: "12px",
         }}
       >
-        <h2 style={{ marginTop: 0 }}>Create client manually</h2>
+        <h2 style={{ marginTop: 0 }}>{t.admin.clients.createForm.title}</h2>
 
         <form
           onSubmit={handleCreateClient}
@@ -165,7 +167,7 @@ export function ClientsPage() {
             type="text"
             value={form.name}
             onChange={(e) => handleFormChange("name", e.target.value)}
-            placeholder="Client name"
+            placeholder={t.admin.clients.createForm.namePlaceholder}
             style={inputStyle}
           />
 
@@ -173,7 +175,7 @@ export function ClientsPage() {
             type="text"
             value={form.phone}
             onChange={(e) => handleFormChange("phone", e.target.value)}
-            placeholder="Phone"
+            placeholder={t.admin.clients.createForm.phonePlaceholder}
             style={inputStyle}
           />
 
@@ -181,7 +183,7 @@ export function ClientsPage() {
             type="email"
             value={form.email}
             onChange={(e) => handleFormChange("email", e.target.value)}
-            placeholder="Email"
+            placeholder={t.admin.clients.createForm.emailPlaceholder}
             style={inputStyle}
           />
 
@@ -189,7 +191,7 @@ export function ClientsPage() {
             type="text"
             value={form.source}
             onChange={(e) => handleFormChange("source", e.target.value)}
-            placeholder="Source"
+            placeholder={t.admin.clients.createForm.sourcePlaceholder}
             style={inputStyle}
           />
 
@@ -205,7 +207,9 @@ export function ClientsPage() {
                 background: "#fff",
               }}
             >
-              {isCreating ? "Creating..." : "Create client"}
+              {isCreating
+                ? t.admin.clients.createForm.submitting
+                : t.admin.clients.createForm.submit}
             </button>
           </div>
         </form>
@@ -232,10 +236,10 @@ export function ClientsPage() {
             border: "1px solid #ccc",
           }}
         >
-          <option value="all">all statuses</option>
+          <option value="all">{t.admin.clients.filters.allStatuses}</option>
           {clientStatuses.map((status) => (
             <option key={status} value={status}>
-              {status}
+              {t.admin.clients.statusLabels[status]}
             </option>
           ))}
         </select>
@@ -244,7 +248,7 @@ export function ClientsPage() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by name, phone, email"
+          placeholder={t.admin.clients.filters.searchPlaceholder}
           style={{
             minWidth: "320px",
             maxWidth: "420px",
@@ -260,9 +264,9 @@ export function ClientsPage() {
       {successMessage && <p style={{ color: "#2e8b57" }}>{successMessage}</p>}
 
       {isLoading ? (
-        <p>Loading...</p>
+        <p>{t.admin.clients.messages.loading}</p>
       ) : items.length === 0 ? (
-        <p>No clients found.</p>
+        <p>{t.admin.clients.messages.empty}</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table
@@ -275,13 +279,13 @@ export function ClientsPage() {
             <thead>
               <tr>
                 <th style={cellHeadStyle}>ID</th>
-                <th style={cellHeadStyle}>Created</th>
-                <th style={cellHeadStyle}>Name</th>
-                <th style={cellHeadStyle}>Phone</th>
-                <th style={cellHeadStyle}>Email</th>
-                <th style={cellHeadStyle}>Source</th>
-                <th style={cellHeadStyle}>Status</th>
-                <th style={cellHeadStyle}>First request</th>
+                <th style={cellHeadStyle}>{t.admin.clients.table.created}</th>
+                <th style={cellHeadStyle}>{t.admin.clients.table.name}</th>
+                <th style={cellHeadStyle}>{t.admin.clients.table.phone}</th>
+                <th style={cellHeadStyle}>{t.admin.clients.table.email}</th>
+                <th style={cellHeadStyle}>{t.admin.clients.table.source}</th>
+                <th style={cellHeadStyle}>{t.admin.clients.table.status}</th>
+                <th style={cellHeadStyle}>{t.admin.clients.table.firstRequest}</th>
               </tr>
             </thead>
             <tbody>
@@ -295,7 +299,7 @@ export function ClientsPage() {
                   <td style={cellStyle}>{item.phone || "-"}</td>
                   <td style={cellStyle}>{item.email || "-"}</td>
                   <td style={cellStyle}>{item.source}</td>
-                  <td style={cellStyle}>{item.status}</td>
+                  <td style={cellStyle}>{t.admin.clients.statusLabels[item.status]}</td>
                   <td style={cellStyle}>{item.firstRequestId ?? "-"}</td>
                 </tr>
               ))}
