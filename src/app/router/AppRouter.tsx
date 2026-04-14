@@ -10,6 +10,7 @@ import { RequestsPage } from "../../pages/admin/requests/RequestsPage";
 import { ClientsPage } from "../../pages/admin/clients/ClientsPage";
 import { SessionsPage } from "../../pages/admin/sessions/SessionsPage";
 import { ServicesPage } from "../../pages/admin/services/ServicesPage";
+import { NotesPage } from "../../pages/admin/notes/NotesPage";
 
 export function AppRouter() {
   return (
@@ -32,8 +33,9 @@ export function AppRouter() {
         <Route index element={<AdminDashboardPage />} />
         <Route path="requests" element={<RequestsPage />} />
         <Route path="clients" element={<ClientsPage />} />
-        <Route path="sessions" element={<SessionsPage />} />
         <Route path="services" element={<ServicesPage />} />
+        <Route path="sessions" element={<SessionsPage />} />
+        <Route path="notes" element={<NotesPage />} />
       </Route>
     </Routes>
   );
