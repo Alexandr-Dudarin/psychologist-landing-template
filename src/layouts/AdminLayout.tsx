@@ -1,6 +1,9 @@
 import { Link, Outlet } from "react-router-dom";
+import { useLanguage } from "../app/providers/LanguageProvider";
 
 export function AdminLayout() {
+  const { t } = useLanguage();
+
   return (
     <div style={{ minHeight: "100vh", padding: "24px" }}>
       <nav
@@ -11,12 +14,12 @@ export function AdminLayout() {
           flexWrap: "wrap",
         }}
       >
-        <Link to="/admin">Dashboard</Link>
-        <Link to="/admin/requests">Requests</Link>
-        <Link to="/admin/clients">Clients</Link>
-        <Link to="/admin/services">Services</Link>
-        <Link to="/admin/sessions">Sessions</Link>
-        <Link to="/">Back to site</Link>
+        <Link to="/admin">{t.admin.layout.nav.dashboard}</Link>
+        <Link to="/admin/requests">{t.admin.layout.nav.requests}</Link>
+        <Link to="/admin/clients">{t.admin.layout.nav.clients}</Link>
+        <Link to="/admin/services">{t.admin.layout.nav.services}</Link>
+        <Link to="/admin/sessions">{t.admin.layout.nav.sessions}</Link>
+        <Link to="/">{t.admin.layout.nav.backToSite}</Link>
       </nav>
 
       <Outlet />

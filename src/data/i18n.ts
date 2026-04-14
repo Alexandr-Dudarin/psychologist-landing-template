@@ -20,6 +20,26 @@ export type LocaleData = {
   config: typeof configRu;
   profile: typeof profileRu;
   seo: typeof seoRu;
+  admin: {
+    layout: {
+      nav: {
+        dashboard: string;
+        requests: string;
+        clients: string;
+        services: string;
+        sessions: string;
+        backToSite: string;
+      };
+    };
+    dashboard: {
+      title: string;
+      description: string;
+    };
+    login: {
+      title: string;
+      description: string;
+    };
+  };
   ui: {
     navItems: NavItem[];
     buttons: {
@@ -51,6 +71,26 @@ export const locales: Record<Language, LocaleData> = {
     config: configRu,
     profile: profileRu,
     seo: seoRu,
+    admin: {
+      layout: {
+        nav: {
+          dashboard: "Панель управления",
+          requests: "Заявки",
+          clients: "Клиенты",
+          services: "Услуги",
+          sessions: "Сессии",
+          backToSite: "Вернуться на сайт",
+        },
+      },
+      dashboard: {
+        title: "Панель управления",
+        description: "Главная страница CRM.",
+      },
+      login: {
+        title: "Вход в админку",
+        description: "Здесь позже появится форма входа в CRM.",
+      },
+    },
     ui: {
       navItems: [
         { href: "#about", label: "Обо мне" },
@@ -89,6 +129,26 @@ export const locales: Record<Language, LocaleData> = {
     config: configEn,
     profile: profileEn,
     seo: seoEn,
+    admin: {
+      layout: {
+        nav: {
+          dashboard: "Dashboard",
+          requests: "Requests",
+          clients: "Clients",
+          services: "Services",
+          sessions: "Sessions",
+          backToSite: "Back to site",
+        },
+      },
+      dashboard: {
+        title: "Admin dashboard",
+        description: "CRM home page.",
+      },
+      login: {
+        title: "Admin login",
+        description: "The CRM login form will appear here later.",
+      },
+    },
     ui: {
       navItems: [
         { href: "#about", label: "About" },
