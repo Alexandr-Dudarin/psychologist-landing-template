@@ -1,41 +1,30 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+
 import { getAdminClients } from "../../../lib/api/adminClients";
-import { getAdminSessions } from "../../../lib/api/adminSessions";
 import {
-  getAdminNotes,
   createAdminNote,
-  updateAdminNote,
   deleteAdminNote,
+  getAdminNotes,
+  updateAdminNote,
 } from "../../../lib/api/adminNotes";
+import { getAdminSessions } from "../../../lib/api/adminSessions";
 import type { CrmClientRecord } from "../../../types/client";
-import type { CrmSessionRecord } from "../../../types/session";
 import type {
   CreateNotePayload,
   CrmNoteRecord,
   UpdateNotePayload,
 } from "../../../types/note";
-
-type NoteForm = {
-  clientId: string;
-  sessionId: string;
-  content: string;
-};
-
-const initialCreateForm: NoteForm = {
-  clientId: "",
-  sessionId: "",
-  content: "",
-};
-
-const initialEditForm: NoteForm = {
-  clientId: "",
-  sessionId: "",
-  content: "",
-};
-
-function formatSessionLabel(session: CrmSessionRecord) {
-  return `${new Date(session.scheduledAt).toLocaleString("ru-RU")} — ${session.serviceTitle}`;
-}
+import type { CrmSessionRecord } from "../../../types/session";
+import { NoteCreateForm } from "./NoteCreateForm";
+import { NoteEditForm } from "./NoteEditForm";
+import { NotesFilters } from "./NotesFilters";
+import styles from "./NotesPage.module.css";
+import { NotesTable } from "./NotesTable";
+import {
+  initialCreateForm,
+  initialEditForm,
+  type NoteForm,
+} from "./noteForm";
 
 export function NotesPage() {
   const [items, setItems] = useState<CrmNoteRecord[]>([]);
@@ -119,6 +108,16 @@ export function NotesPage() {
     );
   }, [editForm.clientId, sessions]);
 
+  const resetMessages = () => {
+    if (error) {
+      setError("");
+    }
+
+    if (successMessage) {
+      setSuccessMessage("");
+    }
+  };
+
   const reloadNotes = async () => {
     const notesData = await getAdminNotes({
       clientId: clientFilter,
@@ -142,13 +141,7 @@ export function NotesPage() {
       }));
     }
 
-    if (error) {
-      setError("");
-    }
-
-    if (successMessage) {
-      setSuccessMessage("");
-    }
+    resetMessages();
   };
 
   const handleEditFormChange = (field: keyof NoteForm, value: string) => {
@@ -165,17 +158,11 @@ export function NotesPage() {
       }));
     }
 
-    if (error) {
-      setError("");
-    }
-
-    if (successMessage) {
-      setSuccessMessage("");
-    }
+    resetMessages();
   };
 
-  const handleCreateNote = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateNote = async (event: FormEvent) => {
+    event.preventDefault();
 
     const payload: CreateNotePayload = {
       clientId: Number(createForm.clientId),
@@ -229,8 +216,8 @@ export function NotesPage() {
     setEditForm(initialEditForm);
   };
 
-  const handleUpdateNote = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdateNote = async (event: FormEvent) => {
+    event.preventDefault();
 
     if (editingNoteId === null) {
       return;
@@ -315,281 +302,52 @@ export function NotesPage() {
     <main>
       <h1>Заметки</h1>
 
-      <section
-        style={{
-          marginTop: "20px",
-          marginBottom: "24px",
-          padding: "16px",
-          border: "1px solid #ddd",
-          borderRadius: "12px",
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Создать заметку</h2>
+      <NoteCreateForm
+        clients={clients}
+        availableSessions={availableCreateSessions}
+        form={createForm}
+        isCreating={isCreating}
+        onChange={handleCreateFormChange}
+        onSubmit={handleCreateNote}
+      />
 
-        <form
-          onSubmit={handleCreateNote}
-          style={{
-            display: "grid",
-            gap: "12px",
-            maxWidth: "720px",
-          }}
-        >
-          <select
-            value={createForm.clientId}
-            onChange={(e) => handleCreateFormChange("clientId", e.target.value)}
-            style={inputStyle}
-          >
-            <option value="">Выберите клиента</option>
-            {clients.map((client) => (
-              <option key={client.id} value={client.id}>
-                {client.name} — {client.phone || client.email || client.id}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={createForm.sessionId}
-            onChange={(e) =>
-              handleCreateFormChange("sessionId", e.target.value)
-            }
-            style={inputStyle}
-            disabled={!createForm.clientId}
-          >
-            <option value="">Без привязки к сессии</option>
-            {availableCreateSessions.map((session) => (
-              <option key={session.id} value={session.id}>
-                {formatSessionLabel(session)}
-              </option>
-            ))}
-          </select>
-
-          <textarea
-            value={createForm.content}
-            onChange={(e) => handleCreateFormChange("content", e.target.value)}
-            placeholder="Текст заметки"
-            style={{ ...inputStyle, minHeight: "140px", resize: "vertical" }}
-          />
-
-          <div>
-            <button type="submit" disabled={isCreating} style={buttonStyle}>
-              {isCreating ? "Создание..." : "Создать заметку"}
-            </button>
-          </div>
-        </form>
-      </section>
-
-      {editingNoteId !== null && (
-        <section
-          style={{
-            marginTop: "20px",
-            marginBottom: "24px",
-            padding: "16px",
-            border: "1px solid #ddd",
-            borderRadius: "12px",
-          }}
-        >
-          <h2 style={{ marginTop: 0 }}>Редактировать заметку</h2>
-
-          <form
-            onSubmit={handleUpdateNote}
-            style={{
-              display: "grid",
-              gap: "12px",
-              maxWidth: "720px",
-            }}
-          >
-            <select
-              value={editForm.clientId}
-              onChange={(e) => handleEditFormChange("clientId", e.target.value)}
-              style={inputStyle}
-            >
-              <option value="">Выберите клиента</option>
-              {clients.map((client) => (
-                <option key={client.id} value={client.id}>
-                  {client.name} — {client.phone || client.email || client.id}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={editForm.sessionId}
-              onChange={(e) => handleEditFormChange("sessionId", e.target.value)}
-              style={inputStyle}
-              disabled={!editForm.clientId}
-            >
-              <option value="">Без привязки к сессии</option>
-              {availableEditSessions.map((session) => (
-                <option key={session.id} value={session.id}>
-                  {formatSessionLabel(session)}
-                </option>
-              ))}
-            </select>
-
-            <textarea
-              value={editForm.content}
-              onChange={(e) => handleEditFormChange("content", e.target.value)}
-              placeholder="Текст заметки"
-              style={{ ...inputStyle, minHeight: "140px", resize: "vertical" }}
-            />
-
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-              <button type="submit" disabled={isUpdating} style={buttonStyle}>
-                {isUpdating ? "Сохранение..." : "Сохранить изменения"}
-              </button>
-
-              <button type="button" onClick={cancelEditing} style={buttonStyle}>
-                Отменить
-              </button>
-            </div>
-          </form>
-        </section>
-      )}
-
-      <div
-        style={{
-          display: "flex",
-          gap: "12px",
-          flexWrap: "wrap",
-          marginTop: "16px",
-          marginBottom: "16px",
-        }}
-      >
-        <select
-          value={clientFilter}
-          onChange={(e) =>
-            setClientFilter(
-              e.target.value === "all" ? "all" : Number(e.target.value)
-            )
-          }
-          style={{
-            minWidth: "240px",
-            padding: "10px 12px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-          }}
-        >
-          <option value="all">все клиенты</option>
-          {clients.map((client) => (
-            <option key={client.id} value={client.id}>
-              {client.name}
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Поиск по клиенту, тексту или услуге"
-          style={{
-            minWidth: "320px",
-            maxWidth: "420px",
-            width: "100%",
-            padding: "10px 12px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-          }}
+      {editingNoteId !== null ? (
+        <NoteEditForm
+          clients={clients}
+          availableSessions={availableEditSessions}
+          form={editForm}
+          isUpdating={isUpdating}
+          onCancel={cancelEditing}
+          onChange={handleEditFormChange}
+          onSubmit={handleUpdateNote}
         />
-      </div>
+      ) : null}
 
-      {error && <p style={{ color: "#d96b6b" }}>{error}</p>}
-      {successMessage && <p style={{ color: "#2e8b57" }}>{successMessage}</p>}
+      <NotesFilters
+        clientFilter={clientFilter}
+        clients={clients}
+        searchQuery={searchQuery}
+        onClientFilterChange={setClientFilter}
+        onSearchChange={setSearchQuery}
+      />
+
+      {error ? <p className={styles.feedbackError}>{error}</p> : null}
+      {successMessage ? (
+        <p className={styles.feedbackSuccess}>{successMessage}</p>
+      ) : null}
 
       {isLoading ? (
         <p>Загрузка...</p>
       ) : items.length === 0 ? (
         <p>Заметок пока нет.</p>
       ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              marginTop: "16px",
-            }}
-          >
-            <thead>
-              <tr>
-                <th style={cellHeadStyle}>ID</th>
-                <th style={cellHeadStyle}>Создана</th>
-                <th style={cellHeadStyle}>Клиент</th>
-                <th style={cellHeadStyle}>Сессия</th>
-                <th style={cellHeadStyle}>Текст</th>
-                <th style={cellHeadStyle}>Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.id}>
-                  <td style={cellStyle}>{item.id}</td>
-                  <td style={cellStyle}>
-                    {new Date(item.createdAt).toLocaleString("ru-RU")}
-                  </td>
-                  <td style={cellStyle}>{item.clientName}</td>
-                  <td style={cellStyle}>
-                    {item.sessionId && item.sessionScheduledAt
-                      ? `${new Date(item.sessionScheduledAt).toLocaleString("ru-RU")}${
-                          item.sessionServiceTitle
-                            ? ` — ${item.sessionServiceTitle}`
-                            : ""
-                        }`
-                      : "-"}
-                  </td>
-                  <td style={cellStyle}>{item.content}</td>
-                  <td style={cellStyle}>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                      <button
-                        type="button"
-                        onClick={() => startEditing(item)}
-                        style={buttonStyle}
-                      >
-                        Редактировать
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteNote(item.id)}
-                        disabled={deletingId === item.id}
-                        style={buttonStyle}
-                      >
-                        {deletingId === item.id ? "Удаление..." : "Удалить"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <NotesTable
+          items={items}
+          deletingId={deletingId}
+          onEdit={startEditing}
+          onDelete={handleDeleteNote}
+        />
       )}
     </main>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px 12px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-};
-
-const buttonStyle: React.CSSProperties = {
-  padding: "10px 14px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-  cursor: "pointer",
-  background: "#fff",
-};
-
-const cellHeadStyle: React.CSSProperties = {
-  textAlign: "left",
-  padding: "12px",
-  borderBottom: "1px solid #ddd",
-  fontWeight: 700,
-};
-
-const cellStyle: React.CSSProperties = {
-  padding: "12px",
-  borderBottom: "1px solid #eee",
-  verticalAlign: "top",
-};

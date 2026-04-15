@@ -1,0 +1,97 @@
+.section {
+  margin-top: 20px;
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+}
+
+.sectionTitle {
+  margin-top: 0;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+  max-width: 720px;
+}
+
+.filtersRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.actionsRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.filterSelect {
+  min-width: 240px;
+}
+
+.searchInput {
+  min-width: 320px;
+  max-width: 420px;
+}
+
+.button {
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.feedbackError {
+  color: #d96b6b;
+}
+
+.feedbackSuccess {
+  color: #2e8b57;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  margin-top: 16px;
+  border-collapse: collapse;
+}
+
+.tableHeadCell {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  font-weight: 700;
+  text-align: left;
+}
+
+.tableCell {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
