@@ -3,7 +3,9 @@
 import { pool } from "../../../server/db/pool";
 import type {
   AdminScheduleRecord,
+  BlockedSlotRecord,
   BookingSettingsRecord,
+  ScheduleOverrideRecord,
   ScheduleRuleRecord,
 } from "../../../src/types/schedule";
 
@@ -19,6 +21,23 @@ type RuleRow = {
   is_enabled: boolean;
   start_time: string;
   end_time: string;
+};
+
+type OverrideRow = {
+  override_date: string;
+  is_working_day: boolean;
+  start_time: string | null;
+  end_time: string | null;
+  note: string;
+};
+
+type BlockedSlotRow = {
+  id: string | number;
+  blocked_date: string;
+  start_time: string;
+  end_time: string;
+  reason: string;
+  created_at: string;
 };
 
 type ParsedPayload = {
@@ -41,6 +60,27 @@ function mapRule(row: RuleRow): ScheduleRuleRecord {
     isEnabled: row.is_enabled,
     startTime: row.start_time.slice(0, 5),
     endTime: row.end_time.slice(0, 5),
+  };
+}
+
+function mapOverride(row: OverrideRow): ScheduleOverrideRecord {
+  return {
+    date: row.override_date,
+    isWorkingDay: row.is_working_day,
+    startTime: row.start_time ? row.start_time.slice(0, 5) : null,
+    endTime: row.end_time ? row.end_time.slice(0, 5) : null,
+    note: row.note,
+  };
+}
+
+function mapBlockedSlot(row: BlockedSlotRow): BlockedSlotRecord {
+  return {
+    id: Number(row.id),
+    blockedDate: row.blocked_date,
+    startTime: row.start_time.slice(0, 5),
+    endTime: row.end_time.slice(0, 5),
+    reason: row.reason,
+    createdAt: row.created_at,
   };
 }
 
@@ -217,11 +257,36 @@ export default async function handler(req: any, res: any) {
       ORDER BY weekday ASC
     `);
 
+    const overridesResult = await client.query<OverrideRow>(`
+      SELECT
+        override_date::text AS override_date,
+        is_working_day,
+        start_time,
+        end_time,
+        note
+      FROM schedule_overrides
+      ORDER BY override_date ASC
+    `);
+
+    const blockedSlotsResult = await client.query<BlockedSlotRow>(`
+      SELECT
+        id,
+        blocked_date::text AS blocked_date,
+        start_time,
+        end_time,
+        reason,
+        created_at
+      FROM blocked_slots
+      ORDER BY blocked_date ASC, start_time ASC
+    `);
+
     await client.query("COMMIT");
 
     const responsePayload: AdminScheduleRecord = {
       settings: mapSettings(settingsResult.rows[0]),
       rules: rulesResult.rows.map(mapRule),
+      overrides: overridesResult.rows.map(mapOverride),
+      blockedSlots: blockedSlotsResult.rows.map(mapBlockedSlot),
     };
 
     return res.status(200).json({

@@ -12,12 +12,46 @@ export type ScheduleRuleRecord = {
   endTime: string;
 };
 
+export type ScheduleOverrideRecord = {
+  date: string;
+  isWorkingDay: boolean;
+  startTime: string | null;
+  endTime: string | null;
+  note: string;
+};
+
+export type BlockedSlotRecord = {
+  id: number;
+  blockedDate: string;
+  startTime: string;
+  endTime: string;
+  reason: string;
+  createdAt: string;
+};
+
 export type AdminScheduleRecord = {
   settings: BookingSettingsRecord;
   rules: ScheduleRuleRecord[];
+  overrides: ScheduleOverrideRecord[];
+  blockedSlots: BlockedSlotRecord[];
 };
 
 export type UpdateAdminSchedulePayload = {
   settings: BookingSettingsRecord;
   rules: ScheduleRuleRecord[];
+};
+
+export type CreateScheduleOverridePayload = {
+  date: string;
+  isWorkingDay: boolean;
+  startTime?: string | null;
+  endTime?: string | null;
+  note?: string;
+};
+
+export type CreateBlockedSlotPayload = {
+  blockedDate: string;
+  startTime: string;
+  endTime: string;
+  reason?: string;
 };
