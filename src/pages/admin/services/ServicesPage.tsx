@@ -1,39 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+
 import {
-  getAdminServices,
   createAdminService,
-  updateAdminService,
   deleteAdminService,
+  getAdminServices,
+  updateAdminService,
 } from "../../../lib/api/adminServices";
 import type {
   CrmServiceRecord,
   CreateServicePayload,
   UpdateServicePayload,
 } from "../../../types/service";
-
-type ServiceForm = {
-  title: string;
-  description: string;
-  price: string;
-  durationMinutes: string;
-  isActive: boolean;
-};
-
-const initialCreateForm: ServiceForm = {
-  title: "",
-  description: "",
-  price: "",
-  durationMinutes: "60",
-  isActive: true,
-};
-
-const initialEditForm: ServiceForm = {
-  title: "",
-  description: "",
-  price: "",
-  durationMinutes: "60",
-  isActive: true,
-};
+import { ServiceCreateForm } from "./ServiceCreateForm";
+import { ServiceEditForm } from "./ServiceEditForm";
+import styles from "./ServicesPage.module.css";
+import { ServicesTable } from "./ServicesTable";
+import {
+  initialCreateForm,
+  initialEditForm,
+  type ServiceForm,
+} from "./serviceForm";
 
 export function ServicesPage() {
   const [items, setItems] = useState<CrmServiceRecord[]>([]);
@@ -91,6 +77,16 @@ export function ServicesPage() {
     };
   }, [activityFilter, searchQuery]);
 
+  const resetMessages = () => {
+    if (error) {
+      setError("");
+    }
+
+    if (successMessage) {
+      setSuccessMessage("");
+    }
+  };
+
   const handleCreateFormChange = (
     field: keyof ServiceForm,
     value: string | boolean
@@ -99,14 +95,7 @@ export function ServicesPage() {
       ...prev,
       [field]: value,
     }));
-
-    if (error) {
-      setError("");
-    }
-
-    if (successMessage) {
-      setSuccessMessage("");
-    }
+    resetMessages();
   };
 
   const handleEditFormChange = (
@@ -117,14 +106,7 @@ export function ServicesPage() {
       ...prev,
       [field]: value,
     }));
-
-    if (error) {
-      setError("");
-    }
-
-    if (successMessage) {
-      setSuccessMessage("");
-    }
+    resetMessages();
   };
 
   const reloadServices = async () => {
@@ -136,8 +118,8 @@ export function ServicesPage() {
     setItems(services);
   };
 
-  const handleCreateService = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateService = async (event: FormEvent) => {
+    event.preventDefault();
 
     const payload: CreateServicePayload = {
       title: createForm.title.trim(),
@@ -203,8 +185,8 @@ export function ServicesPage() {
     setEditForm(initialEditForm);
   };
 
-  const handleUpdateService = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdateService = async (event: FormEvent) => {
+    event.preventDefault();
 
     if (editingServiceId === null) {
       return;
@@ -294,210 +276,30 @@ export function ServicesPage() {
     <main>
       <h1>Услуги</h1>
 
-      <section
-        style={{
-          marginTop: "20px",
-          marginBottom: "24px",
-          padding: "16px",
-          border: "1px solid #ddd",
-          borderRadius: "12px",
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Создать услугу</h2>
+      <ServiceCreateForm
+        form={createForm}
+        isCreating={isCreating}
+        onChange={handleCreateFormChange}
+        onSubmit={handleCreateService}
+      />
 
-        <form
-          onSubmit={handleCreateService}
-          style={{
-            display: "grid",
-            gap: "12px",
-            maxWidth: "720px",
-          }}
-        >
-          <input
-            type="text"
-            value={createForm.title}
-            onChange={(e) => handleCreateFormChange("title", e.target.value)}
-            placeholder="Название услуги"
-            style={inputStyle}
-          />
+      {editingServiceId !== null ? (
+        <ServiceEditForm
+          form={editForm}
+          isUpdating={isUpdating}
+          onCancel={cancelEditing}
+          onChange={handleEditFormChange}
+          onSubmit={handleUpdateService}
+        />
+      ) : null}
 
-          <textarea
-            value={createForm.description}
-            onChange={(e) =>
-              handleCreateFormChange("description", e.target.value)
-            }
-            placeholder="Описание услуги"
-            style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }}
-          />
-
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={createForm.price}
-            onChange={(e) => handleCreateFormChange("price", e.target.value)}
-            placeholder="Цена"
-            style={inputStyle}
-          />
-
-          <input
-            type="number"
-            min="1"
-            step="1"
-            value={createForm.durationMinutes}
-            onChange={(e) =>
-              handleCreateFormChange("durationMinutes", e.target.value)
-            }
-            placeholder="Длительность в минутах"
-            style={inputStyle}
-          />
-
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={createForm.isActive}
-              onChange={(e) =>
-                handleCreateFormChange("isActive", e.target.checked)
-              }
-            />
-            <span>Услуга активна</span>
-          </label>
-
-          <div>
-            <button
-              type="submit"
-              disabled={isCreating}
-              style={buttonStyle}
-            >
-              {isCreating ? "Создание..." : "Создать услугу"}
-            </button>
-          </div>
-        </form>
-      </section>
-
-      {editingServiceId !== null && (
-        <section
-          style={{
-            marginTop: "20px",
-            marginBottom: "24px",
-            padding: "16px",
-            border: "1px solid #ddd",
-            borderRadius: "12px",
-          }}
-        >
-          <h2 style={{ marginTop: 0 }}>Редактировать услугу</h2>
-
-          <form
-            onSubmit={handleUpdateService}
-            style={{
-              display: "grid",
-              gap: "12px",
-              maxWidth: "720px",
-            }}
-          >
-            <input
-              type="text"
-              value={editForm.title}
-              onChange={(e) => handleEditFormChange("title", e.target.value)}
-              placeholder="Название услуги"
-              style={inputStyle}
-            />
-
-            <textarea
-              value={editForm.description}
-              onChange={(e) =>
-                handleEditFormChange("description", e.target.value)
-              }
-              placeholder="Описание услуги"
-              style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }}
-            />
-
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={editForm.price}
-              onChange={(e) => handleEditFormChange("price", e.target.value)}
-              placeholder="Цена"
-              style={inputStyle}
-            />
-
-            <input
-              type="number"
-              min="1"
-              step="1"
-              value={editForm.durationMinutes}
-              onChange={(e) =>
-                handleEditFormChange("durationMinutes", e.target.value)
-              }
-              placeholder="Длительность в минутах"
-              style={inputStyle}
-            />
-
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={editForm.isActive}
-                onChange={(e) =>
-                  handleEditFormChange("isActive", e.target.checked)
-                }
-              />
-              <span>Услуга активна</span>
-            </label>
-
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-              <button
-                type="submit"
-                disabled={isUpdating}
-                style={buttonStyle}
-              >
-                {isUpdating ? "Сохранение..." : "Сохранить изменения"}
-              </button>
-
-              <button
-                type="button"
-                onClick={cancelEditing}
-                style={buttonStyle}
-              >
-                Отменить
-              </button>
-            </div>
-          </form>
-        </section>
-      )}
-
-      <div
-        style={{
-          display: "flex",
-          gap: "12px",
-          flexWrap: "wrap",
-          marginTop: "16px",
-          marginBottom: "16px",
-        }}
-      >
+      <div className={styles.filters}>
         <select
           value={activityFilter}
-          onChange={(e) =>
-            setActivityFilter(e.target.value as "all" | "active" | "inactive")
+          onChange={(event) =>
+            setActivityFilter(event.target.value as "all" | "active" | "inactive")
           }
-          style={{
-            minWidth: "180px",
-            padding: "10px 12px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-          }}
+          className={`${styles.input} ${styles.filterSelect}`}
         >
           <option value="all">все услуги</option>
           <option value="active">только активные</option>
@@ -507,121 +309,29 @@ export function ServicesPage() {
         <input
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(event) => setSearchQuery(event.target.value)}
           placeholder="Поиск по названию или описанию"
-          style={{
-            minWidth: "320px",
-            maxWidth: "420px",
-            width: "100%",
-            padding: "10px 12px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-          }}
+          className={`${styles.input} ${styles.searchInput}`}
         />
       </div>
 
-      {error && <p style={{ color: "#d96b6b" }}>{error}</p>}
-      {successMessage && <p style={{ color: "#2e8b57" }}>{successMessage}</p>}
+      {error ? <p className={styles.feedbackError}>{error}</p> : null}
+      {successMessage ? (
+        <p className={styles.feedbackSuccess}>{successMessage}</p>
+      ) : null}
 
       {isLoading ? (
         <p>Загрузка...</p>
       ) : items.length === 0 ? (
         <p>Услуг пока нет.</p>
       ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              marginTop: "16px",
-            }}
-          >
-            <thead>
-              <tr>
-                <th style={cellHeadStyle}>ID</th>
-                <th style={cellHeadStyle}>Создана</th>
-                <th style={cellHeadStyle}>Название</th>
-                <th style={cellHeadStyle}>Цена</th>
-                <th style={cellHeadStyle}>Длительность</th>
-                <th style={cellHeadStyle}>Активна</th>
-                <th style={cellHeadStyle}>Описание</th>
-                <th style={cellHeadStyle}>Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.id}>
-                  <td style={cellStyle}>{item.id}</td>
-                  <td style={cellStyle}>
-                    {new Date(item.createdAt).toLocaleString("ru-RU")}
-                  </td>
-                  <td style={cellStyle}>{item.title}</td>
-                  <td style={cellStyle}>{item.price}</td>
-                  <td style={cellStyle}>{item.durationMinutes} мин</td>
-                  <td style={cellStyle}>{item.isActive ? "Да" : "Нет"}</td>
-                  <td style={cellStyle}>{item.description || "-"}</td>
-                  <td style={cellStyle}>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                      <button
-                        type="button"
-                        onClick={() => startEditing(item)}
-                        style={smallButtonStyle}
-                      >
-                        Редактировать
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteService(item.id)}
-                        disabled={deletingId === item.id}
-                        style={smallButtonStyle}
-                      >
-                        {deletingId === item.id ? "Удаление..." : "Удалить"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ServicesTable
+          items={items}
+          deletingId={deletingId}
+          onEdit={startEditing}
+          onDelete={handleDeleteService}
+        />
       )}
     </main>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px 12px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-};
-
-const buttonStyle: React.CSSProperties = {
-  padding: "10px 14px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-  cursor: "pointer",
-  background: "#fff",
-};
-
-const smallButtonStyle: React.CSSProperties = {
-  padding: "8px 12px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-  cursor: "pointer",
-  background: "#fff",
-};
-
-const cellHeadStyle: React.CSSProperties = {
-  textAlign: "left",
-  padding: "12px",
-  borderBottom: "1px solid #ddd",
-  fontWeight: 700,
-};
-
-const cellStyle: React.CSSProperties = {
-  padding: "12px",
-  borderBottom: "1px solid #eee",
-  verticalAlign: "top",
-};
