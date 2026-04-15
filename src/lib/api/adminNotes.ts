@@ -1,4 +1,8 @@
-import type { CrmNoteRecord, CreateNotePayload } from "../../types/note";
+import type {
+  CrmNoteRecord,
+  CreateNotePayload,
+  UpdateNotePayload,
+} from "../../types/note";
 
 type ListNotesResponse = {
   items: CrmNoteRecord[];
@@ -14,6 +18,15 @@ type CreateNoteResponse = {
 };
 
 type CreateNoteErrorResponse = {
+  error: string;
+};
+
+type UpdateNoteResponse = {
+  success: true;
+  item: CrmNoteRecord;
+};
+
+type UpdateNoteErrorResponse = {
   error: string;
 };
 
@@ -96,6 +109,35 @@ export async function createAdminNote(
   }
 
   throw new Error("Не удалось создать заметку");
+}
+
+export async function updateAdminNote(
+  payload: UpdateNotePayload
+): Promise<CrmNoteRecord> {
+  const response = await fetch("/api/admin/notes/update", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | UpdateNoteResponse
+    | UpdateNoteErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data ? data.error : "Не удалось обновить заметку"
+    );
+  }
+
+  if (data && "item" in data) {
+    return data.item;
+  }
+
+  throw new Error("Не удалось обновить заметку");
 }
 
 export async function deleteAdminNote(id: number): Promise<number> {

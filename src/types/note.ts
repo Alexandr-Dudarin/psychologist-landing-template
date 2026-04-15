@@ -14,3 +14,10 @@ export type CreateNotePayload = {
   sessionId?: number | null;
   content: string;
 };
+
+export type UpdateNotePayload = {
+  id: number;
+  clientId: number;
+  sessionId?: number | null;
+  content: string;
+};

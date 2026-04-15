@@ -4,11 +4,16 @@ import { getAdminSessions } from "../../../lib/api/adminSessions";
 import {
   getAdminNotes,
   createAdminNote,
+  updateAdminNote,
   deleteAdminNote,
 } from "../../../lib/api/adminNotes";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmSessionRecord } from "../../../types/session";
-import type { CreateNotePayload, CrmNoteRecord } from "../../../types/note";
+import type {
+  CreateNotePayload,
+  CrmNoteRecord,
+  UpdateNotePayload,
+} from "../../../types/note";
 
 type NoteForm = {
   clientId: string;
@@ -16,7 +21,13 @@ type NoteForm = {
   content: string;
 };
 
-const initialForm: NoteForm = {
+const initialCreateForm: NoteForm = {
+  clientId: "",
+  sessionId: "",
+  content: "",
+};
+
+const initialEditForm: NoteForm = {
   clientId: "",
   sessionId: "",
   content: "",
@@ -32,12 +43,15 @@ export function NotesPage() {
   const [sessions, setSessions] = useState<CrmSessionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [clientFilter, setClientFilter] = useState<number | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [form, setForm] = useState<NoteForm>(initialForm);
+  const [createForm, setCreateForm] = useState<NoteForm>(initialCreateForm);
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<NoteForm>(initialEditForm);
 
   useEffect(() => {
     let isMounted = true;
@@ -85,15 +99,25 @@ export function NotesPage() {
     };
   }, [clientFilter, searchQuery]);
 
-  const availableSessions = useMemo(() => {
-    if (!form.clientId) {
+  const availableCreateSessions = useMemo(() => {
+    if (!createForm.clientId) {
       return [];
     }
 
     return sessions.filter(
-      (session) => session.clientId === Number(form.clientId)
+      (session) => session.clientId === Number(createForm.clientId)
     );
-  }, [form.clientId, sessions]);
+  }, [createForm.clientId, sessions]);
+
+  const availableEditSessions = useMemo(() => {
+    if (!editForm.clientId) {
+      return [];
+    }
+
+    return sessions.filter(
+      (session) => session.clientId === Number(editForm.clientId)
+    );
+  }, [editForm.clientId, sessions]);
 
   const reloadNotes = async () => {
     const notesData = await getAdminNotes({
@@ -104,15 +128,38 @@ export function NotesPage() {
     setItems(notesData);
   };
 
-  const handleFormChange = (field: keyof NoteForm, value: string) => {
+  const handleCreateFormChange = (field: keyof NoteForm, value: string) => {
     if (field === "clientId") {
-      setForm((prev) => ({
+      setCreateForm((prev) => ({
         ...prev,
         clientId: value,
         sessionId: "",
       }));
     } else {
-      setForm((prev) => ({
+      setCreateForm((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
+
+    if (error) {
+      setError("");
+    }
+
+    if (successMessage) {
+      setSuccessMessage("");
+    }
+  };
+
+  const handleEditFormChange = (field: keyof NoteForm, value: string) => {
+    if (field === "clientId") {
+      setEditForm((prev) => ({
+        ...prev,
+        clientId: value,
+        sessionId: "",
+      }));
+    } else {
+      setEditForm((prev) => ({
         ...prev,
         [field]: value,
       }));
@@ -131,9 +178,9 @@ export function NotesPage() {
     e.preventDefault();
 
     const payload: CreateNotePayload = {
-      clientId: Number(form.clientId),
-      sessionId: form.sessionId ? Number(form.sessionId) : null,
-      content: form.content.trim(),
+      clientId: Number(createForm.clientId),
+      sessionId: createForm.sessionId ? Number(createForm.sessionId) : null,
+      content: createForm.content.trim(),
     };
 
     if (!Number.isInteger(payload.clientId) || payload.clientId <= 0) {
@@ -153,7 +200,7 @@ export function NotesPage() {
     try {
       await createAdminNote(payload);
       await reloadNotes();
-      setForm(initialForm);
+      setCreateForm(initialCreateForm);
       setSuccessMessage("Заметка создана.");
     } catch (createError) {
       setError(
@@ -163,6 +210,71 @@ export function NotesPage() {
       );
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const startEditing = (note: CrmNoteRecord) => {
+    setEditingNoteId(note.id);
+    setEditForm({
+      clientId: String(note.clientId),
+      sessionId: note.sessionId === null ? "" : String(note.sessionId),
+      content: note.content,
+    });
+    setError("");
+    setSuccessMessage("");
+  };
+
+  const cancelEditing = () => {
+    setEditingNoteId(null);
+    setEditForm(initialEditForm);
+  };
+
+  const handleUpdateNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (editingNoteId === null) {
+      return;
+    }
+
+    const payload: UpdateNotePayload = {
+      id: editingNoteId,
+      clientId: Number(editForm.clientId),
+      sessionId: editForm.sessionId ? Number(editForm.sessionId) : null,
+      content: editForm.content.trim(),
+    };
+
+    if (!Number.isInteger(payload.id) || payload.id <= 0) {
+      setError("Некорректная заметка.");
+      return;
+    }
+
+    if (!Number.isInteger(payload.clientId) || payload.clientId <= 0) {
+      setError("Выберите клиента.");
+      return;
+    }
+
+    if (!payload.content) {
+      setError("Текст заметки обязателен.");
+      return;
+    }
+
+    setIsUpdating(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await updateAdminNote(payload);
+      await reloadNotes();
+      setSuccessMessage("Заметка обновлена.");
+      cancelEditing();
+    } catch (updateError) {
+      setError(
+        updateError instanceof Error
+          ? updateError.message
+          : "Не удалось обновить заметку"
+      );
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -182,6 +294,11 @@ export function NotesPage() {
     try {
       await deleteAdminNote(id);
       await reloadNotes();
+
+      if (editingNoteId === id) {
+        cancelEditing();
+      }
+
       setSuccessMessage("Заметка удалена.");
     } catch (deleteError) {
       setError(
@@ -218,8 +335,8 @@ export function NotesPage() {
           }}
         >
           <select
-            value={form.clientId}
-            onChange={(e) => handleFormChange("clientId", e.target.value)}
+            value={createForm.clientId}
+            onChange={(e) => handleCreateFormChange("clientId", e.target.value)}
             style={inputStyle}
           >
             <option value="">Выберите клиента</option>
@@ -231,13 +348,15 @@ export function NotesPage() {
           </select>
 
           <select
-            value={form.sessionId}
-            onChange={(e) => handleFormChange("sessionId", e.target.value)}
+            value={createForm.sessionId}
+            onChange={(e) =>
+              handleCreateFormChange("sessionId", e.target.value)
+            }
             style={inputStyle}
-            disabled={!form.clientId}
+            disabled={!createForm.clientId}
           >
             <option value="">Без привязки к сессии</option>
-            {availableSessions.map((session) => (
+            {availableCreateSessions.map((session) => (
               <option key={session.id} value={session.id}>
                 {formatSessionLabel(session)}
               </option>
@@ -245,8 +364,8 @@ export function NotesPage() {
           </select>
 
           <textarea
-            value={form.content}
-            onChange={(e) => handleFormChange("content", e.target.value)}
+            value={createForm.content}
+            onChange={(e) => handleCreateFormChange("content", e.target.value)}
             placeholder="Текст заметки"
             style={{ ...inputStyle, minHeight: "140px", resize: "vertical" }}
           />
@@ -258,6 +377,73 @@ export function NotesPage() {
           </div>
         </form>
       </section>
+
+      {editingNoteId !== null && (
+        <section
+          style={{
+            marginTop: "20px",
+            marginBottom: "24px",
+            padding: "16px",
+            border: "1px solid #ddd",
+            borderRadius: "12px",
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>Редактировать заметку</h2>
+
+          <form
+            onSubmit={handleUpdateNote}
+            style={{
+              display: "grid",
+              gap: "12px",
+              maxWidth: "720px",
+            }}
+          >
+            <select
+              value={editForm.clientId}
+              onChange={(e) => handleEditFormChange("clientId", e.target.value)}
+              style={inputStyle}
+            >
+              <option value="">Выберите клиента</option>
+              {clients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.name} — {client.phone || client.email || client.id}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={editForm.sessionId}
+              onChange={(e) => handleEditFormChange("sessionId", e.target.value)}
+              style={inputStyle}
+              disabled={!editForm.clientId}
+            >
+              <option value="">Без привязки к сессии</option>
+              {availableEditSessions.map((session) => (
+                <option key={session.id} value={session.id}>
+                  {formatSessionLabel(session)}
+                </option>
+              ))}
+            </select>
+
+            <textarea
+              value={editForm.content}
+              onChange={(e) => handleEditFormChange("content", e.target.value)}
+              placeholder="Текст заметки"
+              style={{ ...inputStyle, minHeight: "140px", resize: "vertical" }}
+            />
+
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <button type="submit" disabled={isUpdating} style={buttonStyle}>
+                {isUpdating ? "Сохранение..." : "Сохранить изменения"}
+              </button>
+
+              <button type="button" onClick={cancelEditing} style={buttonStyle}>
+                Отменить
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
 
       <div
         style={{
@@ -271,7 +457,9 @@ export function NotesPage() {
         <select
           value={clientFilter}
           onChange={(e) =>
-            setClientFilter(e.target.value === "all" ? "all" : Number(e.target.value))
+            setClientFilter(
+              e.target.value === "all" ? "all" : Number(e.target.value)
+            )
           }
           style={{
             minWidth: "240px",
@@ -349,14 +537,24 @@ export function NotesPage() {
                   </td>
                   <td style={cellStyle}>{item.content}</td>
                   <td style={cellStyle}>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteNote(item.id)}
-                      disabled={deletingId === item.id}
-                      style={buttonStyle}
-                    >
-                      {deletingId === item.id ? "Удаление..." : "Удалить"}
-                    </button>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      <button
+                        type="button"
+                        onClick={() => startEditing(item)}
+                        style={buttonStyle}
+                      >
+                        Редактировать
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteNote(item.id)}
+                        disabled={deletingId === item.id}
+                        style={buttonStyle}
+                      >
+                        {deletingId === item.id ? "Удаление..." : "Удалить"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
