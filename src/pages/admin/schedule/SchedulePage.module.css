@@ -1,0 +1,101 @@
+.section {
+  margin-top: 20px;
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+}
+
+.sectionTitle {
+  margin-top: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkboxFieldEnd {
+  justify-content: flex-end;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stackForm {
+  display: grid;
+  gap: 12px;
+  max-width: 720px;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.button {
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.actions {
+  margin-top: 20px;
+}
+
+.tableContainer {
+  overflow-x: auto;
+}
+
+.tableContainerSpaced {
+  margin-top: 20px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHeadCell {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  font-weight: 700;
+  text-align: left;
+}
+
+.tableCell {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+
+.feedback {
+  margin-top: 12px;
+}
+
+.feedbackSuccess {
+  color: #2e8b57;
+}
+
+.feedbackError {
+  color: #d96b6b;
+}

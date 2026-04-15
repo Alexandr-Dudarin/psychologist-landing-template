@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+
 import {
   createBlockedSlot,
   createScheduleOverride,
@@ -15,99 +16,23 @@ import type {
   ScheduleRuleRecord,
   UpdateAdminSchedulePayload,
 } from "../../../types/schedule";
-
-const weekdayLabels: Record<number, string> = {
-  1: "Понедельник",
-  2: "Вторник",
-  3: "Среда",
-  4: "Четверг",
-  5: "Пятница",
-  6: "Суббота",
-  7: "Воскресенье",
-};
-
-type SettingsForm = {
-  minAdvanceHours: string;
-  bufferMinutes: string;
-  allowSameDayBooking: boolean;
-  maxDaysAhead: string;
-};
-
-type OverrideForm = {
-  date: string;
-  isWorkingDay: boolean;
-  startTime: string;
-  endTime: string;
-  note: string;
-};
-
-type BlockedSlotForm = {
-  blockedDate: string;
-  startTime: string;
-  endTime: string;
-  reason: string;
-};
-
-type FeedbackArea = "settings" | "overrides" | "blockedSlots";
-
-type FeedbackState =
-  | {
-      area: FeedbackArea;
-      tone: "success" | "error";
-      message: string;
-    }
-  | null;
-
-const defaultSettingsForm: SettingsForm = {
-  minAdvanceHours: "3",
-  bufferMinutes: "30",
-  allowSameDayBooking: true,
-  maxDaysAhead: "30",
-};
-
-const defaultRules: ScheduleRuleRecord[] = [
-  { weekday: 1, isEnabled: true, startTime: "10:00", endTime: "19:00" },
-  { weekday: 2, isEnabled: true, startTime: "10:00", endTime: "19:00" },
-  { weekday: 3, isEnabled: true, startTime: "10:00", endTime: "19:00" },
-  { weekday: 4, isEnabled: true, startTime: "10:00", endTime: "19:00" },
-  { weekday: 5, isEnabled: true, startTime: "10:00", endTime: "19:00" },
-  { weekday: 6, isEnabled: false, startTime: "10:00", endTime: "19:00" },
-  { weekday: 7, isEnabled: false, startTime: "10:00", endTime: "19:00" },
-];
-
-const initialOverrideForm: OverrideForm = {
-  date: "",
-  isWorkingDay: false,
-  startTime: "10:00",
-  endTime: "19:00",
-  note: "",
-};
-
-const initialBlockedSlotForm: BlockedSlotForm = {
-  blockedDate: "",
-  startTime: "10:00",
-  endTime: "11:00",
-  reason: "",
-};
-
-function normalizeDateOnly(value: string) {
-  return value.slice(0, 10);
-}
-
-function formatDate(value: string) {
-  const dateOnly = normalizeDateOnly(value);
-  const [year, month, day] = dateOnly.split("-").map(Number);
-
-  if (!year || !month || !day) {
-    return dateOnly || "-";
-  }
-
-  return new Date(year, month - 1, day).toLocaleDateString("ru-RU");
-}
-
-function formatFeedbackColor(tone: "success" | "error") {
-  return tone === "success" ? "#2e8b57" : "#d96b6b";
-}
+import { BlockedSlotsSection } from "./BlockedSlotsSection";
+import { ScheduleOverridesSection } from "./ScheduleOverridesSection";
+import { ScheduleRulesTable } from "./ScheduleRulesTable";
+import { ScheduleSettingsForm } from "./ScheduleSettingsForm";
+import {
+  defaultRules,
+  defaultSettingsForm,
+  getScopedFeedback,
+  initialBlockedSlotForm,
+  initialOverrideForm,
+  normalizeDateOnly,
+  type BlockedSlotForm,
+  type FeedbackState,
+  type OverrideForm,
+  type SettingsForm,
+  weekdayLabels,
+} from "./schedulePage.shared";
 
 export function SchedulePage() {
   const [settingsForm, setSettingsForm] = useState<SettingsForm>(defaultSettingsForm);
@@ -246,8 +171,8 @@ export function SchedulePage() {
     setFeedback(null);
   };
 
-  const handleSaveSettings = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveSettings = async (event: FormEvent) => {
+    event.preventDefault();
 
     if (settingsForm.minAdvanceHours.trim() === "") {
       setFeedback({
@@ -293,7 +218,8 @@ export function SchedulePage() {
       setFeedback({
         area: "settings",
         tone: "error",
-        message: "Минимальное время до записи должно быть целым числом 0 или больше.",
+        message:
+          "Минимальное время до записи должно быть целым числом 0 или больше.",
       });
       return;
     }
@@ -358,8 +284,8 @@ export function SchedulePage() {
     }
   };
 
-  const handleCreateOverride = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateOverride = async (event: FormEvent) => {
+    event.preventDefault();
 
     const payload: CreateScheduleOverridePayload = {
       date: overrideForm.date,
@@ -385,7 +311,8 @@ export function SchedulePage() {
       setFeedback({
         area: "overrides",
         tone: "error",
-        message: "Для рабочего дня укажите корректное время начала и окончания.",
+        message:
+          "Для рабочего дня укажите корректное время начала и окончания.",
       });
       return;
     }
@@ -450,8 +377,8 @@ export function SchedulePage() {
     }
   };
 
-  const handleCreateBlockedSlot = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateBlockedSlot = async (event: FormEvent) => {
+    event.preventDefault();
 
     const payload: CreateBlockedSlotPayload = {
       blockedDate: blockedSlotForm.blockedDate,
@@ -538,18 +465,6 @@ export function SchedulePage() {
     }
   };
 
-  const renderFeedback = (area: FeedbackArea) => {
-    if (!feedback || feedback.area !== area) {
-      return null;
-    }
-
-    return (
-      <p style={{ color: formatFeedbackColor(feedback.tone), marginTop: "12px" }}>
-        {feedback.message}
-      </p>
-    );
-  };
-
   return (
     <main>
       <h1>Расписание и правила записи</h1>
@@ -558,440 +473,40 @@ export function SchedulePage() {
         <p>Загрузка...</p>
       ) : (
         <>
-          <form onSubmit={handleSaveSettings}>
-            <section style={sectionStyle}>
-              <h2 style={{ marginTop: 0 }}>Общие настройки записи</h2>
+          <ScheduleSettingsForm
+            settingsForm={settingsForm}
+            isSaving={isSaving}
+            feedback={getScopedFeedback(feedback, "settings")}
+            onSubmit={handleSaveSettings}
+            onTextChange={handleSettingsTextChange}
+            onCheckboxChange={handleSettingsCheckboxChange}
+          />
 
-              <div style={gridStyle}>
-                <label style={fieldStyle}>
-                  <span>Минимум часов до записи</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={settingsForm.minAdvanceHours}
-                    onChange={(e) =>
-                      handleSettingsTextChange("minAdvanceHours", e.target.value)
-                    }
-                    style={inputStyle}
-                  />
-                </label>
+          <ScheduleRulesTable rules={rules} onRuleChange={handleRuleChange} />
 
-                <label style={fieldStyle}>
-                  <span>Буфер между сессиями, минут</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={settingsForm.bufferMinutes}
-                    onChange={(e) =>
-                      handleSettingsTextChange("bufferMinutes", e.target.value)
-                    }
-                    style={inputStyle}
-                  />
-                </label>
+          <ScheduleOverridesSection
+            form={overrideForm}
+            overrides={overrides}
+            feedback={getScopedFeedback(feedback, "overrides")}
+            isCreatingOverride={isCreatingOverride}
+            deletingOverrideDate={deletingOverrideDate}
+            onFormChange={handleOverrideFormChange}
+            onSubmit={handleCreateOverride}
+            onDelete={handleDeleteOverride}
+          />
 
-                <label style={fieldStyle}>
-                  <span>На сколько дней вперёд можно записаться</span>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={settingsForm.maxDaysAhead}
-                    onChange={(e) =>
-                      handleSettingsTextChange("maxDaysAhead", e.target.value)
-                    }
-                    style={inputStyle}
-                  />
-                </label>
-
-                <label
-                  style={{
-                    ...fieldStyle,
-                    justifyContent: "flex-end",
-                  }}
-                >
-                  <span>Разрешить запись на текущий день</span>
-                  <input
-                    type="checkbox"
-                    checked={settingsForm.allowSameDayBooking}
-                    onChange={(e) => handleSettingsCheckboxChange(e.target.checked)}
-                  />
-                </label>
-              </div>
-
-              <div style={{ marginTop: "20px" }}>
-                <button type="submit" disabled={isSaving} style={buttonStyle}>
-                  {isSaving ? "Сохранение..." : "Сохранить настройки"}
-                </button>
-              </div>
-
-              {renderFeedback("settings")}
-            </section>
-          </form>
-
-          <section style={sectionStyle}>
-  <h2 style={{ marginTop: 0 }}>Рабочие дни и часы</h2>
-
-  <div style={{ overflowX: "auto" }}>
-    <table
-      style={{
-        width: "100%",
-        borderCollapse: "collapse",
-      }}
-    >
-      <thead>
-        <tr>
-          <th style={cellHeadStyle}>День</th>
-          <th style={cellHeadStyle}>Активен</th>
-          <th style={cellHeadStyle}>Начало</th>
-          <th style={cellHeadStyle}>Окончание</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rules.map((rule) => (
-          <tr key={rule.weekday}>
-            <td style={cellStyle}>{weekdayLabels[rule.weekday]}</td>
-            <td style={cellStyle}>
-              <input
-                type="checkbox"
-                checked={rule.isEnabled}
-                onChange={(e) =>
-                  handleRuleChange(rule.weekday, "isEnabled", e.target.checked)
-                }
-              />
-            </td>
-            <td style={cellStyle}>
-              <input
-                type="time"
-                value={rule.startTime}
-                onChange={(e) =>
-                  handleRuleChange(rule.weekday, "startTime", e.target.value)
-                }
-                disabled={!rule.isEnabled}
-                style={inputStyle}
-              />
-            </td>
-            <td style={cellStyle}>
-              <input
-                type="time"
-                value={rule.endTime}
-                onChange={(e) =>
-                  handleRuleChange(rule.weekday, "endTime", e.target.value)
-                }
-                disabled={!rule.isEnabled}
-                style={inputStyle}
-              />
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</section>
-
-          <section style={sectionStyle}>
-            <h2 style={{ marginTop: 0 }}>Исключения по конкретным датам</h2>
-
-            <form
-              onSubmit={handleCreateOverride}
-              style={{
-                display: "grid",
-                gap: "12px",
-                maxWidth: "720px",
-              }}
-            >
-              <input
-                type="date"
-                value={overrideForm.date}
-                onChange={(e) =>
-                  handleOverrideFormChange("date", e.target.value)
-                }
-                style={inputStyle}
-              />
-
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={overrideForm.isWorkingDay}
-                  onChange={(e) =>
-                    handleOverrideFormChange("isWorkingDay", e.target.checked)
-                  }
-                />
-                <span>Это рабочий день с особым временем</span>
-              </label>
-
-              <div style={gridStyle}>
-                <label style={fieldStyle}>
-                  <span>Начало</span>
-                  <input
-                    type="time"
-                    value={overrideForm.startTime}
-                    onChange={(e) =>
-                      handleOverrideFormChange("startTime", e.target.value)
-                    }
-                    disabled={!overrideForm.isWorkingDay}
-                    style={inputStyle}
-                  />
-                </label>
-
-                <label style={fieldStyle}>
-                  <span>Окончание</span>
-                  <input
-                    type="time"
-                    value={overrideForm.endTime}
-                    onChange={(e) =>
-                      handleOverrideFormChange("endTime", e.target.value)
-                    }
-                    disabled={!overrideForm.isWorkingDay}
-                    style={inputStyle}
-                  />
-                </label>
-              </div>
-
-              <textarea
-                value={overrideForm.note}
-                onChange={(e) =>
-                  handleOverrideFormChange("note", e.target.value)
-                }
-                placeholder="Комментарий к исключению"
-                style={{ ...inputStyle, minHeight: "100px", resize: "vertical" }}
-              />
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={isCreatingOverride}
-                  style={buttonStyle}
-                >
-                  {isCreatingOverride ? "Сохранение..." : "Сохранить исключение"}
-                </button>
-              </div>
-
-              {renderFeedback("overrides")}
-            </form>
-
-            <div style={{ overflowX: "auto", marginTop: "20px" }}>
-              {overrides.length === 0 ? (
-                <p>Исключений по датам пока нет.</p>
-              ) : (
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                  }}
-                >
-                  <thead>
-                    <tr>
-                      <th style={cellHeadStyle}>Дата</th>
-                      <th style={cellHeadStyle}>Тип</th>
-                      <th style={cellHeadStyle}>Время</th>
-                      <th style={cellHeadStyle}>Комментарий</th>
-                      <th style={cellHeadStyle}>Действия</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {overrides.map((item) => (
-                      <tr key={item.date}>
-                        <td style={cellStyle}>{formatDate(item.date)}</td>
-                        <td style={cellStyle}>
-                          {item.isWorkingDay ? "Рабочий день" : "Нерабочий день"}
-                        </td>
-                        <td style={cellStyle}>
-                          {item.isWorkingDay && item.startTime && item.endTime
-                            ? `${item.startTime}–${item.endTime}`
-                            : "-"}
-                        </td>
-                        <td style={cellStyle}>{item.note || "-"}</td>
-                        <td style={cellStyle}>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteOverride(item.date)}
-                            disabled={deletingOverrideDate === item.date}
-                            style={buttonStyle}
-                          >
-                            {deletingOverrideDate === item.date
-                              ? "Удаление..."
-                              : "Удалить"}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </section>
-
-          <section style={sectionStyle}>
-            <h2 style={{ marginTop: 0 }}>Ручное закрытие отдельных слотов</h2>
-
-            <form
-              onSubmit={handleCreateBlockedSlot}
-              style={{
-                display: "grid",
-                gap: "12px",
-                maxWidth: "720px",
-              }}
-            >
-              <input
-                type="date"
-                value={blockedSlotForm.blockedDate}
-                onChange={(e) =>
-                  handleBlockedSlotFormChange("blockedDate", e.target.value)
-                }
-                style={inputStyle}
-              />
-
-              <div style={gridStyle}>
-                <label style={fieldStyle}>
-                  <span>Начало</span>
-                  <input
-                    type="time"
-                    value={blockedSlotForm.startTime}
-                    onChange={(e) =>
-                      handleBlockedSlotFormChange("startTime", e.target.value)
-                    }
-                    style={inputStyle}
-                  />
-                </label>
-
-                <label style={fieldStyle}>
-                  <span>Окончание</span>
-                  <input
-                    type="time"
-                    value={blockedSlotForm.endTime}
-                    onChange={(e) =>
-                      handleBlockedSlotFormChange("endTime", e.target.value)
-                    }
-                    style={inputStyle}
-                  />
-                </label>
-              </div>
-
-              <textarea
-                value={blockedSlotForm.reason}
-                onChange={(e) =>
-                  handleBlockedSlotFormChange("reason", e.target.value)
-                }
-                placeholder="Причина блокировки"
-                style={{ ...inputStyle, minHeight: "100px", resize: "vertical" }}
-              />
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={isCreatingBlockedSlot}
-                  style={buttonStyle}
-                >
-                  {isCreatingBlockedSlot ? "Создание..." : "Создать блокировку"}
-                </button>
-              </div>
-
-              {renderFeedback("blockedSlots")}
-            </form>
-
-            <div style={{ overflowX: "auto", marginTop: "20px" }}>
-              {blockedSlots.length === 0 ? (
-                <p>Блокировок слотов пока нет.</p>
-              ) : (
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                  }}
-                >
-                  <thead>
-                    <tr>
-                      <th style={cellHeadStyle}>Дата</th>
-                      <th style={cellHeadStyle}>Время</th>
-                      <th style={cellHeadStyle}>Причина</th>
-                      <th style={cellHeadStyle}>Действия</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {blockedSlots.map((item) => (
-                      <tr key={item.id}>
-                        <td style={cellStyle}>{formatDate(item.blockedDate)}</td>
-                        <td style={cellStyle}>
-                          {item.startTime}–{item.endTime}
-                        </td>
-                        <td style={cellStyle}>{item.reason || "-"}</td>
-                        <td style={cellStyle}>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteBlockedSlot(item.id)}
-                            disabled={deletingBlockedSlotId === item.id}
-                            style={buttonStyle}
-                          >
-                            {deletingBlockedSlotId === item.id
-                              ? "Удаление..."
-                              : "Удалить"}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </section>
+          <BlockedSlotsSection
+            blockedSlotForm={blockedSlotForm}
+            blockedSlots={blockedSlots}
+            feedback={getScopedFeedback(feedback, "blockedSlots")}
+            isCreatingBlockedSlot={isCreatingBlockedSlot}
+            deletingBlockedSlotId={deletingBlockedSlotId}
+            onFormChange={handleBlockedSlotFormChange}
+            onSubmit={handleCreateBlockedSlot}
+            onDelete={handleDeleteBlockedSlot}
+          />
         </>
       )}
     </main>
   );
 }
-
-const sectionStyle: React.CSSProperties = {
-  marginTop: "20px",
-  marginBottom: "24px",
-  padding: "16px",
-  border: "1px solid #ddd",
-  borderRadius: "12px",
-};
-
-const gridStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-  gap: "16px",
-};
-
-const fieldStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "8px",
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px 12px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-};
-
-const buttonStyle: React.CSSProperties = {
-  padding: "10px 14px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-  cursor: "pointer",
-  background: "#fff",
-};
-
-const cellHeadStyle: React.CSSProperties = {
-  textAlign: "left",
-  padding: "12px",
-  borderBottom: "1px solid #ddd",
-  fontWeight: 700,
-};
-
-const cellStyle: React.CSSProperties = {
-  padding: "12px",
-  borderBottom: "1px solid #eee",
-  verticalAlign: "top",
-};
