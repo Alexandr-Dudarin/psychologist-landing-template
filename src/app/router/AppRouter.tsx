@@ -8,9 +8,10 @@ import { AdminLoginPage } from "../../pages/admin/login/AdminLoginPage";
 import { AdminDashboardPage } from "../../pages/admin/dashboard/AdminDashboardPage";
 import { RequestsPage } from "../../pages/admin/requests/RequestsPage";
 import { ClientsPage } from "../../pages/admin/clients/ClientsPage";
-import { SessionsPage } from "../../pages/admin/sessions/SessionsPage";
 import { ServicesPage } from "../../pages/admin/services/ServicesPage";
+import { SessionsPage } from "../../pages/admin/sessions/SessionsPage";
 import { NotesPage } from "../../pages/admin/notes/NotesPage";
+import { SchedulePage } from "../../pages/admin/schedule/SchedulePage";
 
 export function AppRouter() {
   return (
@@ -36,6 +37,7 @@ export function AppRouter() {
         <Route path="services" element={<ServicesPage />} />
         <Route path="sessions" element={<SessionsPage />} />
         <Route path="notes" element={<NotesPage />} />
+        <Route path="schedule" element={<SchedulePage />} />
       </Route>
     </Routes>
   );

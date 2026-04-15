@@ -29,6 +29,7 @@ export type LocaleData = {
         services: string;
         sessions: string;
         notes: string;
+        schedule: string;
         backToSite: string;
       };
     };
@@ -155,6 +156,7 @@ export const locales: Record<Language, LocaleData> = {
           services: "Услуги",
           sessions: "Сессии",
           notes: "Заметки",
+          schedule: "Расписание",
           backToSite: "Вернуться на сайт",
         },
       },
@@ -288,6 +290,7 @@ export const locales: Record<Language, LocaleData> = {
           services: "Services",
           sessions: "Sessions",
           notes: "Notes",
+          schedule: "Schedule",
           backToSite: "Back to site",
         },
       },
