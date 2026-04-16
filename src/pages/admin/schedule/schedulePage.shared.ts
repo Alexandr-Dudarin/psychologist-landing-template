@@ -106,6 +106,24 @@ export function getScopedFeedback(
   return feedback;
 }
 
-export type ScheduleOverrideList = ScheduleOverrideRecord[];
+export function mapOverrideToForm(item: ScheduleOverrideRecord): OverrideForm {
+  return {
+    date: normalizeDateOnly(item.date),
+    isWorkingDay: item.isWorkingDay,
+    startTime: item.startTime ?? "10:00",
+    endTime: item.endTime ?? "19:00",
+    note: item.note,
+  };
+}
 
+export function mapBlockedSlotToForm(item: BlockedSlotRecord): BlockedSlotForm {
+  return {
+    blockedDate: normalizeDateOnly(item.blockedDate),
+    startTime: item.startTime,
+    endTime: item.endTime,
+    reason: item.reason,
+  };
+}
+
+export type ScheduleOverrideList = ScheduleOverrideRecord[];
 export type BlockedSlotsList = BlockedSlotRecord[];

@@ -1,10 +1,10 @@
 import type {
   AdminScheduleRecord,
+  BlockedSlotRecord,
   CreateBlockedSlotPayload,
   CreateScheduleOverridePayload,
-  UpdateAdminSchedulePayload,
-  BlockedSlotRecord,
   ScheduleOverrideRecord,
+  UpdateAdminSchedulePayload,
 } from "../../types/schedule";
 
 type ErrorResponse = {
@@ -37,6 +37,23 @@ type CreateBlockedSlotResponse = {
 type DeleteBlockedSlotResponse = {
   success: true;
   id: number;
+};
+
+export type UpdateScheduleOverridePayload = {
+  originalDate: string;
+  date: string;
+  isWorkingDay: boolean;
+  startTime: string | null;
+  endTime: string | null;
+  note: string;
+};
+
+export type UpdateBlockedSlotPayload = {
+  id: number;
+  blockedDate: string;
+  startTime: string;
+  endTime: string;
+  reason: string;
 };
 
 export async function getAdminSchedule(): Promise<AdminScheduleRecord> {
@@ -137,6 +154,37 @@ export async function createScheduleOverride(
   throw new Error("Не удалось сохранить исключение по дате");
 }
 
+export async function updateScheduleOverride(
+  payload: UpdateScheduleOverridePayload
+): Promise<ScheduleOverrideRecord> {
+  const response = await fetch("/api/admin/schedule/update-override", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | CreateOverrideResponse
+    | ErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data
+        ? data.error
+        : "Не удалось обновить исключение по дате"
+    );
+  }
+
+  if (data && "item" in data) {
+    return data.item;
+  }
+
+  throw new Error("Не удалось обновить исключение по дате");
+}
+
 export async function deleteScheduleOverride(date: string): Promise<string> {
   const response = await fetch("/api/admin/schedule/delete-override", {
     method: "POST",
@@ -195,6 +243,37 @@ export async function createBlockedSlot(
   }
 
   throw new Error("Не удалось создать блокировку слота");
+}
+
+export async function updateBlockedSlot(
+  payload: UpdateBlockedSlotPayload
+): Promise<BlockedSlotRecord> {
+  const response = await fetch("/api/admin/schedule/update-blocked-slot", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | CreateBlockedSlotResponse
+    | ErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data
+        ? data.error
+        : "Не удалось обновить блокировку слота"
+    );
+  }
+
+  if (data && "item" in data) {
+    return data.item;
+  }
+
+  throw new Error("Не удалось обновить блокировку слота");
 }
 
 export async function deleteBlockedSlot(id: number): Promise<number> {

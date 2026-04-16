@@ -1,6 +1,5 @@
 import type { FormEvent } from "react";
 
-import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
@@ -14,25 +13,33 @@ import {
 
 type ScheduleOverridesSectionProps = {
   deletingOverrideDate: string | null;
+  editingOverrideDate: string | null;
   feedback: FeedbackState;
   form: OverrideForm;
-  isCreatingOverride: boolean;
+  isSubmitting: boolean;
   overrides: ScheduleOverrideList;
+  onCancelEdit: () => void;
   onDelete: (date: string) => void;
+  onEdit: (date: string) => void;
   onFormChange: (field: keyof OverrideForm, value: string | boolean) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
 export function ScheduleOverridesSection({
   deletingOverrideDate,
+  editingOverrideDate,
   feedback,
   form,
-  isCreatingOverride,
+  isSubmitting,
   overrides,
+  onCancelEdit,
   onDelete,
+  onEdit,
   onFormChange,
   onSubmit,
 }: ScheduleOverridesSectionProps) {
+  const isEditing = editingOverrideDate !== null;
+
   return (
     <AdminSection title="Исключения по конкретным датам">
       <form onSubmit={onSubmit} className={styles.stackForm}>
@@ -51,12 +58,12 @@ export function ScheduleOverridesSection({
               onFormChange("isWorkingDay", event.target.checked)
             }
           />
-          <span>{"Это рабочий день с особым временем"}</span>
+          <span>Это рабочий день с особым временем</span>
         </label>
 
         <div className={styles.grid}>
           <label className={styles.field}>
-            <span>{"Начало"}</span>
+            <span>Начало</span>
             <input
               type="time"
               value={form.startTime}
@@ -67,7 +74,7 @@ export function ScheduleOverridesSection({
           </label>
 
           <label className={styles.field}>
-            <span>{"Окончание"}</span>
+            <span>Окончание</span>
             <input
               type="time"
               value={form.endTime}
@@ -85,16 +92,30 @@ export function ScheduleOverridesSection({
           className={`${styles.input} ${styles.textarea}`}
         />
 
-        <div>
-          <AdminButton
+        <div className={styles.buttonRow}>
+          <button
             type="submit"
-            disabled={isCreatingOverride}
-            variant="primary"
+            disabled={isSubmitting}
+            className={styles.button}
           >
-            {isCreatingOverride
-              ? "Сохранение..."
+            {isSubmitting
+              ? isEditing
+                ? "Сохранение..."
+                : "Создание..."
+              : isEditing
+              ? "Сохранить изменения"
               : "Сохранить исключение"}
-          </AdminButton>
+          </button>
+
+          {isEditing && (
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className={styles.button}
+            >
+              Отменить
+            </button>
+          )}
         </div>
 
         <AdminFeedback
@@ -104,16 +125,16 @@ export function ScheduleOverridesSection({
       </form>
 
       {overrides.length === 0 ? (
-        <p>{"Исключений по датам пока нет."}</p>
+        <p>Исключений по датам пока нет.</p>
       ) : (
         <AdminTable>
           <thead>
             <tr>
-              <th>{"Дата"}</th>
-              <th>{"Тип"}</th>
-              <th>{"Время"}</th>
-              <th>{"Комментарий"}</th>
-              <th className={styles.actionsHeader}>{"Действия"}</th>
+              <th>Дата</th>
+              <th>Тип</th>
+              <th>Время</th>
+              <th>Комментарий</th>
+              <th className={styles.actionsHeader}>Действия</th>
             </tr>
           </thead>
           <tbody>
@@ -121,9 +142,7 @@ export function ScheduleOverridesSection({
               <tr key={item.date}>
                 <td>{formatDate(item.date)}</td>
                 <td>
-                  {item.isWorkingDay
-                    ? "Рабочий день"
-                    : "Нерабочий день"}
+                  {item.isWorkingDay ? "Рабочий день" : "Нерабочий день"}
                 </td>
                 <td>
                   {item.isWorkingDay && item.startTime && item.endTime
@@ -133,18 +152,24 @@ export function ScheduleOverridesSection({
                 <td>{item.note || "-"}</td>
                 <td className={styles.actionsCell}>
                   <div className={styles.actionsCellInner}>
-                    <AdminButton
+                    <button
+                      type="button"
+                      onClick={() => onEdit(item.date)}
+                      className={styles.button}
+                    >
+                      Редактировать
+                    </button>
+
+                    <button
                       type="button"
                       onClick={() => onDelete(item.date)}
                       disabled={deletingOverrideDate === item.date}
-                      className={styles.actionButton}
-                      size="sm"
-                      variant="danger"
+                      className={styles.button}
                     >
                       {deletingOverrideDate === item.date
                         ? "Удаление..."
                         : "Удалить"}
-                    </AdminButton>
+                    </button>
                   </div>
                 </td>
               </tr>

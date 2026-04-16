@@ -46,8 +46,10 @@
   background: #fff;
 }
 
-.actionButton {
-  min-width: 112px;
+.buttonRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .actions {
@@ -68,4 +70,6 @@
 .actionsCellInner {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }

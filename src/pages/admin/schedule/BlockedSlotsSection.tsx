@@ -1,6 +1,5 @@
 import type { FormEvent } from "react";
 
-import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
@@ -16,9 +15,12 @@ type BlockedSlotsSectionProps = {
   blockedSlotForm: BlockedSlotForm;
   blockedSlots: BlockedSlotsList;
   deletingBlockedSlotId: number | null;
+  editingBlockedSlotId: number | null;
   feedback: FeedbackState;
-  isCreatingBlockedSlot: boolean;
+  isSubmitting: boolean;
+  onCancelEdit: () => void;
   onDelete: (id: number) => void;
+  onEdit: (id: number) => void;
   onFormChange: (field: keyof BlockedSlotForm, value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
@@ -27,12 +29,17 @@ export function BlockedSlotsSection({
   blockedSlotForm,
   blockedSlots,
   deletingBlockedSlotId,
+  editingBlockedSlotId,
   feedback,
-  isCreatingBlockedSlot,
+  isSubmitting,
+  onCancelEdit,
   onDelete,
+  onEdit,
   onFormChange,
   onSubmit,
 }: BlockedSlotsSectionProps) {
+  const isEditing = editingBlockedSlotId !== null;
+
   return (
     <AdminSection title="Ручное закрытие отдельных слотов">
       <form onSubmit={onSubmit} className={styles.stackForm}>
@@ -45,7 +52,7 @@ export function BlockedSlotsSection({
 
         <div className={styles.grid}>
           <label className={styles.field}>
-            <span>{"Начало"}</span>
+            <span>Начало</span>
             <input
               type="time"
               value={blockedSlotForm.startTime}
@@ -55,7 +62,7 @@ export function BlockedSlotsSection({
           </label>
 
           <label className={styles.field}>
-            <span>{"Окончание"}</span>
+            <span>Окончание</span>
             <input
               type="time"
               value={blockedSlotForm.endTime}
@@ -72,16 +79,30 @@ export function BlockedSlotsSection({
           className={`${styles.input} ${styles.textarea}`}
         />
 
-        <div>
-          <AdminButton
+        <div className={styles.buttonRow}>
+          <button
             type="submit"
-            disabled={isCreatingBlockedSlot}
-            variant="primary"
+            disabled={isSubmitting}
+            className={styles.button}
           >
-            {isCreatingBlockedSlot
-              ? "Создание..."
+            {isSubmitting
+              ? isEditing
+                ? "Сохранение..."
+                : "Создание..."
+              : isEditing
+              ? "Сохранить изменения"
               : "Создать блокировку"}
-          </AdminButton>
+          </button>
+
+          {isEditing && (
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className={styles.button}
+            >
+              Отменить
+            </button>
+          )}
         </div>
 
         <AdminFeedback
@@ -91,15 +112,15 @@ export function BlockedSlotsSection({
       </form>
 
       {blockedSlots.length === 0 ? (
-        <p>{"Блокировок слотов пока нет."}</p>
+        <p>Блокировок слотов пока нет.</p>
       ) : (
         <AdminTable>
           <thead>
             <tr>
-              <th>{"Дата"}</th>
-              <th>{"Время"}</th>
-              <th>{"Причина"}</th>
-              <th className={styles.actionsHeader}>{"Действия"}</th>
+              <th>Дата</th>
+              <th>Время</th>
+              <th>Причина</th>
+              <th className={styles.actionsHeader}>Действия</th>
             </tr>
           </thead>
           <tbody>
@@ -112,18 +133,24 @@ export function BlockedSlotsSection({
                 <td>{item.reason || "-"}</td>
                 <td className={styles.actionsCell}>
                   <div className={styles.actionsCellInner}>
-                    <AdminButton
+                    <button
+                      type="button"
+                      onClick={() => onEdit(item.id)}
+                      className={styles.button}
+                    >
+                      Редактировать
+                    </button>
+
+                    <button
                       type="button"
                       onClick={() => onDelete(item.id)}
                       disabled={deletingBlockedSlotId === item.id}
-                      className={styles.actionButton}
-                      size="sm"
-                      variant="danger"
+                      className={styles.button}
                     >
                       {deletingBlockedSlotId === item.id
                         ? "Удаление..."
                         : "Удалить"}
-                    </AdminButton>
+                    </button>
                   </div>
                 </td>
               </tr>

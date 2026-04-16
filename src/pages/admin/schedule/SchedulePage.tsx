@@ -7,6 +7,8 @@ import {
   deleteScheduleOverride,
   getAdminSchedule,
   updateAdminSchedule,
+  updateBlockedSlot,
+  updateScheduleOverride,
 } from "../../../lib/api/adminSchedule";
 import type {
   BlockedSlotRecord,
@@ -26,6 +28,8 @@ import {
   getScopedFeedback,
   initialBlockedSlotForm,
   initialOverrideForm,
+  mapBlockedSlotToForm,
+  mapOverrideToForm,
   normalizeDateOnly,
   type BlockedSlotForm,
   type FeedbackState,
@@ -35,18 +39,30 @@ import {
 } from "./schedulePage.shared";
 
 export function SchedulePage() {
-  const [settingsForm, setSettingsForm] = useState<SettingsForm>(defaultSettingsForm);
+  const [settingsForm, setSettingsForm] = useState<SettingsForm>(
+    defaultSettingsForm
+  );
   const [rules, setRules] = useState<ScheduleRuleRecord[]>(defaultRules);
   const [overrides, setOverrides] = useState<ScheduleOverrideRecord[]>([]);
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlotRecord[]>([]);
-  const [overrideForm, setOverrideForm] = useState<OverrideForm>(initialOverrideForm);
+  const [overrideForm, setOverrideForm] = useState<OverrideForm>(
+    initialOverrideForm
+  );
   const [blockedSlotForm, setBlockedSlotForm] = useState<BlockedSlotForm>(
     initialBlockedSlotForm
+  );
+  const [editingOverrideDate, setEditingOverrideDate] = useState<string | null>(
+    null
+  );
+  const [editingBlockedSlotId, setEditingBlockedSlotId] = useState<number | null>(
+    null
   );
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isCreatingOverride, setIsCreatingOverride] = useState(false);
+  const [isUpdatingOverride, setIsUpdatingOverride] = useState(false);
   const [isCreatingBlockedSlot, setIsCreatingBlockedSlot] = useState(false);
+  const [isUpdatingBlockedSlot, setIsUpdatingBlockedSlot] = useState(false);
   const [deletingOverrideDate, setDeletingOverrideDate] = useState<string | null>(
     null
   );
@@ -115,6 +131,16 @@ export function SchedulePage() {
     setRules(data.rules);
     setOverrides(data.overrides);
     setBlockedSlots(data.blockedSlots);
+  };
+
+  const resetOverrideEditing = () => {
+    setEditingOverrideDate(null);
+    setOverrideForm(initialOverrideForm);
+  };
+
+  const resetBlockedSlotEditing = () => {
+    setEditingBlockedSlotId(null);
+    setBlockedSlotForm(initialBlockedSlotForm);
   };
 
   const handleSettingsTextChange = (
@@ -284,11 +310,35 @@ export function SchedulePage() {
     }
   };
 
-  const handleCreateOverride = async (event: FormEvent) => {
+  const handleStartEditOverride = (date: string) => {
+    const item = overrides.find(
+      (override) => normalizeDateOnly(override.date) === normalizeDateOnly(date)
+    );
+
+    if (!item) {
+      setFeedback({
+        area: "overrides",
+        tone: "error",
+        message: "Исключение по дате не найдено.",
+      });
+      return;
+    }
+
+    setEditingOverrideDate(normalizeDateOnly(item.date));
+    setOverrideForm(mapOverrideToForm(item));
+    setFeedback(null);
+  };
+
+  const handleCancelEditOverride = () => {
+    resetOverrideEditing();
+    setFeedback(null);
+  };
+
+  const handleSubmitOverride = async (event: FormEvent) => {
     event.preventDefault();
 
     const payload: CreateScheduleOverridePayload = {
-      date: overrideForm.date,
+      date: normalizeDateOnly(overrideForm.date),
       isWorkingDay: overrideForm.isWorkingDay,
       startTime: overrideForm.isWorkingDay ? overrideForm.startTime : null,
       endTime: overrideForm.isWorkingDay ? overrideForm.endTime : null,
@@ -317,29 +367,54 @@ export function SchedulePage() {
       return;
     }
 
-    setIsCreatingOverride(true);
     setFeedback(null);
 
     try {
-      await createScheduleOverride(payload);
-      await reloadAll();
-      setOverrideForm(initialOverrideForm);
-      setFeedback({
-        area: "overrides",
-        tone: "success",
-        message: "Исключение по дате сохранено.",
-      });
-    } catch (createError) {
+      if (editingOverrideDate) {
+        setIsUpdatingOverride(true);
+
+     await updateScheduleOverride({
+  originalDate: normalizeDateOnly(editingOverrideDate),
+  date: normalizeDateOnly(overrideForm.date),
+  isWorkingDay: overrideForm.isWorkingDay,
+  startTime: overrideForm.isWorkingDay ? overrideForm.startTime : null,
+  endTime: overrideForm.isWorkingDay ? overrideForm.endTime : null,
+  note: overrideForm.note.trim(),
+});
+
+        await reloadAll();
+        resetOverrideEditing();
+        setFeedback({
+          area: "overrides",
+          tone: "success",
+          message: "Исключение по дате обновлено.",
+        });
+      } else {
+        setIsCreatingOverride(true);
+
+        await createScheduleOverride(payload);
+        await reloadAll();
+        setOverrideForm(initialOverrideForm);
+        setFeedback({
+          area: "overrides",
+          tone: "success",
+          message: "Исключение по дате сохранено.",
+        });
+      }
+    } catch (submitError) {
       setFeedback({
         area: "overrides",
         tone: "error",
         message:
-          createError instanceof Error
-            ? createError.message
+          submitError instanceof Error
+            ? submitError.message
+            : editingOverrideDate
+            ? "Не удалось обновить исключение по дате"
             : "Не удалось сохранить исключение по дате",
       });
     } finally {
       setIsCreatingOverride(false);
+      setIsUpdatingOverride(false);
     }
   };
 
@@ -358,6 +433,14 @@ export function SchedulePage() {
     try {
       await deleteScheduleOverride(normalizeDateOnly(date));
       await reloadAll();
+
+      if (
+        editingOverrideDate &&
+        normalizeDateOnly(editingOverrideDate) === normalizeDateOnly(date)
+      ) {
+        resetOverrideEditing();
+      }
+
       setFeedback({
         area: "overrides",
         tone: "success",
@@ -377,11 +460,33 @@ export function SchedulePage() {
     }
   };
 
-  const handleCreateBlockedSlot = async (event: FormEvent) => {
+  const handleStartEditBlockedSlot = (id: number) => {
+    const item = blockedSlots.find((slot) => slot.id === id);
+
+    if (!item) {
+      setFeedback({
+        area: "blockedSlots",
+        tone: "error",
+        message: "Блокировка слота не найдена.",
+      });
+      return;
+    }
+
+    setEditingBlockedSlotId(item.id);
+    setBlockedSlotForm(mapBlockedSlotToForm(item));
+    setFeedback(null);
+  };
+
+  const handleCancelEditBlockedSlot = () => {
+    resetBlockedSlotEditing();
+    setFeedback(null);
+  };
+
+  const handleSubmitBlockedSlot = async (event: FormEvent) => {
     event.preventDefault();
 
     const payload: CreateBlockedSlotPayload = {
-      blockedDate: blockedSlotForm.blockedDate,
+      blockedDate: normalizeDateOnly(blockedSlotForm.blockedDate),
       startTime: blockedSlotForm.startTime,
       endTime: blockedSlotForm.endTime,
       reason: blockedSlotForm.reason.trim(),
@@ -405,29 +510,53 @@ export function SchedulePage() {
       return;
     }
 
-    setIsCreatingBlockedSlot(true);
     setFeedback(null);
 
     try {
-      await createBlockedSlot(payload);
-      await reloadAll();
-      setBlockedSlotForm(initialBlockedSlotForm);
-      setFeedback({
-        area: "blockedSlots",
-        tone: "success",
-        message: "Блокировка слота создана.",
-      });
-    } catch (createError) {
+      if (editingBlockedSlotId !== null) {
+        setIsUpdatingBlockedSlot(true);
+
+ await updateBlockedSlot({
+  id: editingBlockedSlotId,
+  blockedDate: normalizeDateOnly(blockedSlotForm.blockedDate),
+  startTime: blockedSlotForm.startTime,
+  endTime: blockedSlotForm.endTime,
+  reason: blockedSlotForm.reason.trim(),
+});
+
+        await reloadAll();
+        resetBlockedSlotEditing();
+        setFeedback({
+          area: "blockedSlots",
+          tone: "success",
+          message: "Блокировка обновлена.",
+        });
+      } else {
+        setIsCreatingBlockedSlot(true);
+
+        await createBlockedSlot(payload);
+        await reloadAll();
+        setBlockedSlotForm(initialBlockedSlotForm);
+        setFeedback({
+          area: "blockedSlots",
+          tone: "success",
+          message: "Блокировка слота создана.",
+        });
+      }
+    } catch (submitError) {
       setFeedback({
         area: "blockedSlots",
         tone: "error",
         message:
-          createError instanceof Error
-            ? createError.message
+          submitError instanceof Error
+            ? submitError.message
+            : editingBlockedSlotId !== null
+            ? "Не удалось обновить блокировку слота"
             : "Не удалось создать блокировку слота",
       });
     } finally {
       setIsCreatingBlockedSlot(false);
+      setIsUpdatingBlockedSlot(false);
     }
   };
 
@@ -446,6 +575,11 @@ export function SchedulePage() {
     try {
       await deleteBlockedSlot(id);
       await reloadAll();
+
+      if (editingBlockedSlotId === id) {
+        resetBlockedSlotEditing();
+      }
+
       setFeedback({
         area: "blockedSlots",
         tone: "success",
@@ -488,10 +622,13 @@ export function SchedulePage() {
             form={overrideForm}
             overrides={overrides}
             feedback={getScopedFeedback(feedback, "overrides")}
-            isCreatingOverride={isCreatingOverride}
+            isSubmitting={isCreatingOverride || isUpdatingOverride}
             deletingOverrideDate={deletingOverrideDate}
+            editingOverrideDate={editingOverrideDate}
             onFormChange={handleOverrideFormChange}
-            onSubmit={handleCreateOverride}
+            onSubmit={handleSubmitOverride}
+            onEdit={handleStartEditOverride}
+            onCancelEdit={handleCancelEditOverride}
             onDelete={handleDeleteOverride}
           />
 
@@ -499,10 +636,13 @@ export function SchedulePage() {
             blockedSlotForm={blockedSlotForm}
             blockedSlots={blockedSlots}
             feedback={getScopedFeedback(feedback, "blockedSlots")}
-            isCreatingBlockedSlot={isCreatingBlockedSlot}
+            isSubmitting={isCreatingBlockedSlot || isUpdatingBlockedSlot}
             deletingBlockedSlotId={deletingBlockedSlotId}
+            editingBlockedSlotId={editingBlockedSlotId}
             onFormChange={handleBlockedSlotFormChange}
-            onSubmit={handleCreateBlockedSlot}
+            onSubmit={handleSubmitBlockedSlot}
+            onEdit={handleStartEditBlockedSlot}
+            onCancelEdit={handleCancelEditBlockedSlot}
             onDelete={handleDeleteBlockedSlot}
           />
         </>
