@@ -1,5 +1,6 @@
 import type { CrmClientRecord } from "../../../types/client";
 
+import { AdminTable } from "../../../components/admin/AdminTable";
 import styles from "./ClientsPage.module.css";
 
 type ClientsTableProps = {
@@ -26,37 +27,35 @@ export function ClientsTable({
   statusLabels,
 }: ClientsTableProps) {
   return (
-    <div className={styles.tableWrapper}>
-      <table className={styles.table}>
+    <AdminTable>
         <thead>
           <tr>
-            <th className={styles.tableHeadCell}>ID</th>
-            <th className={styles.tableHeadCell}>{createdLabel}</th>
-            <th className={styles.tableHeadCell}>{nameLabel}</th>
-            <th className={styles.tableHeadCell}>{phoneLabel}</th>
-            <th className={styles.tableHeadCell}>{emailLabel}</th>
-            <th className={styles.tableHeadCell}>{sourceLabel}</th>
-            <th className={styles.tableHeadCell}>{statusLabel}</th>
-            <th className={styles.tableHeadCell}>{firstRequestLabel}</th>
+            <th>ID</th>
+            <th>{createdLabel}</th>
+            <th>{nameLabel}</th>
+            <th>{phoneLabel}</th>
+            <th>{emailLabel}</th>
+            <th>{sourceLabel}</th>
+            <th>{statusLabel}</th>
+            <th>{firstRequestLabel}</th>
           </tr>
         </thead>
         <tbody>
           {items.map((item) => (
             <tr key={item.id}>
-              <td className={styles.tableCell}>{item.id}</td>
-              <td className={styles.tableCell}>
+              <td>{item.id}</td>
+              <td>
                 {new Date(item.createdAt).toLocaleString("ru-RU")}
               </td>
-              <td className={styles.tableCell}>{item.name}</td>
-              <td className={styles.tableCell}>{item.phone || "-"}</td>
-              <td className={styles.tableCell}>{item.email || "-"}</td>
-              <td className={styles.tableCell}>{item.source}</td>
-              <td className={styles.tableCell}>{statusLabels[item.status]}</td>
-              <td className={styles.tableCell}>{item.firstRequestId ?? "-"}</td>
+              <td>{item.name}</td>
+              <td>{item.phone || "-"}</td>
+              <td>{item.email || "-"}</td>
+              <td>{item.source}</td>
+              <td>{statusLabels[item.status]}</td>
+              <td>{item.firstRequestId ?? "-"}</td>
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+    </AdminTable>
   );
 }

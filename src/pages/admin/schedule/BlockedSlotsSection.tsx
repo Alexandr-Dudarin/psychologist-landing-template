@@ -1,5 +1,8 @@
 import type { FormEvent } from "react";
 
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
+import { AdminSection } from "../../../components/admin/AdminSection";
+import { AdminTable } from "../../../components/admin/AdminTable";
 import styles from "./SchedulePage.module.css";
 import {
   formatDate,
@@ -29,18 +32,8 @@ export function BlockedSlotsSection({
   onFormChange,
   onSubmit,
 }: BlockedSlotsSectionProps) {
-  const feedbackClassName = feedback
-    ? `${styles.feedback} ${
-        feedback.tone === "success"
-          ? styles.feedbackSuccess
-          : styles.feedbackError
-      }`
-    : null;
-
   return (
-    <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>Ручное закрытие отдельных слотов</h2>
-
+    <AdminSection title="Ручное закрытие отдельных слотов">
       <form onSubmit={onSubmit} className={styles.stackForm}>
         <input
           type="date"
@@ -88,31 +81,30 @@ export function BlockedSlotsSection({
           </button>
         </div>
 
-        {feedback ? <p className={feedbackClassName}>{feedback.message}</p> : null}
+        <AdminFeedback message={feedback?.message} tone={feedback?.tone ?? "error"} />
       </form>
 
-      <div className={`${styles.tableContainer} ${styles.tableContainerSpaced}`}>
-        {blockedSlots.length === 0 ? (
-          <p>Блокировок слотов пока нет.</p>
-        ) : (
-          <table className={styles.table}>
+      {blockedSlots.length === 0 ? (
+        <p>Блокировок слотов пока нет.</p>
+      ) : (
+        <AdminTable>
             <thead>
               <tr>
-                <th className={styles.tableHeadCell}>Дата</th>
-                <th className={styles.tableHeadCell}>Время</th>
-                <th className={styles.tableHeadCell}>Причина</th>
-                <th className={styles.tableHeadCell}>Действия</th>
+                <th>Дата</th>
+                <th>Время</th>
+                <th>Причина</th>
+                <th>Действия</th>
               </tr>
             </thead>
             <tbody>
               {blockedSlots.map((item) => (
                 <tr key={item.id}>
-                  <td className={styles.tableCell}>{formatDate(item.blockedDate)}</td>
-                  <td className={styles.tableCell}>
+                  <td>{formatDate(item.blockedDate)}</td>
+                  <td>
                     {item.startTime}–{item.endTime}
                   </td>
-                  <td className={styles.tableCell}>{item.reason || "-"}</td>
-                  <td className={styles.tableCell}>
+                  <td>{item.reason || "-"}</td>
+                  <td>
                     <button
                       type="button"
                       onClick={() => onDelete(item.id)}
@@ -127,9 +119,8 @@ export function BlockedSlotsSection({
                 </tr>
               ))}
             </tbody>
-          </table>
-        )}
-      </div>
-    </section>
+        </AdminTable>
+      )}
+    </AdminSection>
   );
 }

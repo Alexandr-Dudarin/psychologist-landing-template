@@ -1,27 +1,7 @@
-.section {
-  margin-top: 20px;
-  margin-bottom: 24px;
-  padding: 16px;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-}
-
-.sectionTitle {
-  margin-top: 0;
-}
-
 .form {
   display: grid;
   gap: 12px;
   max-width: 720px;
-}
-
-.filters {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 16px;
-  margin-bottom: 16px;
 }
 
 .checkboxRow {
@@ -77,35 +57,4 @@
   border-radius: 8px;
   cursor: pointer;
   background: #fff;
-}
-
-.feedbackError {
-  color: #d96b6b;
-}
-
-.feedbackSuccess {
-  color: #2e8b57;
-}
-
-.tableWrapper {
-  overflow-x: auto;
-}
-
-.table {
-  width: 100%;
-  margin-top: 16px;
-  border-collapse: collapse;
-}
-
-.tableHeadCell {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
-  font-weight: 700;
-  text-align: left;
-}
-
-.tableCell {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-  vertical-align: top;
 }

@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 
+import { AdminSection } from "../../../components/admin/AdminSection";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmSessionRecord } from "../../../types/session";
 import styles from "./NotesPage.module.css";
@@ -23,9 +24,7 @@ export function NoteCreateForm({
   onSubmit,
 }: NoteCreateFormProps) {
   return (
-    <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>Создать заметку</h2>
-
+    <AdminSection title="Создать заметку">
       <form onSubmit={onSubmit} className={styles.form}>
         <select
           value={form.clientId}
@@ -67,6 +66,6 @@ export function NoteCreateForm({
           </button>
         </div>
       </form>
-    </section>
+    </AdminSection>
   );
 }

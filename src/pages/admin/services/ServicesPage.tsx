@@ -11,8 +11,10 @@ import type {
   CreateServicePayload,
   UpdateServicePayload,
 } from "../../../types/service";
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { ServiceCreateForm } from "./ServiceCreateForm";
 import { ServiceEditForm } from "./ServiceEditForm";
+import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import styles from "./ServicesPage.module.css";
 import { ServicesTable } from "./ServicesTable";
 import {
@@ -293,7 +295,7 @@ export function ServicesPage() {
         />
       ) : null}
 
-      <div className={styles.filters}>
+      <AdminFiltersRow>
         <select
           value={activityFilter}
           onChange={(event) =>
@@ -313,12 +315,10 @@ export function ServicesPage() {
           placeholder="Поиск по названию или описанию"
           className={`${styles.input} ${styles.searchInput}`}
         />
-      </div>
+      </AdminFiltersRow>
 
-      {error ? <p className={styles.feedbackError}>{error}</p> : null}
-      {successMessage ? (
-        <p className={styles.feedbackSuccess}>{successMessage}</p>
-      ) : null}
+      <AdminFeedback message={error} tone="error" />
+      <AdminFeedback message={successMessage} tone="success" />
 
       {isLoading ? (
         <p>Загрузка...</p>

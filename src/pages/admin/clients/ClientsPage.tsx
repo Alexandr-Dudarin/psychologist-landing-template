@@ -11,9 +11,9 @@ import type {
   CrmClientRecord,
 } from "../../../types/client";
 import { clientStatuses } from "../../../types/client";
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { ClientCreateForm } from "./ClientCreateForm";
 import { ClientsFilters } from "./ClientsFilters";
-import styles from "./ClientsPage.module.css";
 import { ClientsTable } from "./ClientsTable";
 import { initialForm, type ManualClientForm } from "./clientForm";
 
@@ -166,10 +166,8 @@ export function ClientsPage() {
         onStatusChange={setStatusFilter}
       />
 
-      {error ? <p className={styles.feedbackError}>{error}</p> : null}
-      {successMessage ? (
-        <p className={styles.feedbackSuccess}>{successMessage}</p>
-      ) : null}
+      <AdminFeedback message={error} tone="error" />
+      <AdminFeedback message={successMessage} tone="success" />
 
       {isLoading ? (
         <p>{t.admin.clients.messages.loading}</p>

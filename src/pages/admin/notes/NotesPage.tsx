@@ -15,10 +15,10 @@ import type {
   UpdateNotePayload,
 } from "../../../types/note";
 import type { CrmSessionRecord } from "../../../types/session";
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { NoteCreateForm } from "./NoteCreateForm";
 import { NoteEditForm } from "./NoteEditForm";
 import { NotesFilters } from "./NotesFilters";
-import styles from "./NotesPage.module.css";
 import { NotesTable } from "./NotesTable";
 import {
   initialCreateForm,
@@ -331,10 +331,8 @@ export function NotesPage() {
         onSearchChange={setSearchQuery}
       />
 
-      {error ? <p className={styles.feedbackError}>{error}</p> : null}
-      {successMessage ? (
-        <p className={styles.feedbackSuccess}>{successMessage}</p>
-      ) : null}
+      <AdminFeedback message={error} tone="error" />
+      <AdminFeedback message={successMessage} tone="success" />
 
       {isLoading ? (
         <p>Загрузка...</p>

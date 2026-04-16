@@ -1,0 +1,57 @@
+.section {
+  margin-top: 20px;
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+}
+
+.sectionTitle {
+  margin-top: 0;
+}
+
+.feedback {
+  margin-top: 12px;
+}
+
+.feedbackSuccess {
+  color: #2e8b57;
+}
+
+.feedbackError {
+  color: #d96b6b;
+}
+
+.filtersRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.tableWrapperSpaced {
+  margin-top: 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  font-weight: 700;
+  text-align: left;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}

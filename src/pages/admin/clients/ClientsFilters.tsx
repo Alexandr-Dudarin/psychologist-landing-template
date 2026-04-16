@@ -1,5 +1,6 @@
 import type { ClientStatus } from "../../../types/client";
 
+import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import styles from "./ClientsPage.module.css";
 
 type StatusOption = {
@@ -27,7 +28,7 @@ export function ClientsFilters({
   onStatusChange,
 }: ClientsFiltersProps) {
   return (
-    <div className={styles.filtersRow}>
+    <AdminFiltersRow>
       <select
         value={statusFilter}
         onChange={(event) =>
@@ -50,6 +51,6 @@ export function ClientsFilters({
         placeholder={searchPlaceholder}
         className={`${styles.input} ${styles.searchInput}`}
       />
-    </div>
+    </AdminFiltersRow>
   );
 }

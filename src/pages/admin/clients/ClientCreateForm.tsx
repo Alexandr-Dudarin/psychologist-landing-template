@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 
+import { AdminSection } from "../../../components/admin/AdminSection";
 import styles from "./ClientsPage.module.css";
 import type { ManualClientForm } from "./clientForm";
 
@@ -31,9 +32,7 @@ export function ClientCreateForm({
   submittingLabel,
 }: ClientCreateFormProps) {
   return (
-    <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>{title}</h2>
-
+    <AdminSection title={title}>
       <form onSubmit={onSubmit} className={styles.form}>
         <input
           type="text"
@@ -73,6 +72,6 @@ export function ClientCreateForm({
           </button>
         </div>
       </form>
-    </section>
+    </AdminSection>
   );
 }

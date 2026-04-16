@@ -1,5 +1,6 @@
 import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
 
+import { AdminTable } from "../../../components/admin/AdminTable";
 import styles from "./RequestsPage.module.css";
 
 type StatusOption = {
@@ -47,18 +48,17 @@ export function RequestsTable({
   onStatusChange,
 }: RequestsTableProps) {
   return (
-    <div className={styles.tableWrapper}>
-      <table className={styles.table}>
+    <AdminTable>
         <thead>
           <tr>
-            <th className={styles.tableHeadCell}>ID</th>
-            <th className={styles.tableHeadCell}>{createdLabel}</th>
-            <th className={styles.tableHeadCell}>{nameLabel}</th>
-            <th className={styles.tableHeadCell}>{phoneLabel}</th>
-            <th className={styles.tableHeadCell}>{emailLabel}</th>
-            <th className={styles.tableHeadCell}>{messageLabel}</th>
-            <th className={styles.tableHeadCell}>{statusLabel}</th>
-            <th className={styles.tableHeadCell}>{clientLabel}</th>
+            <th>ID</th>
+            <th>{createdLabel}</th>
+            <th>{nameLabel}</th>
+            <th>{phoneLabel}</th>
+            <th>{emailLabel}</th>
+            <th>{messageLabel}</th>
+            <th>{statusLabel}</th>
+            <th>{clientLabel}</th>
           </tr>
         </thead>
         <tbody>
@@ -67,15 +67,15 @@ export function RequestsTable({
 
             return (
               <tr key={item.id}>
-                <td className={styles.tableCell}>{item.id}</td>
-                <td className={styles.tableCell}>
+                <td>{item.id}</td>
+                <td>
                   {new Date(item.createdAt).toLocaleString("ru-RU")}
                 </td>
-                <td className={styles.tableCell}>{item.name}</td>
-                <td className={styles.tableCell}>{item.phone}</td>
-                <td className={styles.tableCell}>{item.email}</td>
-                <td className={styles.tableCell}>{item.message || "-"}</td>
-                <td className={styles.tableCell}>
+                <td>{item.name}</td>
+                <td>{item.phone}</td>
+                <td>{item.email}</td>
+                <td>{item.message || "-"}</td>
+                <td>
                   <select
                     value={item.status}
                     onChange={(event) =>
@@ -94,7 +94,7 @@ export function RequestsTable({
                     <div className={styles.savingText}>{actionsSavingLabel}</div>
                   ) : null}
                 </td>
-                <td className={styles.tableCell}>
+                <td>
                   <button
                     type="button"
                     onClick={() => onCreateClient(item.id)}
@@ -114,7 +114,6 @@ export function RequestsTable({
             );
           })}
         </tbody>
-      </table>
-    </div>
+    </AdminTable>
   );
 }

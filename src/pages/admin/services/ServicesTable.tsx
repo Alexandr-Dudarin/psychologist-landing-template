@@ -1,5 +1,6 @@
 import type { CrmServiceRecord } from "../../../types/service";
 
+import { AdminTable } from "../../../components/admin/AdminTable";
 import styles from "./ServicesPage.module.css";
 
 type ServicesTableProps = {
@@ -16,33 +17,32 @@ export function ServicesTable({
   onEdit,
 }: ServicesTableProps) {
   return (
-    <div className={styles.tableWrapper}>
-      <table className={styles.table}>
+    <AdminTable>
         <thead>
           <tr>
-            <th className={styles.tableHeadCell}>ID</th>
-            <th className={styles.tableHeadCell}>Создана</th>
-            <th className={styles.tableHeadCell}>Название</th>
-            <th className={styles.tableHeadCell}>Цена</th>
-            <th className={styles.tableHeadCell}>Длительность</th>
-            <th className={styles.tableHeadCell}>Активна</th>
-            <th className={styles.tableHeadCell}>Описание</th>
-            <th className={styles.tableHeadCell}>Действия</th>
+            <th>ID</th>
+            <th>Создана</th>
+            <th>Название</th>
+            <th>Цена</th>
+            <th>Длительность</th>
+            <th>Активна</th>
+            <th>Описание</th>
+            <th>Действия</th>
           </tr>
         </thead>
         <tbody>
           {items.map((item) => (
             <tr key={item.id}>
-              <td className={styles.tableCell}>{item.id}</td>
-              <td className={styles.tableCell}>
+              <td>{item.id}</td>
+              <td>
                 {new Date(item.createdAt).toLocaleString("ru-RU")}
               </td>
-              <td className={styles.tableCell}>{item.title}</td>
-              <td className={styles.tableCell}>{item.price}</td>
-              <td className={styles.tableCell}>{item.durationMinutes} мин</td>
-              <td className={styles.tableCell}>{item.isActive ? "Да" : "Нет"}</td>
-              <td className={styles.tableCell}>{item.description || "-"}</td>
-              <td className={styles.tableCell}>
+              <td>{item.title}</td>
+              <td>{item.price}</td>
+              <td>{item.durationMinutes} мин</td>
+              <td>{item.isActive ? "Да" : "Нет"}</td>
+              <td>{item.description || "-"}</td>
+              <td>
                 <div className={styles.actionsRow}>
                   <button
                     type="button"
@@ -65,7 +65,6 @@ export function ServicesTable({
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+    </AdminTable>
   );
 }

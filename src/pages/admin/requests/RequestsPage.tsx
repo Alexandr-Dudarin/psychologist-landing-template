@@ -8,7 +8,7 @@ import {
 } from "../../../lib/api/adminRequests";
 import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
 import { requestStatuses } from "../../../types/request";
-import styles from "./RequestsPage.module.css";
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { RequestsFilters } from "./RequestsFilters";
 import { RequestsTable } from "./RequestsTable";
 
@@ -136,7 +136,7 @@ export function RequestsPage() {
         onStatusChange={setStatusFilter}
       />
 
-      {error ? <p className={styles.feedbackError}>{error}</p> : null}
+      <AdminFeedback message={error} tone="error" />
 
       {isLoading ? (
         <p>{t.admin.requests.messages.loading}</p>

@@ -1,5 +1,7 @@
 import type { FormEvent } from "react";
 
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
+import { AdminSection } from "../../../components/admin/AdminSection";
 import styles from "./SchedulePage.module.css";
 import type { FeedbackState, SettingsForm } from "./schedulePage.shared";
 
@@ -23,19 +25,9 @@ export function ScheduleSettingsForm({
   onSubmit,
   onTextChange,
 }: ScheduleSettingsFormProps) {
-  const feedbackClassName = feedback
-    ? `${styles.feedback} ${
-        feedback.tone === "success"
-          ? styles.feedbackSuccess
-          : styles.feedbackError
-      }`
-    : null;
-
   return (
     <form onSubmit={onSubmit}>
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Общие настройки записи</h2>
-
+      <AdminSection title="Общие настройки записи">
         <div className={styles.grid}>
           <label className={styles.field}>
             <span>Минимум часов до записи</span>
@@ -99,8 +91,8 @@ export function ScheduleSettingsForm({
           </button>
         </div>
 
-        {feedback ? <p className={feedbackClassName}>{feedback.message}</p> : null}
-      </section>
+        <AdminFeedback message={feedback?.message} tone={feedback?.tone ?? "error"} />
+      </AdminSection>
     </form>
   );
 }

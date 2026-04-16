@@ -1,5 +1,6 @@
 import type { CrmClientRecord } from "../../../types/client";
 
+import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import styles from "./NotesPage.module.css";
 
 type NotesFiltersProps = {
@@ -18,7 +19,7 @@ export function NotesFilters({
   onSearchChange,
 }: NotesFiltersProps) {
   return (
-    <div className={styles.filtersRow}>
+    <AdminFiltersRow>
       <select
         value={clientFilter}
         onChange={(event) =>
@@ -43,6 +44,6 @@ export function NotesFilters({
         placeholder="Поиск по клиенту, тексту или услуге"
         className={`${styles.input} ${styles.searchInput}`}
       />
-    </div>
+    </AdminFiltersRow>
   );
 }

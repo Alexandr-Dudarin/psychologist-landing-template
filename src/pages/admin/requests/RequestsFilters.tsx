@@ -1,5 +1,6 @@
 import type { RequestStatus } from "../../../types/request";
 
+import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import styles from "./RequestsPage.module.css";
 
 type StatusOption = {
@@ -27,7 +28,7 @@ export function RequestsFilters({
   onStatusChange,
 }: RequestsFiltersProps) {
   return (
-    <div className={styles.filtersRow}>
+    <AdminFiltersRow>
       <select
         value={statusFilter}
         onChange={(event) =>
@@ -50,6 +51,6 @@ export function RequestsFilters({
         placeholder={searchPlaceholder}
         className={`${styles.input} ${styles.searchInput}`}
       />
-    </div>
+    </AdminFiltersRow>
   );
 }

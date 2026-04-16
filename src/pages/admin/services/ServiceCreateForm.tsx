@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 
+import { AdminSection } from "../../../components/admin/AdminSection";
 import styles from "./ServicesPage.module.css";
 import type { ServiceForm } from "./serviceForm";
 
@@ -17,9 +18,7 @@ export function ServiceCreateForm({
   onSubmit,
 }: ServiceCreateFormProps) {
   return (
-    <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>Создать услугу</h2>
-
+    <AdminSection title="Создать услугу">
       <form onSubmit={onSubmit} className={styles.form}>
         <input
           type="text"
@@ -71,6 +70,6 @@ export function ServiceCreateForm({
           </button>
         </div>
       </form>
-    </section>
+    </AdminSection>
   );
 }

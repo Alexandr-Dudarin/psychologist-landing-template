@@ -1,5 +1,6 @@
 import type { CrmNoteRecord } from "../../../types/note";
 
+import { AdminTable } from "../../../components/admin/AdminTable";
 import styles from "./NotesPage.module.css";
 
 type NotesTableProps = {
@@ -16,35 +17,34 @@ export function NotesTable({
   onEdit,
 }: NotesTableProps) {
   return (
-    <div className={styles.tableWrapper}>
-      <table className={styles.table}>
+    <AdminTable>
         <thead>
           <tr>
-            <th className={styles.tableHeadCell}>ID</th>
-            <th className={styles.tableHeadCell}>Создана</th>
-            <th className={styles.tableHeadCell}>Клиент</th>
-            <th className={styles.tableHeadCell}>Сессия</th>
-            <th className={styles.tableHeadCell}>Текст</th>
-            <th className={styles.tableHeadCell}>Действия</th>
+            <th>ID</th>
+            <th>Создана</th>
+            <th>Клиент</th>
+            <th>Сессия</th>
+            <th>Текст</th>
+            <th>Действия</th>
           </tr>
         </thead>
         <tbody>
           {items.map((item) => (
             <tr key={item.id}>
-              <td className={styles.tableCell}>{item.id}</td>
-              <td className={styles.tableCell}>
+              <td>{item.id}</td>
+              <td>
                 {new Date(item.createdAt).toLocaleString("ru-RU")}
               </td>
-              <td className={styles.tableCell}>{item.clientName}</td>
-              <td className={styles.tableCell}>
+              <td>{item.clientName}</td>
+              <td>
                 {item.sessionId && item.sessionScheduledAt
                   ? `${new Date(item.sessionScheduledAt).toLocaleString("ru-RU")}${
                       item.sessionServiceTitle ? ` — ${item.sessionServiceTitle}` : ""
                     }`
                   : "-"}
               </td>
-              <td className={styles.tableCell}>{item.content}</td>
-              <td className={styles.tableCell}>
+              <td>{item.content}</td>
+              <td>
                 <div className={styles.actionsRow}>
                   <button
                     type="button"
@@ -67,7 +67,6 @@ export function NotesTable({
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+    </AdminTable>
   );
 }

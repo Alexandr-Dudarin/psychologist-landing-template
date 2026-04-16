@@ -1,5 +1,7 @@
 import type { ScheduleRuleRecord } from "../../../types/schedule";
 
+import { AdminSection } from "../../../components/admin/AdminSection";
+import { AdminTable } from "../../../components/admin/AdminTable";
 import styles from "./SchedulePage.module.css";
 import { weekdayLabels } from "./schedulePage.shared";
 
@@ -17,24 +19,21 @@ export function ScheduleRulesTable({
   onRuleChange,
 }: ScheduleRulesTableProps) {
   return (
-    <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>Рабочие дни и часы</h2>
-
-      <div className={styles.tableContainer}>
-        <table className={styles.table}>
+    <AdminSection title="Рабочие дни и часы">
+      <AdminTable withTopMargin={false}>
           <thead>
             <tr>
-              <th className={styles.tableHeadCell}>День</th>
-              <th className={styles.tableHeadCell}>Активен</th>
-              <th className={styles.tableHeadCell}>Начало</th>
-              <th className={styles.tableHeadCell}>Окончание</th>
+              <th>День</th>
+              <th>Активен</th>
+              <th>Начало</th>
+              <th>Окончание</th>
             </tr>
           </thead>
           <tbody>
             {rules.map((rule) => (
               <tr key={rule.weekday}>
-                <td className={styles.tableCell}>{weekdayLabels[rule.weekday]}</td>
-                <td className={styles.tableCell}>
+                <td>{weekdayLabels[rule.weekday]}</td>
+                <td>
                   <input
                     type="checkbox"
                     checked={rule.isEnabled}
@@ -43,7 +42,7 @@ export function ScheduleRulesTable({
                     }
                   />
                 </td>
-                <td className={styles.tableCell}>
+                <td>
                   <input
                     type="time"
                     value={rule.startTime}
@@ -54,7 +53,7 @@ export function ScheduleRulesTable({
                     className={styles.input}
                   />
                 </td>
-                <td className={styles.tableCell}>
+                <td>
                   <input
                     type="time"
                     value={rule.endTime}
@@ -68,8 +67,7 @@ export function ScheduleRulesTable({
               </tr>
             ))}
           </tbody>
-        </table>
-      </div>
-    </section>
+      </AdminTable>
+    </AdminSection>
   );
 }
