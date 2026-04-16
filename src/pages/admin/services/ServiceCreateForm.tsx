@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import styles from "./ServicesPage.module.css";
 import type { ServiceForm } from "./serviceForm";
@@ -61,13 +62,15 @@ export function ServiceCreateForm({
             checked={form.isActive}
             onChange={(event) => onChange("isActive", event.target.checked)}
           />
-          <span>Услуга активна</span>
+          <span>{"Услуга активна"}</span>
         </label>
 
         <div>
-          <button type="submit" disabled={isCreating} className={styles.button}>
-            {isCreating ? "Создание..." : "Создать услугу"}
-          </button>
+          <AdminButton type="submit" disabled={isCreating} variant="primary">
+            {isCreating
+              ? "Создание..."
+              : "Создать услугу"}
+          </AdminButton>
         </div>
       </form>
     </AdminSection>

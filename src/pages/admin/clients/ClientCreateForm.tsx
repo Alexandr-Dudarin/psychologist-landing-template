@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import styles from "./ClientsPage.module.css";
 import type { ManualClientForm } from "./clientForm";
@@ -67,9 +68,9 @@ export function ClientCreateForm({
         />
 
         <div>
-          <button type="submit" disabled={isCreating} className={styles.button}>
+          <AdminButton type="submit" disabled={isCreating} variant="primary">
             {isCreating ? submittingLabel : submitLabel}
-          </button>
+          </AdminButton>
         </div>
       </form>
     </AdminSection>

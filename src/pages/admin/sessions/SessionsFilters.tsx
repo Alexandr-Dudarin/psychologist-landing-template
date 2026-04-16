@@ -1,6 +1,9 @@
 import type { SessionStatus } from "../../../types/session";
+
+import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import { sessionStatuses } from "../../../types/session";
 import { sessionStatusLabels } from "./sessionForm";
+import styles from "./SessionsPage.module.css";
 
 type SessionsFiltersProps = {
   statusFilter: SessionStatus | "all";
@@ -16,26 +19,13 @@ export function SessionsFilters({
   onSearchQueryChange,
 }: SessionsFiltersProps) {
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: "12px",
-        flexWrap: "wrap",
-        marginTop: "16px",
-        marginBottom: "16px",
-      }}
-    >
+    <AdminFiltersRow>
       <select
         value={statusFilter}
         onChange={(e) => onStatusFilterChange(e.target.value as SessionStatus | "all")}
-        style={{
-          minWidth: "180px",
-          padding: "10px 12px",
-          borderRadius: "8px",
-          border: "1px solid #ccc",
-        }}
+        className={`${styles.input} ${styles.filterSelect}`}
       >
-        <option value="all">все статусы</option>
+        <option value="all">{"все статусы"}</option>
         {sessionStatuses.map((status) => (
           <option key={status} value={status}>
             {sessionStatusLabels[status]}
@@ -48,15 +38,8 @@ export function SessionsFilters({
         value={searchQuery}
         onChange={(e) => onSearchQueryChange(e.target.value)}
         placeholder="Поиск по клиенту, услуге или заметке"
-        style={{
-          minWidth: "320px",
-          maxWidth: "420px",
-          width: "100%",
-          padding: "10px 12px",
-          borderRadius: "8px",
-          border: "1px solid #ccc",
-        }}
+        className={`${styles.input} ${styles.searchInput}`}
       />
-    </div>
+    </AdminFiltersRow>
   );
 }

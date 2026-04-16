@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import styles from "./SchedulePage.module.css";
@@ -30,7 +31,7 @@ export function ScheduleSettingsForm({
       <AdminSection title="Общие настройки записи">
         <div className={styles.grid}>
           <label className={styles.field}>
-            <span>Минимум часов до записи</span>
+            <span>{"Минимум часов до записи"}</span>
             <input
               type="number"
               min="0"
@@ -44,7 +45,7 @@ export function ScheduleSettingsForm({
           </label>
 
           <label className={styles.field}>
-            <span>Буфер между сессиями, минут</span>
+            <span>{"Буфер между сессиями, минут"}</span>
             <input
               type="number"
               min="0"
@@ -58,7 +59,7 @@ export function ScheduleSettingsForm({
           </label>
 
           <label className={styles.field}>
-            <span>На сколько дней вперёд можно записаться</span>
+            <span>{"На сколько дней вперёд можно записаться"}</span>
             <input
               type="number"
               min="1"
@@ -72,7 +73,7 @@ export function ScheduleSettingsForm({
           </label>
 
           <label className={`${styles.field} ${styles.checkboxFieldEnd}`}>
-            <span>Разрешить запись на текущий день</span>
+            <span>{"Разрешить запись на текущий день"}</span>
             <input
               type="checkbox"
               checked={settingsForm.allowSameDayBooking}
@@ -82,13 +83,11 @@ export function ScheduleSettingsForm({
         </div>
 
         <div className={styles.actions}>
-          <button
-            type="submit"
-            disabled={isSaving}
-            className={styles.button}
-          >
-            {isSaving ? "Сохранение..." : "Сохранить настройки"}
-          </button>
+          <AdminButton type="submit" disabled={isSaving} variant="primary">
+            {isSaving
+              ? "Сохранение..."
+              : "Сохранить настройки"}
+          </AdminButton>
         </div>
 
         <AdminFeedback message={feedback?.message} tone={feedback?.tone ?? "error"} />

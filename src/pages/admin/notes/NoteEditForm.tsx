@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmSessionRecord } from "../../../types/session";
@@ -33,10 +34,12 @@ export function NoteEditForm({
           onChange={(event) => onChange("clientId", event.target.value)}
           className={styles.input}
         >
-          <option value="">Выберите клиента</option>
+          <option value="">
+            {"Выберите клиента"}
+          </option>
           {clients.map((client) => (
             <option key={client.id} value={client.id}>
-              {client.name} — {client.phone || client.email || client.id}
+              {client.name} {"—"} {client.phone || client.email || client.id}
             </option>
           ))}
         </select>
@@ -47,7 +50,9 @@ export function NoteEditForm({
           className={styles.input}
           disabled={!form.clientId}
         >
-          <option value="">Без привязки к сессии</option>
+          <option value="">
+            {"Без привязки к сессии"}
+          </option>
           {availableSessions.map((session) => (
             <option key={session.id} value={session.id}>
               {formatSessionLabel(session)}
@@ -63,13 +68,15 @@ export function NoteEditForm({
         />
 
         <div className={styles.buttonRow}>
-          <button type="submit" disabled={isUpdating} className={styles.button}>
-            {isUpdating ? "Сохранение..." : "Сохранить изменения"}
-          </button>
+          <AdminButton type="submit" disabled={isUpdating} variant="primary">
+            {isUpdating
+              ? "Сохранение..."
+              : "Сохранить изменения"}
+          </AdminButton>
 
-          <button type="button" onClick={onCancel} className={styles.button}>
-            Отменить
-          </button>
+          <AdminButton type="button" onClick={onCancel} variant="secondary">
+            {"Отменить"}
+          </AdminButton>
         </div>
       </form>
     </AdminSection>

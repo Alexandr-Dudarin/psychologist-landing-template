@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
@@ -44,7 +45,7 @@ export function BlockedSlotsSection({
 
         <div className={styles.grid}>
           <label className={styles.field}>
-            <span>Начало</span>
+            <span>{"Начало"}</span>
             <input
               type="time"
               value={blockedSlotForm.startTime}
@@ -54,7 +55,7 @@ export function BlockedSlotsSection({
           </label>
 
           <label className={styles.field}>
-            <span>Окончание</span>
+            <span>{"Окончание"}</span>
             <input
               type="time"
               value={blockedSlotForm.endTime}
@@ -72,13 +73,15 @@ export function BlockedSlotsSection({
         />
 
         <div>
-          <button
+          <AdminButton
             type="submit"
             disabled={isCreatingBlockedSlot}
-            className={styles.button}
+            variant="primary"
           >
-            {isCreatingBlockedSlot ? "Создание..." : "Создать блокировку"}
-          </button>
+            {isCreatingBlockedSlot
+              ? "Создание..."
+              : "Создать блокировку"}
+          </AdminButton>
         </div>
 
         <AdminFeedback
@@ -88,15 +91,15 @@ export function BlockedSlotsSection({
       </form>
 
       {blockedSlots.length === 0 ? (
-        <p>Блокировок слотов пока нет.</p>
+        <p>{"Блокировок слотов пока нет."}</p>
       ) : (
         <AdminTable>
           <thead>
             <tr>
-              <th>Дата</th>
-              <th>Время</th>
-              <th>Причина</th>
-              <th className={styles.actionsHeader}>Действия</th>
+              <th>{"Дата"}</th>
+              <th>{"Время"}</th>
+              <th>{"Причина"}</th>
+              <th className={styles.actionsHeader}>{"Действия"}</th>
             </tr>
           </thead>
           <tbody>
@@ -109,16 +112,18 @@ export function BlockedSlotsSection({
                 <td>{item.reason || "-"}</td>
                 <td className={styles.actionsCell}>
                   <div className={styles.actionsCellInner}>
-                    <button
+                    <AdminButton
                       type="button"
                       onClick={() => onDelete(item.id)}
                       disabled={deletingBlockedSlotId === item.id}
-                      className={`${styles.button} ${styles.actionButton}`}
+                      className={styles.actionButton}
+                      size="sm"
+                      variant="danger"
                     >
                       {deletingBlockedSlotId === item.id
                         ? "Удаление..."
                         : "Удалить"}
-                    </button>
+                    </AdminButton>
                   </div>
                 </td>
               </tr>

@@ -34,7 +34,7 @@ export function RequestsFilters({
         onChange={(event) =>
           onStatusChange(event.target.value as RequestStatus | "all")
         }
-        className={`${styles.input} ${styles.select}`}
+        className={styles.select}
       >
         <option value="all">{allStatusesLabel}</option>
         {statusOptions.map((status) => (
@@ -49,7 +49,7 @@ export function RequestsFilters({
         value={searchQuery}
         onChange={(event) => onSearchChange(event.target.value)}
         placeholder={searchPlaceholder}
-        className={`${styles.input} ${styles.searchInput}`}
+        className={styles.searchInput}
       />
     </AdminFiltersRow>
   );

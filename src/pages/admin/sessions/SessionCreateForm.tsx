@@ -1,4 +1,7 @@
 import type { FormEvent } from "react";
+
+import { AdminButton } from "../../../components/admin/AdminButton";
+import { AdminSection } from "../../../components/admin/AdminSection";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmServiceRecord } from "../../../types/service";
 import type { SessionStatus } from "../../../types/session";
@@ -8,6 +11,7 @@ import {
   getNowDateTimeLocalValue,
   sessionStatusLabels,
 } from "./sessionForm";
+import styles from "./SessionsPage.module.css";
 
 type SessionCreateFormProps = {
   clients: CrmClientRecord[];
@@ -27,34 +31,17 @@ export function SessionCreateForm({
   onSubmit,
 }: SessionCreateFormProps) {
   return (
-    <section
-      style={{
-        marginTop: "20px",
-        marginBottom: "24px",
-        padding: "16px",
-        border: "1px solid #ddd",
-        borderRadius: "12px",
-      }}
-    >
-      <h2 style={{ marginTop: 0 }}>Создать сессию</h2>
-
-      <form
-        onSubmit={onSubmit}
-        style={{
-          display: "grid",
-          gap: "12px",
-          maxWidth: "720px",
-        }}
-      >
+    <AdminSection title="Создать сессию">
+      <form onSubmit={onSubmit} className={styles.form}>
         <select
           value={form.clientId}
           onChange={(e) => onFormChange("clientId", e.target.value)}
-          style={inputStyle}
+          className={styles.input}
         >
-          <option value="">Выберите клиента</option>
+          <option value="">{"Выберите клиента"}</option>
           {clients.map((client) => (
             <option key={client.id} value={client.id}>
-              {client.name} — {client.phone || client.email || client.id}
+              {client.name} {"—"} {client.phone || client.email || client.id}
             </option>
           ))}
         </select>
@@ -62,12 +49,12 @@ export function SessionCreateForm({
         <select
           value={form.serviceId}
           onChange={(e) => onFormChange("serviceId", e.target.value)}
-          style={inputStyle}
+          className={styles.input}
         >
-          <option value="">Выберите услугу</option>
+          <option value="">{"Выберите услугу"}</option>
           {activeServices.map((service) => (
             <option key={service.id} value={service.id}>
-              {service.title} — {service.price} ₽ / {service.durationMinutes} мин
+              {service.title} {"—"} {service.price} {"₽"} / {service.durationMinutes} {"мин"}
             </option>
           ))}
         </select>
@@ -77,7 +64,7 @@ export function SessionCreateForm({
           value={form.scheduledAt}
           min={getNowDateTimeLocalValue()}
           onChange={(e) => onFormChange("scheduledAt", e.target.value)}
-          style={inputStyle}
+          className={styles.input}
         />
 
         <input
@@ -87,7 +74,7 @@ export function SessionCreateForm({
           value={form.durationMinutes}
           onChange={(e) => onFormChange("durationMinutes", e.target.value)}
           placeholder="Длительность в минутах"
-          style={inputStyle}
+          className={styles.input}
         />
 
         <input
@@ -97,13 +84,13 @@ export function SessionCreateForm({
           value={form.price}
           onChange={(e) => onFormChange("price", e.target.value)}
           placeholder="Цена"
-          style={inputStyle}
+          className={styles.input}
         />
 
         <select
           value={form.status}
           onChange={(e) => onFormChange("status", e.target.value as SessionStatus)}
-          style={inputStyle}
+          className={styles.input}
         >
           {sessionStatuses.map((status) => (
             <option key={status} value={status}>
@@ -116,30 +103,17 @@ export function SessionCreateForm({
           value={form.notes}
           onChange={(e) => onFormChange("notes", e.target.value)}
           placeholder="Заметка"
-          style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }}
+          className={`${styles.input} ${styles.textarea}`}
         />
 
         <div>
-          <button type="submit" disabled={isCreating} style={buttonStyle}>
-            {isCreating ? "Создание..." : "Создать сессию"}
-          </button>
+          <AdminButton type="submit" disabled={isCreating} variant="primary">
+            {isCreating
+              ? "Создание..."
+              : "Создать сессию"}
+          </AdminButton>
         </div>
       </form>
-    </section>
+    </AdminSection>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px 12px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-};
-
-const buttonStyle: React.CSSProperties = {
-  padding: "10px 14px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-  cursor: "pointer",
-  background: "#fff",
-};

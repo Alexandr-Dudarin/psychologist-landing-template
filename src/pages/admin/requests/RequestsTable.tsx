@@ -1,5 +1,6 @@
 import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import styles from "./RequestsPage.module.css";
 
@@ -49,71 +50,68 @@ export function RequestsTable({
 }: RequestsTableProps) {
   return (
     <AdminTable>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>{createdLabel}</th>
-            <th>{nameLabel}</th>
-            <th>{phoneLabel}</th>
-            <th>{emailLabel}</th>
-            <th>{messageLabel}</th>
-            <th>{statusLabel}</th>
-            <th>{clientLabel}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item) => {
-            const clientAlreadyCreated = item.clientId !== null;
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>{createdLabel}</th>
+          <th>{nameLabel}</th>
+          <th>{phoneLabel}</th>
+          <th>{emailLabel}</th>
+          <th>{messageLabel}</th>
+          <th>{statusLabel}</th>
+          <th>{clientLabel}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {items.map((item) => {
+          const clientAlreadyCreated = item.clientId !== null;
 
-            return (
-              <tr key={item.id}>
-                <td>{item.id}</td>
-                <td>
-                  {new Date(item.createdAt).toLocaleString("ru-RU")}
-                </td>
-                <td>{item.name}</td>
-                <td>{item.phone}</td>
-                <td>{item.email}</td>
-                <td>{item.message || "-"}</td>
-                <td>
-                  <select
-                    value={item.status}
-                    onChange={(event) =>
-                      onStatusChange(item.id, event.target.value as RequestStatus)
-                    }
-                    disabled={savingId === item.id}
-                    className={`${styles.input} ${styles.statusSelect}`}
-                  >
-                    {statusOptions.map((status) => (
-                      <option key={status.value} value={status.value}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </select>
-                  {savingId === item.id ? (
-                    <div className={styles.savingText}>{actionsSavingLabel}</div>
-                  ) : null}
-                </td>
-                <td>
-                  <button
-                    type="button"
-                    onClick={() => onCreateClient(item.id)}
-                    disabled={creatingClientId === item.id || clientAlreadyCreated}
-                    className={`${styles.button} ${
-                      clientAlreadyCreated ? styles.buttonDisabled : ""
-                    }`}
-                  >
-                    {clientAlreadyCreated
-                      ? actionsCreatedLabel
-                      : creatingClientId === item.id
-                        ? actionsCreatingClientLabel
-                        : actionsCreateClientLabel}
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
+          return (
+            <tr key={item.id}>
+              <td>{item.id}</td>
+              <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
+              <td>{item.name}</td>
+              <td>{item.phone}</td>
+              <td>{item.email}</td>
+              <td>{item.message || "-"}</td>
+              <td>
+                <select
+                  value={item.status}
+                  onChange={(event) =>
+                    onStatusChange(item.id, event.target.value as RequestStatus)
+                  }
+                  disabled={savingId === item.id}
+                  className={styles.statusSelect}
+                >
+                  {statusOptions.map((status) => (
+                    <option key={status.value} value={status.value}>
+                      {status.label}
+                    </option>
+                  ))}
+                </select>
+                {savingId === item.id ? (
+                  <div className={styles.savingText}>{actionsSavingLabel}</div>
+                ) : null}
+              </td>
+              <td>
+                <AdminButton
+                  type="button"
+                  onClick={() => onCreateClient(item.id)}
+                  disabled={creatingClientId === item.id || clientAlreadyCreated}
+                  size="sm"
+                  variant="secondary"
+                >
+                  {clientAlreadyCreated
+                    ? actionsCreatedLabel
+                    : creatingClientId === item.id
+                      ? actionsCreatingClientLabel
+                      : actionsCreateClientLabel}
+                </AdminButton>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
     </AdminTable>
   );
 }

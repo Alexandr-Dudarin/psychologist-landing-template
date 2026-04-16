@@ -47,6 +47,12 @@
   background: #fff;
 }
 
+.savingText {
+  margin-top: 6px;
+  color: #666;
+  font-size: 0.95rem;
+}
+
 .clientButton {
   padding: 10px 14px;
   border-radius: 8px;

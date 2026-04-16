@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
+
 import { getAdminClients } from "../../../lib/api/adminClients";
 import { getAdminServices } from "../../../lib/api/adminServices";
 import {
-  getAdminSessions,
   createAdminSession,
-  updateAdminSession,
   deleteAdminSession,
+  getAdminSessions,
+  updateAdminSession,
 } from "../../../lib/api/adminSessions";
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmServiceRecord } from "../../../types/service";
 import type {
@@ -377,7 +379,7 @@ export function SessionsPage() {
 
   return (
     <main>
-      <h1>Сессии</h1>
+      <h1>{"Сессии"}</h1>
 
       <SessionCreateForm
         clients={clients}
@@ -407,8 +409,8 @@ export function SessionsPage() {
         onSearchQueryChange={setSearchQuery}
       />
 
-      {error && <p style={{ color: "#d96b6b" }}>{error}</p>}
-      {successMessage && <p style={{ color: "#2e8b57" }}>{successMessage}</p>}
+      <AdminFeedback message={error} tone="error" />
+      <AdminFeedback message={successMessage} tone="success" />
 
       <SessionsTable
         items={items}
