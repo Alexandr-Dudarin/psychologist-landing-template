@@ -17,6 +17,11 @@ import { ClientsFilters } from "./ClientsFilters";
 import { ClientsTable } from "./ClientsTable";
 import { initialForm, type ManualClientForm } from "./clientForm";
 
+const clientSourceLabels: Record<string, string> = {
+  manual: "Вручную",
+  website: "Сайт",
+};
+
 export function ClientsPage() {
   const { t } = useLanguage();
   const [items, setItems] = useState<CrmClientRecord[]>([]);
@@ -184,6 +189,7 @@ export function ClientsPage() {
           statusLabel={t.admin.clients.table.status}
           firstRequestLabel={t.admin.clients.table.firstRequest}
           statusLabels={t.admin.clients.statusLabels}
+          sourceLabels={clientSourceLabels}
         />
       )}
     </main>

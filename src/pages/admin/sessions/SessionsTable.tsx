@@ -1,4 +1,5 @@
 import type { CrmSessionRecord } from "../../../types/session";
+import { sessionStatusLabels } from "./sessionForm";
 
 type SessionsTableProps = {
   items: CrmSessionRecord[];
@@ -56,7 +57,7 @@ export function SessionsTable({
               <td style={cellStyle}>{item.serviceTitle}</td>
               <td style={cellStyle}>{item.price} ₽</td>
               <td style={cellStyle}>{item.durationMinutes} мин</td>
-              <td style={cellStyle}>{item.status}</td>
+              <td style={cellStyle}>{sessionStatusLabels[item.status]}</td>
               <td style={cellStyle}>{item.notes || "-"}</td>
               <td style={cellStyle}>
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>

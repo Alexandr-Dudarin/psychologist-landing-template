@@ -1,8 +1,10 @@
+import type { FormEvent } from "react";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmServiceRecord } from "../../../types/service";
 import type { SessionStatus } from "../../../types/session";
 import { sessionStatuses } from "../../../types/session";
 import type { SessionForm } from "./sessionForm";
+import { sessionStatusLabels } from "./sessionForm";
 
 type SessionEditFormProps = {
   clients: CrmClientRecord[];
@@ -10,7 +12,7 @@ type SessionEditFormProps = {
   form: SessionForm;
   isUpdating: boolean;
   onFormChange: (field: keyof SessionForm, value: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: FormEvent) => void;
   onCancel: () => void;
 };
 
@@ -103,7 +105,7 @@ export function SessionEditForm({
         >
           {sessionStatuses.map((status) => (
             <option key={status} value={status}>
-              {status}
+              {sessionStatusLabels[status]}
             </option>
           ))}
         </select>

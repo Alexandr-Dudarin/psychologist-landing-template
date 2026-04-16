@@ -81,44 +81,49 @@ export function BlockedSlotsSection({
           </button>
         </div>
 
-        <AdminFeedback message={feedback?.message} tone={feedback?.tone ?? "error"} />
+        <AdminFeedback
+          message={feedback?.message}
+          tone={feedback?.tone ?? "error"}
+        />
       </form>
 
       {blockedSlots.length === 0 ? (
         <p>Блокировок слотов пока нет.</p>
       ) : (
         <AdminTable>
-            <thead>
-              <tr>
-                <th>Дата</th>
-                <th>Время</th>
-                <th>Причина</th>
-                <th>Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {blockedSlots.map((item) => (
-                <tr key={item.id}>
-                  <td>{formatDate(item.blockedDate)}</td>
-                  <td>
-                    {item.startTime}–{item.endTime}
-                  </td>
-                  <td>{item.reason || "-"}</td>
-                  <td>
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Время</th>
+              <th>Причина</th>
+              <th className={styles.actionsHeader}>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            {blockedSlots.map((item) => (
+              <tr key={item.id}>
+                <td>{formatDate(item.blockedDate)}</td>
+                <td>
+                  {item.startTime}–{item.endTime}
+                </td>
+                <td>{item.reason || "-"}</td>
+                <td className={styles.actionsCell}>
+                  <div className={styles.actionsCellInner}>
                     <button
                       type="button"
                       onClick={() => onDelete(item.id)}
                       disabled={deletingBlockedSlotId === item.id}
-                      className={styles.button}
+                      className={`${styles.button} ${styles.actionButton}`}
                     >
                       {deletingBlockedSlotId === item.id
                         ? "Удаление..."
                         : "Удалить"}
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </AdminTable>
       )}
     </AdminSection>

@@ -1,7 +1,58 @@
+.pageTitle {
+  margin: 0 0 24px;
+}
+
+.formSection {
+  margin-bottom: 24px;
+}
+
 .form {
   display: grid;
   gap: 12px;
   max-width: 720px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input,
+.textarea,
+.select,
+.searchInput,
+.filterSelect {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font: inherit;
+  background: #fff;
+}
+
+.input,
+.textarea {
+  width: 100%;
+}
+
+.select,
+.filterSelect {
+  width: auto;
+  min-width: 220px;
+  max-width: 260px;
+  flex: 0 0 220px;
+}
+
+.searchInput {
+  width: auto;
+  min-width: 320px;
+  max-width: 420px;
+  flex: 1 1 320px;
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
 }
 
 .buttonRow {
@@ -10,37 +61,58 @@
   flex-wrap: wrap;
 }
 
-.actionsRow {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
-
-.textarea {
-  min-height: 140px;
-  resize: vertical;
-}
-
-.filterSelect {
-  min-width: 240px;
-}
-
-.searchInput {
-  min-width: 320px;
-  max-width: 420px;
-}
-
-.button {
+.button,
+.secondaryButton,
+.dangerButton {
   padding: 10px 14px;
-  border: 1px solid #ccc;
   border-radius: 8px;
-  cursor: pointer;
+  border: 1px solid #ccc;
   background: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.dangerButton {
+  border-color: #d9a3a3;
+}
+
+.button:disabled,
+.secondaryButton:disabled,
+.dangerButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.success {
+  color: #2e8b57;
+}
+
+.error {
+  color: #d96b6b;
+}
+
+.empty {
+  margin-top: 16px;
+  color: #666;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+
+.table th {
+  font-weight: 700;
 }

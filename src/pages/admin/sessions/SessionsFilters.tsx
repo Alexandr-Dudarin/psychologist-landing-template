@@ -1,5 +1,6 @@
 import type { SessionStatus } from "../../../types/session";
 import { sessionStatuses } from "../../../types/session";
+import { sessionStatusLabels } from "./sessionForm";
 
 type SessionsFiltersProps = {
   statusFilter: SessionStatus | "all";
@@ -37,7 +38,7 @@ export function SessionsFilters({
         <option value="all">все статусы</option>
         {sessionStatuses.map((status) => (
           <option key={status} value={status}>
-            {status}
+            {sessionStatusLabels[status]}
           </option>
         ))}
       </select>

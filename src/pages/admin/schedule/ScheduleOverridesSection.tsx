@@ -94,50 +94,55 @@ export function ScheduleOverridesSection({
           </button>
         </div>
 
-        <AdminFeedback message={feedback?.message} tone={feedback?.tone ?? "error"} />
+        <AdminFeedback
+          message={feedback?.message}
+          tone={feedback?.tone ?? "error"}
+        />
       </form>
 
       {overrides.length === 0 ? (
         <p>Исключений по датам пока нет.</p>
       ) : (
         <AdminTable>
-            <thead>
-              <tr>
-                <th>Дата</th>
-                <th>Тип</th>
-                <th>Время</th>
-                <th>Комментарий</th>
-                <th>Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {overrides.map((item) => (
-                <tr key={item.date}>
-                  <td>{formatDate(item.date)}</td>
-                  <td>
-                    {item.isWorkingDay ? "Рабочий день" : "Нерабочий день"}
-                  </td>
-                  <td>
-                    {item.isWorkingDay && item.startTime && item.endTime
-                      ? `${item.startTime}–${item.endTime}`
-                      : "-"}
-                  </td>
-                  <td>{item.note || "-"}</td>
-                  <td>
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Тип</th>
+              <th>Время</th>
+              <th>Комментарий</th>
+              <th className={styles.actionsHeader}>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            {overrides.map((item) => (
+              <tr key={item.date}>
+                <td>{formatDate(item.date)}</td>
+                <td>
+                  {item.isWorkingDay ? "Рабочий день" : "Нерабочий день"}
+                </td>
+                <td>
+                  {item.isWorkingDay && item.startTime && item.endTime
+                    ? `${item.startTime}–${item.endTime}`
+                    : "-"}
+                </td>
+                <td>{item.note || "-"}</td>
+                <td className={styles.actionsCell}>
+                  <div className={styles.actionsCellInner}>
                     <button
                       type="button"
                       onClick={() => onDelete(item.date)}
                       disabled={deletingOverrideDate === item.date}
-                      className={styles.button}
+                      className={`${styles.button} ${styles.actionButton}`}
                     >
                       {deletingOverrideDate === item.date
                         ? "Удаление..."
                         : "Удалить"}
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </AdminTable>
       )}
     </AdminSection>

@@ -9,5 +9,5 @@ export const initialForm: ManualClientForm = {
   name: "",
   phone: "",
   email: "",
-  source: "manual",
+  source: "",
 };

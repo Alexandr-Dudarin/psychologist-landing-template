@@ -46,6 +46,26 @@
   background: #fff;
 }
 
+.actionButton {
+  min-width: 112px;
+}
+
 .actions {
   margin-top: 20px;
+}
+
+.actionsHeader {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.actionsCell {
+  text-align: right;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.actionsCellInner {
+  display: flex;
+  justify-content: flex-end;
 }

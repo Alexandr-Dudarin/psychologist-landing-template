@@ -1,8 +1,13 @@
+import type { FormEvent } from "react";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmServiceRecord } from "../../../types/service";
 import type { SessionStatus } from "../../../types/session";
 import { sessionStatuses } from "../../../types/session";
 import type { SessionForm } from "./sessionForm";
+import {
+  getNowDateTimeLocalValue,
+  sessionStatusLabels,
+} from "./sessionForm";
 
 type SessionCreateFormProps = {
   clients: CrmClientRecord[];
@@ -10,7 +15,7 @@ type SessionCreateFormProps = {
   form: SessionForm;
   isCreating: boolean;
   onFormChange: (field: keyof SessionForm, value: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: FormEvent) => void;
 };
 
 export function SessionCreateForm({
@@ -70,6 +75,7 @@ export function SessionCreateForm({
         <input
           type="datetime-local"
           value={form.scheduledAt}
+          min={getNowDateTimeLocalValue()}
           onChange={(e) => onFormChange("scheduledAt", e.target.value)}
           style={inputStyle}
         />
@@ -101,7 +107,7 @@ export function SessionCreateForm({
         >
           {sessionStatuses.map((status) => (
             <option key={status} value={status}>
-              {status}
+              {sessionStatusLabels[status]}
             </option>
           ))}
         </select>

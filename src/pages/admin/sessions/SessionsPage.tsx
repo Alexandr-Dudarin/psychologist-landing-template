@@ -22,6 +22,7 @@ import { SessionsTable } from "./SessionsTable";
 import {
   initialCreateForm,
   initialEditForm,
+  isPastDateTimeLocal,
   type SessionForm,
   toDateTimeLocalValue,
 } from "./sessionForm";
@@ -182,6 +183,10 @@ export function SessionsPage() {
 
     if (!payload.scheduledAt) {
       return "Укажите дату и время сессии.";
+    }
+
+    if (isPastDateTimeLocal(payload.scheduledAt)) {
+      return "Нельзя создать сессию в прошлом.";
     }
 
     if (
