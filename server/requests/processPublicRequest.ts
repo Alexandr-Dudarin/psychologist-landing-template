@@ -13,12 +13,62 @@ type ProcessPublicRequestResult = {
   body: PublicRequestSuccessResponse | PublicRequestErrorResponse;
 };
 
+type ExistingClientRow = {
+  id: number | string;
+};
+
 function isValidPayload(body: any): body is PublicRequestPayload {
   return (
     typeof body?.name === "string" &&
     typeof body?.phone === "string" &&
     typeof body?.email === "string"
   );
+}
+
+function normalizePhoneDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+async function findExistingClientIdByContacts(
+  phone: string,
+  email: string
+): Promise<number | null> {
+  const normalizedPhone = normalizePhoneDigits(phone);
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const conditions: string[] = [];
+  const values: string[] = [];
+
+  if (normalizedPhone) {
+    values.push(normalizedPhone);
+    conditions.push(
+      `regexp_replace(COALESCE(phone, ''), '[^0-9]', '', 'g') = $${values.length}`
+    );
+  }
+
+  if (normalizedEmail) {
+    values.push(normalizedEmail);
+    conditions.push(`LOWER(COALESCE(email, '')) = $${values.length}`);
+  }
+
+  if (conditions.length === 0) {
+    return null;
+  }
+
+  const result = await pool.query<ExistingClientRow>(
+    `
+      SELECT id
+      FROM clients
+      WHERE ${conditions.join(" OR ")}
+      ORDER BY created_at ASC
+      LIMIT 1
+    `,
+    values
+  );
+
+  const matchedClient = result.rows[0];
+
+  return matchedClient ? Number(matchedClient.id) : null;
 }
 
 export async function processPublicRequest(
@@ -64,13 +114,23 @@ export async function processPublicRequest(
   let createdRequestId: number | null = null;
 
   try {
+    const existingClientId = await findExistingClientIdByContacts(phone, email);
+
     const insertResult = await pool.query<{ id: number }>(
       `
-        INSERT INTO requests (name, phone, email, message, status, source)
-        VALUES ($1, $2, $3, $4, 'new', 'website')
+        INSERT INTO requests (
+          name,
+          phone,
+          email,
+          message,
+          status,
+          source,
+          client_id
+        )
+        VALUES ($1, $2, $3, $4, 'new', 'website', $5)
         RETURNING id
       `,
-      [name, phone, email, message]
+      [name, phone, email, message, existingClientId]
     );
 
     createdRequestId = insertResult.rows[0]?.id ?? null;
