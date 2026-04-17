@@ -2,44 +2,35 @@ import type { FormEvent } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
+import type { ClientStatus } from "../../../types/client";
 import styles from "./ClientsPage.module.css";
 import type { ClientForm } from "./clientForm";
 
-type ClientCreateFormProps = {
+type ClientEditFormProps = {
   form: ClientForm;
-  isCreating: boolean;
+  isUpdating: boolean;
   onChange: (field: keyof ClientForm, value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  title: string;
-  namePlaceholder: string;
-  phonePlaceholder: string;
-  emailPlaceholder: string;
-  sourcePlaceholder: string;
-  submitLabel: string;
-  submittingLabel: string;
+  onCancel: () => void;
+  statusOptions: Array<{ value: ClientStatus; label: string }>;
 };
 
-export function ClientCreateForm({
+export function ClientEditForm({
   form,
-  isCreating,
+  isUpdating,
   onChange,
   onSubmit,
-  title,
-  namePlaceholder,
-  phonePlaceholder,
-  emailPlaceholder,
-  sourcePlaceholder,
-  submitLabel,
-  submittingLabel,
-}: ClientCreateFormProps) {
+  onCancel,
+  statusOptions,
+}: ClientEditFormProps) {
   return (
-    <AdminSection title={title}>
+    <AdminSection title="Редактирование клиента">
       <form onSubmit={onSubmit} className={styles.form}>
         <input
           type="text"
           value={form.name}
           onChange={(event) => onChange("name", event.target.value)}
-          placeholder={namePlaceholder}
+          placeholder="Имя клиента"
           className={styles.input}
         />
 
@@ -47,7 +38,7 @@ export function ClientCreateForm({
           type="text"
           value={form.phone}
           onChange={(event) => onChange("phone", event.target.value)}
-          placeholder={phonePlaceholder}
+          placeholder="Телефон"
           className={styles.input}
         />
 
@@ -55,7 +46,7 @@ export function ClientCreateForm({
           type="email"
           value={form.email}
           onChange={(event) => onChange("email", event.target.value)}
-          placeholder={emailPlaceholder}
+          placeholder="Email"
           className={styles.input}
         />
 
@@ -63,13 +54,34 @@ export function ClientCreateForm({
           type="text"
           value={form.source}
           onChange={(event) => onChange("source", event.target.value)}
-          placeholder={sourcePlaceholder}
+          placeholder="Источник"
           className={styles.input}
         />
 
-        <div>
-          <AdminButton type="submit" disabled={isCreating} variant="primary">
-            {isCreating ? submittingLabel : submitLabel}
+        <select
+          value={form.status}
+          onChange={(event) => onChange("status", event.target.value)}
+          className={styles.select}
+        >
+          {statusOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        <div className={styles.buttonRow}>
+          <AdminButton type="submit" disabled={isUpdating} variant="primary">
+            {isUpdating ? "Сохранение..." : "Сохранить изменения"}
+          </AdminButton>
+
+          <AdminButton
+            type="button"
+            onClick={onCancel}
+            disabled={isUpdating}
+            variant="secondary"
+          >
+            Отменить
           </AdminButton>
         </div>
       </form>

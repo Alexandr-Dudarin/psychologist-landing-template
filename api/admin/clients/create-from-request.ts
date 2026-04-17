@@ -16,13 +16,13 @@ type RequestRow = {
 };
 
 type ClientRow = {
-  id: number;
+  id: number | string;
   name: string;
   phone: string;
   email: string;
   source: string;
   status: string;
-  first_request_id: number | null;
+  first_request_id: number | string | null;
   created_at: string;
 };
 
@@ -56,15 +56,68 @@ function parseBody(body: any): RequestBody | null {
 
 function mapClient(row: ClientRow): CrmClientRecord {
   return {
-    id: row.id,
+    id: Number(row.id),
     name: row.name,
     phone: row.phone,
     email: row.email,
     source: row.source,
     status: toClientStatus(row.status),
-    firstRequestId: row.first_request_id,
+    firstRequestId:
+      row.first_request_id === null ? null : Number(row.first_request_id),
     createdAt: row.created_at,
   };
+}
+
+function normalizePhoneDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+async function findExistingClientByContacts(
+  phone: string,
+  email: string
+): Promise<ClientRow | null> {
+  const normalizedPhone = normalizePhoneDigits(phone);
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const conditions: string[] = [];
+  const values: string[] = [];
+
+  if (normalizedPhone) {
+    values.push(normalizedPhone);
+    conditions.push(
+      `regexp_replace(COALESCE(phone, ''), '[^0-9]', '', 'g') = $${values.length}`
+    );
+  }
+
+  if (normalizedEmail) {
+    values.push(normalizedEmail);
+    conditions.push(`LOWER(COALESCE(email, '')) = $${values.length}`);
+  }
+
+  if (conditions.length === 0) {
+    return null;
+  }
+
+  const result = await pool.query<ClientRow>(
+    `
+      SELECT
+        id,
+        name,
+        phone,
+        email,
+        source,
+        status,
+        first_request_id,
+        created_at
+      FROM clients
+      WHERE ${conditions.join(" OR ")}
+      ORDER BY created_at ASC
+      LIMIT 1
+    `,
+    values
+  );
+
+  return result.rows[0] ?? null;
 }
 
 export default async function handler(req: any, res: any) {
@@ -126,6 +179,19 @@ export default async function handler(req: any, res: any) {
 
     if (!requestRow) {
       return res.status(404).json({ error: "Request not found" });
+    }
+
+    const duplicateByContacts = await findExistingClientByContacts(
+      requestRow.phone,
+      requestRow.email
+    );
+
+    if (duplicateByContacts) {
+      return res.status(200).json({
+        success: true,
+        item: mapClient(duplicateByContacts),
+        alreadyExisted: true,
+      });
     }
 
     const insertResult = await pool.query<ClientRow>(

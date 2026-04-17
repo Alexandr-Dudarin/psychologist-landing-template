@@ -1,6 +1,6 @@
 import type { ClientStatus, CrmClientRecord } from "../../../types/client";
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
-import styles from "./ClientsPage.module.css";
 
 type ClientsTableProps = {
   items: CrmClientRecord[];
@@ -13,8 +13,7 @@ type ClientsTableProps = {
   firstRequestLabel: string;
   statusLabels: Record<ClientStatus, string>;
   sourceLabels: Record<string, string>;
-  updatingClientId: number | null;
-  onStatusChange: (id: number, status: ClientStatus) => void;
+  onEdit: (client: CrmClientRecord) => void;
 };
 
 export function ClientsTable({
@@ -28,8 +27,7 @@ export function ClientsTable({
   firstRequestLabel,
   statusLabels,
   sourceLabels,
-  updatingClientId,
-  onStatusChange,
+  onEdit,
 }: ClientsTableProps) {
   return (
     <AdminTable>
@@ -43,6 +41,7 @@ export function ClientsTable({
           <th>{sourceLabel}</th>
           <th>{statusLabel}</th>
           <th>{firstRequestLabel}</th>
+          <th>Действия</th>
         </tr>
       </thead>
       <tbody>
@@ -54,23 +53,18 @@ export function ClientsTable({
             <td>{item.phone || "-"}</td>
             <td>{item.email || "-"}</td>
             <td>{sourceLabels[item.source] ?? item.source}</td>
-            <td>
-              <select
-                value={item.status}
-                onChange={(event) =>
-                  onStatusChange(item.id, event.target.value as ClientStatus)
-                }
-                disabled={updatingClientId === item.id}
-                className={`${styles.input} ${styles.select}`}
-              >
-                {(Object.keys(statusLabels) as ClientStatus[]).map((status) => (
-                  <option key={status} value={status}>
-                    {statusLabels[status]}
-                  </option>
-                ))}
-              </select>
-            </td>
+            <td>{statusLabels[item.status]}</td>
             <td>{item.firstRequestId ?? "-"}</td>
+            <td>
+              <AdminButton
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => onEdit(item)}
+              >
+                Редактировать
+              </AdminButton>
+            </td>
           </tr>
         ))}
       </tbody>

@@ -2,9 +2,8 @@
 
 import { pool } from "../../../server/db/pool";
 import type {
-  CrmClientRecord,
   ClientStatus,
-  CreateManualClientPayload,
+  CrmClientRecord,
 } from "../../../src/types/client";
 
 type ParsedPayload = {
@@ -15,13 +14,13 @@ type ParsedPayload = {
 };
 
 type ClientRow = {
-  id: number;
+  id: number | string;
   name: string;
   phone: string;
   email: string;
   source: string;
   status: string;
-  first_request_id: number | null;
+  first_request_id: number | string | null;
   created_at: string;
 };
 
@@ -35,13 +34,14 @@ function toClientStatus(value: string): ClientStatus {
 
 function mapClient(row: ClientRow): CrmClientRecord {
   return {
-    id: row.id,
+    id: Number(row.id),
     name: row.name,
     phone: row.phone,
     email: row.email,
     source: row.source,
     status: toClientStatus(row.status),
-    firstRequestId: row.first_request_id,
+    firstRequestId:
+      row.first_request_id === null ? null : Number(row.first_request_id),
     createdAt: row.created_at,
   };
 }
@@ -84,6 +84,58 @@ function parseBody(body: any): ParsedPayload | null {
   };
 }
 
+function normalizePhoneDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+async function findExistingClientByContacts(
+  phone: string,
+  email: string
+): Promise<ClientRow | null> {
+  const normalizedPhone = normalizePhoneDigits(phone);
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const conditions: string[] = [];
+  const values: string[] = [];
+
+  if (normalizedPhone) {
+    values.push(normalizedPhone);
+    conditions.push(
+      `regexp_replace(COALESCE(phone, ''), '[^0-9]', '', 'g') = $${values.length}`
+    );
+  }
+
+  if (normalizedEmail) {
+    values.push(normalizedEmail);
+    conditions.push(`LOWER(COALESCE(email, '')) = $${values.length}`);
+  }
+
+  if (conditions.length === 0) {
+    return null;
+  }
+
+  const result = await pool.query<ClientRow>(
+    `
+      SELECT
+        id,
+        name,
+        phone,
+        email,
+        source,
+        status,
+        first_request_id,
+        created_at
+      FROM clients
+      WHERE ${conditions.join(" OR ")}
+      ORDER BY created_at ASC
+      LIMIT 1
+    `,
+    values
+  );
+
+  return result.rows[0] ?? null;
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -98,6 +150,19 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
+    const existingClient = await findExistingClientByContacts(
+      payload.phone,
+      payload.email
+    );
+
+    if (existingClient) {
+      return res.status(200).json({
+        success: true,
+        item: mapClient(existingClient),
+        alreadyExisted: true,
+      });
+    }
+
     const result = await pool.query<ClientRow>(
       `
         INSERT INTO clients (
@@ -127,6 +192,7 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({
       success: true,
       item: mapClient(createdClient),
+      alreadyExisted: false,
     });
   } catch (error) {
     console.error("Manual client create error:", error);

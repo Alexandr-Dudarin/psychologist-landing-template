@@ -4,19 +4,25 @@ import { useLanguage } from "../../../app/providers/LanguageProvider";
 import {
   createManualClient,
   getAdminClients,
-  updateClientStatus,
+  updateClient,
 } from "../../../lib/api/adminClients";
 import type {
   ClientStatus,
   CreateManualClientPayload,
   CrmClientRecord,
+  UpdateClientPayload,
 } from "../../../types/client";
 import { clientStatuses } from "../../../types/client";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { ClientCreateForm } from "./ClientCreateForm";
+import { ClientEditForm } from "./ClientEditForm";
 import { ClientsFilters } from "./ClientsFilters";
 import { ClientsTable } from "./ClientsTable";
-import { initialForm, type ManualClientForm } from "./clientForm";
+import {
+  initialForm,
+  mapClientToForm,
+  type ClientForm,
+} from "./clientForm";
 
 const clientSourceLabels: Record<string, string> = {
   manual: "Вручную",
@@ -28,12 +34,14 @@ export function ClientsPage() {
   const [items, setItems] = useState<CrmClientRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-  const [updatingClientId, setUpdatingClientId] = useState<number | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [statusFilter, setStatusFilter] = useState<ClientStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [form, setForm] = useState<ManualClientForm>(initialForm);
+  const [form, setForm] = useState<ClientForm>(initialForm);
+  const [editingClientId, setEditingClientId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<ClientForm>(initialForm);
 
   useEffect(() => {
     let isMounted = true;
@@ -85,10 +93,18 @@ export function ClientsPage() {
     }
   };
 
-  const handleFormChange = (field: keyof ManualClientForm, value: string) => {
+  const handleFormChange = (field: keyof ClientForm, value: string) => {
     setForm((prev) => ({
       ...prev,
       [field]: value,
+    }));
+    resetMessages();
+  };
+
+  const handleEditFormChange = (field: keyof ClientForm, value: string) => {
+    setEditForm((prev) => ({
+      ...prev,
+      [field]: value as ClientForm[typeof field],
     }));
     resetMessages();
   };
@@ -127,10 +143,14 @@ export function ClientsPage() {
     setSuccessMessage("");
 
     try {
-      await createManualClient(payload);
+      const result = await createManualClient(payload);
       await reloadClients();
       setForm(initialForm);
-      setSuccessMessage(t.admin.clients.messages.createSuccess);
+      setSuccessMessage(
+        result.alreadyExisted
+          ? "Клиент с таким телефоном или email уже существует. Использован существующий клиент."
+          : t.admin.clients.messages.createSuccess
+      );
     } catch (createError) {
       setError(
         createError instanceof Error
@@ -142,23 +162,76 @@ export function ClientsPage() {
     }
   };
 
-  const handleStatusChange = async (id: number, status: ClientStatus) => {
-    setUpdatingClientId(id);
+  const startEditing = (client: CrmClientRecord) => {
+    setEditingClientId(client.id);
+    setEditForm(mapClientToForm(client));
+    setError("");
+    setSuccessMessage("");
+  };
+
+  const cancelEditing = () => {
+    setEditingClientId(null);
+    setEditForm(initialForm);
+  };
+
+  const validateUpdatePayload = (
+    payload: UpdateClientPayload
+  ): string | null => {
+    if (!Number.isInteger(payload.id) || payload.id <= 0) {
+      return "Некорректный клиент.";
+    }
+
+    if (!payload.name.trim()) {
+      return "Укажите имя клиента.";
+    }
+
+    if (!payload.phone.trim() && !payload.email.trim()) {
+      return "Укажите телефон или email клиента.";
+    }
+
+    return null;
+  };
+
+  const handleUpdateClient = async (event: FormEvent) => {
+    event.preventDefault();
+
+    if (editingClientId === null) {
+      return;
+    }
+
+    const payload: UpdateClientPayload = {
+      id: editingClientId,
+      name: editForm.name.trim(),
+      phone: editForm.phone.trim(),
+      email: editForm.email.trim(),
+      source: editForm.source.trim() || "manual",
+      status: editForm.status,
+    };
+
+    const validationError = validateUpdatePayload(payload);
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setIsUpdating(true);
     setError("");
     setSuccessMessage("");
 
     try {
-      await updateClientStatus({ id, status });
+      await updateClient(payload);
       await reloadClients();
-      setSuccessMessage("Статус клиента обновлён.");
+      cancelEditing();
+      setSuccessMessage("Клиент обновлён.");
     } catch (updateError) {
       setError(
         updateError instanceof Error
           ? updateError.message
-          : "Не удалось обновить статус клиента"
+          : "Не удалось обновить клиента"
       );
     } finally {
-      setUpdatingClientId(null);
+      setIsUpdating(false);
     }
   };
 
@@ -179,6 +252,20 @@ export function ClientsPage() {
         submitLabel={t.admin.clients.createForm.submit}
         submittingLabel={t.admin.clients.createForm.submitting}
       />
+
+      {editingClientId !== null && (
+        <ClientEditForm
+          form={editForm}
+          isUpdating={isUpdating}
+          onChange={handleEditFormChange}
+          onSubmit={handleUpdateClient}
+          onCancel={cancelEditing}
+          statusOptions={clientStatuses.map((status) => ({
+            value: status,
+            label: t.admin.clients.statusLabels[status],
+          }))}
+        />
+      )}
 
       <ClientsFilters
         allStatusesLabel={t.admin.clients.filters.allStatuses}
@@ -212,8 +299,7 @@ export function ClientsPage() {
           firstRequestLabel={t.admin.clients.table.firstRequest}
           statusLabels={t.admin.clients.statusLabels}
           sourceLabels={clientSourceLabels}
-          updatingClientId={updatingClientId}
-          onStatusChange={handleStatusChange}
+          onEdit={startEditing}
         />
       )}
     </main>

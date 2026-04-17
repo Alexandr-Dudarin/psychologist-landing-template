@@ -20,7 +20,11 @@ export type CreateManualClientPayload = {
   source?: string;
 };
 
-export type UpdateClientStatusPayload = {
+export type UpdateClientPayload = {
   id: number;
+  name: string;
+  phone: string;
+  email: string;
+  source: string;
   status: ClientStatus;
 };

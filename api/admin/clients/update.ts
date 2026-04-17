@@ -2,22 +2,22 @@
 
 import { pool } from "../../../server/db/pool";
 import type {
-  CrmClientRecord,
   ClientStatus,
-  UpdateClientStatusPayload,
+  CrmClientRecord,
+  UpdateClientPayload,
 } from "../../../src/types/client";
 import { clientStatuses } from "../../../src/types/client";
 
-type ParsedPayload = UpdateClientStatusPayload;
+type ParsedPayload = UpdateClientPayload;
 
 type ClientRow = {
-  id: number;
+  id: string | number;
   name: string;
   phone: string;
   email: string;
   source: string;
   status: string;
-  first_request_id: number | null;
+  first_request_id: string | number | null;
   created_at: string;
 };
 
@@ -31,13 +31,14 @@ function toClientStatus(value: string): ClientStatus {
 
 function mapClient(row: ClientRow): CrmClientRecord {
   return {
-    id: row.id,
+    id: Number(row.id),
     name: row.name,
     phone: row.phone,
     email: row.email,
     source: row.source,
     status: toClientStatus(row.status),
-    firstRequestId: row.first_request_id,
+    firstRequestId:
+      row.first_request_id === null ? null : Number(row.first_request_id),
     createdAt: row.created_at,
   };
 }
@@ -54,10 +55,25 @@ function parseBody(body: any): ParsedPayload | null {
   }
 
   const id = Number(rawBody?.id);
+  const name = typeof rawBody?.name === "string" ? rawBody.name.trim() : "";
+  const phone = typeof rawBody?.phone === "string" ? rawBody.phone.trim() : "";
+  const email = typeof rawBody?.email === "string" ? rawBody.email.trim() : "";
+  const source =
+    typeof rawBody?.source === "string" && rawBody.source.trim()
+      ? rawBody.source.trim()
+      : "manual";
   const status =
     typeof rawBody?.status === "string" ? rawBody.status.trim() : "";
 
   if (!Number.isInteger(id) || id <= 0) {
+    return null;
+  }
+
+  if (!name) {
+    return null;
+  }
+
+  if (!phone && !email) {
     return null;
   }
 
@@ -67,6 +83,10 @@ function parseBody(body: any): ParsedPayload | null {
 
   return {
     id,
+    name,
+    phone,
+    email,
+    source,
     status: status as ClientStatus,
   };
 }
@@ -88,7 +108,12 @@ export default async function handler(req: any, res: any) {
     const result = await pool.query<ClientRow>(
       `
         UPDATE clients
-        SET status = $2
+        SET
+          name = $2,
+          phone = $3,
+          email = $4,
+          source = $5,
+          status = $6
         WHERE id = $1
         RETURNING
           id,
@@ -100,7 +125,14 @@ export default async function handler(req: any, res: any) {
           first_request_id,
           created_at
       `,
-      [payload.id, payload.status]
+      [
+        payload.id,
+        payload.name,
+        payload.phone,
+        payload.email,
+        payload.source,
+        payload.status,
+      ]
     );
 
     const updatedClient = result.rows[0];

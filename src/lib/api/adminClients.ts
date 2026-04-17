@@ -1,8 +1,8 @@
 import type {
-  CrmClientRecord,
   ClientStatus,
   CreateManualClientPayload,
-  UpdateClientStatusPayload,
+  CrmClientRecord,
+  UpdateClientPayload,
 } from "../../types/client";
 
 type ListClientsResponse = {
@@ -26,18 +26,19 @@ type CreateClientFromRequestErrorResponse = {
 type CreateManualClientResponse = {
   success: true;
   item: CrmClientRecord;
+  alreadyExisted: boolean;
 };
 
 type CreateManualClientErrorResponse = {
   error: string;
 };
 
-type UpdateClientStatusResponse = {
+type UpdateClientResponse = {
   success: true;
   item: CrmClientRecord;
 };
 
-type UpdateClientStatusErrorResponse = {
+type UpdateClientErrorResponse = {
   error: string;
 };
 
@@ -118,7 +119,7 @@ export async function createClientFromRequest(
 
 export async function createManualClient(
   payload: CreateManualClientPayload
-): Promise<CrmClientRecord> {
+): Promise<{ item: CrmClientRecord; alreadyExisted: boolean }> {
   const response = await fetch("/api/admin/clients/create", {
     method: "POST",
     headers: {
@@ -139,14 +140,17 @@ export async function createManualClient(
   }
 
   if (data && "item" in data) {
-    return data.item;
+    return {
+      item: data.item,
+      alreadyExisted: data.alreadyExisted,
+    };
   }
 
   throw new Error("Failed to create client");
 }
 
-export async function updateClientStatus(
-  payload: UpdateClientStatusPayload
+export async function updateClient(
+  payload: UpdateClientPayload
 ): Promise<CrmClientRecord> {
   const response = await fetch("/api/admin/clients/update", {
     method: "POST",
@@ -157,8 +161,8 @@ export async function updateClientStatus(
   });
 
   const data = (await response.json().catch(() => null)) as
-    | UpdateClientStatusResponse
-    | UpdateClientStatusErrorResponse
+    | UpdateClientResponse
+    | UpdateClientErrorResponse
     | null;
 
   if (!response.ok) {
