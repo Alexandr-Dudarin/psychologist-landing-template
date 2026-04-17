@@ -91,6 +91,60 @@ function parseBody(body: any): ParsedPayload | null {
   };
 }
 
+function normalizePhoneDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+async function findDuplicateClientByContacts(
+  currentClientId: number,
+  phone: string,
+  email: string
+): Promise<ClientRow | null> {
+  const normalizedPhone = normalizePhoneDigits(phone);
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const conditions: string[] = [];
+  const values: Array<number | string> = [currentClientId];
+
+  if (normalizedPhone) {
+    values.push(normalizedPhone);
+    conditions.push(
+      `regexp_replace(COALESCE(phone, ''), '[^0-9]', '', 'g') = $${values.length}`
+    );
+  }
+
+  if (normalizedEmail) {
+    values.push(normalizedEmail);
+    conditions.push(`LOWER(COALESCE(email, '')) = $${values.length}`);
+  }
+
+  if (conditions.length === 0) {
+    return null;
+  }
+
+  const result = await pool.query<ClientRow>(
+    `
+      SELECT
+        id,
+        name,
+        phone,
+        email,
+        source,
+        status,
+        first_request_id,
+        created_at
+      FROM clients
+      WHERE id <> $1
+        AND (${conditions.join(" OR ")})
+      ORDER BY created_at ASC
+      LIMIT 1
+    `,
+    values
+  );
+
+  return result.rows[0] ?? null;
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -105,6 +159,18 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
+    const duplicateClient = await findDuplicateClientByContacts(
+      payload.id,
+      payload.phone,
+      payload.email
+    );
+
+    if (duplicateClient) {
+      return res.status(400).json({
+        error: "Клиент с таким телефоном или email уже существует.",
+      });
+    }
+
     const result = await pool.query<ClientRow>(
       `
         UPDATE clients
