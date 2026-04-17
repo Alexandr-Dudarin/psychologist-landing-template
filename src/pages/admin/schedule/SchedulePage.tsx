@@ -38,15 +38,23 @@ import {
   weekdayLabels,
 } from "./schedulePage.shared";
 
-function isPastBlockedSlotStart(blockedDate: string, startTime: string): boolean {
-  const normalizedDate = normalizeDateOnly(blockedDate);
-  const timestamp = new Date(`${normalizedDate}T${startTime}`).getTime();
+function getTodayLocalDateString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
 
-  if (Number.isNaN(timestamp)) {
+  return `${year}-${month}-${day}`;
+}
+
+function isPastOverrideDate(date: string): boolean {
+  const normalizedDate = normalizeDateOnly(date);
+
+  if (!normalizedDate) {
     return false;
   }
 
-  return timestamp < Date.now();
+  return normalizedDate < getTodayLocalDateString();
 }
 
 export function SchedulePage() {
@@ -365,6 +373,18 @@ export function SchedulePage() {
       return;
     }
 
+    if (isPastOverrideDate(payload.date)) {
+      setFeedback({
+        area: "overrides",
+        tone: "error",
+        message:
+          editingOverrideDate !== null
+            ? "Нельзя перенести исключение на прошедшую дату."
+            : "Нельзя создать исключение для прошедшей даты.",
+      });
+      return;
+    }
+
     if (
       payload.isWorkingDay &&
       (!payload.startTime ||
@@ -523,18 +543,6 @@ export function SchedulePage() {
         area: "blockedSlots",
         tone: "error",
         message: "Укажите корректный временной диапазон блокировки.",
-      });
-      return;
-    }
-
-    if (isPastBlockedSlotStart(payload.blockedDate, payload.startTime)) {
-      setFeedback({
-        area: "blockedSlots",
-        tone: "error",
-        message:
-          editingBlockedSlotId !== null
-            ? "Нельзя перенести блокировку в прошлое."
-            : "Нельзя создать блокировку в прошлом.",
       });
       return;
     }

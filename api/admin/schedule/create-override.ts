@@ -27,6 +27,19 @@ function isValidTime(value: string): boolean {
   return /^\d{2}:\d{2}$/.test(value);
 }
 
+function getTodayLocalDateString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function isPastOverrideDate(date: string): boolean {
+  return date < getTodayLocalDateString();
+}
+
 function mapOverride(row: OverrideRow): ScheduleOverrideRecord {
   return {
     date: row.override_date,
@@ -70,7 +83,11 @@ function parseBody(body: any): ParsedPayload | null {
       return null;
     }
 
-    if (!isValidTime(startTime) || !isValidTime(endTime) || startTime >= endTime) {
+    if (
+      !isValidTime(startTime) ||
+      !isValidTime(endTime) ||
+      startTime >= endTime
+    ) {
       return null;
     }
   }
@@ -94,6 +111,12 @@ export default async function handler(req: any, res: any) {
   if (!payload) {
     return res.status(400).json({
       error: "Некорректные данные для исключения по дате.",
+    });
+  }
+
+  if (isPastOverrideDate(payload.date)) {
+    return res.status(400).json({
+      error: "Нельзя создать исключение для прошедшей даты.",
     });
   }
 
@@ -138,6 +161,8 @@ export default async function handler(req: any, res: any) {
     });
   } catch (error) {
     console.error("Schedule override create error:", error);
-    return res.status(500).json({ error: "Не удалось сохранить исключение по дате" });
+    return res.status(500).json({
+      error: "Не удалось сохранить исключение по дате",
+    });
   }
 }
