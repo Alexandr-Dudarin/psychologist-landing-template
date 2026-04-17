@@ -1,5 +1,6 @@
 import type { ClientStatus, CrmClientRecord } from "../../../types/client";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import styles from "./ClientsPage.module.css";
 
 type ClientsTableProps = {
   items: CrmClientRecord[];
@@ -12,6 +13,8 @@ type ClientsTableProps = {
   firstRequestLabel: string;
   statusLabels: Record<ClientStatus, string>;
   sourceLabels: Record<string, string>;
+  updatingClientId: number | null;
+  onStatusChange: (id: number, status: ClientStatus) => void;
 };
 
 export function ClientsTable({
@@ -25,6 +28,8 @@ export function ClientsTable({
   firstRequestLabel,
   statusLabels,
   sourceLabels,
+  updatingClientId,
+  onStatusChange,
 }: ClientsTableProps) {
   return (
     <AdminTable>
@@ -49,7 +54,22 @@ export function ClientsTable({
             <td>{item.phone || "-"}</td>
             <td>{item.email || "-"}</td>
             <td>{sourceLabels[item.source] ?? item.source}</td>
-            <td>{statusLabels[item.status]}</td>
+            <td>
+              <select
+                value={item.status}
+                onChange={(event) =>
+                  onStatusChange(item.id, event.target.value as ClientStatus)
+                }
+                disabled={updatingClientId === item.id}
+                className={`${styles.input} ${styles.select}`}
+              >
+                {(Object.keys(statusLabels) as ClientStatus[]).map((status) => (
+                  <option key={status} value={status}>
+                    {statusLabels[status]}
+                  </option>
+                ))}
+              </select>
+            </td>
             <td>{item.firstRequestId ?? "-"}</td>
           </tr>
         ))}

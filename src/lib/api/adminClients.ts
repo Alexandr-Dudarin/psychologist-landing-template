@@ -2,6 +2,7 @@ import type {
   CrmClientRecord,
   ClientStatus,
   CreateManualClientPayload,
+  UpdateClientStatusPayload,
 } from "../../types/client";
 
 type ListClientsResponse = {
@@ -28,6 +29,15 @@ type CreateManualClientResponse = {
 };
 
 type CreateManualClientErrorResponse = {
+  error: string;
+};
+
+type UpdateClientStatusResponse = {
+  success: true;
+  item: CrmClientRecord;
+};
+
+type UpdateClientStatusErrorResponse = {
   error: string;
 };
 
@@ -133,4 +143,33 @@ export async function createManualClient(
   }
 
   throw new Error("Failed to create client");
+}
+
+export async function updateClientStatus(
+  payload: UpdateClientStatusPayload
+): Promise<CrmClientRecord> {
+  const response = await fetch("/api/admin/clients/update", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | UpdateClientStatusResponse
+    | UpdateClientStatusErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data ? data.error : "Failed to update client"
+    );
+  }
+
+  if (data && "item" in data) {
+    return data.item;
+  }
+
+  throw new Error("Failed to update client");
 }

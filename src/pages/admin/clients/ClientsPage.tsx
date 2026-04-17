@@ -4,6 +4,7 @@ import { useLanguage } from "../../../app/providers/LanguageProvider";
 import {
   createManualClient,
   getAdminClients,
+  updateClientStatus,
 } from "../../../lib/api/adminClients";
 import type {
   ClientStatus,
@@ -27,6 +28,7 @@ export function ClientsPage() {
   const [items, setItems] = useState<CrmClientRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [updatingClientId, setUpdatingClientId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [statusFilter, setStatusFilter] = useState<ClientStatus | "all">("all");
@@ -140,6 +142,26 @@ export function ClientsPage() {
     }
   };
 
+  const handleStatusChange = async (id: number, status: ClientStatus) => {
+    setUpdatingClientId(id);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await updateClientStatus({ id, status });
+      await reloadClients();
+      setSuccessMessage("Статус клиента обновлён.");
+    } catch (updateError) {
+      setError(
+        updateError instanceof Error
+          ? updateError.message
+          : "Не удалось обновить статус клиента"
+      );
+    } finally {
+      setUpdatingClientId(null);
+    }
+  };
+
   return (
     <main>
       <h1>{t.admin.clients.title}</h1>
@@ -190,6 +212,8 @@ export function ClientsPage() {
           firstRequestLabel={t.admin.clients.table.firstRequest}
           statusLabels={t.admin.clients.statusLabels}
           sourceLabels={clientSourceLabels}
+          updatingClientId={updatingClientId}
+          onStatusChange={handleStatusChange}
         />
       )}
     </main>

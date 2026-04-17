@@ -19,3 +19,8 @@ export type CreateManualClientPayload = {
   email?: string;
   source?: string;
 };
+
+export type UpdateClientStatusPayload = {
+  id: number;
+  status: ClientStatus;
+};
