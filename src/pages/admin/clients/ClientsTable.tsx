@@ -1,6 +1,8 @@
+import { useEffect, useRef } from "react";
+
 import type { ClientStatus, CrmClientRecord } from "../../../types/client";
-import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import styles from "./ClientsPage.module.css";
 
 type ClientsTableProps = {
   items: CrmClientRecord[];
@@ -13,7 +15,7 @@ type ClientsTableProps = {
   firstRequestLabel: string;
   statusLabels: Record<ClientStatus, string>;
   sourceLabels: Record<string, string>;
-  onEdit: (client: CrmClientRecord) => void;
+  highlightedClientId?: number | null;
 };
 
 export function ClientsTable({
@@ -27,8 +29,25 @@ export function ClientsTable({
   firstRequestLabel,
   statusLabels,
   sourceLabels,
-  onEdit,
+  highlightedClientId = null,
 }: ClientsTableProps) {
+  const highlightedRowRef = useRef<HTMLTableRowElement | null>(null);
+
+  useEffect(() => {
+    if (!highlightedClientId) {
+      return;
+    }
+
+    if (!highlightedRowRef.current) {
+      return;
+    }
+
+    highlightedRowRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, [highlightedClientId, items]);
+
   return (
     <AdminTable>
       <thead>
@@ -41,32 +60,31 @@ export function ClientsTable({
           <th>{sourceLabel}</th>
           <th>{statusLabel}</th>
           <th>{firstRequestLabel}</th>
-          <th>Действия</th>
         </tr>
       </thead>
       <tbody>
-        {items.map((item) => (
-          <tr key={item.id}>
-            <td>{item.id}</td>
-            <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
-            <td>{item.name}</td>
-            <td>{item.phone || "-"}</td>
-            <td>{item.email || "-"}</td>
-            <td>{sourceLabels[item.source] ?? item.source}</td>
-            <td>{statusLabels[item.status]}</td>
-            <td>{item.firstRequestId ?? "-"}</td>
-            <td>
-              <AdminButton
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => onEdit(item)}
-              >
-                Редактировать
-              </AdminButton>
-            </td>
-          </tr>
-        ))}
+        {items.map((item) => {
+          const isHighlighted =
+            highlightedClientId !== null &&
+            Number(highlightedClientId) === Number(item.id);
+
+          return (
+            <tr
+              key={item.id}
+              ref={isHighlighted ? highlightedRowRef : null}
+              className={isHighlighted ? styles.highlightedRow : undefined}
+            >
+              <td>{item.id}</td>
+              <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
+              <td>{item.name}</td>
+              <td>{item.phone || "-"}</td>
+              <td>{item.email || "-"}</td>
+              <td>{sourceLabels[item.source] ?? item.source}</td>
+              <td>{statusLabels[item.status]}</td>
+              <td>{item.firstRequestId ?? "-"}</td>
+            </tr>
+          );
+        })}
       </tbody>
     </AdminTable>
   );

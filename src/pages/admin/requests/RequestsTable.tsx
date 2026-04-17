@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
@@ -96,7 +98,13 @@ export function RequestsTable({
               <td>
                 {clientAlreadyCreated ? (
                   <div className={styles.linkedClientText}>
-                    Клиент #{item.clientId}
+                    <Link
+                      to={`/admin/clients?search=${encodeURIComponent(
+                        String(item.clientId)
+                      )}&highlightClientId=${item.clientId}`}
+                    >
+                      Клиент #{item.clientId}
+                    </Link>
                   </div>
                 ) : null}
 

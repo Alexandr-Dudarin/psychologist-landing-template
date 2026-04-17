@@ -89,6 +89,17 @@
   margin-top: 16px;
   color: #666;
 }
+.highlightedRow td {
+  background: #fff0b8 !important;
+}
+
+.highlightedRow td:first-child {
+  border-left: 4px solid #d6a700;
+}
+
+.highlightedRow td:last-child {
+  border-right: 1px solid transparent;
+}
 
 .tableWrap {
   overflow-x: auto;

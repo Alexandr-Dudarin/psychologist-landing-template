@@ -5,13 +5,13 @@ import type { CrmClientRecord, ClientStatus } from "../../../src/types/client";
 import { clientStatuses } from "../../../src/types/client";
 
 type ClientRow = {
-  id: number;
+  id: string | number;
   name: string;
   phone: string;
   email: string;
   source: string;
   status: string;
-  first_request_id: number | null;
+  first_request_id: string | number | null;
   created_at: string;
 };
 
@@ -57,7 +57,8 @@ export default async function handler(req: any, res: any) {
 
     conditions.push(`
       (
-        name ILIKE $${searchParamIndex}
+        CAST(id AS TEXT) ILIKE $${searchParamIndex}
+        OR name ILIKE $${searchParamIndex}
         OR phone ILIKE $${searchParamIndex}
         OR email ILIKE $${searchParamIndex}
       )
@@ -87,13 +88,14 @@ export default async function handler(req: any, res: any) {
     );
 
     const items: CrmClientRecord[] = result.rows.map((row) => ({
-      id: row.id,
+      id: Number(row.id),
       name: row.name,
       phone: row.phone,
       email: row.email,
       source: row.source,
       status: toClientStatus(row.status),
-      firstRequestId: row.first_request_id,
+      firstRequestId:
+        row.first_request_id === null ? null : Number(row.first_request_id),
       createdAt: row.created_at,
     }));
 
