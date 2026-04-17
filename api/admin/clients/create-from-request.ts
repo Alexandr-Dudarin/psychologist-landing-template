@@ -120,6 +120,20 @@ async function findExistingClientByContacts(
   return result.rows[0] ?? null;
 }
 
+async function linkRequestToClient(
+  requestId: number,
+  clientId: number
+): Promise<void> {
+  await pool.query(
+    `
+      UPDATE requests
+      SET client_id = $2
+      WHERE id = $1
+    `,
+    [requestId, clientId]
+  );
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -153,6 +167,8 @@ export default async function handler(req: any, res: any) {
     const existingClient = existingClientResult.rows[0];
 
     if (existingClient) {
+      await linkRequestToClient(payload.requestId, Number(existingClient.id));
+
       return res.status(200).json({
         success: true,
         item: mapClient(existingClient),
@@ -187,6 +203,8 @@ export default async function handler(req: any, res: any) {
     );
 
     if (duplicateByContacts) {
+      await linkRequestToClient(requestRow.id, Number(duplicateByContacts.id));
+
       return res.status(200).json({
         success: true,
         item: mapClient(duplicateByContacts),
@@ -225,6 +243,8 @@ export default async function handler(req: any, res: any) {
     );
 
     const createdClient = insertResult.rows[0];
+
+    await linkRequestToClient(requestRow.id, Number(createdClient.id));
 
     return res.status(200).json({
       success: true,
