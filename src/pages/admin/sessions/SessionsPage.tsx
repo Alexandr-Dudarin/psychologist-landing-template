@@ -224,6 +224,10 @@ export function SessionsPage() {
       return "Укажите дату и время сессии.";
     }
 
+    if (isPastDateTimeLocal(payload.scheduledAt)) {
+      return "Нельзя перенести сессию в прошлое.";
+    }
+
     if (
       !Number.isInteger(payload.durationMinutes) ||
       payload.durationMinutes <= 0

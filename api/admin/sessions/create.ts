@@ -59,6 +59,16 @@ function mapSession(row: SessionRow): CrmSessionRecord {
   };
 }
 
+function isPastScheduledAt(value: string): boolean {
+  const timestamp = new Date(value).getTime();
+
+  if (Number.isNaN(timestamp)) {
+    return false;
+  }
+
+  return timestamp < Date.now();
+}
+
 function parseBody(body: any): ParsedPayload | null {
   let rawBody = body;
 
@@ -130,6 +140,12 @@ export default async function handler(req: any, res: any) {
   if (!payload) {
     return res.status(400).json({
       error: "Некорректные данные для создания сессии.",
+    });
+  }
+
+  if (isPastScheduledAt(payload.scheduledAt)) {
+    return res.status(400).json({
+      error: "Нельзя создать сессию в прошлом.",
     });
   }
 
