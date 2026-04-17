@@ -38,6 +38,17 @@ import {
   weekdayLabels,
 } from "./schedulePage.shared";
 
+function isPastBlockedSlotStart(blockedDate: string, startTime: string): boolean {
+  const normalizedDate = normalizeDateOnly(blockedDate);
+  const timestamp = new Date(`${normalizedDate}T${startTime}`).getTime();
+
+  if (Number.isNaN(timestamp)) {
+    return false;
+  }
+
+  return timestamp < Date.now();
+}
+
 export function SchedulePage() {
   const [settingsForm, setSettingsForm] = useState<SettingsForm>(
     defaultSettingsForm
@@ -356,7 +367,9 @@ export function SchedulePage() {
 
     if (
       payload.isWorkingDay &&
-      (!payload.startTime || !payload.endTime || payload.startTime >= payload.endTime)
+      (!payload.startTime ||
+        !payload.endTime ||
+        payload.startTime >= payload.endTime)
     ) {
       setFeedback({
         area: "overrides",
@@ -373,14 +386,14 @@ export function SchedulePage() {
       if (editingOverrideDate) {
         setIsUpdatingOverride(true);
 
-     await updateScheduleOverride({
-  originalDate: normalizeDateOnly(editingOverrideDate),
-  date: normalizeDateOnly(overrideForm.date),
-  isWorkingDay: overrideForm.isWorkingDay,
-  startTime: overrideForm.isWorkingDay ? overrideForm.startTime : null,
-  endTime: overrideForm.isWorkingDay ? overrideForm.endTime : null,
-  note: overrideForm.note.trim(),
-});
+        await updateScheduleOverride({
+          originalDate: normalizeDateOnly(editingOverrideDate),
+          date: normalizeDateOnly(overrideForm.date),
+          isWorkingDay: overrideForm.isWorkingDay,
+          startTime: overrideForm.isWorkingDay ? overrideForm.startTime : null,
+          endTime: overrideForm.isWorkingDay ? overrideForm.endTime : null,
+          note: overrideForm.note.trim(),
+        });
 
         await reloadAll();
         resetOverrideEditing();
@@ -501,11 +514,27 @@ export function SchedulePage() {
       return;
     }
 
-    if (!payload.startTime || !payload.endTime || payload.startTime >= payload.endTime) {
+    if (
+      !payload.startTime ||
+      !payload.endTime ||
+      payload.startTime >= payload.endTime
+    ) {
       setFeedback({
         area: "blockedSlots",
         tone: "error",
         message: "Укажите корректный временной диапазон блокировки.",
+      });
+      return;
+    }
+
+    if (isPastBlockedSlotStart(payload.blockedDate, payload.startTime)) {
+      setFeedback({
+        area: "blockedSlots",
+        tone: "error",
+        message:
+          editingBlockedSlotId !== null
+            ? "Нельзя перенести блокировку в прошлое."
+            : "Нельзя создать блокировку в прошлом.",
       });
       return;
     }
@@ -516,13 +545,13 @@ export function SchedulePage() {
       if (editingBlockedSlotId !== null) {
         setIsUpdatingBlockedSlot(true);
 
- await updateBlockedSlot({
-  id: editingBlockedSlotId,
-  blockedDate: normalizeDateOnly(blockedSlotForm.blockedDate),
-  startTime: blockedSlotForm.startTime,
-  endTime: blockedSlotForm.endTime,
-  reason: blockedSlotForm.reason.trim(),
-});
+        await updateBlockedSlot({
+          id: editingBlockedSlotId,
+          blockedDate: normalizeDateOnly(blockedSlotForm.blockedDate),
+          startTime: blockedSlotForm.startTime,
+          endTime: blockedSlotForm.endTime,
+          reason: blockedSlotForm.reason.trim(),
+        });
 
         await reloadAll();
         resetBlockedSlotEditing();

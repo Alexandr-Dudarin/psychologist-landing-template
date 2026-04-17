@@ -36,6 +36,16 @@ function isValidTime(value: string): boolean {
   return /^\d{2}:\d{2}$/.test(value);
 }
 
+function isPastBlockedSlotStart(blockedDate: string, startTime: string): boolean {
+  const timestamp = new Date(`${blockedDate}T${startTime}`).getTime();
+
+  if (Number.isNaN(timestamp)) {
+    return false;
+  }
+
+  return timestamp < Date.now();
+}
+
 function mapBlockedSlot(row: BlockedSlotRow): BlockedSlotRecord {
   return {
     id: Number(row.id),
@@ -66,7 +76,8 @@ function parseBody(body: any): ParsedPayload | null {
     typeof rawBody?.startTime === "string" ? rawBody.startTime.trim() : "";
   const endTime =
     typeof rawBody?.endTime === "string" ? rawBody.endTime.trim() : "";
-  const reason = typeof rawBody?.reason === "string" ? rawBody.reason.trim() : "";
+  const reason =
+    typeof rawBody?.reason === "string" ? rawBody.reason.trim() : "";
 
   if (!Number.isInteger(id) || id <= 0) {
     return null;
@@ -76,7 +87,11 @@ function parseBody(body: any): ParsedPayload | null {
     return null;
   }
 
-  if (!isValidTime(startTime) || !isValidTime(endTime) || startTime >= endTime) {
+  if (
+    !isValidTime(startTime) ||
+    !isValidTime(endTime) ||
+    startTime >= endTime
+  ) {
     return null;
   }
 
@@ -99,6 +114,12 @@ export default async function handler(req: any, res: any) {
   if (!payload) {
     return res.status(400).json({
       error: "Некорректные данные для обновления блокировки слота.",
+    });
+  }
+
+  if (isPastBlockedSlotStart(payload.blockedDate, payload.startTime)) {
+    return res.status(400).json({
+      error: "Нельзя перенести блокировку в прошлое.",
     });
   }
 
