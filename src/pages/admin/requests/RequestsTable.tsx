@@ -94,6 +94,12 @@ export function RequestsTable({
                 ) : null}
               </td>
               <td>
+                {clientAlreadyCreated ? (
+                  <div className={styles.linkedClientText}>
+                    Клиент #{item.clientId}
+                  </div>
+                ) : null}
+
                 <AdminButton
                   type="button"
                   onClick={() => onCreateClient(item.id)}

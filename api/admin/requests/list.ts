@@ -84,10 +84,8 @@ export default async function handler(req: any, res: any) {
           r.status,
           r.source,
           r.created_at,
-          c.id AS client_id
+          r.client_id
         FROM requests r
-        LEFT JOIN clients c
-          ON c.first_request_id = r.id
         ${whereClause}
         ORDER BY r.created_at DESC
       `,

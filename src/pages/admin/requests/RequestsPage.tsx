@@ -17,6 +17,7 @@ export function RequestsPage() {
   const [items, setItems] = useState<CrmRequestRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [savingId, setSavingId] = useState<number | null>(null);
   const [creatingClientId, setCreatingClientId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
@@ -76,6 +77,7 @@ export function RequestsPage() {
 
     setSavingId(requestId);
     setError("");
+    setSuccessMessage("");
 
     try {
       await updateAdminRequestStatus({
@@ -95,8 +97,15 @@ export function RequestsPage() {
   };
 
   const handleCreateClient = async (requestId: number) => {
+    const currentRequest = items.find((item) => item.id === requestId);
+
+    if (!currentRequest || currentRequest.clientId !== null) {
+      return;
+    }
+
     setCreatingClientId(requestId);
     setError("");
+    setSuccessMessage("");
 
     try {
       const result = await createClientFromRequest(requestId);
@@ -105,6 +114,12 @@ export function RequestsPage() {
         current.map((item) =>
           item.id === requestId ? { ...item, clientId: result.item.id } : item
         )
+      );
+
+      setSuccessMessage(
+        result.alreadyExisted
+          ? `Заявка привязана к существующему клиенту #${result.item.id}.`
+          : `Клиент #${result.item.id} создан из заявки.`
       );
     } catch (createError) {
       setError(
@@ -137,6 +152,7 @@ export function RequestsPage() {
       />
 
       <AdminFeedback message={error} tone="error" />
+      <AdminFeedback message={successMessage} tone="success" />
 
       {isLoading ? (
         <p>{t.admin.requests.messages.loading}</p>
