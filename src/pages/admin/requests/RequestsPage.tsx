@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../../../app/providers/LanguageProvider";
 import { createClientFromRequest } from "../../../lib/api/adminClients";
@@ -9,12 +9,14 @@ import {
 } from "../../../lib/api/adminRequests";
 import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
 import { requestStatuses } from "../../../types/request";
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { RequestsFilters } from "./RequestsFilters";
 import { RequestsTable } from "./RequestsTable";
 
 export function RequestsPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmRequestRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,9 +34,7 @@ export function RequestsPage() {
     const searchFromUrl = searchParams.get("search");
     const highlightFromUrl = searchParams.get("highlightRequestId");
 
-    if (searchFromUrl !== null) {
-      setSearchQuery(searchFromUrl);
-    }
+    setSearchQuery(searchFromUrl ?? "");
 
     if (highlightFromUrl !== null) {
       const parsedId = Number(highlightFromUrl);
@@ -157,10 +157,20 @@ export function RequestsPage() {
     }
   };
 
+  const handleResetView = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setHighlightedRequestId(null);
+    navigate("/admin/requests");
+  };
+
   const statusOptions = requestStatuses.map((status) => ({
     value: status,
     label: t.admin.requests.statusLabels[status],
   }));
+
+  const hasQuickViewState =
+    highlightedRequestId !== null || searchQuery.trim().length > 0;
 
   return (
     <main>
@@ -180,6 +190,14 @@ export function RequestsPage() {
         <p className="admin-muted-text">
           Открыт быстрый переход к заявке #{highlightedRequestId}.
         </p>
+      ) : null}
+
+      {hasQuickViewState ? (
+        <div style={{ marginBottom: 16 }}>
+          <AdminButton type="button" variant="secondary" onClick={handleResetView}>
+            Показать все заявки
+          </AdminButton>
+        </div>
       ) : null}
 
       <AdminFeedback message={error} tone="error" />

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../../../app/providers/LanguageProvider";
 import {
@@ -12,6 +12,7 @@ import type {
   CrmClientRecord,
 } from "../../../types/client";
 import { clientStatuses } from "../../../types/client";
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { ClientCreateForm } from "./ClientCreateForm";
 import { ClientsFilters } from "./ClientsFilters";
@@ -25,6 +26,7 @@ const clientSourceLabels: Record<string, string> = {
 
 export function ClientsPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmClientRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,9 +44,7 @@ export function ClientsPage() {
     const searchFromUrl = searchParams.get("search");
     const highlightFromUrl = searchParams.get("highlightClientId");
 
-    if (searchFromUrl !== null) {
-      setSearchQuery(searchFromUrl);
-    }
+    setSearchQuery(searchFromUrl ?? "");
 
     if (highlightFromUrl !== null) {
       const parsedId = Number(highlightFromUrl);
@@ -165,6 +165,16 @@ export function ClientsPage() {
     }
   };
 
+  const handleResetView = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setHighlightedClientId(null);
+    navigate("/admin/clients");
+  };
+
+  const hasQuickViewState =
+    highlightedClientId !== null || searchQuery.trim().length > 0;
+
   return (
     <main>
       <h1>{t.admin.clients.title}</h1>
@@ -200,6 +210,14 @@ export function ClientsPage() {
         <p className="admin-muted-text">
           Открыт быстрый переход к клиенту #{highlightedClientId}.
         </p>
+      ) : null}
+
+      {hasQuickViewState ? (
+        <div style={{ marginBottom: 16 }}>
+          <AdminButton type="button" variant="secondary" onClick={handleResetView}>
+            Показать всех клиентов
+          </AdminButton>
+        </div>
       ) : null}
 
       <AdminFeedback message={error} tone="error" />

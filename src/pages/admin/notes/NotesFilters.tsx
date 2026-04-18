@@ -53,7 +53,9 @@ export function NotesFilters({
         }
         className={`${styles.input} ${styles.filterSelect}`}
       >
-        <option value="all">все сессии</option>
+        <option value="all">
+          {clientFilter === "all" ? "все сессии" : "все сессии клиента"}
+        </option>
         {sessions.map((session) => (
           <option key={session.id} value={session.id}>
             #{session.id} — {session.clientName}

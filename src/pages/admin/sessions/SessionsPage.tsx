@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { getAdminClients } from "../../../lib/api/adminClients";
 import { getAdminServices } from "../../../lib/api/adminServices";
@@ -9,6 +9,7 @@ import {
   getAdminSessions,
   updateAdminSession,
 } from "../../../lib/api/adminSessions";
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmServiceRecord } from "../../../types/service";
@@ -31,6 +32,7 @@ import {
 } from "./sessionForm";
 
 export function SessionsPage() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmSessionRecord[]>([]);
   const [clients, setClients] = useState<CrmClientRecord[]>([]);
@@ -69,11 +71,11 @@ export function SessionsPage() {
           ? parsedClientId
           : "all"
       );
+    } else {
+      setClientFilter("all");
     }
 
-    if (searchFromUrl !== null) {
-      setSearchQuery(searchFromUrl);
-    }
+    setSearchQuery(searchFromUrl ?? "");
 
     if (highlightSessionFromUrl !== null) {
       const parsedSessionId = Number(highlightSessionFromUrl);
@@ -417,6 +419,19 @@ export function SessionsPage() {
     }
   };
 
+  const handleResetView = () => {
+    setStatusFilter("all");
+    setClientFilter("all");
+    setSearchQuery("");
+    setHighlightedSessionId(null);
+    navigate("/admin/sessions");
+  };
+
+  const hasQuickViewState =
+    clientFilter !== "all" ||
+    highlightedSessionId !== null ||
+    searchQuery.trim().length > 0;
+
   return (
     <main>
       <h1>{"Сессии"}</h1>
@@ -431,6 +446,14 @@ export function SessionsPage() {
         <p className="admin-muted-text">
           Открыт быстрый переход к сессии #{highlightedSessionId}.
         </p>
+      ) : null}
+
+      {hasQuickViewState ? (
+        <div style={{ marginBottom: 16 }}>
+          <AdminButton type="button" variant="secondary" onClick={handleResetView}>
+            Показать все сессии
+          </AdminButton>
+        </div>
       ) : null}
 
       <SessionCreateForm

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { getAdminClients } from "../../../lib/api/adminClients";
 import {
@@ -9,6 +9,8 @@ import {
   updateAdminNote,
 } from "../../../lib/api/adminNotes";
 import { getAdminSessions } from "../../../lib/api/adminSessions";
+import { AdminButton } from "../../../components/admin/AdminButton";
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import type { CrmClientRecord } from "../../../types/client";
 import type {
   CreateNotePayload,
@@ -16,7 +18,6 @@ import type {
   UpdateNotePayload,
 } from "../../../types/note";
 import type { CrmSessionRecord } from "../../../types/session";
-import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { NoteCreateForm } from "./NoteCreateForm";
 import { NoteEditForm } from "./NoteEditForm";
 import { NotesFilters } from "./NotesFilters";
@@ -28,6 +29,7 @@ import {
 } from "./noteForm";
 
 export function NotesPage() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmNoteRecord[]>([]);
   const [clients, setClients] = useState<CrmClientRecord[]>([]);
@@ -57,6 +59,8 @@ export function NotesPage() {
           ? parsedClientId
           : "all"
       );
+    } else {
+      setClientFilter("all");
     }
 
     if (sessionIdFromUrl !== null) {
@@ -67,6 +71,8 @@ export function NotesPage() {
           ? parsedSessionId
           : "all"
       );
+    } else {
+      setSessionFilter("all");
     }
   }, [searchParams]);
 
@@ -127,6 +133,20 @@ export function NotesPage() {
     );
   }, [clientFilter, sessions]);
 
+  useEffect(() => {
+    if (sessionFilter === "all") {
+      return;
+    }
+
+    const sessionStillAvailable = availableFilterSessions.some(
+      (session) => Number(session.id) === Number(sessionFilter)
+    );
+
+    if (!sessionStillAvailable) {
+      setSessionFilter("all");
+    }
+  }, [sessionFilter, availableFilterSessions]);
+
   const availableCreateSessions = useMemo(() => {
     if (!createForm.clientId) {
       return [];
@@ -165,6 +185,15 @@ export function NotesPage() {
     });
 
     setItems(notesData);
+  };
+
+  const handleClientFilterChange = (value: number | "all") => {
+    setClientFilter(value);
+    setSessionFilter("all");
+  };
+
+  const handleSessionFilterChange = (value: number | "all") => {
+    setSessionFilter(value);
   };
 
   const handleCreateFormChange = (field: keyof NoteForm, value: string) => {
@@ -333,6 +362,18 @@ export function NotesPage() {
     }
   };
 
+  const handleResetView = () => {
+    setClientFilter("all");
+    setSessionFilter("all");
+    setSearchQuery("");
+    navigate("/admin/notes");
+  };
+
+  const hasQuickViewState =
+    clientFilter !== "all" ||
+    sessionFilter !== "all" ||
+    searchQuery.trim().length > 0;
+
   return (
     <main>
       <h1>Заметки</h1>
@@ -347,6 +388,14 @@ export function NotesPage() {
         <p className="admin-muted-text">
           Открыт быстрый переход к заметкам сессии #{sessionFilter}.
         </p>
+      ) : null}
+
+      {hasQuickViewState ? (
+        <div style={{ marginBottom: 16 }}>
+          <AdminButton type="button" variant="secondary" onClick={handleResetView}>
+            Показать все заметки
+          </AdminButton>
+        </div>
       ) : null}
 
       <NoteCreateForm
@@ -376,8 +425,8 @@ export function NotesPage() {
         clients={clients}
         sessions={availableFilterSessions}
         searchQuery={searchQuery}
-        onClientFilterChange={setClientFilter}
-        onSessionFilterChange={setSessionFilter}
+        onClientFilterChange={handleClientFilterChange}
+        onSessionFilterChange={handleSessionFilterChange}
         onSearchChange={setSearchQuery}
       />
 
