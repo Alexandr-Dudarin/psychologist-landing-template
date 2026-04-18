@@ -27,6 +27,7 @@ import {
   initialEditForm,
   type NoteForm,
 } from "./noteForm";
+import styles from "./NotesPage.module.css";
 
 export function NotesPage() {
   const navigate = useNavigate();
@@ -378,23 +379,38 @@ export function NotesPage() {
     <main>
       <h1>Заметки</h1>
 
-      {clientFilter !== "all" ? (
-        <p className="admin-muted-text">
-          Открыт быстрый переход к заметкам клиента #{clientFilter}.
-        </p>
-      ) : null}
-
-      {sessionFilter !== "all" ? (
-        <p className="admin-muted-text">
-          Открыт быстрый переход к заметкам сессии #{sessionFilter}.
-        </p>
-      ) : null}
-
       {hasQuickViewState ? (
-        <div style={{ marginBottom: 16 }}>
-          <AdminButton type="button" variant="secondary" onClick={handleResetView}>
-            Показать все заметки
-          </AdminButton>
+        <div className={styles.quickViewBanner}>
+          <div className={styles.quickViewText}>
+            <div className={styles.quickViewTitle}>Режим быстрого перехода</div>
+            <div className={styles.quickViewList}>
+              {clientFilter !== "all" ? (
+                <span className={styles.quickViewChip}>
+                  Клиент #{clientFilter}
+                </span>
+              ) : null}
+              {sessionFilter !== "all" ? (
+                <span className={styles.quickViewChip}>
+                  Сессия #{sessionFilter}
+                </span>
+              ) : null}
+              {searchQuery.trim() ? (
+                <span className={styles.quickViewChip}>
+                  Поиск: {searchQuery.trim()}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          <div className={styles.quickViewActions}>
+            <AdminButton
+              type="button"
+              variant="secondary"
+              onClick={handleResetView}
+            >
+              Показать все заметки
+            </AdminButton>
+          </div>
         </div>
       ) : null}
 

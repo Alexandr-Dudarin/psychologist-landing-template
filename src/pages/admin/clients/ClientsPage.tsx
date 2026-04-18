@@ -18,6 +18,7 @@ import { ClientCreateForm } from "./ClientCreateForm";
 import { ClientsFilters } from "./ClientsFilters";
 import { ClientsTable } from "./ClientsTable";
 import { initialForm, type ManualClientForm } from "./clientForm";
+import styles from "./ClientsPage.module.css";
 
 const clientSourceLabels: Record<string, string> = {
   manual: "Вручную",
@@ -206,17 +207,33 @@ export function ClientsPage() {
         onStatusChange={setStatusFilter}
       />
 
-      {highlightedClientId !== null ? (
-        <p className="admin-muted-text">
-          Открыт быстрый переход к клиенту #{highlightedClientId}.
-        </p>
-      ) : null}
-
       {hasQuickViewState ? (
-        <div style={{ marginBottom: 16 }}>
-          <AdminButton type="button" variant="secondary" onClick={handleResetView}>
-            Показать всех клиентов
-          </AdminButton>
+        <div className={styles.quickViewBanner}>
+          <div className={styles.quickViewText}>
+            <div className={styles.quickViewTitle}>Режим быстрого перехода</div>
+            <div className={styles.quickViewList}>
+              {highlightedClientId !== null ? (
+                <span className={styles.quickViewChip}>
+                  Клиент #{highlightedClientId}
+                </span>
+              ) : null}
+              {searchQuery.trim() ? (
+                <span className={styles.quickViewChip}>
+                  Поиск: {searchQuery.trim()}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          <div className={styles.quickViewActions}>
+            <AdminButton
+              type="button"
+              variant="secondary"
+              onClick={handleResetView}
+            >
+              Показать всех клиентов
+            </AdminButton>
+          </div>
         </div>
       ) : null}
 

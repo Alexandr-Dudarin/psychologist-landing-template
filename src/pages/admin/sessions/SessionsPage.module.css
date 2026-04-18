@@ -1,3 +1,7 @@
+.pageTitle {
+  margin: 0 0 24px;
+}
+
 .form {
   display: grid;
   gap: 12px;
@@ -40,5 +44,47 @@
 .actionsRow {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quickViewBanner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid #e8dfc9;
+  border-radius: 12px;
+  background: #faf7ef;
+}
+
+.quickViewText {
+  display: grid;
+  gap: 8px;
+}
+
+.quickViewTitle {
+  font-weight: 700;
+}
+
+.quickViewList {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quickViewChip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #ddd4bf;
+  font-size: 0.95rem;
+}
+
+.quickViewActions {
+  display: flex;
+  gap: 12px;
   flex-wrap: wrap;
 }

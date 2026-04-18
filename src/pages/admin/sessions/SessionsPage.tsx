@@ -30,6 +30,7 @@ import {
   type SessionForm,
   toDateTimeLocalValue,
 } from "./sessionForm";
+import styles from "./SessionsPage.module.css";
 
 export function SessionsPage() {
   const navigate = useNavigate();
@@ -436,23 +437,38 @@ export function SessionsPage() {
     <main>
       <h1>{"Сессии"}</h1>
 
-      {clientFilter !== "all" ? (
-        <p className="admin-muted-text">
-          Открыт быстрый переход к сессиям клиента #{clientFilter}.
-        </p>
-      ) : null}
-
-      {highlightedSessionId !== null ? (
-        <p className="admin-muted-text">
-          Открыт быстрый переход к сессии #{highlightedSessionId}.
-        </p>
-      ) : null}
-
       {hasQuickViewState ? (
-        <div style={{ marginBottom: 16 }}>
-          <AdminButton type="button" variant="secondary" onClick={handleResetView}>
-            Показать все сессии
-          </AdminButton>
+        <div className={styles.quickViewBanner}>
+          <div className={styles.quickViewText}>
+            <div className={styles.quickViewTitle}>Режим быстрого перехода</div>
+            <div className={styles.quickViewList}>
+              {clientFilter !== "all" ? (
+                <span className={styles.quickViewChip}>
+                  Клиент #{clientFilter}
+                </span>
+              ) : null}
+              {highlightedSessionId !== null ? (
+                <span className={styles.quickViewChip}>
+                  Сессия #{highlightedSessionId}
+                </span>
+              ) : null}
+              {searchQuery.trim() ? (
+                <span className={styles.quickViewChip}>
+                  Поиск: {searchQuery.trim()}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          <div className={styles.quickViewActions}>
+            <AdminButton
+              type="button"
+              variant="secondary"
+              onClick={handleResetView}
+            >
+              Показать все сессии
+            </AdminButton>
+          </div>
         </div>
       ) : null}
 

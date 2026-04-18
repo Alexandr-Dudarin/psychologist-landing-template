@@ -13,6 +13,7 @@ import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { RequestsFilters } from "./RequestsFilters";
 import { RequestsTable } from "./RequestsTable";
+import styles from "./RequestsPage.module.css";
 
 export function RequestsPage() {
   const { t } = useLanguage();
@@ -186,17 +187,33 @@ export function RequestsPage() {
         onStatusChange={setStatusFilter}
       />
 
-      {highlightedRequestId !== null ? (
-        <p className="admin-muted-text">
-          Открыт быстрый переход к заявке #{highlightedRequestId}.
-        </p>
-      ) : null}
-
       {hasQuickViewState ? (
-        <div style={{ marginBottom: 16 }}>
-          <AdminButton type="button" variant="secondary" onClick={handleResetView}>
-            Показать все заявки
-          </AdminButton>
+        <div className={styles.quickViewBanner}>
+          <div className={styles.quickViewText}>
+            <div className={styles.quickViewTitle}>Режим быстрого перехода</div>
+            <div className={styles.quickViewList}>
+              {highlightedRequestId !== null ? (
+                <span className={styles.quickViewChip}>
+                  Заявка #{highlightedRequestId}
+                </span>
+              ) : null}
+              {searchQuery.trim() ? (
+                <span className={styles.quickViewChip}>
+                  Поиск: {searchQuery.trim()}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          <div className={styles.quickViewActions}>
+            <AdminButton
+              type="button"
+              variant="secondary"
+              onClick={handleResetView}
+            >
+              Показать все заявки
+            </AdminButton>
+          </div>
         </div>
       ) : null}
 
