@@ -139,6 +139,14 @@ export function NotesPage() {
       return;
     }
 
+    if (isLoading) {
+      return;
+    }
+
+    if (availableFilterSessions.length === 0) {
+      return;
+    }
+
     const sessionStillAvailable = availableFilterSessions.some(
       (session) => Number(session.id) === Number(sessionFilter)
     );
@@ -146,7 +154,7 @@ export function NotesPage() {
     if (!sessionStillAvailable) {
       setSessionFilter("all");
     }
-  }, [sessionFilter, availableFilterSessions]);
+  }, [sessionFilter, availableFilterSessions, isLoading]);
 
   const availableCreateSessions = useMemo(() => {
     if (!createForm.clientId) {

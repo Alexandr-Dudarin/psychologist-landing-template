@@ -27,7 +27,7 @@ export function NotesTable({
           <th>Услуга</th>
           <th>Текст заметки</th>
           <th>Создана</th>
-          <th>Действия</th>
+          <th style={{ textAlign: "right" }}>Действия</th>
         </tr>
       </thead>
       <tbody>
@@ -59,8 +59,15 @@ export function NotesTable({
             <td>{item.sessionServiceTitle || "-"}</td>
             <td>{item.content}</td>
             <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
-            <td>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <td style={{ textAlign: "right" }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  flexWrap: "wrap",
+                  justifyContent: "flex-end",
+                }}
+              >
                 <AdminButton
                   type="button"
                   variant="secondary"
