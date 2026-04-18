@@ -28,6 +28,7 @@ export default async function handler(req: any, res: any) {
   }
 
   const clientIdRaw = getSingleQueryValue(req.query?.clientId).trim();
+  const sessionIdRaw = getSingleQueryValue(req.query?.sessionId).trim();
   const search = getSingleQueryValue(req.query?.search).trim();
 
   const conditions: string[] = [];
@@ -37,22 +38,34 @@ export default async function handler(req: any, res: any) {
     const clientId = Number(clientIdRaw);
 
     if (!Number.isInteger(clientId) || clientId <= 0) {
-      return res.status(400).json({ error: "Некорректный фильтр клиента" });
+      return res.status(400).json({ error: "Некорректный клиент" });
     }
 
     values.push(clientId);
     conditions.push(`n.client_id = $${values.length}`);
   }
 
+  if (sessionIdRaw && sessionIdRaw !== "all") {
+    const sessionId = Number(sessionIdRaw);
+
+    if (!Number.isInteger(sessionId) || sessionId <= 0) {
+      return res.status(400).json({ error: "Некорректная сессия" });
+    }
+
+    values.push(sessionId);
+    conditions.push(`n.session_id = $${values.length}`);
+  }
+
   if (search) {
     values.push(`%${search}%`);
-    const searchParamIndex = values.length;
+    const searchIndex = values.length;
 
     conditions.push(`
       (
-        c.name ILIKE $${searchParamIndex}
-        OR n.content ILIKE $${searchParamIndex}
-        OR COALESCE(sv.title, '') ILIKE $${searchParamIndex}
+        CAST(n.id AS TEXT) ILIKE $${searchIndex}
+        OR c.name ILIKE $${searchIndex}
+        OR COALESCE(sv.title, '') ILIKE $${searchIndex}
+        OR n.content ILIKE $${searchIndex}
       )
     `);
   }

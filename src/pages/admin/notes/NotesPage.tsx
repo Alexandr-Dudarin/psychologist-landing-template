@@ -39,6 +39,7 @@ export function NotesPage() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [clientFilter, setClientFilter] = useState<number | "all">("all");
+  const [sessionFilter, setSessionFilter] = useState<number | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [createForm, setCreateForm] = useState<NoteForm>(initialCreateForm);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
@@ -46,6 +47,7 @@ export function NotesPage() {
 
   useEffect(() => {
     const clientIdFromUrl = searchParams.get("clientId");
+    const sessionIdFromUrl = searchParams.get("sessionId");
 
     if (clientIdFromUrl !== null) {
       const parsedClientId = Number(clientIdFromUrl);
@@ -53,6 +55,16 @@ export function NotesPage() {
       setClientFilter(
         Number.isInteger(parsedClientId) && parsedClientId > 0
           ? parsedClientId
+          : "all"
+      );
+    }
+
+    if (sessionIdFromUrl !== null) {
+      const parsedSessionId = Number(sessionIdFromUrl);
+
+      setSessionFilter(
+        Number.isInteger(parsedSessionId) && parsedSessionId > 0
+          ? parsedSessionId
           : "all"
       );
     }
@@ -71,6 +83,7 @@ export function NotesPage() {
         const [notesData, clientsData, sessionsData] = await Promise.all([
           getAdminNotes({
             clientId: clientFilter,
+            sessionId: sessionFilter,
             search: searchQuery,
           }),
           getAdminClients(),
@@ -102,7 +115,17 @@ export function NotesPage() {
     return () => {
       isMounted = false;
     };
-  }, [clientFilter, searchQuery]);
+  }, [clientFilter, sessionFilter, searchQuery]);
+
+  const availableFilterSessions = useMemo(() => {
+    if (clientFilter === "all") {
+      return sessions;
+    }
+
+    return sessions.filter(
+      (session) => Number(session.clientId) === Number(clientFilter)
+    );
+  }, [clientFilter, sessions]);
 
   const availableCreateSessions = useMemo(() => {
     if (!createForm.clientId) {
@@ -137,6 +160,7 @@ export function NotesPage() {
   const reloadNotes = async () => {
     const notesData = await getAdminNotes({
       clientId: clientFilter,
+      sessionId: sessionFilter,
       search: searchQuery,
     });
 
@@ -319,6 +343,12 @@ export function NotesPage() {
         </p>
       ) : null}
 
+      {sessionFilter !== "all" ? (
+        <p className="admin-muted-text">
+          Открыт быстрый переход к заметкам сессии #{sessionFilter}.
+        </p>
+      ) : null}
+
       <NoteCreateForm
         clients={clients}
         availableSessions={availableCreateSessions}
@@ -342,9 +372,12 @@ export function NotesPage() {
 
       <NotesFilters
         clientFilter={clientFilter}
+        sessionFilter={sessionFilter}
         clients={clients}
+        sessions={availableFilterSessions}
         searchQuery={searchQuery}
         onClientFilterChange={setClientFilter}
+        onSessionFilterChange={setSessionFilter}
         onSearchChange={setSearchQuery}
       />
 

@@ -44,6 +44,9 @@ export function SessionsPage() {
   const [statusFilter, setStatusFilter] = useState<SessionStatus | "all">("all");
   const [clientFilter, setClientFilter] = useState<number | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [highlightedSessionId, setHighlightedSessionId] = useState<number | null>(
+    null
+  );
   const [createForm, setCreateForm] = useState<SessionForm>(initialCreateForm);
   const [editingSessionId, setEditingSessionId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<SessionForm>(initialEditForm);
@@ -55,6 +58,8 @@ export function SessionsPage() {
 
   useEffect(() => {
     const clientIdFromUrl = searchParams.get("clientId");
+    const searchFromUrl = searchParams.get("search");
+    const highlightSessionFromUrl = searchParams.get("highlightSessionId");
 
     if (clientIdFromUrl !== null) {
       const parsedClientId = Number(clientIdFromUrl);
@@ -64,6 +69,22 @@ export function SessionsPage() {
           ? parsedClientId
           : "all"
       );
+    }
+
+    if (searchFromUrl !== null) {
+      setSearchQuery(searchFromUrl);
+    }
+
+    if (highlightSessionFromUrl !== null) {
+      const parsedSessionId = Number(highlightSessionFromUrl);
+
+      setHighlightedSessionId(
+        Number.isInteger(parsedSessionId) && parsedSessionId > 0
+          ? parsedSessionId
+          : null
+      );
+    } else {
+      setHighlightedSessionId(null);
     }
   }, [searchParams]);
 
@@ -406,6 +427,12 @@ export function SessionsPage() {
         </p>
       ) : null}
 
+      {highlightedSessionId !== null ? (
+        <p className="admin-muted-text">
+          Открыт быстрый переход к сессии #{highlightedSessionId}.
+        </p>
+      ) : null}
+
       <SessionCreateForm
         clients={clients}
         activeServices={activeServices}
@@ -444,6 +471,7 @@ export function SessionsPage() {
         items={items}
         isLoading={isLoading}
         deletingId={deletingId}
+        highlightedSessionId={highlightedSessionId}
         onEdit={startEditing}
         onDelete={handleDeleteSession}
       />

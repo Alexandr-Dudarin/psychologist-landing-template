@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
@@ -9,6 +10,7 @@ type SessionsTableProps = {
   items: CrmSessionRecord[];
   isLoading: boolean;
   deletingId: number | null;
+  highlightedSessionId?: number | null;
   onEdit: (session: CrmSessionRecord) => void;
   onDelete: (id: number) => void;
 };
@@ -17,9 +19,27 @@ export function SessionsTable({
   items,
   isLoading,
   deletingId,
+  highlightedSessionId = null,
   onEdit,
   onDelete,
 }: SessionsTableProps) {
+  const highlightedRowRef = useRef<HTMLTableRowElement | null>(null);
+
+  useEffect(() => {
+    if (!highlightedSessionId) {
+      return;
+    }
+
+    if (!highlightedRowRef.current) {
+      return;
+    }
+
+    highlightedRowRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, [highlightedSessionId, items]);
+
   if (isLoading) {
     return <p>Загрузка...</p>;
   }
@@ -41,53 +61,76 @@ export function SessionsTable({
           <th>Статус</th>
           <th>Источник</th>
           <th>Заметки</th>
+          <th>Связи</th>
           <th>Действия</th>
         </tr>
       </thead>
       <tbody>
-        {items.map((item) => (
-          <tr key={item.id}>
-            <td>{item.id}</td>
-            <td>
-              <Link
-                to={`/admin/clients?search=${encodeURIComponent(
-                  String(item.clientId)
-                )}&highlightClientId=${item.clientId}`}
-              >
-                {item.clientName}
-              </Link>
-            </td>
-            <td>{item.serviceTitle}</td>
-            <td>{new Date(item.scheduledAt).toLocaleString("ru-RU")}</td>
-            <td>{item.durationMinutes} мин</td>
-            <td>{item.price}</td>
-            <td>{sessionStatusLabels[item.status]}</td>
-            <td>{item.source}</td>
-            <td>{item.notes || "-"}</td>
-            <td>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <AdminButton
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onEdit(item)}
-                >
-                  Редактировать
-                </AdminButton>
+        {items.map((item) => {
+          const isHighlighted =
+            highlightedSessionId !== null &&
+            Number(highlightedSessionId) === Number(item.id);
 
-                <AdminButton
-                  type="button"
-                  variant="danger"
-                  size="sm"
-                  onClick={() => onDelete(item.id)}
-                  disabled={deletingId === item.id}
+          return (
+            <tr
+              key={item.id}
+              ref={isHighlighted ? highlightedRowRef : null}
+              style={
+                isHighlighted
+                  ? {
+                      background: "#fff0b8",
+                      boxShadow: "inset 4px 0 0 #d6a700",
+                    }
+                  : undefined
+              }
+            >
+              <td>{item.id}</td>
+              <td>
+                <Link
+                  to={`/admin/clients?search=${encodeURIComponent(
+                    String(item.clientId)
+                  )}&highlightClientId=${item.clientId}`}
                 >
-                  {deletingId === item.id ? "Удаление..." : "Удалить"}
-                </AdminButton>
-              </div>
-            </td>
-          </tr>
-        ))}
+                  {item.clientName}
+                </Link>
+              </td>
+              <td>{item.serviceTitle}</td>
+              <td>{new Date(item.scheduledAt).toLocaleString("ru-RU")}</td>
+              <td>{item.durationMinutes} мин</td>
+              <td>{item.price}</td>
+              <td>{sessionStatusLabels[item.status]}</td>
+              <td>{item.source}</td>
+              <td>{item.notes || "-"}</td>
+              <td>
+                <Link to={`/admin/notes?sessionId=${encodeURIComponent(String(item.id))}`}>
+                  Заметки сессии
+                </Link>
+              </td>
+              <td>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <AdminButton
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onEdit(item)}
+                  >
+                    Редактировать
+                  </AdminButton>
+
+                  <AdminButton
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    onClick={() => onDelete(item.id)}
+                    disabled={deletingId === item.id}
+                  >
+                    {deletingId === item.id ? "Удаление..." : "Удалить"}
+                  </AdminButton>
+                </div>
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </AdminTable>
   );

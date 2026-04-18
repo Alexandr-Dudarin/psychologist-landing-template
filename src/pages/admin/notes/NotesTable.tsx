@@ -44,9 +44,17 @@ export function NotesTable({
               </Link>
             </td>
             <td>
-              {item.sessionId && item.sessionScheduledAt
-                ? new Date(item.sessionScheduledAt).toLocaleString("ru-RU")
-                : "-"}
+              {item.sessionId && item.sessionScheduledAt ? (
+                <Link
+                  to={`/admin/sessions?search=${encodeURIComponent(
+                    String(item.sessionId)
+                  )}&highlightSessionId=${item.sessionId}`}
+                >
+                  {new Date(item.sessionScheduledAt).toLocaleString("ru-RU")}
+                </Link>
+              ) : (
+                "-"
+              )}
             </td>
             <td>{item.sessionServiceTitle || "-"}</td>
             <td>{item.content}</td>

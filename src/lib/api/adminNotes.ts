@@ -1,6 +1,6 @@
 import type {
-  CrmNoteRecord,
   CreateNotePayload,
+  CrmNoteRecord,
   UpdateNotePayload,
 } from "../../types/note";
 
@@ -41,6 +41,7 @@ type DeleteNoteErrorResponse = {
 
 export type AdminNotesFilters = {
   clientId?: number | "all";
+  sessionId?: number | "all";
   search?: string;
 };
 
@@ -51,6 +52,10 @@ export async function getAdminNotes(
 
   if (filters.clientId !== undefined) {
     params.set("clientId", String(filters.clientId));
+  }
+
+  if (filters.sessionId !== undefined) {
+    params.set("sessionId", String(filters.sessionId));
   }
 
   if (filters.search?.trim()) {

@@ -73,7 +73,8 @@ export default async function handler(req: any, res: any) {
 
     conditions.push(`
       (
-        c.name ILIKE $${searchIndex}
+        CAST(s.id AS TEXT) ILIKE $${searchIndex}
+        OR c.name ILIKE $${searchIndex}
         OR sv.title ILIKE $${searchIndex}
         OR s.notes ILIKE $${searchIndex}
       )
