@@ -56,6 +56,7 @@ export function AdminLayout() {
           <Link to="/admin/sessions">{t.admin.layout.nav.sessions}</Link>
           <Link to="/admin/notes">{t.admin.layout.nav.notes}</Link>
           <Link to="/admin/schedule">{t.admin.layout.nav.schedule}</Link>
+          <Link to="/admin/help">Инструкция</Link>
           <Link to="/">{t.admin.layout.nav.backToSite}</Link>
         </nav>
 

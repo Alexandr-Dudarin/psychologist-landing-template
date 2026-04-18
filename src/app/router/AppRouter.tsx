@@ -12,6 +12,7 @@ import { ServicesPage } from "../../pages/admin/services/ServicesPage";
 import { SessionsPage } from "../../pages/admin/sessions/SessionsPage";
 import { NotesPage } from "../../pages/admin/notes/NotesPage";
 import { SchedulePage } from "../../pages/admin/schedule/SchedulePage";
+import { AdminHelpPage } from "../../pages/admin/help/AdminHelpPage";
 
 export function AppRouter() {
   return (
@@ -38,6 +39,7 @@ export function AppRouter() {
         <Route path="sessions" element={<SessionsPage />} />
         <Route path="notes" element={<NotesPage />} />
         <Route path="schedule" element={<SchedulePage />} />
+        <Route path="help" element={<AdminHelpPage />} />
       </Route>
     </Routes>
   );
