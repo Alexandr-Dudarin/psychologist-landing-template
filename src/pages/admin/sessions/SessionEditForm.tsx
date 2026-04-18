@@ -37,10 +37,10 @@ export function SessionEditForm({
           onChange={(e) => onFormChange("clientId", e.target.value)}
           className={styles.input}
         >
-          <option value="">{"Выберите клиента"}</option>
+          <option value="">Выберите клиента</option>
           {clients.map((client) => (
             <option key={client.id} value={client.id}>
-              {client.name} {"—"} {client.phone || client.email || client.id}
+              {client.name} — {client.phone || client.email || client.id}
             </option>
           ))}
         </select>
@@ -50,10 +50,10 @@ export function SessionEditForm({
           onChange={(e) => onFormChange("serviceId", e.target.value)}
           className={styles.input}
         >
-          <option value="">{"Выберите услугу"}</option>
+          <option value="">Выберите услугу</option>
           {activeServices.map((service) => (
             <option key={service.id} value={service.id}>
-              {service.title} {"—"} {service.price} {"₽"} / {service.durationMinutes} {"мин"}
+              {service.title} — {service.price} ₽ / {service.durationMinutes} мин
             </option>
           ))}
         </select>
@@ -87,7 +87,9 @@ export function SessionEditForm({
 
         <select
           value={form.status}
-          onChange={(e) => onFormChange("status", e.target.value as SessionStatus)}
+          onChange={(e) =>
+            onFormChange("status", e.target.value as SessionStatus)
+          }
           className={styles.input}
         >
           {sessionStatuses.map((status) => (
@@ -106,13 +108,11 @@ export function SessionEditForm({
 
         <div className={styles.buttonRow}>
           <AdminButton type="submit" disabled={isUpdating} variant="primary">
-            {isUpdating
-              ? "Сохранение..."
-              : "Сохранить изменения"}
+            {isUpdating ? "Сохранение..." : "Сохранить изменения"}
           </AdminButton>
 
           <AdminButton type="button" onClick={onCancel} variant="secondary">
-            {"Отменить"}
+            Отменить
           </AdminButton>
         </div>
       </form>

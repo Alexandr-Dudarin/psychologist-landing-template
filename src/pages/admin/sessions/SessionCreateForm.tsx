@@ -38,10 +38,10 @@ export function SessionCreateForm({
           onChange={(e) => onFormChange("clientId", e.target.value)}
           className={styles.input}
         >
-          <option value="">{"Выберите клиента"}</option>
+          <option value="">Выберите клиента</option>
           {clients.map((client) => (
             <option key={client.id} value={client.id}>
-              {client.name} {"—"} {client.phone || client.email || client.id}
+              {client.name} — {client.phone || client.email || client.id}
             </option>
           ))}
         </select>
@@ -51,10 +51,10 @@ export function SessionCreateForm({
           onChange={(e) => onFormChange("serviceId", e.target.value)}
           className={styles.input}
         >
-          <option value="">{"Выберите услугу"}</option>
+          <option value="">Выберите услугу</option>
           {activeServices.map((service) => (
             <option key={service.id} value={service.id}>
-              {service.title} {"—"} {service.price} {"₽"} / {service.durationMinutes} {"мин"}
+              {service.title} — {service.price} ₽ / {service.durationMinutes} мин
             </option>
           ))}
         </select>
@@ -89,7 +89,9 @@ export function SessionCreateForm({
 
         <select
           value={form.status}
-          onChange={(e) => onFormChange("status", e.target.value as SessionStatus)}
+          onChange={(e) =>
+            onFormChange("status", e.target.value as SessionStatus)
+          }
           className={styles.input}
         >
           {sessionStatuses.map((status) => (
@@ -108,9 +110,7 @@ export function SessionCreateForm({
 
         <div>
           <AdminButton type="submit" disabled={isCreating} variant="primary">
-            {isCreating
-              ? "Создание..."
-              : "Создать сессию"}
+            {isCreating ? "Создание..." : "Создать сессию"}
           </AdminButton>
         </div>
       </form>

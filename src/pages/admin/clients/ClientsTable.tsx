@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
-import type { ClientStatus, CrmClientRecord } from "../../../types/client";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import type { ClientStatus, CrmClientRecord } from "../../../types/client";
 import styles from "./ClientsPage.module.css";
 
 type ClientsTableProps = {
@@ -53,7 +53,7 @@ export function ClientsTable({
     <AdminTable>
       <thead>
         <tr>
-          <th>ID</th>
+          <th className={styles.idCell}>ID</th>
           <th>{createdLabel}</th>
           <th>{nameLabel}</th>
           <th>{phoneLabel}</th>
@@ -61,7 +61,7 @@ export function ClientsTable({
           <th>{sourceLabel}</th>
           <th>{statusLabel}</th>
           <th>{firstRequestLabel}</th>
-          <th>Связи</th>
+          <th>{"\u0421\u0432\u044f\u0437\u0438"}</th>
         </tr>
       </thead>
       <tbody>
@@ -76,7 +76,9 @@ export function ClientsTable({
               ref={isHighlighted ? highlightedRowRef : null}
               className={isHighlighted ? styles.highlightedRow : undefined}
             >
-              <td>{item.id}</td>
+              <td className={styles.idCell}>
+                <span className={styles.idBadge}>{item.id}</span>
+              </td>
               <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
               <td>{item.name}</td>
               <td>{item.phone || "-"}</td>
@@ -90,27 +92,27 @@ export function ClientsTable({
                       String(item.firstRequestId)
                     )}&highlightRequestId=${item.firstRequestId}`}
                   >
-                    Заявка #{item.firstRequestId}
+                    {"\u0417\u0430\u044f\u0432\u043a\u0430"} #{item.firstRequestId}
                   </Link>
                 ) : (
                   "-"
                 )}
               </td>
               <td>
-                <div style={{ display: "grid", gap: "6px" }}>
+                <div className={styles.linkStack}>
                   <Link
                     to={`/admin/sessions?clientId=${encodeURIComponent(
                       String(item.id)
                     )}`}
                   >
-                    Сессии
+                    {"\u0421\u0435\u0441\u0441\u0438\u0438"}
                   </Link>
                   <Link
                     to={`/admin/notes?clientId=${encodeURIComponent(
                       String(item.id)
                     )}`}
                   >
-                    Заметки
+                    {"\u0417\u0430\u043c\u0435\u0442\u043a\u0438"}
                   </Link>
                 </div>
               </td>

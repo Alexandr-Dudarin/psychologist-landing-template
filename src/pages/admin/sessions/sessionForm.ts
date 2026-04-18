@@ -31,10 +31,10 @@ export const initialEditForm: SessionForm = {
 };
 
 export const sessionStatusLabels: Record<SessionStatus, string> = {
-  scheduled: "Запланирована",
-  completed: "Проведена",
-  cancelled: "Отменена",
-  no_show: "Неявка",
+  scheduled: "\u0417\u0430\u043f\u043b\u0430\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0430",
+  completed: "\u041f\u0440\u043e\u0432\u0435\u0434\u0435\u043d\u0430",
+  cancelled: "\u041e\u0442\u043c\u0435\u043d\u0435\u043d\u0430",
+  no_show: "\u041d\u0435\u044f\u0432\u043a\u0430",
 };
 
 export function toDateTimeLocalValue(value: string): string {

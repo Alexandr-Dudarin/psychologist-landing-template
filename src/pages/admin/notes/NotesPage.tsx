@@ -20,14 +20,14 @@ import type {
 import type { CrmSessionRecord } from "../../../types/session";
 import { NoteCreateForm } from "./NoteCreateForm";
 import { NoteEditForm } from "./NoteEditForm";
-import { NotesFilters } from "./NotesFilters";
-import { NotesTable } from "./NotesTable";
 import {
   initialCreateForm,
   initialEditForm,
   type NoteForm,
 } from "./noteForm";
+import { NotesFilters } from "./NotesFilters";
 import styles from "./NotesPage.module.css";
+import { NotesTable } from "./NotesTable";
 
 export function NotesPage() {
   const navigate = useNavigate();

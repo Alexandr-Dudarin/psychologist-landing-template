@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
-import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
-
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
 import styles from "./RequestsPage.module.css";
 
 type StatusOption = {
@@ -74,7 +73,7 @@ export function RequestsTable({
     <AdminTable>
       <thead>
         <tr>
-          <th>ID</th>
+          <th className={styles.idCell}>ID</th>
           <th>{createdLabel}</th>
           <th>{nameLabel}</th>
           <th>{phoneLabel}</th>
@@ -97,7 +96,9 @@ export function RequestsTable({
               ref={isHighlighted ? highlightedRowRef : null}
               className={isHighlighted ? styles.highlightedRow : undefined}
             >
-              <td>{item.id}</td>
+              <td className={styles.idCell}>
+                <span className={styles.idBadge}>{item.id}</span>
+              </td>
               <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
               <td>{item.name}</td>
               <td>{item.phone}</td>
@@ -130,7 +131,7 @@ export function RequestsTable({
                         String(item.clientId)
                       )}&highlightClientId=${item.clientId}`}
                     >
-                      Клиент #{item.clientId}
+                      {"\u041a\u043b\u0438\u0435\u043d\u0442"} #{item.clientId}
                     </Link>
                   </div>
                 ) : null}

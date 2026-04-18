@@ -1,7 +1,6 @@
+import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmSessionRecord } from "../../../types/session";
-
-import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import styles from "./NotesPage.module.css";
 
 type NotesFiltersProps = {
@@ -36,7 +35,7 @@ export function NotesFilters({
         }
         className={`${styles.input} ${styles.filterSelect}`}
       >
-        <option value="all">все клиенты</option>
+        <option value="all">Все клиенты</option>
         {clients.map((client) => (
           <option key={client.id} value={client.id}>
             {client.name}
@@ -54,11 +53,11 @@ export function NotesFilters({
         className={`${styles.input} ${styles.filterSelect}`}
       >
         <option value="all">
-          {clientFilter === "all" ? "все сессии" : "все сессии клиента"}
+          {clientFilter === "all" ? "Все сессии" : "Все сессии клиента"}
         </option>
         {sessions.map((session) => (
           <option key={session.id} value={session.id}>
-            #{session.id} — {session.clientName}
+            #{session.id} - {session.clientName}
           </option>
         ))}
       </select>

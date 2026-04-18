@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import type { CrmNoteRecord } from "../../../types/note";
+import styles from "./NotesPage.module.css";
 
 type NotesTableProps = {
   items: CrmNoteRecord[];
@@ -21,19 +22,21 @@ export function NotesTable({
     <AdminTable>
       <thead>
         <tr>
-          <th>ID</th>
+          <th className={styles.idCell}>ID</th>
           <th>Клиент</th>
           <th>Сессия</th>
           <th>Услуга</th>
           <th>Текст заметки</th>
           <th>Создана</th>
-          <th style={{ textAlign: "right" }}>Действия</th>
+          <th className={styles.actionCell}>Действия</th>
         </tr>
       </thead>
       <tbody>
         {items.map((item) => (
           <tr key={item.id}>
-            <td>{item.id}</td>
+            <td className={styles.idCell}>
+              <span className={styles.idBadge}>{item.id}</span>
+            </td>
             <td>
               <Link
                 to={`/admin/clients?search=${encodeURIComponent(
@@ -59,15 +62,8 @@ export function NotesTable({
             <td>{item.sessionServiceTitle || "-"}</td>
             <td>{item.content}</td>
             <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
-            <td style={{ textAlign: "right" }}>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "8px",
-                  flexWrap: "wrap",
-                  justifyContent: "flex-end",
-                }}
-              >
+            <td className={styles.actionCell}>
+              <div className={styles.actionsRow}>
                 <AdminButton
                   type="button"
                   variant="secondary"

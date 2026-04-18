@@ -1,7 +1,6 @@
+import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import type { CrmClientRecord } from "../../../types/client";
 import type { SessionStatus } from "../../../types/session";
-
-import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import { sessionStatuses } from "../../../types/session";
 import { sessionStatusLabels } from "./sessionForm";
 import styles from "./SessionsPage.module.css";
@@ -36,7 +35,7 @@ export function SessionsFilters({
         }
         className={`${styles.input} ${styles.filterSelect}`}
       >
-        <option value="all">все клиенты</option>
+        <option value="all">Все клиенты</option>
         {clients.map((client) => (
           <option key={client.id} value={client.id}>
             {client.name}
@@ -51,7 +50,7 @@ export function SessionsFilters({
         }
         className={`${styles.input} ${styles.filterSelect}`}
       >
-        <option value="all">все статусы</option>
+        <option value="all">Все статусы</option>
         {sessionStatuses.map((status) => (
           <option key={status} value={status}>
             {sessionStatusLabels[status]}

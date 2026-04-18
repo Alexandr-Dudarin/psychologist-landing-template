@@ -6,14 +6,14 @@ import {
   createManualClient,
   getAdminClients,
 } from "../../../lib/api/adminClients";
+import { AdminButton } from "../../../components/admin/AdminButton";
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import type {
   ClientStatus,
   CreateManualClientPayload,
   CrmClientRecord,
 } from "../../../types/client";
 import { clientStatuses } from "../../../types/client";
-import { AdminButton } from "../../../components/admin/AdminButton";
-import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { ClientCreateForm } from "./ClientCreateForm";
 import { ClientsFilters } from "./ClientsFilters";
 import { ClientsTable } from "./ClientsTable";
@@ -21,8 +21,8 @@ import { initialForm, type ManualClientForm } from "./clientForm";
 import styles from "./ClientsPage.module.css";
 
 const clientSourceLabels: Record<string, string> = {
-  manual: "Вручную",
-  website: "Сайт",
+  manual: "\u0412\u0440\u0443\u0447\u043d\u0443\u044e",
+  website: "\u0421\u0430\u0439\u0442",
 };
 
 export function ClientsPage() {
@@ -210,16 +210,18 @@ export function ClientsPage() {
       {hasQuickViewState ? (
         <div className={styles.quickViewBanner}>
           <div className={styles.quickViewText}>
-            <div className={styles.quickViewTitle}>Режим быстрого перехода</div>
+            <div className={styles.quickViewTitle}>
+              {"\u0420\u0435\u0436\u0438\u043c\u0020\u0431\u044b\u0441\u0442\u0440\u043e\u0433\u043e\u0020\u043f\u0435\u0440\u0435\u0445\u043e\u0434\u0430"}
+            </div>
             <div className={styles.quickViewList}>
               {highlightedClientId !== null ? (
                 <span className={styles.quickViewChip}>
-                  Клиент #{highlightedClientId}
+                  {"\u041a\u043b\u0438\u0435\u043d\u0442"} #{highlightedClientId}
                 </span>
               ) : null}
               {searchQuery.trim() ? (
                 <span className={styles.quickViewChip}>
-                  Поиск: {searchQuery.trim()}
+                  {"\u041f\u043e\u0438\u0441\u043a\u003a"} {searchQuery.trim()}
                 </span>
               ) : null}
             </div>
@@ -231,7 +233,7 @@ export function ClientsPage() {
               variant="secondary"
               onClick={handleResetView}
             >
-              Показать всех клиентов
+              {"\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c\u0020\u0432\u0441\u0435\u0445\u0020\u043a\u043b\u0438\u0435\u043d\u0442\u043e\u0432"}
             </AdminButton>
           </div>
         </div>

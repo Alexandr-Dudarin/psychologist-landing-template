@@ -4,8 +4,8 @@ import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmSessionRecord } from "../../../types/session";
-import styles from "./NotesPage.module.css";
 import { formatSessionLabel, type NoteForm } from "./noteForm";
+import styles from "./NotesPage.module.css";
 
 type NoteEditFormProps = {
   availableSessions: CrmSessionRecord[];
@@ -34,12 +34,10 @@ export function NoteEditForm({
           onChange={(event) => onChange("clientId", event.target.value)}
           className={styles.input}
         >
-          <option value="">
-            {"Выберите клиента"}
-          </option>
+          <option value="">Выберите клиента</option>
           {clients.map((client) => (
             <option key={client.id} value={client.id}>
-              {client.name} {"—"} {client.phone || client.email || client.id}
+              {client.name} - {client.phone || client.email || client.id}
             </option>
           ))}
         </select>
@@ -50,9 +48,7 @@ export function NoteEditForm({
           className={styles.input}
           disabled={!form.clientId}
         >
-          <option value="">
-            {"Без привязки к сессии"}
-          </option>
+          <option value="">Без привязки к сессии</option>
           {availableSessions.map((session) => (
             <option key={session.id} value={session.id}>
               {formatSessionLabel(session)}
@@ -69,13 +65,11 @@ export function NoteEditForm({
 
         <div className={styles.buttonRow}>
           <AdminButton type="submit" disabled={isUpdating} variant="primary">
-            {isUpdating
-              ? "Сохранение..."
-              : "Сохранить изменения"}
+            {isUpdating ? "Сохранение..." : "Сохранить изменения"}
           </AdminButton>
 
           <AdminButton type="button" onClick={onCancel} variant="secondary">
-            {"Отменить"}
+            Отменить
           </AdminButton>
         </div>
       </form>

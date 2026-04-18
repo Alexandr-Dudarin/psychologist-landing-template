@@ -4,8 +4,8 @@ import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmSessionRecord } from "../../../types/session";
-import styles from "./NotesPage.module.css";
 import { formatSessionLabel, type NoteForm } from "./noteForm";
+import styles from "./NotesPage.module.css";
 
 type NoteCreateFormProps = {
   availableSessions: CrmSessionRecord[];
@@ -32,12 +32,10 @@ export function NoteCreateForm({
           onChange={(event) => onChange("clientId", event.target.value)}
           className={styles.input}
         >
-          <option value="">
-            {"Выберите клиента"}
-          </option>
+          <option value="">Выберите клиента</option>
           {clients.map((client) => (
             <option key={client.id} value={client.id}>
-              {client.name} {"—"} {client.phone || client.email || client.id}
+              {client.name} - {client.phone || client.email || client.id}
             </option>
           ))}
         </select>
@@ -48,9 +46,7 @@ export function NoteCreateForm({
           className={styles.input}
           disabled={!form.clientId}
         >
-          <option value="">
-            {"Без привязки к сессии"}
-          </option>
+          <option value="">Без привязки к сессии</option>
           {availableSessions.map((session) => (
             <option key={session.id} value={session.id}>
               {formatSessionLabel(session)}
@@ -67,9 +63,7 @@ export function NoteCreateForm({
 
         <div>
           <AdminButton type="submit" disabled={isCreating} variant="primary">
-            {isCreating
-              ? "Создание..."
-              : "Создать заметку"}
+            {isCreating ? "Создание..." : "Создать заметку"}
           </AdminButton>
         </div>
       </form>

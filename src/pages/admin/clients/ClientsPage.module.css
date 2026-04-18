@@ -1,14 +1,9 @@
-.pageTitle {
-  margin: 0 0 24px;
-}
-
 .formSection {
   margin-bottom: 24px;
 }
 
 .form {
-  display: grid;
-  gap: 12px;
+  composes: sectionForm from "../../../components/admin/adminUi.module.css";
   max-width: 640px;
 }
 
@@ -18,149 +13,80 @@
   gap: 8px;
 }
 
-.input,
-.textarea,
-.select {
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font: inherit;
-  background: #fff;
-}
-
-.input,
-.textarea {
+.input {
+  composes: controlBase from "../../../components/admin/adminUi.module.css";
   width: 100%;
 }
 
+.textarea {
+  composes: controlTextArea from "../../../components/admin/adminUi.module.css";
+}
+
 .select {
-  width: auto;
-  min-width: 220px;
-  max-width: 260px;
-  flex: 0 0 220px;
+  composes: controlSelect from "../../../components/admin/adminUi.module.css";
 }
 
 .searchInput {
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font: inherit;
-  background: #fff;
-  width: auto;
-  min-width: 320px;
-  max-width: 420px;
-  flex: 1 1 320px;
-}
-
-.textarea {
-  min-height: 120px;
-  resize: vertical;
+  composes: controlSearch from "../../../components/admin/adminUi.module.css";
 }
 
 .buttonRow {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.button {
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background: #fff;
-  cursor: pointer;
-  font: inherit;
-}
-
-.button:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
+  composes: buttonRow from "../../../components/admin/adminUi.module.css";
 }
 
 .success {
-  color: #2e8b57;
+  color: var(--admin-success);
 }
 
 .error {
-  color: #d96b6b;
+  color: var(--admin-danger);
 }
 
 .empty {
   margin-top: 16px;
-  color: #666;
+  color: var(--admin-text-muted);
 }
 
-.highlightedRow td {
-  background: #fff0b8 !important;
-}
-
-.highlightedRow td:first-child {
-  border-left: 4px solid #d6a700;
-}
-
-.highlightedRow td:last-child {
-  border-right: 1px solid transparent;
+.highlightedRow {
+  composes: rowHighlighted from "../../../components/admin/adminUi.module.css";
 }
 
 .quickViewBanner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin: 0 0 16px;
-  padding: 14px 16px;
-  border: 1px solid #e8dfc9;
-  border-radius: 12px;
-  background: #faf7ef;
+  composes: quickViewBanner from "../../../components/admin/adminUi.module.css";
 }
 
 .quickViewText {
-  display: grid;
-  gap: 8px;
+  composes: quickViewText from "../../../components/admin/adminUi.module.css";
 }
 
 .quickViewTitle {
-  font-weight: 700;
+  composes: quickViewTitle from "../../../components/admin/adminUi.module.css";
 }
 
 .quickViewList {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  composes: quickViewList from "../../../components/admin/adminUi.module.css";
 }
 
 .quickViewChip {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #fff;
-  border: 1px solid #ddd4bf;
-  font-size: 0.95rem;
+  composes: quickViewChip from "../../../components/admin/adminUi.module.css";
 }
 
 .quickViewActions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  composes: quickViewActions from "../../../components/admin/adminUi.module.css";
 }
 
-.tableWrap {
-  overflow-x: auto;
+.idCell {
+  composes: idCell from "../../../components/admin/adminUi.module.css";
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
+.idBadge {
+  composes: idBadge from "../../../components/admin/adminUi.module.css";
 }
 
-.table th,
-.table td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #eee;
-  vertical-align: top;
+.secondaryText {
+  composes: secondaryText from "../../../components/admin/adminUi.module.css";
 }
 
-.table th {
-  font-weight: 700;
+.linkStack {
+  composes: linkStack from "../../../components/admin/adminUi.module.css";
 }

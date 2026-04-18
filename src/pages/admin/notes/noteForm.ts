@@ -19,5 +19,5 @@ export const initialEditForm: NoteForm = {
 };
 
 export function formatSessionLabel(session: CrmSessionRecord) {
-  return `${new Date(session.scheduledAt).toLocaleString("ru-RU")} — ${session.serviceTitle}`;
+  return `${new Date(session.scheduledAt).toLocaleString("ru-RU")} - ${session.serviceTitle}`;
 }

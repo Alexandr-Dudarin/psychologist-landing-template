@@ -7,10 +7,10 @@ import {
   getAdminRequests,
   updateAdminRequestStatus,
 } from "../../../lib/api/adminRequests";
-import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
-import { requestStatuses } from "../../../types/request";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
+import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
+import { requestStatuses } from "../../../types/request";
 import { RequestsFilters } from "./RequestsFilters";
 import { RequestsTable } from "./RequestsTable";
 import styles from "./RequestsPage.module.css";
@@ -144,8 +144,8 @@ export function RequestsPage() {
 
       setSuccessMessage(
         result.alreadyExisted
-          ? `Заявка привязана к существующему клиенту #${result.item.id}.`
-          : `Клиент #${result.item.id} создан из заявки.`
+          ? `\u0417\u0430\u044f\u0432\u043a\u0430\u0020\u043f\u0440\u0438\u0432\u044f\u0437\u0430\u043d\u0430\u0020\u043a\u0020\u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u044e\u0449\u0435\u043c\u0443\u0020\u043a\u043b\u0438\u0435\u043d\u0442\u0443\u0020\u0023${result.item.id}.`
+          : `\u041a\u043b\u0438\u0435\u043d\u0442\u0020\u0023${result.item.id}\u0020\u0441\u043e\u0437\u0434\u0430\u043d\u0020\u0438\u0437\u0020\u0437\u0430\u044f\u0432\u043a\u0438.`
       );
     } catch (createError) {
       setError(
@@ -190,16 +190,18 @@ export function RequestsPage() {
       {hasQuickViewState ? (
         <div className={styles.quickViewBanner}>
           <div className={styles.quickViewText}>
-            <div className={styles.quickViewTitle}>Режим быстрого перехода</div>
+            <div className={styles.quickViewTitle}>
+              {"\u0420\u0435\u0436\u0438\u043c\u0020\u0431\u044b\u0441\u0442\u0440\u043e\u0433\u043e\u0020\u043f\u0435\u0440\u0435\u0445\u043e\u0434\u0430"}
+            </div>
             <div className={styles.quickViewList}>
               {highlightedRequestId !== null ? (
                 <span className={styles.quickViewChip}>
-                  Заявка #{highlightedRequestId}
+                  {"\u0417\u0430\u044f\u0432\u043a\u0430"} #{highlightedRequestId}
                 </span>
               ) : null}
               {searchQuery.trim() ? (
                 <span className={styles.quickViewChip}>
-                  Поиск: {searchQuery.trim()}
+                  {"\u041f\u043e\u0438\u0441\u043a\u003a"} {searchQuery.trim()}
                 </span>
               ) : null}
             </div>
@@ -211,7 +213,7 @@ export function RequestsPage() {
               variant="secondary"
               onClick={handleResetView}
             >
-              Показать все заявки
+              {"\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c\u0020\u0432\u0441\u0435\u0020\u0437\u0430\u044f\u0432\u043a\u0438"}
             </AdminButton>
           </div>
         </div>

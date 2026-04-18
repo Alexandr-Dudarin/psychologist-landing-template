@@ -21,16 +21,16 @@ import type {
 } from "../../../types/session";
 import { SessionCreateForm } from "./SessionCreateForm";
 import { SessionEditForm } from "./SessionEditForm";
-import { SessionsFilters } from "./SessionsFilters";
-import { SessionsTable } from "./SessionsTable";
 import {
   initialCreateForm,
   initialEditForm,
   isPastDateTimeLocal,
-  type SessionForm,
   toDateTimeLocalValue,
+  type SessionForm,
 } from "./sessionForm";
+import { SessionsFilters } from "./SessionsFilters";
 import styles from "./SessionsPage.module.css";
+import { SessionsTable } from "./SessionsTable";
 
 export function SessionsPage() {
   const navigate = useNavigate();
@@ -435,7 +435,7 @@ export function SessionsPage() {
 
   return (
     <main>
-      <h1>{"Сессии"}</h1>
+      <h1>Сессии</h1>
 
       {hasQuickViewState ? (
         <div className={styles.quickViewBanner}>

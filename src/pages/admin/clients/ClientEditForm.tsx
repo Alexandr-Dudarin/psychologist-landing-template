@@ -24,13 +24,13 @@ export function ClientEditForm({
   statusOptions,
 }: ClientEditFormProps) {
   return (
-    <AdminSection title="Редактирование клиента">
+    <AdminSection title="\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435\u0020\u043a\u043b\u0438\u0435\u043d\u0442\u0430">
       <form onSubmit={onSubmit} className={styles.form}>
         <input
           type="text"
           value={form.name}
           onChange={(event) => onChange("name", event.target.value)}
-          placeholder="Имя клиента"
+          placeholder="\u0418\u043c\u044f\u0020\u043a\u043b\u0438\u0435\u043d\u0442\u0430"
           className={styles.input}
         />
 
@@ -38,7 +38,7 @@ export function ClientEditForm({
           type="text"
           value={form.phone}
           onChange={(event) => onChange("phone", event.target.value)}
-          placeholder="Телефон"
+          placeholder="\u0422\u0435\u043b\u0435\u0444\u043e\u043d"
           className={styles.input}
         />
 
@@ -54,7 +54,7 @@ export function ClientEditForm({
           type="text"
           value={form.source}
           onChange={(event) => onChange("source", event.target.value)}
-          placeholder="Источник"
+          placeholder="\u0418\u0441\u0442\u043e\u0447\u043d\u0438\u043a"
           className={styles.input}
         />
 
@@ -72,7 +72,9 @@ export function ClientEditForm({
 
         <div className={styles.buttonRow}>
           <AdminButton type="submit" disabled={isUpdating} variant="primary">
-            {isUpdating ? "Сохранение..." : "Сохранить изменения"}
+            {isUpdating
+              ? "\u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435\u002e\u002e\u002e"
+              : "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c\u0020\u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f"}
           </AdminButton>
 
           <AdminButton
@@ -81,7 +83,7 @@ export function ClientEditForm({
             disabled={isUpdating}
             variant="secondary"
           >
-            Отменить
+            {"\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c"}
           </AdminButton>
         </div>
       </form>
