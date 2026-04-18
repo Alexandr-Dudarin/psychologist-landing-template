@@ -3,6 +3,8 @@ import type {
   ScheduleOverrideRecord,
   ScheduleRuleRecord,
   UpdateAdminSchedulePayload,
+  UpdateBlockedSlotPayload,
+  UpdateScheduleOverridePayload,
 } from "../../../types/schedule";
 
 import {
@@ -20,21 +22,6 @@ import {
 type AdminScheduleData = Awaited<
   ReturnType<typeof import("../../../lib/api/adminSchedule").getAdminSchedule>
 >;
-
-export type BuiltOverridePayload = {
-  date: string;
-  isWorkingDay: boolean;
-  startTime: string | null;
-  endTime: string | null;
-  note: string;
-};
-
-export type BuiltBlockedSlotPayload = {
-  blockedDate: string;
-  startTime: string;
-  endTime: string;
-  reason: string;
-};
 
 export function getTodayLocalDateString(): string {
   const now = new Date();
@@ -83,7 +70,7 @@ export function buildUpdateSchedulePayload(
 
 export function buildOverridePayload(
   overrideForm: OverrideForm
-): BuiltOverridePayload {
+): Omit<UpdateScheduleOverridePayload, "originalDate"> {
   return {
     date: normalizeDateOnly(overrideForm.date),
     isWorkingDay: overrideForm.isWorkingDay,
@@ -99,7 +86,7 @@ export function buildOverridePayload(
 
 export function buildBlockedSlotPayload(
   blockedSlotForm: BlockedSlotForm
-): BuiltBlockedSlotPayload {
+): Omit<UpdateBlockedSlotPayload, "id"> {
   return {
     blockedDate: normalizeDateOnly(blockedSlotForm.blockedDate),
     startTime: blockedSlotForm.startTime ?? "",

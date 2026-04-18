@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { getAdminClients } from "../../../lib/api/adminClients";
 import {
   createAdminNote,
@@ -9,24 +10,32 @@ import {
   updateAdminNote,
 } from "../../../lib/api/adminNotes";
 import { getAdminSessions } from "../../../lib/api/adminSessions";
-import { AdminButton } from "../../../components/admin/AdminButton";
-import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import type { CrmClientRecord } from "../../../types/client";
-import type {
-  CreateNotePayload,
-  CrmNoteRecord,
-  UpdateNotePayload,
-} from "../../../types/note";
+import type { CrmNoteRecord } from "../../../types/note";
 import type { CrmSessionRecord } from "../../../types/session";
 import { NoteCreateForm } from "./NoteCreateForm";
 import { NoteEditForm } from "./NoteEditForm";
+import {
+  buildCreateNotePayload,
+  buildUpdateNotePayload,
+  getEditFormFromNote,
+  validateNotePayload,
+} from "./noteMutations";
 import {
   initialCreateForm,
   initialEditForm,
   type NoteForm,
 } from "./noteForm";
 import { NotesFilters } from "./NotesFilters";
-import styles from "./NotesPage.module.css";
+import {
+  getFilterValueFromSearchParam,
+  getNextNoteFormState,
+  getSessionsForClient,
+  hasActiveQuickViewState,
+  shouldResetSessionFilter,
+  type NotesPageFilterValue,
+} from "./notesPageHelpers";
+import { NotesQuickViewBanner } from "./NotesQuickViewBanner";
 import { NotesTable } from "./NotesTable";
 
 export function NotesPage() {
@@ -41,40 +50,20 @@ export function NotesPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [clientFilter, setClientFilter] = useState<number | "all">("all");
-  const [sessionFilter, setSessionFilter] = useState<number | "all">("all");
+  const [clientFilter, setClientFilter] =
+    useState<NotesPageFilterValue>("all");
+  const [sessionFilter, setSessionFilter] =
+    useState<NotesPageFilterValue>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [createForm, setCreateForm] = useState<NoteForm>(initialCreateForm);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<NoteForm>(initialEditForm);
 
   useEffect(() => {
-    const clientIdFromUrl = searchParams.get("clientId");
-    const sessionIdFromUrl = searchParams.get("sessionId");
-
-    if (clientIdFromUrl !== null) {
-      const parsedClientId = Number(clientIdFromUrl);
-
-      setClientFilter(
-        Number.isInteger(parsedClientId) && parsedClientId > 0
-          ? parsedClientId
-          : "all"
-      );
-    } else {
-      setClientFilter("all");
-    }
-
-    if (sessionIdFromUrl !== null) {
-      const parsedSessionId = Number(sessionIdFromUrl);
-
-      setSessionFilter(
-        Number.isInteger(parsedSessionId) && parsedSessionId > 0
-          ? parsedSessionId
-          : "all"
-      );
-    } else {
-      setSessionFilter("all");
-    }
+    setClientFilter(getFilterValueFromSearchParam(searchParams.get("clientId")));
+    setSessionFilter(
+      getFilterValueFromSearchParam(searchParams.get("sessionId"))
+    );
   }, [searchParams]);
 
   useEffect(() => {
@@ -125,55 +114,27 @@ export function NotesPage() {
   }, [clientFilter, sessionFilter, searchQuery]);
 
   const availableFilterSessions = useMemo(() => {
-    if (clientFilter === "all") {
-      return sessions;
-    }
-
-    return sessions.filter(
-      (session) => Number(session.clientId) === Number(clientFilter)
-    );
+    return getSessionsForClient(sessions, clientFilter);
   }, [clientFilter, sessions]);
 
   useEffect(() => {
-    if (sessionFilter === "all") {
-      return;
-    }
-
-    if (isLoading) {
-      return;
-    }
-
-    if (availableFilterSessions.length === 0) {
-      return;
-    }
-
-    const sessionStillAvailable = availableFilterSessions.some(
-      (session) => Number(session.id) === Number(sessionFilter)
-    );
-
-    if (!sessionStillAvailable) {
+    if (
+      shouldResetSessionFilter(
+        sessionFilter,
+        availableFilterSessions,
+        isLoading
+      )
+    ) {
       setSessionFilter("all");
     }
   }, [sessionFilter, availableFilterSessions, isLoading]);
 
   const availableCreateSessions = useMemo(() => {
-    if (!createForm.clientId) {
-      return [];
-    }
-
-    return sessions.filter(
-      (session) => Number(session.clientId) === Number(createForm.clientId)
-    );
+    return getSessionsForClient(sessions, createForm.clientId);
   }, [createForm.clientId, sessions]);
 
   const availableEditSessions = useMemo(() => {
-    if (!editForm.clientId) {
-      return [];
-    }
-
-    return sessions.filter(
-      (session) => Number(session.clientId) === Number(editForm.clientId)
-    );
+    return getSessionsForClient(sessions, editForm.clientId);
   }, [editForm.clientId, sessions]);
 
   const resetMessages = () => {
@@ -196,65 +157,33 @@ export function NotesPage() {
     setItems(notesData);
   };
 
-  const handleClientFilterChange = (value: number | "all") => {
+  const handleClientFilterChange = (value: NotesPageFilterValue) => {
     setClientFilter(value);
     setSessionFilter("all");
   };
 
-  const handleSessionFilterChange = (value: number | "all") => {
+  const handleSessionFilterChange = (value: NotesPageFilterValue) => {
     setSessionFilter(value);
   };
 
   const handleCreateFormChange = (field: keyof NoteForm, value: string) => {
-    if (field === "clientId") {
-      setCreateForm((prev) => ({
-        ...prev,
-        clientId: value,
-        sessionId: "",
-      }));
-    } else {
-      setCreateForm((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    }
-
+    setCreateForm((prev) => getNextNoteFormState(prev, field, value));
     resetMessages();
   };
 
   const handleEditFormChange = (field: keyof NoteForm, value: string) => {
-    if (field === "clientId") {
-      setEditForm((prev) => ({
-        ...prev,
-        clientId: value,
-        sessionId: "",
-      }));
-    } else {
-      setEditForm((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    }
-
+    setEditForm((prev) => getNextNoteFormState(prev, field, value));
     resetMessages();
   };
 
   const handleCreateNote = async (event: FormEvent) => {
     event.preventDefault();
 
-    const payload: CreateNotePayload = {
-      clientId: Number(createForm.clientId),
-      sessionId: createForm.sessionId ? Number(createForm.sessionId) : null,
-      content: createForm.content.trim(),
-    };
+    const payload = buildCreateNotePayload(createForm);
+    const validationError = validateNotePayload(payload);
 
-    if (!Number.isInteger(payload.clientId) || payload.clientId <= 0) {
-      setError("Выберите клиента.");
-      return;
-    }
-
-    if (!payload.content) {
-      setError("Текст заметки обязателен.");
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -280,11 +209,7 @@ export function NotesPage() {
 
   const startEditing = (note: CrmNoteRecord) => {
     setEditingNoteId(note.id);
-    setEditForm({
-      clientId: String(note.clientId),
-      sessionId: note.sessionId ? String(note.sessionId) : "",
-      content: note.content,
-    });
+    setEditForm(getEditFormFromNote(note));
     setError("");
     setSuccessMessage("");
   };
@@ -301,20 +226,11 @@ export function NotesPage() {
       return;
     }
 
-    const payload: UpdateNotePayload = {
-      id: editingNoteId,
-      clientId: Number(editForm.clientId),
-      sessionId: editForm.sessionId ? Number(editForm.sessionId) : null,
-      content: editForm.content.trim(),
-    };
+    const payload = buildUpdateNotePayload(editingNoteId, editForm);
+    const validationError = validateNotePayload(payload);
 
-    if (!Number.isInteger(payload.clientId) || payload.clientId <= 0) {
-      setError("Выберите клиента.");
-      return;
-    }
-
-    if (!payload.content) {
-      setError("Текст заметки обязателен.");
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -378,48 +294,23 @@ export function NotesPage() {
     navigate("/admin/notes");
   };
 
-  const hasQuickViewState =
-    clientFilter !== "all" ||
-    sessionFilter !== "all" ||
-    searchQuery.trim().length > 0;
+  const hasQuickViewState = hasActiveQuickViewState({
+    clientFilter,
+    sessionFilter,
+    searchQuery,
+  });
 
   return (
     <main>
       <h1>Заметки</h1>
 
       {hasQuickViewState ? (
-        <div className={styles.quickViewBanner}>
-          <div className={styles.quickViewText}>
-            <div className={styles.quickViewTitle}>Режим быстрого перехода</div>
-            <div className={styles.quickViewList}>
-              {clientFilter !== "all" ? (
-                <span className={styles.quickViewChip}>
-                  Клиент #{clientFilter}
-                </span>
-              ) : null}
-              {sessionFilter !== "all" ? (
-                <span className={styles.quickViewChip}>
-                  Сессия #{sessionFilter}
-                </span>
-              ) : null}
-              {searchQuery.trim() ? (
-                <span className={styles.quickViewChip}>
-                  Поиск: {searchQuery.trim()}
-                </span>
-              ) : null}
-            </div>
-          </div>
-
-          <div className={styles.quickViewActions}>
-            <AdminButton
-              type="button"
-              variant="secondary"
-              onClick={handleResetView}
-            >
-              Показать все заметки
-            </AdminButton>
-          </div>
-        </div>
+        <NotesQuickViewBanner
+          clientFilter={clientFilter}
+          sessionFilter={sessionFilter}
+          searchQuery={searchQuery}
+          onReset={handleResetView}
+        />
       ) : null}
 
       <NoteCreateForm

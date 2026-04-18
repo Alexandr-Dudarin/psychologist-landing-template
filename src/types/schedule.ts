@@ -49,9 +49,26 @@ export type CreateScheduleOverridePayload = {
   note?: string;
 };
 
+export type UpdateScheduleOverridePayload = {
+  originalDate: string;
+  date: string;
+  isWorkingDay: boolean;
+  startTime: string | null;
+  endTime: string | null;
+  note: string;
+};
+
 export type CreateBlockedSlotPayload = {
   blockedDate: string;
   startTime: string;
   endTime: string;
   reason?: string;
+};
+
+export type UpdateBlockedSlotPayload = {
+  id: number;
+  blockedDate: string;
+  startTime: string;
+  endTime: string;
+  reason: string;
 };
