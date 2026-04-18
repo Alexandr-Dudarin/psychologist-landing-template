@@ -61,6 +61,7 @@ export function ClientsTable({
           <th>{sourceLabel}</th>
           <th>{statusLabel}</th>
           <th>{firstRequestLabel}</th>
+          <th>Связи</th>
         </tr>
       </thead>
       <tbody>
@@ -94,6 +95,24 @@ export function ClientsTable({
                 ) : (
                   "-"
                 )}
+              </td>
+              <td>
+                <div style={{ display: "grid", gap: "6px" }}>
+                  <Link
+                    to={`/admin/sessions?clientId=${encodeURIComponent(
+                      String(item.id)
+                    )}`}
+                  >
+                    Сессии
+                  </Link>
+                  <Link
+                    to={`/admin/notes?clientId=${encodeURIComponent(
+                      String(item.id)
+                    )}`}
+                  >
+                    Заметки
+                  </Link>
+                </div>
               </td>
             </tr>
           );

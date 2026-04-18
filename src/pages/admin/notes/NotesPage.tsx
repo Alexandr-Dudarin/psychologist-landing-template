@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { getAdminClients } from "../../../lib/api/adminClients";
 import {
@@ -27,6 +28,7 @@ import {
 } from "./noteForm";
 
 export function NotesPage() {
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmNoteRecord[]>([]);
   const [clients, setClients] = useState<CrmClientRecord[]>([]);
   const [sessions, setSessions] = useState<CrmSessionRecord[]>([]);
@@ -41,6 +43,20 @@ export function NotesPage() {
   const [createForm, setCreateForm] = useState<NoteForm>(initialCreateForm);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<NoteForm>(initialEditForm);
+
+  useEffect(() => {
+    const clientIdFromUrl = searchParams.get("clientId");
+
+    if (clientIdFromUrl !== null) {
+      const parsedClientId = Number(clientIdFromUrl);
+
+      setClientFilter(
+        Number.isInteger(parsedClientId) && parsedClientId > 0
+          ? parsedClientId
+          : "all"
+      );
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     let isMounted = true;
@@ -94,7 +110,7 @@ export function NotesPage() {
     }
 
     return sessions.filter(
-      (session) => session.clientId === Number(createForm.clientId)
+      (session) => Number(session.clientId) === Number(createForm.clientId)
     );
   }, [createForm.clientId, sessions]);
 
@@ -104,7 +120,7 @@ export function NotesPage() {
     }
 
     return sessions.filter(
-      (session) => session.clientId === Number(editForm.clientId)
+      (session) => Number(session.clientId) === Number(editForm.clientId)
     );
   }, [editForm.clientId, sessions]);
 
@@ -204,7 +220,7 @@ export function NotesPage() {
     setEditingNoteId(note.id);
     setEditForm({
       clientId: String(note.clientId),
-      sessionId: note.sessionId === null ? "" : String(note.sessionId),
+      sessionId: note.sessionId ? String(note.sessionId) : "",
       content: note.content,
     });
     setError("");
@@ -229,11 +245,6 @@ export function NotesPage() {
       sessionId: editForm.sessionId ? Number(editForm.sessionId) : null,
       content: editForm.content.trim(),
     };
-
-    if (!Number.isInteger(payload.id) || payload.id <= 0) {
-      setError("Некорректная заметка.");
-      return;
-    }
 
     if (!Number.isInteger(payload.clientId) || payload.clientId <= 0) {
       setError("Выберите клиента.");
@@ -301,6 +312,12 @@ export function NotesPage() {
   return (
     <main>
       <h1>Заметки</h1>
+
+      {clientFilter !== "all" ? (
+        <p className="admin-muted-text">
+          Открыт быстрый переход к заметкам клиента #{clientFilter}.
+        </p>
+      ) : null}
 
       <NoteCreateForm
         clients={clients}

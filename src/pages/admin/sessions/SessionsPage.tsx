@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { getAdminClients } from "../../../lib/api/adminClients";
 import { getAdminServices } from "../../../lib/api/adminServices";
@@ -30,6 +31,7 @@ import {
 } from "./sessionForm";
 
 export function SessionsPage() {
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmSessionRecord[]>([]);
   const [clients, setClients] = useState<CrmClientRecord[]>([]);
   const [services, setServices] = useState<CrmServiceRecord[]>([]);
@@ -40,6 +42,7 @@ export function SessionsPage() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [statusFilter, setStatusFilter] = useState<SessionStatus | "all">("all");
+  const [clientFilter, setClientFilter] = useState<number | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [createForm, setCreateForm] = useState<SessionForm>(initialCreateForm);
   const [editingSessionId, setEditingSessionId] = useState<number | null>(null);
@@ -49,6 +52,20 @@ export function SessionsPage() {
     () => services.filter((service) => service.isActive),
     [services]
   );
+
+  useEffect(() => {
+    const clientIdFromUrl = searchParams.get("clientId");
+
+    if (clientIdFromUrl !== null) {
+      const parsedClientId = Number(clientIdFromUrl);
+
+      setClientFilter(
+        Number.isInteger(parsedClientId) && parsedClientId > 0
+          ? parsedClientId
+          : "all"
+      );
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     let isMounted = true;
@@ -63,6 +80,7 @@ export function SessionsPage() {
         const [sessionsData, clientsData, servicesData] = await Promise.all([
           getAdminSessions({
             status: statusFilter,
+            clientId: clientFilter,
             search: searchQuery,
           }),
           getAdminClients(),
@@ -94,38 +112,16 @@ export function SessionsPage() {
     return () => {
       isMounted = false;
     };
-  }, [statusFilter, searchQuery]);
+  }, [statusFilter, clientFilter, searchQuery]);
 
   const reloadSessions = async () => {
     const sessionsData = await getAdminSessions({
       status: statusFilter,
+      clientId: clientFilter,
       search: searchQuery,
     });
 
     setItems(sessionsData);
-  };
-
-  const applyServiceDefaults = (
-    prev: SessionForm,
-    serviceIdValue: string
-  ): SessionForm => {
-    const selectedService = services.find(
-      (service) => service.id === Number(serviceIdValue)
-    );
-
-    if (!selectedService) {
-      return {
-        ...prev,
-        serviceId: serviceIdValue,
-      };
-    }
-
-    return {
-      ...prev,
-      serviceId: serviceIdValue,
-      durationMinutes: String(selectedService.durationMinutes),
-      price: String(selectedService.price),
-    };
   };
 
   const handleCreateFormChange = (
@@ -133,7 +129,18 @@ export function SessionsPage() {
     value: string
   ) => {
     if (field === "serviceId") {
-      setCreateForm((prev) => applyServiceDefaults(prev, value));
+      const selectedService = services.find(
+        (service) => service.id === Number(value)
+      );
+
+      setCreateForm((prev) => ({
+        ...prev,
+        serviceId: value,
+        durationMinutes: selectedService
+          ? String(selectedService.durationMinutes)
+          : prev.durationMinutes,
+        price: selectedService ? String(selectedService.price) : prev.price,
+      }));
     } else {
       setCreateForm((prev) => ({
         ...prev,
@@ -150,12 +157,20 @@ export function SessionsPage() {
     }
   };
 
-  const handleEditFormChange = (
-    field: keyof SessionForm,
-    value: string
-  ) => {
+  const handleEditFormChange = (field: keyof SessionForm, value: string) => {
     if (field === "serviceId") {
-      setEditForm((prev) => applyServiceDefaults(prev, value));
+      const selectedService = services.find(
+        (service) => service.id === Number(value)
+      );
+
+      setEditForm((prev) => ({
+        ...prev,
+        serviceId: value,
+        durationMinutes: selectedService
+          ? String(selectedService.durationMinutes)
+          : prev.durationMinutes,
+        price: selectedService ? String(selectedService.price) : prev.price,
+      }));
     } else {
       setEditForm((prev) => ({
         ...prev,
@@ -385,6 +400,12 @@ export function SessionsPage() {
     <main>
       <h1>{"Сессии"}</h1>
 
+      {clientFilter !== "all" ? (
+        <p className="admin-muted-text">
+          Открыт быстрый переход к сессиям клиента #{clientFilter}.
+        </p>
+      ) : null}
+
       <SessionCreateForm
         clients={clients}
         activeServices={activeServices}
@@ -407,8 +428,11 @@ export function SessionsPage() {
       )}
 
       <SessionsFilters
+        clientFilter={clientFilter}
+        clients={clients}
         statusFilter={statusFilter}
         searchQuery={searchQuery}
+        onClientFilterChange={setClientFilter}
         onStatusFilterChange={setStatusFilter}
         onSearchQueryChange={setSearchQuery}
       />

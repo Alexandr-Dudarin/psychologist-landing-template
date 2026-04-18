@@ -42,6 +42,7 @@ type DeleteSessionErrorResponse = {
 
 export type AdminSessionsFilters = {
   status?: SessionStatus | "all";
+  clientId?: number | "all";
   search?: string;
 };
 
@@ -52,6 +53,10 @@ export async function getAdminSessions(
 
   if (filters.status) {
     params.set("status", filters.status);
+  }
+
+  if (filters.clientId !== undefined) {
+    params.set("clientId", String(filters.clientId));
   }
 
   if (filters.search?.trim()) {

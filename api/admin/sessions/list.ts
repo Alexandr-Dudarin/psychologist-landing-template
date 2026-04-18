@@ -1,10 +1,7 @@
 /// <reference types="node" />
 
 import { pool } from "../../../server/db/pool";
-import type {
-  CrmSessionRecord,
-  SessionStatus,
-} from "../../../src/types/session";
+import type { CrmSessionRecord, SessionStatus } from "../../../src/types/session";
 import { sessionStatuses } from "../../../src/types/session";
 
 type SessionRow = {
@@ -14,8 +11,8 @@ type SessionRow = {
   service_id: string | number;
   service_title: string;
   scheduled_at: string;
-  duration_minutes: number;
-  price: string | number;
+  duration_minutes: number | string;
+  price: number | string;
   status: string;
   notes: string;
   source: string;
@@ -44,29 +41,41 @@ export default async function handler(req: any, res: any) {
   }
 
   const status = getSingleQueryValue(req.query?.status).trim();
+  const clientIdRaw = getSingleQueryValue(req.query?.clientId).trim();
   const search = getSingleQueryValue(req.query?.search).trim();
 
   const conditions: string[] = [];
-  const values: string[] = [];
+  const values: Array<string | number> = [];
 
   if (status && status !== "all") {
     if (!sessionStatuses.includes(status as SessionStatus)) {
-      return res.status(400).json({ error: "Некорректный фильтр статуса" });
+      return res.status(400).json({ error: "Некорректный статус" });
     }
 
     values.push(status);
     conditions.push(`s.status = $${values.length}`);
   }
 
+  if (clientIdRaw && clientIdRaw !== "all") {
+    const clientId = Number(clientIdRaw);
+
+    if (!Number.isInteger(clientId) || clientId <= 0) {
+      return res.status(400).json({ error: "Некорректный клиент" });
+    }
+
+    values.push(clientId);
+    conditions.push(`s.client_id = $${values.length}`);
+  }
+
   if (search) {
     values.push(`%${search}%`);
-    const searchParamIndex = values.length;
+    const searchIndex = values.length;
 
     conditions.push(`
       (
-        c.name ILIKE $${searchParamIndex}
-        OR sv.title ILIKE $${searchParamIndex}
-        OR s.notes ILIKE $${searchParamIndex}
+        c.name ILIKE $${searchIndex}
+        OR sv.title ILIKE $${searchIndex}
+        OR s.notes ILIKE $${searchIndex}
       )
     `);
   }
