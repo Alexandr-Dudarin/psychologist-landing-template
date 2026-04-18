@@ -12,11 +12,8 @@ import {
 } from "../../../lib/api/adminSchedule";
 import type {
   BlockedSlotRecord,
-  CreateBlockedSlotPayload,
-  CreateScheduleOverridePayload,
   ScheduleOverrideRecord,
   ScheduleRuleRecord,
-  UpdateAdminSchedulePayload,
 } from "../../../types/schedule";
 import { BlockedSlotsSection } from "./BlockedSlotsSection";
 import { ScheduleOverridesSection } from "./ScheduleOverridesSection";
@@ -28,34 +25,52 @@ import {
   getScopedFeedback,
   initialBlockedSlotForm,
   initialOverrideForm,
-  mapBlockedSlotToForm,
-  mapOverrideToForm,
-  normalizeDateOnly,
   type BlockedSlotForm,
   type FeedbackState,
   type OverrideForm,
   type SettingsForm,
-  weekdayLabels,
 } from "./schedulePage.shared";
-
-function getTodayLocalDateString(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function isPastOverrideDate(date: string): boolean {
-  const normalizedDate = normalizeDateOnly(date);
-
-  if (!normalizedDate) {
-    return false;
-  }
-
-  return normalizedDate < getTodayLocalDateString();
-}
+import {
+  buildBlockedSlotEditState,
+  buildBlockedSlotPayload,
+  buildOverrideEditState,
+  buildOverridePayload,
+  buildUpdateSchedulePayload,
+  findBlockedSlotById,
+  findOverrideByDate,
+  mapScheduleDataToSettingsForm,
+  normalizeScheduleDate,
+  updateBlockedSlotFormField,
+  updateOverrideFormField,
+  updateRuleField,
+  updateSettingsCheckboxField,
+  updateSettingsTextField,
+} from "./schedulePageHelpers";
+import {
+  getBlockedSlotCreateErrorMessage,
+  getBlockedSlotCreatedMessage,
+  getBlockedSlotDeleteConfirmMessage,
+  getBlockedSlotDeleteErrorMessage,
+  getBlockedSlotDeletedMessage,
+  getBlockedSlotUpdateErrorMessage,
+  getBlockedSlotUpdatedMessage,
+  getMissingBlockedSlotMessage,
+  getMissingOverrideMessage,
+  getOverrideCreateErrorMessage,
+  getOverrideCreatedMessage,
+  getOverrideDeleteConfirmMessage,
+  getOverrideDeleteErrorMessage,
+  getOverrideDeletedMessage,
+  getOverrideUpdateErrorMessage,
+  getOverrideUpdatedMessage,
+  getScheduleLoadErrorMessage,
+  getScheduleSaveErrorMessage,
+  getScheduleSaveSuccessMessage,
+  validateBlockedSlotPayload,
+  validateOverridePayload,
+  validateScheduleSettingsPayload,
+  validateSettingsFormRequiredFields,
+} from "./schedulePageValidation";
 
 export function SchedulePage() {
   const [settingsForm, setSettingsForm] = useState<SettingsForm>(
@@ -103,12 +118,7 @@ export function SchedulePage() {
         const data = await getAdminSchedule();
 
         if (isMounted) {
-          setSettingsForm({
-            minAdvanceHours: String(data.settings.minAdvanceHours),
-            bufferMinutes: String(data.settings.bufferMinutes),
-            allowSameDayBooking: data.settings.allowSameDayBooking,
-            maxDaysAhead: String(data.settings.maxDaysAhead),
-          });
+          setSettingsForm(mapScheduleDataToSettingsForm(data));
           setRules(data.rules);
           setOverrides(data.overrides);
           setBlockedSlots(data.blockedSlots);
@@ -121,7 +131,7 @@ export function SchedulePage() {
             message:
               loadError instanceof Error
                 ? loadError.message
-                : "Не удалось загрузить расписание",
+                : getScheduleLoadErrorMessage(),
           });
         }
       } finally {
@@ -141,12 +151,7 @@ export function SchedulePage() {
   const reloadAll = async () => {
     const data = await getAdminSchedule();
 
-    setSettingsForm({
-      minAdvanceHours: String(data.settings.minAdvanceHours),
-      bufferMinutes: String(data.settings.bufferMinutes),
-      allowSameDayBooking: data.settings.allowSameDayBooking,
-      maxDaysAhead: String(data.settings.maxDaysAhead),
-    });
+    setSettingsForm(mapScheduleDataToSettingsForm(data));
     setRules(data.rules);
     setOverrides(data.overrides);
     setBlockedSlots(data.blockedSlots);
@@ -166,18 +171,12 @@ export function SchedulePage() {
     field: "minAdvanceHours" | "bufferMinutes" | "maxDaysAhead",
     value: string
   ) => {
-    setSettingsForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setSettingsForm((prev) => updateSettingsTextField(prev, field, value));
     setFeedback(null);
   };
 
   const handleSettingsCheckboxChange = (value: boolean) => {
-    setSettingsForm((prev) => ({
-      ...prev,
-      allowSameDayBooking: value,
-    }));
+    setSettingsForm((prev) => updateSettingsCheckboxField(prev, value));
     setFeedback(null);
   };
 
@@ -186,11 +185,7 @@ export function SchedulePage() {
     field: keyof ScheduleRuleRecord,
     value: string | boolean
   ) => {
-    setRules((prev) =>
-      prev.map((rule) =>
-        rule.weekday === weekday ? { ...rule, [field]: value } : rule
-      )
-    );
+    setRules((prev) => updateRuleField(prev, weekday, field, value));
     setFeedback(null);
   };
 
@@ -198,10 +193,7 @@ export function SchedulePage() {
     field: keyof OverrideForm,
     value: string | boolean
   ) => {
-    setOverrideForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setOverrideForm((prev) => updateOverrideFormField(prev, field, value));
     setFeedback(null);
   };
 
@@ -209,99 +201,34 @@ export function SchedulePage() {
     field: keyof BlockedSlotForm,
     value: string
   ) => {
-    setBlockedSlotForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setBlockedSlotForm((prev) => updateBlockedSlotFormField(prev, field, value));
     setFeedback(null);
   };
 
   const handleSaveSettings = async (event: FormEvent) => {
     event.preventDefault();
 
-    if (settingsForm.minAdvanceHours.trim() === "") {
+    const requiredFieldsError = validateSettingsFormRequiredFields(settingsForm);
+
+    if (requiredFieldsError) {
       setFeedback({
         area: "settings",
         tone: "error",
-        message: "Укажите минимум часов до записи.",
+        message: requiredFieldsError,
       });
       return;
     }
 
-    if (settingsForm.bufferMinutes.trim() === "") {
+    const payload = buildUpdateSchedulePayload(settingsForm, rules);
+    const validationError = validateScheduleSettingsPayload(payload);
+
+    if (validationError) {
       setFeedback({
         area: "settings",
         tone: "error",
-        message: "Укажите буфер между сессиями.",
+        message: validationError,
       });
       return;
-    }
-
-    if (settingsForm.maxDaysAhead.trim() === "") {
-      setFeedback({
-        area: "settings",
-        tone: "error",
-        message: "Укажите глубину записи вперёд.",
-      });
-      return;
-    }
-
-    const payload: UpdateAdminSchedulePayload = {
-      settings: {
-        minAdvanceHours: Number(settingsForm.minAdvanceHours),
-        bufferMinutes: Number(settingsForm.bufferMinutes),
-        allowSameDayBooking: settingsForm.allowSameDayBooking,
-        maxDaysAhead: Number(settingsForm.maxDaysAhead),
-      },
-      rules,
-    };
-
-    if (
-      !Number.isInteger(payload.settings.minAdvanceHours) ||
-      payload.settings.minAdvanceHours < 0
-    ) {
-      setFeedback({
-        area: "settings",
-        tone: "error",
-        message:
-          "Минимальное время до записи должно быть целым числом 0 или больше.",
-      });
-      return;
-    }
-
-    if (
-      !Number.isInteger(payload.settings.bufferMinutes) ||
-      payload.settings.bufferMinutes < 0
-    ) {
-      setFeedback({
-        area: "settings",
-        tone: "error",
-        message: "Буфер между сессиями должен быть целым числом 0 или больше.",
-      });
-      return;
-    }
-
-    if (
-      !Number.isInteger(payload.settings.maxDaysAhead) ||
-      payload.settings.maxDaysAhead <= 0
-    ) {
-      setFeedback({
-        area: "settings",
-        tone: "error",
-        message: "Глубина записи вперёд должна быть больше 0.",
-      });
-      return;
-    }
-
-    for (const rule of payload.rules) {
-      if (rule.isEnabled && rule.startTime >= rule.endTime) {
-        setFeedback({
-          area: "settings",
-          tone: "error",
-          message: `Для "${weekdayLabels[rule.weekday]}" время начала должно быть раньше времени окончания.`,
-        });
-        return;
-      }
     }
 
     setIsSaving(true);
@@ -313,7 +240,7 @@ export function SchedulePage() {
       setFeedback({
         area: "settings",
         tone: "success",
-        message: "Расписание сохранено.",
+        message: getScheduleSaveSuccessMessage(),
       });
     } catch (saveError) {
       setFeedback({
@@ -322,7 +249,7 @@ export function SchedulePage() {
         message:
           saveError instanceof Error
             ? saveError.message
-            : "Не удалось сохранить расписание",
+            : getScheduleSaveErrorMessage(),
       });
     } finally {
       setIsSaving(false);
@@ -330,21 +257,21 @@ export function SchedulePage() {
   };
 
   const handleStartEditOverride = (date: string) => {
-    const item = overrides.find(
-      (override) => normalizeDateOnly(override.date) === normalizeDateOnly(date)
-    );
+    const item = findOverrideByDate(overrides, date);
 
     if (!item) {
       setFeedback({
         area: "overrides",
         tone: "error",
-        message: "Исключение по дате не найдено.",
+        message: getMissingOverrideMessage(),
       });
       return;
     }
 
-    setEditingOverrideDate(normalizeDateOnly(item.date));
-    setOverrideForm(mapOverrideToForm(item));
+    const nextEditState = buildOverrideEditState(item);
+
+    setEditingOverrideDate(nextEditState.editingOverrideDate);
+    setOverrideForm(nextEditState.form);
     setFeedback(null);
   };
 
@@ -356,46 +283,17 @@ export function SchedulePage() {
   const handleSubmitOverride = async (event: FormEvent) => {
     event.preventDefault();
 
-    const payload: CreateScheduleOverridePayload = {
-      date: normalizeDateOnly(overrideForm.date),
-      isWorkingDay: overrideForm.isWorkingDay,
-      startTime: overrideForm.isWorkingDay ? overrideForm.startTime : null,
-      endTime: overrideForm.isWorkingDay ? overrideForm.endTime : null,
-      note: overrideForm.note.trim(),
-    };
+    const payload = buildOverridePayload(overrideForm);
+    const validationError = validateOverridePayload(
+      payload,
+      editingOverrideDate !== null
+    );
 
-    if (!payload.date) {
+    if (validationError) {
       setFeedback({
         area: "overrides",
         tone: "error",
-        message: "Укажите дату исключения.",
-      });
-      return;
-    }
-
-    if (isPastOverrideDate(payload.date)) {
-      setFeedback({
-        area: "overrides",
-        tone: "error",
-        message:
-          editingOverrideDate !== null
-            ? "Нельзя перенести исключение на прошедшую дату."
-            : "Нельзя создать исключение для прошедшей даты.",
-      });
-      return;
-    }
-
-    if (
-      payload.isWorkingDay &&
-      (!payload.startTime ||
-        !payload.endTime ||
-        payload.startTime >= payload.endTime)
-    ) {
-      setFeedback({
-        area: "overrides",
-        tone: "error",
-        message:
-          "Для рабочего дня укажите корректное время начала и окончания.",
+        message: validationError,
       });
       return;
     }
@@ -407,12 +305,8 @@ export function SchedulePage() {
         setIsUpdatingOverride(true);
 
         await updateScheduleOverride({
-          originalDate: normalizeDateOnly(editingOverrideDate),
-          date: normalizeDateOnly(overrideForm.date),
-          isWorkingDay: overrideForm.isWorkingDay,
-          startTime: overrideForm.isWorkingDay ? overrideForm.startTime : null,
-          endTime: overrideForm.isWorkingDay ? overrideForm.endTime : null,
-          note: overrideForm.note.trim(),
+          originalDate: editingOverrideDate,
+          ...payload,
         });
 
         await reloadAll();
@@ -420,7 +314,7 @@ export function SchedulePage() {
         setFeedback({
           area: "overrides",
           tone: "success",
-          message: "Исключение по дате обновлено.",
+          message: getOverrideUpdatedMessage(),
         });
       } else {
         setIsCreatingOverride(true);
@@ -431,7 +325,7 @@ export function SchedulePage() {
         setFeedback({
           area: "overrides",
           tone: "success",
-          message: "Исключение по дате сохранено.",
+          message: getOverrideCreatedMessage(),
         });
       }
     } catch (submitError) {
@@ -442,8 +336,8 @@ export function SchedulePage() {
           submitError instanceof Error
             ? submitError.message
             : editingOverrideDate
-            ? "Не удалось обновить исключение по дате"
-            : "Не удалось сохранить исключение по дате",
+            ? getOverrideUpdateErrorMessage()
+            : getOverrideCreateErrorMessage(),
       });
     } finally {
       setIsCreatingOverride(false);
@@ -452,9 +346,7 @@ export function SchedulePage() {
   };
 
   const handleDeleteOverride = async (date: string) => {
-    const confirmed = window.confirm(
-      "Удалить исключение по этой дате? Это действие нельзя отменить."
-    );
+    const confirmed = window.confirm(getOverrideDeleteConfirmMessage());
 
     if (!confirmed) {
       return;
@@ -464,12 +356,12 @@ export function SchedulePage() {
     setFeedback(null);
 
     try {
-      await deleteScheduleOverride(normalizeDateOnly(date));
+      await deleteScheduleOverride(normalizeScheduleDate(date));
       await reloadAll();
 
       if (
         editingOverrideDate &&
-        normalizeDateOnly(editingOverrideDate) === normalizeDateOnly(date)
+        normalizeScheduleDate(editingOverrideDate) === normalizeScheduleDate(date)
       ) {
         resetOverrideEditing();
       }
@@ -477,7 +369,7 @@ export function SchedulePage() {
       setFeedback({
         area: "overrides",
         tone: "success",
-        message: "Исключение по дате удалено.",
+        message: getOverrideDeletedMessage(),
       });
     } catch (deleteError) {
       setFeedback({
@@ -486,7 +378,7 @@ export function SchedulePage() {
         message:
           deleteError instanceof Error
             ? deleteError.message
-            : "Не удалось удалить исключение по дате",
+            : getOverrideDeleteErrorMessage(),
       });
     } finally {
       setDeletingOverrideDate(null);
@@ -494,19 +386,21 @@ export function SchedulePage() {
   };
 
   const handleStartEditBlockedSlot = (id: number) => {
-    const item = blockedSlots.find((slot) => slot.id === id);
+    const item = findBlockedSlotById(blockedSlots, id);
 
     if (!item) {
       setFeedback({
         area: "blockedSlots",
         tone: "error",
-        message: "Блокировка слота не найдена.",
+        message: getMissingBlockedSlotMessage(),
       });
       return;
     }
 
-    setEditingBlockedSlotId(item.id);
-    setBlockedSlotForm(mapBlockedSlotToForm(item));
+    const nextEditState = buildBlockedSlotEditState(item);
+
+    setEditingBlockedSlotId(nextEditState.editingBlockedSlotId);
+    setBlockedSlotForm(nextEditState.form);
     setFeedback(null);
   };
 
@@ -518,31 +412,14 @@ export function SchedulePage() {
   const handleSubmitBlockedSlot = async (event: FormEvent) => {
     event.preventDefault();
 
-    const payload: CreateBlockedSlotPayload = {
-      blockedDate: normalizeDateOnly(blockedSlotForm.blockedDate),
-      startTime: blockedSlotForm.startTime,
-      endTime: blockedSlotForm.endTime,
-      reason: blockedSlotForm.reason.trim(),
-    };
+    const payload = buildBlockedSlotPayload(blockedSlotForm);
+    const validationError = validateBlockedSlotPayload(payload);
 
-    if (!payload.blockedDate) {
+    if (validationError) {
       setFeedback({
         area: "blockedSlots",
         tone: "error",
-        message: "Укажите дату блокировки.",
-      });
-      return;
-    }
-
-    if (
-      !payload.startTime ||
-      !payload.endTime ||
-      payload.startTime >= payload.endTime
-    ) {
-      setFeedback({
-        area: "blockedSlots",
-        tone: "error",
-        message: "Укажите корректный временной диапазон блокировки.",
+        message: validationError,
       });
       return;
     }
@@ -555,10 +432,7 @@ export function SchedulePage() {
 
         await updateBlockedSlot({
           id: editingBlockedSlotId,
-          blockedDate: normalizeDateOnly(blockedSlotForm.blockedDate),
-          startTime: blockedSlotForm.startTime,
-          endTime: blockedSlotForm.endTime,
-          reason: blockedSlotForm.reason.trim(),
+          ...payload,
         });
 
         await reloadAll();
@@ -566,7 +440,7 @@ export function SchedulePage() {
         setFeedback({
           area: "blockedSlots",
           tone: "success",
-          message: "Блокировка обновлена.",
+          message: getBlockedSlotUpdatedMessage(),
         });
       } else {
         setIsCreatingBlockedSlot(true);
@@ -577,7 +451,7 @@ export function SchedulePage() {
         setFeedback({
           area: "blockedSlots",
           tone: "success",
-          message: "Блокировка слота создана.",
+          message: getBlockedSlotCreatedMessage(),
         });
       }
     } catch (submitError) {
@@ -588,8 +462,8 @@ export function SchedulePage() {
           submitError instanceof Error
             ? submitError.message
             : editingBlockedSlotId !== null
-            ? "Не удалось обновить блокировку слота"
-            : "Не удалось создать блокировку слота",
+            ? getBlockedSlotUpdateErrorMessage()
+            : getBlockedSlotCreateErrorMessage(),
       });
     } finally {
       setIsCreatingBlockedSlot(false);
@@ -598,9 +472,7 @@ export function SchedulePage() {
   };
 
   const handleDeleteBlockedSlot = async (id: number) => {
-    const confirmed = window.confirm(
-      "Удалить блокировку этого слота? Это действие нельзя отменить."
-    );
+    const confirmed = window.confirm(getBlockedSlotDeleteConfirmMessage());
 
     if (!confirmed) {
       return;
@@ -620,7 +492,7 @@ export function SchedulePage() {
       setFeedback({
         area: "blockedSlots",
         tone: "success",
-        message: "Блокировка удалена.",
+        message: getBlockedSlotDeletedMessage(),
       });
     } catch (deleteError) {
       setFeedback({
@@ -629,7 +501,7 @@ export function SchedulePage() {
         message:
           deleteError instanceof Error
             ? deleteError.message
-            : "Не удалось удалить блокировку",
+            : getBlockedSlotDeleteErrorMessage(),
       });
     } finally {
       setDeletingBlockedSlotId(null);
