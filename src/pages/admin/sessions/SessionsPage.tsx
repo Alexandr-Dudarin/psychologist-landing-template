@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { getAdminClients } from "../../../lib/api/adminClients";
 import { getAdminServices } from "../../../lib/api/adminServices";
 import {
@@ -9,27 +10,28 @@ import {
   getAdminSessions,
   updateAdminSession,
 } from "../../../lib/api/adminSessions";
-import { AdminButton } from "../../../components/admin/AdminButton";
-import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmServiceRecord } from "../../../types/service";
-import type {
-  CrmSessionRecord,
-  CreateSessionPayload,
-  SessionStatus,
-  UpdateSessionPayload,
-} from "../../../types/session";
+import type { CrmSessionRecord, SessionStatus } from "../../../types/session";
 import { SessionCreateForm } from "./SessionCreateForm";
 import { SessionEditForm } from "./SessionEditForm";
 import {
   initialCreateForm,
   initialEditForm,
-  isPastDateTimeLocal,
-  toDateTimeLocalValue,
   type SessionForm,
 } from "./sessionForm";
 import { SessionsFilters } from "./SessionsFilters";
-import styles from "./SessionsPage.module.css";
+import {
+  buildCreateSessionPayload,
+  buildEditSessionForm,
+  buildUpdateSessionPayload,
+  updateSessionFormField,
+} from "./sessionsPageHelpers";
+import {
+  validateCreateSessionPayload,
+  validateUpdateSessionPayload,
+} from "./sessionsPageValidation";
+import { SessionsQuickViewBanner } from "./SessionsQuickViewBanner";
 import { SessionsTable } from "./SessionsTable";
 
 export function SessionsPage() {
@@ -148,154 +150,34 @@ export function SessionsPage() {
     setItems(sessionsData);
   };
 
+  const resetFeedback = () => {
+    if (error) {
+      setError("");
+    }
+
+    if (successMessage) {
+      setSuccessMessage("");
+    }
+  };
+
   const handleCreateFormChange = (
     field: keyof SessionForm,
     value: string
   ) => {
-    if (field === "serviceId") {
-      const selectedService = services.find(
-        (service) => service.id === Number(value)
-      );
-
-      setCreateForm((prev) => ({
-        ...prev,
-        serviceId: value,
-        durationMinutes: selectedService
-          ? String(selectedService.durationMinutes)
-          : prev.durationMinutes,
-        price: selectedService ? String(selectedService.price) : prev.price,
-      }));
-    } else {
-      setCreateForm((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    }
-
-    if (error) {
-      setError("");
-    }
-
-    if (successMessage) {
-      setSuccessMessage("");
-    }
+    setCreateForm((prev) => updateSessionFormField(prev, field, value, services));
+    resetFeedback();
   };
 
   const handleEditFormChange = (field: keyof SessionForm, value: string) => {
-    if (field === "serviceId") {
-      const selectedService = services.find(
-        (service) => service.id === Number(value)
-      );
-
-      setEditForm((prev) => ({
-        ...prev,
-        serviceId: value,
-        durationMinutes: selectedService
-          ? String(selectedService.durationMinutes)
-          : prev.durationMinutes,
-        price: selectedService ? String(selectedService.price) : prev.price,
-      }));
-    } else {
-      setEditForm((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    }
-
-    if (error) {
-      setError("");
-    }
-
-    if (successMessage) {
-      setSuccessMessage("");
-    }
-  };
-
-  const validateCreatePayload = (
-    payload: CreateSessionPayload
-  ): string | null => {
-    if (!Number.isInteger(payload.clientId) || payload.clientId <= 0) {
-      return "Выберите клиента.";
-    }
-
-    if (!Number.isInteger(payload.serviceId) || payload.serviceId <= 0) {
-      return "Выберите услугу.";
-    }
-
-    if (!payload.scheduledAt) {
-      return "Укажите дату и время сессии.";
-    }
-
-    if (isPastDateTimeLocal(payload.scheduledAt)) {
-      return "Нельзя создать сессию в прошлом.";
-    }
-
-    if (
-      !Number.isInteger(payload.durationMinutes) ||
-      payload.durationMinutes <= 0
-    ) {
-      return "Укажите корректную длительность.";
-    }
-
-    if (!Number.isFinite(payload.price) || payload.price < 0) {
-      return "Укажите корректную цену.";
-    }
-
-    return null;
-  };
-
-  const validateUpdatePayload = (
-    payload: UpdateSessionPayload
-  ): string | null => {
-    if (!Number.isInteger(payload.id) || payload.id <= 0) {
-      return "Некорректная сессия.";
-    }
-
-    if (!Number.isInteger(payload.clientId) || payload.clientId <= 0) {
-      return "Выберите клиента.";
-    }
-
-    if (!Number.isInteger(payload.serviceId) || payload.serviceId <= 0) {
-      return "Выберите услугу.";
-    }
-
-    if (!payload.scheduledAt) {
-      return "Укажите дату и время сессии.";
-    }
-
-    if (isPastDateTimeLocal(payload.scheduledAt)) {
-      return "Нельзя перенести сессию в прошлое.";
-    }
-
-    if (
-      !Number.isInteger(payload.durationMinutes) ||
-      payload.durationMinutes <= 0
-    ) {
-      return "Укажите корректную длительность.";
-    }
-
-    if (!Number.isFinite(payload.price) || payload.price < 0) {
-      return "Укажите корректную цену.";
-    }
-
-    return null;
+    setEditForm((prev) => updateSessionFormField(prev, field, value, services));
+    resetFeedback();
   };
 
   const handleCreateSession = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload: CreateSessionPayload = {
-      clientId: Number(createForm.clientId),
-      serviceId: Number(createForm.serviceId),
-      scheduledAt: createForm.scheduledAt,
-      durationMinutes: Number(createForm.durationMinutes),
-      price: Number(createForm.price),
-      status: createForm.status,
-      notes: createForm.notes.trim(),
-      source: "manual",
-    };
-
-    const validationError = validateCreatePayload(payload);
+    const payload = buildCreateSessionPayload(createForm);
+    const validationError = validateCreateSessionPayload(payload);
 
     if (validationError) {
       setError(validationError);
@@ -324,15 +206,7 @@ export function SessionsPage() {
 
   const startEditing = (session: CrmSessionRecord) => {
     setEditingSessionId(session.id);
-    setEditForm({
-      clientId: String(session.clientId),
-      serviceId: String(session.serviceId),
-      scheduledAt: toDateTimeLocalValue(session.scheduledAt),
-      durationMinutes: String(session.durationMinutes),
-      price: String(session.price),
-      status: session.status,
-      notes: session.notes,
-    });
+    setEditForm(buildEditSessionForm(session));
     setError("");
     setSuccessMessage("");
   };
@@ -349,18 +223,8 @@ export function SessionsPage() {
       return;
     }
 
-    const payload: UpdateSessionPayload = {
-      id: editingSessionId,
-      clientId: Number(editForm.clientId),
-      serviceId: Number(editForm.serviceId),
-      scheduledAt: editForm.scheduledAt,
-      durationMinutes: Number(editForm.durationMinutes),
-      price: Number(editForm.price),
-      status: editForm.status,
-      notes: editForm.notes.trim(),
-    };
-
-    const validationError = validateUpdatePayload(payload);
+    const payload = buildUpdateSessionPayload(editingSessionId, editForm);
+    const validationError = validateUpdateSessionPayload(payload);
 
     if (validationError) {
       setError(validationError);
@@ -438,38 +302,12 @@ export function SessionsPage() {
       <h1>Сессии</h1>
 
       {hasQuickViewState ? (
-        <div className={styles.quickViewBanner}>
-          <div className={styles.quickViewText}>
-            <div className={styles.quickViewTitle}>Режим быстрого перехода</div>
-            <div className={styles.quickViewList}>
-              {clientFilter !== "all" ? (
-                <span className={styles.quickViewChip}>
-                  Клиент #{clientFilter}
-                </span>
-              ) : null}
-              {highlightedSessionId !== null ? (
-                <span className={styles.quickViewChip}>
-                  Сессия #{highlightedSessionId}
-                </span>
-              ) : null}
-              {searchQuery.trim() ? (
-                <span className={styles.quickViewChip}>
-                  Поиск: {searchQuery.trim()}
-                </span>
-              ) : null}
-            </div>
-          </div>
-
-          <div className={styles.quickViewActions}>
-            <AdminButton
-              type="button"
-              variant="secondary"
-              onClick={handleResetView}
-            >
-              Показать все сессии
-            </AdminButton>
-          </div>
-        </div>
+        <SessionsQuickViewBanner
+          clientFilter={clientFilter}
+          highlightedSessionId={highlightedSessionId}
+          searchQuery={searchQuery}
+          onResetView={handleResetView}
+        />
       ) : null}
 
       <SessionCreateForm
@@ -481,7 +319,7 @@ export function SessionsPage() {
         onSubmit={handleCreateSession}
       />
 
-      {editingSessionId !== null && (
+      {editingSessionId !== null ? (
         <SessionEditForm
           clients={clients}
           activeServices={activeServices}
@@ -491,7 +329,7 @@ export function SessionsPage() {
           onSubmit={handleUpdateSession}
           onCancel={cancelEditing}
         />
-      )}
+      ) : null}
 
       <SessionsFilters
         clientFilter={clientFilter}
