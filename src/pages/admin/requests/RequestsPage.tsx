@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../../../app/providers/LanguageProvider";
 import { createClientFromRequest } from "../../../lib/api/adminClients";
@@ -14,6 +15,7 @@ import { RequestsTable } from "./RequestsTable";
 
 export function RequestsPage() {
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmRequestRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -22,6 +24,29 @@ export function RequestsPage() {
   const [creatingClientId, setCreatingClientId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [highlightedRequestId, setHighlightedRequestId] = useState<number | null>(
+    null
+  );
+
+  useEffect(() => {
+    const searchFromUrl = searchParams.get("search");
+    const highlightFromUrl = searchParams.get("highlightRequestId");
+
+    if (searchFromUrl !== null) {
+      setSearchQuery(searchFromUrl);
+    }
+
+    if (highlightFromUrl !== null) {
+      const parsedId = Number(highlightFromUrl);
+
+      setHighlightedRequestId(
+        Number.isInteger(parsedId) && parsedId > 0 ? parsedId : null
+      );
+      setStatusFilter("all");
+    } else {
+      setHighlightedRequestId(null);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     let isMounted = true;
@@ -151,6 +176,12 @@ export function RequestsPage() {
         onStatusChange={setStatusFilter}
       />
 
+      {highlightedRequestId !== null ? (
+        <p className="admin-muted-text">
+          Открыт быстрый переход к заявке #{highlightedRequestId}.
+        </p>
+      ) : null}
+
       <AdminFeedback message={error} tone="error" />
       <AdminFeedback message={successMessage} tone="success" />
 
@@ -163,6 +194,7 @@ export function RequestsPage() {
           items={items}
           savingId={savingId}
           creatingClientId={creatingClientId}
+          highlightedRequestId={highlightedRequestId}
           statusOptions={statusOptions}
           createdLabel={t.admin.requests.table.created}
           nameLabel={t.admin.requests.table.name}

@@ -1,14 +1,31 @@
 /// <reference types="node" />
 
 import { pool } from "../../../server/db/pool";
-import type {
-  CrmRequestRecord,
-  RequestStatus,
-} from "../../../src/types/request";
-import { requestStatuses } from "../../../src/types/request";
+
+const requestStatuses = [
+  "new",
+  "replied",
+  "booked",
+  "completed",
+  "cancelled",
+] as const;
+
+type RequestStatus = (typeof requestStatuses)[number];
+
+type CrmRequestRecord = {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+  message: string;
+  status: RequestStatus;
+  source: string;
+  createdAt: string;
+  clientId: number | null;
+};
 
 type RequestRow = {
-  id: number;
+  id: string | number;
   name: string;
   phone: string;
   email: string;
@@ -16,7 +33,7 @@ type RequestRow = {
   status: string;
   source: string;
   created_at: string;
-  client_id: number | null;
+  client_id: string | number | null;
 };
 
 function toRequestStatus(value: string): RequestStatus {
@@ -61,7 +78,8 @@ export default async function handler(req: any, res: any) {
 
     conditions.push(`
       (
-        r.name ILIKE $${searchParamIndex}
+        CAST(r.id AS TEXT) ILIKE $${searchParamIndex}
+        OR r.name ILIKE $${searchParamIndex}
         OR r.phone ILIKE $${searchParamIndex}
         OR r.email ILIKE $${searchParamIndex}
         OR r.message ILIKE $${searchParamIndex}
@@ -93,7 +111,7 @@ export default async function handler(req: any, res: any) {
     );
 
     const items: CrmRequestRecord[] = result.rows.map((row) => ({
-      id: row.id,
+      id: Number(row.id),
       name: row.name,
       phone: row.phone,
       email: row.email,
@@ -101,7 +119,7 @@ export default async function handler(req: any, res: any) {
       status: toRequestStatus(row.status),
       source: row.source,
       createdAt: row.created_at,
-      clientId: row.client_id,
+      clientId: row.client_id === null ? null : Number(row.client_id),
     }));
 
     return res.status(200).json({ items });

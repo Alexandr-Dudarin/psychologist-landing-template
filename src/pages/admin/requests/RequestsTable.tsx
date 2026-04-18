@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
 import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
@@ -20,6 +21,7 @@ type RequestsTableProps = {
   createdLabel: string;
   creatingClientId: number | null;
   emailLabel: string;
+  highlightedRequestId?: number | null;
   items: CrmRequestRecord[];
   messageLabel: string;
   nameLabel: string;
@@ -40,6 +42,7 @@ export function RequestsTable({
   createdLabel,
   creatingClientId,
   emailLabel,
+  highlightedRequestId = null,
   items,
   messageLabel,
   nameLabel,
@@ -50,6 +53,23 @@ export function RequestsTable({
   onCreateClient,
   onStatusChange,
 }: RequestsTableProps) {
+  const highlightedRowRef = useRef<HTMLTableRowElement | null>(null);
+
+  useEffect(() => {
+    if (!highlightedRequestId) {
+      return;
+    }
+
+    if (!highlightedRowRef.current) {
+      return;
+    }
+
+    highlightedRowRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, [highlightedRequestId, items]);
+
   return (
     <AdminTable>
       <thead>
@@ -67,9 +87,16 @@ export function RequestsTable({
       <tbody>
         {items.map((item) => {
           const clientAlreadyCreated = item.clientId !== null;
+          const isHighlighted =
+            highlightedRequestId !== null &&
+            Number(highlightedRequestId) === Number(item.id);
 
           return (
-            <tr key={item.id}>
+            <tr
+              key={item.id}
+              ref={isHighlighted ? highlightedRowRef : null}
+              className={isHighlighted ? styles.highlightedRow : undefined}
+            >
               <td>{item.id}</td>
               <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
               <td>{item.name}</td>

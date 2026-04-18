@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 
 import type { ClientStatus, CrmClientRecord } from "../../../types/client";
 import { AdminTable } from "../../../components/admin/AdminTable";
@@ -81,7 +82,19 @@ export function ClientsTable({
               <td>{item.email || "-"}</td>
               <td>{sourceLabels[item.source] ?? item.source}</td>
               <td>{statusLabels[item.status]}</td>
-              <td>{item.firstRequestId ?? "-"}</td>
+              <td>
+                {item.firstRequestId ? (
+                  <Link
+                    to={`/admin/requests?search=${encodeURIComponent(
+                      String(item.firstRequestId)
+                    )}&highlightRequestId=${item.firstRequestId}`}
+                  >
+                    Заявка #{item.firstRequestId}
+                  </Link>
+                ) : (
+                  "-"
+                )}
+              </td>
             </tr>
           );
         })}
