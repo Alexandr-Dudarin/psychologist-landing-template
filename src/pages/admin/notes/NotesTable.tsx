@@ -1,71 +1,75 @@
-import type { CrmNoteRecord } from "../../../types/note";
+import { Link } from "react-router-dom";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
-import styles from "./NotesPage.module.css";
+import type { CrmNoteRecord } from "../../../types/note";
 
 type NotesTableProps = {
-  deletingId: number | null;
   items: CrmNoteRecord[];
-  onDelete: (id: number) => void;
+  deletingId: number | null;
   onEdit: (note: CrmNoteRecord) => void;
+  onDelete: (id: number) => void;
 };
 
 export function NotesTable({
-  deletingId,
   items,
-  onDelete,
+  deletingId,
   onEdit,
+  onDelete,
 }: NotesTableProps) {
   return (
     <AdminTable>
       <thead>
         <tr>
           <th>ID</th>
-          <th>{"Создана"}</th>
-          <th>{"Клиент"}</th>
-          <th>{"Сессия"}</th>
-          <th>{"Текст"}</th>
-          <th>{"Действия"}</th>
+          <th>Клиент</th>
+          <th>Сессия</th>
+          <th>Услуга</th>
+          <th>Текст заметки</th>
+          <th>Создана</th>
+          <th>Действия</th>
         </tr>
       </thead>
       <tbody>
         {items.map((item) => (
           <tr key={item.id}>
             <td>{item.id}</td>
-            <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
-            <td>{item.clientName}</td>
+            <td>
+              <Link
+                to={`/admin/clients?search=${encodeURIComponent(
+                  String(item.clientId)
+                )}&highlightClientId=${item.clientId}`}
+              >
+                {item.clientName}
+              </Link>
+            </td>
             <td>
               {item.sessionId && item.sessionScheduledAt
-                ? `${new Date(item.sessionScheduledAt).toLocaleString("ru-RU")}${
-                    item.sessionServiceTitle
-                      ? ` — ${item.sessionServiceTitle}`
-                      : ""
-                  }`
+                ? new Date(item.sessionScheduledAt).toLocaleString("ru-RU")
                 : "-"}
             </td>
+            <td>{item.sessionServiceTitle || "-"}</td>
             <td>{item.content}</td>
+            <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
             <td>
-              <div className={styles.buttonRow}>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 <AdminButton
                   type="button"
-                  onClick={() => onEdit(item)}
-                  size="sm"
                   variant="secondary"
+                  size="sm"
+                  onClick={() => onEdit(item)}
                 >
-                  {"Редактировать"}
+                  Редактировать
                 </AdminButton>
 
                 <AdminButton
                   type="button"
+                  variant="danger"
+                  size="sm"
                   onClick={() => onDelete(item.id)}
                   disabled={deletingId === item.id}
-                  size="sm"
-                  variant="danger"
                 >
-                  {deletingId === item.id
-                    ? "Удаление..."
-                    : "Удалить"}
+                  {deletingId === item.id ? "Удаление..." : "Удалить"}
                 </AdminButton>
               </div>
             </td>

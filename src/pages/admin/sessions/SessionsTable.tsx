@@ -1,9 +1,9 @@
-import type { CrmSessionRecord } from "../../../types/session";
+import { Link } from "react-router-dom";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import type { CrmSessionRecord } from "../../../types/session";
 import { sessionStatusLabels } from "./sessionForm";
-import styles from "./SessionsPage.module.css";
 
 type SessionsTableProps = {
   items: CrmSessionRecord[];
@@ -21,11 +21,11 @@ export function SessionsTable({
   onDelete,
 }: SessionsTableProps) {
   if (isLoading) {
-    return <p>{"Загрузка..."}</p>;
+    return <p>Загрузка...</p>;
   }
 
   if (items.length === 0) {
-    return <p>{"Сессий пока нет."}</p>;
+    return <p>Сессий пока нет.</p>;
   }
 
   return (
@@ -33,48 +33,56 @@ export function SessionsTable({
       <thead>
         <tr>
           <th>ID</th>
-          <th>{"Дата"}</th>
-          <th>{"Клиент"}</th>
-          <th>{"Услуга"}</th>
-          <th>{"Цена"}</th>
-          <th>{"Длительность"}</th>
-          <th>{"Статус"}</th>
-          <th>{"Заметка"}</th>
-          <th>{"Действия"}</th>
+          <th>Клиент</th>
+          <th>Услуга</th>
+          <th>Дата и время</th>
+          <th>Длительность</th>
+          <th>Цена</th>
+          <th>Статус</th>
+          <th>Источник</th>
+          <th>Заметки</th>
+          <th>Действия</th>
         </tr>
       </thead>
       <tbody>
         {items.map((item) => (
           <tr key={item.id}>
             <td>{item.id}</td>
-            <td>{new Date(item.scheduledAt).toLocaleString("ru-RU")}</td>
-            <td>{item.clientName}</td>
+            <td>
+              <Link
+                to={`/admin/clients?search=${encodeURIComponent(
+                  String(item.clientId)
+                )}&highlightClientId=${item.clientId}`}
+              >
+                {item.clientName}
+              </Link>
+            </td>
             <td>{item.serviceTitle}</td>
-            <td>{item.price} {"₽"}</td>
-            <td>{item.durationMinutes} {"мин"}</td>
+            <td>{new Date(item.scheduledAt).toLocaleString("ru-RU")}</td>
+            <td>{item.durationMinutes} мин</td>
+            <td>{item.price}</td>
             <td>{sessionStatusLabels[item.status]}</td>
+            <td>{item.source}</td>
             <td>{item.notes || "-"}</td>
             <td>
-              <div className={styles.actionsRow}>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 <AdminButton
                   type="button"
-                  onClick={() => onEdit(item)}
-                  size="sm"
                   variant="secondary"
+                  size="sm"
+                  onClick={() => onEdit(item)}
                 >
-                  {"Редактировать"}
+                  Редактировать
                 </AdminButton>
 
                 <AdminButton
                   type="button"
+                  variant="danger"
+                  size="sm"
                   onClick={() => onDelete(item.id)}
                   disabled={deletingId === item.id}
-                  size="sm"
-                  variant="danger"
                 >
-                  {deletingId === item.id
-                    ? "Удаление..."
-                    : "Удалить"}
+                  {deletingId === item.id ? "Удаление..." : "Удалить"}
                 </AdminButton>
               </div>
             </td>
