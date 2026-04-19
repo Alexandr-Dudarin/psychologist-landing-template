@@ -1,0 +1,347 @@
+.page {
+  display: grid;
+  gap: 20px;
+}
+
+.hero {
+  display: grid;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: clamp(28px, 3.4vw, 38px);
+  line-height: 1.08;
+}
+
+.description {
+  margin: 0;
+  max-width: 840px;
+  color: var(--admin-text-muted);
+  line-height: 1.6;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.95fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.mainColumn,
+.sideColumn {
+  display: grid;
+  gap: 20px;
+}
+
+.sectionHeader {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 20px;
+  color: var(--admin-text);
+}
+
+.sectionDescription {
+  margin: 0;
+  color: var(--admin-text-muted);
+  line-height: 1.6;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.metricCard {
+  padding: 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff, #f9fbfc);
+}
+
+.metricAccent {
+  border-color: color-mix(in srgb, var(--admin-accent) 28%, white);
+  background: linear-gradient(180deg, #f8fbfd, #eef5f9);
+}
+
+.metricMuted {
+  background: linear-gradient(180deg, #ffffff, #f5f7fa);
+}
+
+.metricLabel {
+  margin: 0 0 10px;
+  color: var(--admin-text-muted);
+  font-size: 0.92rem;
+}
+
+.metricValue {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.signalsList {
+  display: grid;
+  gap: 10px;
+}
+
+.signal {
+  padding: 14px 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: #fbfcfd;
+  color: var(--admin-text);
+  line-height: 1.55;
+}
+
+.signalAccent {
+  border-color: color-mix(in srgb, var(--admin-accent) 24%, white);
+  background: var(--admin-accent-soft);
+}
+
+.signalWarn {
+  border-color: color-mix(in srgb, var(--admin-highlight-border) 35%, white);
+  background: #fff8de;
+}
+
+.sessionList {
+  display: grid;
+  gap: 12px;
+}
+
+.sessionCard {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: #fbfcfd;
+}
+
+.sessionTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sessionTime {
+  font-weight: 700;
+  color: var(--admin-text);
+}
+
+.sessionStatus {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--admin-surface-soft);
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+}
+
+.sessionMeta {
+  display: grid;
+  gap: 2px;
+}
+
+.sessionClient {
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.sessionService {
+  color: var(--admin-text-muted);
+}
+
+.sectionFooter {
+  margin-top: 16px;
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.linkButton:hover,
+.linkButton:focus-visible {
+  border-color: var(--admin-border-strong);
+  background: var(--admin-surface-muted);
+  box-shadow: 0 0 0 3px rgba(47, 93, 120, 0.12);
+  outline: none;
+}
+
+.quickActions {
+  display: grid;
+  gap: 12px;
+}
+
+.quickAction {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  text-decoration: none;
+}
+
+.quickAction:hover,
+.quickAction:focus-visible {
+  border-color: color-mix(in srgb, var(--admin-accent) 22%, white);
+  background: #f7fafc;
+  outline: none;
+}
+
+.quickActionTitle {
+  font-weight: 700;
+  color: var(--admin-text);
+}
+
+.quickActionDescription {
+  color: var(--admin-text-muted);
+  line-height: 1.5;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.summaryItem {
+  padding: 14px 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: #fbfcfd;
+}
+
+.summaryLabel {
+  margin: 0 0 8px;
+  color: var(--admin-text-muted);
+  font-size: 0.92rem;
+}
+
+.summaryValue {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.capacityCard {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: var(--admin-surface-soft);
+}
+
+.capacityLabel {
+  margin: 0 0 8px;
+  color: var(--admin-text-muted);
+}
+
+.capacityValue {
+  margin: 0;
+  color: var(--admin-text);
+  font-weight: 700;
+}
+
+.activityList {
+  display: grid;
+  gap: 10px;
+}
+
+.activityItem {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: #fbfcfd;
+  text-decoration: none;
+}
+
+.activityItem:hover,
+.activityItem:focus-visible {
+  border-color: color-mix(in srgb, var(--admin-accent) 22%, white);
+  outline: none;
+}
+
+.activityTitle {
+  color: var(--admin-text);
+  font-weight: 600;
+}
+
+.activityMeta {
+  color: var(--admin-text-muted);
+  line-height: 1.45;
+}
+
+.loadingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.loadingCard {
+  min-height: 96px;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  background:
+    linear-gradient(90deg, #f4f7fa 0%, #ffffff 50%, #f4f7fa 100%);
+  background-size: 200% 100%;
+  animation: dashboardPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes dashboardPulse {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .metricsGrid,
+  .loadingGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .metricsGrid,
+  .summaryGrid,
+  .loadingGrid {
+    grid-template-columns: 1fr;
+  }
+}
