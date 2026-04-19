@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import { pool } from "../../../server/db/pool";
+import { requireAdminRequest } from "../../../server/auth/requireAdmin";
 import type {
   AdminScheduleRecord,
   BlockedSlotRecord,
@@ -103,6 +104,10 @@ async function ensureDefaults() {
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  if (!requireAdminRequest(req, res)) {
+    return;
   }
 
   try {
