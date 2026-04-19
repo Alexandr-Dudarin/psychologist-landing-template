@@ -1,4 +1,9 @@
-import type { PublicBookingAvailabilityResponse } from "../../types/booking";
+import type {
+  PublicBookingAvailabilityResponse,
+  PublicBookingCreateErrorResponse,
+  PublicBookingCreatePayload,
+  PublicBookingCreateSuccessResponse,
+} from "../../types/booking";
 
 type PublicBookingAvailabilityParams = {
   serviceId?: number;
@@ -7,6 +12,11 @@ type PublicBookingAvailabilityParams = {
 
 type PublicBookingAvailabilityErrorResponse = {
   error: string;
+};
+
+type PublicBookingError = Error & {
+  code?: string;
+  status?: number;
 };
 
 export async function getPublicBookingAvailability(
@@ -40,5 +50,37 @@ export async function getPublicBookingAvailability(
   }
 
   return data as PublicBookingAvailabilityResponse;
+}
+
+export async function createPublicBooking(
+  payload: PublicBookingCreatePayload
+): Promise<PublicBookingCreateSuccessResponse> {
+  const response = await fetch("/api/public/booking/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | PublicBookingCreateSuccessResponse
+    | PublicBookingCreateErrorResponse
+    | null;
+
+  if (!response.ok) {
+    const error = new Error(
+      data && "error" in data ? data.error : "Не удалось создать запись"
+    ) as PublicBookingError;
+
+    if (data && "code" in data && typeof data.code === "string") {
+      error.code = data.code;
+    }
+
+    error.status = response.status;
+    throw error;
+  }
+
+  return data as PublicBookingCreateSuccessResponse;
 }
 

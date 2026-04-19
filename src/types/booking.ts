@@ -24,3 +24,37 @@ export type PublicBookingAvailabilityResponse = {
   slots: PublicBookingSlot[];
 };
 
+export type PublicBookingCreatePayload = {
+  serviceId: number;
+  startsAt: string;
+  name: string;
+  phone: string;
+  email: string;
+  message?: string;
+  consent: boolean;
+};
+
+export type PublicBookingCreateSuccessResponse = {
+  success: true;
+  booking: {
+    sessionId: number;
+    clientId: number;
+    serviceId: number;
+    serviceTitle: string;
+    startsAt: string;
+    endsAt: string;
+  };
+  alreadyExistedClient: boolean;
+};
+
+export type PublicBookingCreateErrorResponse = {
+  error: string;
+  code?:
+    | "invalid_payload"
+    | "invalid_service"
+    | "invalid_slot"
+    | "slot_unavailable"
+    | "settings_missing"
+    | "booking_create_failed";
+};
+
