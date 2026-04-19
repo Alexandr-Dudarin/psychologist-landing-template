@@ -3,7 +3,7 @@
 import type { PoolClient } from "pg";
 import { pool } from "../../../server/db/pool";
 import { validateBookableSlot } from "../../../server/publicBooking/bookingAvailability";
-import { sendBookingNotifications } from "../../../server/publicBooking/sendBookingNotifications";
+import { sendBookingNotificationsBounded } from "../../../server/publicBooking/sendBookingNotifications";
 import type {
   PublicBookingCreatePayload,
   PublicBookingCreateSuccessResponse,
@@ -324,7 +324,7 @@ export default async function handler(req: any, res: any) {
     };
 
     try {
-      response.notifications = await sendBookingNotifications({
+      const notificationResult = await sendBookingNotificationsBounded({
         sessionId: response.booking.sessionId,
         clientName: payload.name,
         clientPhone: payload.phone,
@@ -335,22 +335,15 @@ export default async function handler(req: any, res: any) {
         comment: payload.message ?? "",
         alreadyExistedClient: response.alreadyExistedClient,
       });
+
+      if (notificationResult.completed) {
+        response.notifications = notificationResult.notifications;
+      }
     } catch (notificationError) {
-      console.error("Public booking notification error:", notificationError);
-      response.notifications = {
-        telegram: {
-          status: "failed",
-          error: "Unexpected notification error",
-        },
-        ownerEmail: {
-          status: "failed",
-          error: "Unexpected notification error",
-        },
-        clientEmail: {
-          status: "failed",
-          error: "Unexpected notification error",
-        },
-      };
+      console.error(
+        "Public booking bounded notification orchestration error:",
+        notificationError
+      );
     }
 
     return res.status(200).json(response);

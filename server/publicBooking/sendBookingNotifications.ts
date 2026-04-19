@@ -15,6 +15,18 @@ export type BookingNotificationsResult = {
   clientEmail: BookingNotificationChannelResult;
 };
 
+export type SendBookingNotificationsBoundedResult =
+  | {
+      completed: true;
+      notifications: BookingNotificationsResult;
+      timeoutMs: number;
+    }
+  | {
+      completed: false;
+      timeoutMs: number;
+      reason: "timeout" | "error";
+    };
+
 export type SendBookingNotificationsPayload = {
   sessionId: number;
   clientName: string;
@@ -26,6 +38,8 @@ export type SendBookingNotificationsPayload = {
   comment: string;
   alreadyExistedClient: boolean;
 };
+
+const BOOKING_NOTIFICATIONS_TIMEOUT_MS = 1500;
 
 function escapeHtml(value: string): string {
   return value
@@ -267,4 +281,64 @@ export async function sendBookingNotifications(
     ownerEmail: ownerEmailResult,
     clientEmail,
   };
+}
+
+export async function sendBookingNotificationsBounded(
+  payload: SendBookingNotificationsPayload,
+  options?: {
+    timeoutMs?: number;
+  }
+): Promise<SendBookingNotificationsBoundedResult> {
+  const timeoutMs = options?.timeoutMs ?? BOOKING_NOTIFICATIONS_TIMEOUT_MS;
+  const notificationsPromise = sendBookingNotifications(payload);
+
+  const timeoutPromise = new Promise<SendBookingNotificationsBoundedResult>(
+    (resolve) => {
+      setTimeout(() => {
+        resolve({
+          completed: false,
+          timeoutMs,
+          reason: "timeout",
+        });
+      }, timeoutMs);
+    }
+  );
+
+  const result = await Promise.race([
+    notificationsPromise.then<SendBookingNotificationsBoundedResult>(
+      (notifications) => ({
+        completed: true,
+        notifications,
+        timeoutMs,
+      })
+    ),
+    timeoutPromise,
+  ]).catch((error) => {
+    console.error("Booking notifications crashed before response:", {
+      sessionId: payload.sessionId,
+      error: error instanceof Error ? error.message : "Unknown notification error",
+    });
+
+    return {
+      completed: false,
+      timeoutMs,
+      reason: "error",
+    } satisfies SendBookingNotificationsBoundedResult;
+  });
+
+  if (!result.completed && result.reason === "timeout") {
+    console.error("Booking notifications timed out before response:", {
+      sessionId: payload.sessionId,
+      timeoutMs,
+    });
+
+    notificationsPromise.catch((error) => {
+      console.error("Booking notifications finished with async error after timeout:", {
+        sessionId: payload.sessionId,
+        error: error instanceof Error ? error.message : "Unknown notification error",
+      });
+    });
+  }
+
+  return result;
 }
