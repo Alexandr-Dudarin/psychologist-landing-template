@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Button } from "../../components/Button/Button";
+import { BaseCalendar } from "../../components/calendar/BaseCalendar";
+import type { CalendarDateMeta } from "../../components/calendar/calendar.types";
 import { Container } from "../../components/Container/Container";
 import {
   createPublicBooking,
@@ -30,6 +32,7 @@ type BookingPageCopy = {
   slotsEmptySelection: string;
   slotsEmpty: string;
   loading: string;
+  loadingCalendar: string;
   errorFallback: string;
   summaryTitle: string;
   summaryService: string;
@@ -50,6 +53,10 @@ type BookingPageCopy = {
   submitErrorFallback: string;
   confirmationTitle: string;
   confirmationText: string;
+  calendarAvailableLabel: string;
+  calendarAvailableHint: string;
+  calendarUnavailableLabel: string;
+  calendarUnavailableHint: string;
 };
 
 type BookingFormState = {
@@ -86,14 +93,17 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     serviceEmpty: "Сейчас нет активных услуг для онлайн-записи.",
     dateTitle: "2. Дата",
     dateHint:
-      "Дата ограничена текущими настройками записи: окном бронирования, запретом на прошлое время и правилами расписания.",
+      "Календарь остаётся UI-слоем выбора даты. Доступный диапазон ограничен текущими настройками записи и защитой от прошлых дат.",
     dateLabel: "Выберите дату",
     dateEmpty: "Сначала выберите услугу, затем дату.",
     slotsTitle: "3. Свободные слоты",
-    slotsHint: "Слоты уже учитывают расписание, исключения, блокировки, buffer и занятые сессии.",
-    slotsEmptySelection: "Выберите услугу и дату, чтобы увидеть свободные интервалы.",
+    slotsHint:
+      "Слоты уже учитывают расписание, исключения, блокировки, buffer и занятые сессии.",
+    slotsEmptySelection:
+      "Выберите услугу и дату, чтобы увидеть свободные интервалы.",
     slotsEmpty: "На выбранную дату свободных слотов нет. Попробуйте другой день.",
     loading: "Загрузка доступности...",
+    loadingCalendar: "Календарь обновляется...",
     errorFallback: "Не удалось загрузить доступность",
     summaryTitle: "Ваш выбор",
     summaryService: "Услуга",
@@ -107,18 +117,24 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     price: "Стоимость",
     formTitle: "4. Данные для записи",
     formHint:
-      "Форма откроется после выбора слота. Запрос создаст клиента и сессию в CRM без повторного бронирования занятого времени.",
+      "Форма откроется после выбора слота. Запрос создаст или переиспользует клиента и создаст сессию в CRM без двойного бронирования.",
     formDisabled:
       "Выберите слот, чтобы заполнить форму и отправить запрос на бронирование.",
     submitIdle: "Подтвердить запись",
     submitLoading: "Отправляем запись...",
-    submitSuccess: "Запись создана. Я свяжусь с вами, если понадобится дополнительное подтверждение.",
+    submitSuccess:
+      "Запись создана. Я свяжусь с вами, если понадобится дополнительное подтверждение.",
     submitConflict:
       "Этот слот уже заняли. Я обновил доступность на выбранную дату, пожалуйста, выберите другое время.",
-    submitErrorFallback: "Не удалось создать запись. Попробуйте ещё раз позже.",
+    submitErrorFallback:
+      "Не удалось создать запись. Попробуйте ещё раз позже.",
     confirmationTitle: "Запрос принят",
     confirmationText:
       "Сессия создана в CRM. Если слот был свободен в момент отправки, повторно бронировать его не нужно.",
+    calendarAvailableLabel: "Свободно",
+    calendarAvailableHint: "На выбранную дату есть доступные слоты.",
+    calendarUnavailableLabel: "Нет мест",
+    calendarUnavailableHint: "На выбранную дату сейчас нет свободных слотов.",
   },
   en: {
     eyebrow: "Booking",
@@ -130,14 +146,16 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     serviceEmpty: "There are no active services available right now.",
     dateTitle: "2. Date",
     dateHint:
-      "The date field is limited by current booking settings, past-time protection, and the working schedule.",
+      "The calendar stays a UI-only date picker. The selectable range is limited by current booking settings and past-date protection.",
     dateLabel: "Choose a date",
     dateEmpty: "Choose a service first, then pick a date.",
     slotsTitle: "3. Available slots",
-    slotsHint: "Slots already account for schedule rules, overrides, blocked time, buffer, and occupied sessions.",
+    slotsHint:
+      "Slots already account for schedule rules, overrides, blocked time, buffer, and occupied sessions.",
     slotsEmptySelection: "Choose a service and a date to see available slots.",
     slotsEmpty: "There are no open slots for this date. Please try another day.",
     loading: "Loading availability...",
+    loadingCalendar: "Refreshing calendar...",
     errorFallback: "Failed to load availability",
     summaryTitle: "Your selection",
     summaryService: "Service",
@@ -152,7 +170,8 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     formTitle: "4. Booking details",
     formHint:
       "The form opens after you choose a slot. The request will create or reuse a client and create a session in CRM without double-booking an occupied time.",
-    formDisabled: "Choose a slot to fill in your details and submit the booking request.",
+    formDisabled:
+      "Choose a slot to fill in your details and submit the booking request.",
     submitIdle: "Confirm booking",
     submitLoading: "Creating booking...",
     submitSuccess:
@@ -163,6 +182,10 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     confirmationTitle: "Request accepted",
     confirmationText:
       "The session has been created in CRM. If the slot was free at submit time, it does not need to be booked again.",
+    calendarAvailableLabel: "Open",
+    calendarAvailableHint: "This selected date currently has open slots.",
+    calendarUnavailableLabel: "Busy",
+    calendarUnavailableHint: "This selected date currently has no open slots.",
   },
 };
 
@@ -224,9 +247,57 @@ function validateForm(
   return errors;
 }
 
+function getInitialVisibleMonth(
+  response: PublicBookingAvailabilityResponse | null,
+  selectedDate: string
+): string {
+  if (selectedDate) {
+    return selectedDate.slice(0, 7);
+  }
+
+  if (response?.selectedDate) {
+    return response.selectedDate.slice(0, 7);
+  }
+
+  if (response?.dateBounds.min) {
+    return response.dateBounds.min.slice(0, 7);
+  }
+
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function buildCalendarDatesMeta(params: {
+  selectedDate: string;
+  selectedServiceId: number | null;
+  slots: PublicBookingSlot[];
+  isRefreshingSlots: boolean;
+  copy: BookingPageCopy;
+}): CalendarDateMeta[] {
+  const { selectedDate, selectedServiceId, slots, isRefreshingSlots, copy } = params;
+
+  if (!selectedServiceId || !selectedDate || isRefreshingSlots) {
+    return [];
+  }
+
+  const hasSlots = slots.length > 0;
+
+  return [
+    {
+      date: selectedDate,
+      state: hasSlots ? "available" : "unavailable",
+      label: hasSlots ? copy.calendarAvailableLabel : copy.calendarUnavailableLabel,
+      hint: hasSlots ? copy.calendarAvailableHint : copy.calendarUnavailableHint,
+      badge: hasSlots ? String(slots.length) : undefined,
+    },
+  ];
+}
+
 export function BookingPage() {
   const { language, t } = useLanguage();
   const currentLanguage = language === "en" ? "en" : "ru";
+  const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
+  const weekStartsOn = currentLanguage === "ru" ? 1 : 0;
   const copy = copyByLanguage[currentLanguage];
   const bookingContent = t.content.booking;
   const privacyLinkText = t.ui.booking.privacyLinkText;
@@ -234,6 +305,7 @@ export function BookingPage() {
   const [data, setData] = useState<PublicBookingAvailabilityResponse | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
+  const [visibleMonth, setVisibleMonth] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<PublicBookingSlot | null>(null);
   const [form, setForm] = useState<BookingFormState>(initialFormState);
   const [formErrors, setFormErrors] = useState<BookingFormErrors>({});
@@ -261,6 +333,7 @@ export function BookingPage() {
         }
 
         setData(response);
+        setVisibleMonth((current) => current || getInitialVisibleMonth(response, ""));
       } catch (loadError) {
         if (!isActive) {
           return;
@@ -347,6 +420,13 @@ export function BookingPage() {
   const selectedService = getSelectedService(services, selectedServiceId);
   const slots = data?.slots ?? [];
   const isFormEnabled = Boolean(selectedService && selectedDate && selectedSlot);
+  const datesMeta = buildCalendarDatesMeta({
+    selectedDate,
+    selectedServiceId,
+    slots,
+    isRefreshingSlots,
+    copy,
+  });
 
   const handleFormChange = (field: keyof BookingFormState, value: string | boolean) => {
     setForm((current) => ({
@@ -517,24 +597,35 @@ export function BookingPage() {
               {!selectedService ? (
                 <div className={styles.stateBox}>{copy.dateEmpty}</div>
               ) : (
-                <div className={styles.dateControl}>
-                  <label className={styles.label} htmlFor="booking-date">
-                    {copy.dateLabel}
-                  </label>
-                  <input
-                    id="booking-date"
-                    className={styles.dateInput}
-                    type="date"
-                    value={selectedDate}
-                    min={data?.dateBounds.min}
-                    max={data?.dateBounds.max}
-                    onChange={(event) => {
-                      setSelectedDate(event.target.value);
+                <div className={styles.calendarBlock}>
+                  <label className={styles.label}>{copy.dateLabel}</label>
+                  <BaseCalendar
+                    value={selectedDate || null}
+                    onChange={(date) => {
+                      setSelectedDate(date);
+                      setVisibleMonth(date.slice(0, 7));
                       setSelectedSlot(null);
                       setSubmitError(null);
                       setSubmitSuccess(null);
                     }}
+                    visibleMonth={
+                      visibleMonth || getInitialVisibleMonth(data, selectedDate)
+                    }
+                    onVisibleMonthChange={setVisibleMonth}
+                    minDate={data?.dateBounds.min}
+                    maxDate={data?.dateBounds.max}
+                    disablePast
+                    datesMeta={datesMeta}
+                    loading={isLoading}
+                    error={error}
+                    mode="single"
+                    locale={locale}
+                    weekStartsOn={weekStartsOn}
+                    className={styles.calendarSurface}
                   />
+                  {isRefreshingSlots ? (
+                    <p className={styles.calendarNote}>{copy.loadingCalendar}</p>
+                  ) : null}
                 </div>
               )}
             </div>

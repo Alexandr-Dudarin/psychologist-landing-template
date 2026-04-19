@@ -149,6 +149,22 @@
   font-weight: 600;
 }
 
+.calendarBlock {
+  display: grid;
+  gap: 12px;
+}
+
+.calendarSurface {
+  max-width: 100%;
+}
+
+.calendarNote {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 .dateInput {
   width: 100%;
   padding: 14px 16px;
