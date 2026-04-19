@@ -34,6 +34,13 @@ export type PublicBookingCreatePayload = {
   consent: boolean;
 };
 
+export type PublicBookingNotificationStatus = "sent" | "failed" | "skipped";
+
+export type PublicBookingNotificationChannel = {
+  status: PublicBookingNotificationStatus;
+  error?: string;
+};
+
 export type PublicBookingCreateSuccessResponse = {
   success: true;
   booking: {
@@ -45,6 +52,11 @@ export type PublicBookingCreateSuccessResponse = {
     endsAt: string;
   };
   alreadyExistedClient: boolean;
+  notifications?: {
+    telegram: PublicBookingNotificationChannel;
+    ownerEmail: PublicBookingNotificationChannel;
+    clientEmail: PublicBookingNotificationChannel;
+  };
 };
 
 export type PublicBookingCreateErrorResponse = {

@@ -3,6 +3,7 @@
 import type { PoolClient } from "pg";
 import { pool } from "../../../server/db/pool";
 import { validateBookableSlot } from "../../../server/publicBooking/bookingAvailability";
+import { sendBookingNotifications } from "../../../server/publicBooking/sendBookingNotifications";
 import type {
   PublicBookingCreatePayload,
   PublicBookingCreateSuccessResponse,
@@ -321,6 +322,36 @@ export default async function handler(req: any, res: any) {
       },
       alreadyExistedClient: clientResult.alreadyExisted,
     };
+
+    try {
+      response.notifications = await sendBookingNotifications({
+        sessionId: response.booking.sessionId,
+        clientName: payload.name,
+        clientPhone: payload.phone,
+        clientEmail: payload.email,
+        serviceTitle: response.booking.serviceTitle,
+        startsAt: response.booking.startsAt,
+        endsAt: response.booking.endsAt,
+        comment: payload.message ?? "",
+        alreadyExistedClient: response.alreadyExistedClient,
+      });
+    } catch (notificationError) {
+      console.error("Public booking notification error:", notificationError);
+      response.notifications = {
+        telegram: {
+          status: "failed",
+          error: "Unexpected notification error",
+        },
+        ownerEmail: {
+          status: "failed",
+          error: "Unexpected notification error",
+        },
+        clientEmail: {
+          status: "failed",
+          error: "Unexpected notification error",
+        },
+      };
+    }
 
     return res.status(200).json(response);
   } catch (error) {
