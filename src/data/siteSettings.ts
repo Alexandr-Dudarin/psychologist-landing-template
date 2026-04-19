@@ -10,12 +10,12 @@ export const siteSettings = {
   },
 
   crm: {
-    enabled: false,
+    enabled: true,
   },
 
   booking: {
-    mode: "request_only" as "request_only" | "slot_request" | "paid_booking",
-    separatePageEnabled: false,
+    mode: "slot_request" as "request_only" | "slot_request" | "paid_booking",
+    separatePageEnabled: true,
     calendarEnabled: false,
     paymentEnabled: false,
     sessionDurationMinutes: 60,

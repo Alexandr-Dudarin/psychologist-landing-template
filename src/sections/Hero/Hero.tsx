@@ -4,11 +4,13 @@ import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { trackPhoneClick, trackTelegramClick } from "../../lib/analytics/trackers";
+import { getBookingTarget } from "../../lib/booking/getBookingTarget";
 import styles from "./Hero.module.css";
 
 export function Hero() {
   const { t } = useLanguage();
   const { content, config, profile, ui } = t;
+  const bookingTarget = getBookingTarget();
 
   return (
     <section className={styles.hero}>
@@ -28,7 +30,7 @@ export function Hero() {
             </div>
 
             <div className={styles.actions}>
-              <Button variant="primary" href="#booking">
+              <Button variant="primary" href={bookingTarget}>
                 {ui.buttons.book}
               </Button>
 

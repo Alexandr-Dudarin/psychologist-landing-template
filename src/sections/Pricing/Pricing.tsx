@@ -2,11 +2,13 @@ import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { useLanguage } from "../../app/providers/LanguageProvider";
+import { getBookingTarget } from "../../lib/booking/getBookingTarget";
 import styles from "./Pricing.module.css";
 
 export function Pricing() {
   const { t } = useLanguage();
   const { config, content, ui } = t;
+  const bookingTarget = getBookingTarget();
 
   return (
     <section id="pricing" className={`${styles.section} section`}>
@@ -31,7 +33,7 @@ export function Pricing() {
               <p className={styles.description}>{item.description}</p>
 
               <Button
-                href="#booking"
+                href={bookingTarget}
                 variant={item.featured ? "primary" : "secondary"}
                 fullWidth
               >

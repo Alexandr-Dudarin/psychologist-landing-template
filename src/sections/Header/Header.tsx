@@ -4,6 +4,7 @@ import { Container } from "../../components/Container/Container";
 import { Button } from "../../components/Button/Button";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { useTheme } from "../../app/providers/ThemeProvider";
+import { getBookingTarget } from "../../lib/booking/getBookingTarget";
 import styles from "./Header.module.css";
 
 export function Header() {
@@ -13,6 +14,11 @@ export function Header() {
   const { t, language, setLanguage, showLanguageSwitcher } = useLanguage();
   const { theme, setTheme, showThemeSwitcher } = useTheme();
   const { profile, ui } = t;
+
+  const bookingTarget = getBookingTarget();
+  const navItems = ui.navItems.map((item) =>
+    item.href === "#booking" ? { ...item, href: bookingTarget } : item
+  );
 
   const handleToggleMenu = () => {
     setIsOpen((prev) => !prev);
@@ -69,7 +75,7 @@ export function Header() {
             </a>
 
             <nav className={styles.nav}>
-              {ui.navItems.map((item) => (
+              {navItems.map((item) => (
                 <a key={item.href} href={item.href}>
                   {item.label}
                 </a>
@@ -129,7 +135,7 @@ export function Header() {
                 </div>
               )}
 
-              <Button href="#booking" variant="primary">
+              <Button href={bookingTarget} variant="primary">
                 {ui.buttons.book}
               </Button>
 
@@ -151,7 +157,7 @@ export function Header() {
             className={`${styles.mobileMenu} ${isOpen ? styles.mobileMenuOpen : ""}`}
           >
             <nav className={styles.mobileNav}>
-              {ui.navItems.map((item) => (
+              {navItems.map((item) => (
                 <a key={item.href} href={item.href} onClick={handleCloseMenu}>
                   {item.label}
                 </a>
@@ -210,7 +216,7 @@ export function Header() {
               </div>
             )}
 
-            <Button href="#booking" variant="primary" fullWidth>
+            <Button href={bookingTarget} variant="primary" fullWidth>
               {ui.buttons.book}
             </Button>
           </div>
