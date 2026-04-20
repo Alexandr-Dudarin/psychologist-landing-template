@@ -4,6 +4,7 @@ import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useLanguage } from "../app/providers/LanguageProvider";
 import { AdminButton } from "../components/admin/AdminButton";
 import { AdminFeedback } from "../components/admin/AdminFeedback";
+import { siteSettings } from "../data/siteSettings";
 import { logoutAdmin } from "../lib/api/adminAuth";
 
 export function AdminLayout() {
@@ -56,6 +57,9 @@ export function AdminLayout() {
           <Link to="/admin/sessions">{t.admin.layout.nav.sessions}</Link>
           <Link to="/admin/notes">{t.admin.layout.nav.notes}</Link>
           <Link to="/admin/schedule">{t.admin.layout.nav.schedule}</Link>
+          {siteSettings.premiumModules.scheduler.enabled ? (
+            <Link to="/admin/scheduler">Планировщик</Link>
+          ) : null}
           <Link to="/admin/help">Инструкция</Link>
           <Link to="/">{t.admin.layout.nav.backToSite}</Link>
         </nav>

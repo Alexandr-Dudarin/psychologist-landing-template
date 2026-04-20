@@ -12,7 +12,9 @@ import { ServicesPage } from "../../pages/admin/services/ServicesPage";
 import { SessionsPage } from "../../pages/admin/sessions/SessionsPage";
 import { NotesPage } from "../../pages/admin/notes/NotesPage";
 import { SchedulePage } from "../../pages/admin/schedule/SchedulePage";
+import { PremiumSchedulerPage } from "../../pages/admin/scheduler/PremiumSchedulerPage";
 import { AdminHelpPage } from "../../pages/admin/help/AdminHelpPage";
+import { siteSettings } from "../../data/siteSettings";
 
 export function AppRouter() {
   return (
@@ -39,6 +41,9 @@ export function AppRouter() {
         <Route path="sessions" element={<SessionsPage />} />
         <Route path="notes" element={<NotesPage />} />
         <Route path="schedule" element={<SchedulePage />} />
+        {siteSettings.premiumModules.scheduler.enabled ? (
+          <Route path="scheduler" element={<PremiumSchedulerPage />} />
+        ) : null}
         <Route path="help" element={<AdminHelpPage />} />
       </Route>
     </Routes>

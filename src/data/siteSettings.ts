@@ -13,6 +13,13 @@ export const siteSettings = {
     enabled: true,
   },
 
+  premiumModules: {
+    scheduler: {
+      enabled: true,
+      defaultView: "week" as "week" | "day" | "month",
+    },
+  },
+
   pricing: {
     source: "config" as "config" | "database",
   },
