@@ -1,8 +1,10 @@
 import type { FormEvent } from "react";
 
+import type { CalendarDateMeta } from "../../../components/calendar/calendar.types";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import { AdminScheduleDatePicker } from "./AdminScheduleDatePicker";
 import styles from "./SchedulePage.module.css";
 import {
   formatDate,
@@ -25,6 +27,17 @@ type ScheduleOverridesSectionProps = {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
+function buildOverrideCalendarMeta(
+  overrides: ScheduleOverrideList
+): CalendarDateMeta[] {
+  return overrides.map((item) => ({
+    date: item.date.slice(0, 10),
+    state: item.isWorkingDay ? "available" : "blocked",
+    label: item.isWorkingDay ? "Рабочий день" : "Выходной",
+    hint: item.note || "Для этой даты уже задано отдельное правило.",
+  }));
+}
+
 export function ScheduleOverridesSection({
   deletingOverrideDate,
   editingOverrideDate,
@@ -43,11 +56,18 @@ export function ScheduleOverridesSection({
   return (
     <AdminSection title="Исключения по конкретным датам">
       <form onSubmit={onSubmit} className={styles.stackForm}>
-        <input
-          type="date"
+        <AdminScheduleDatePicker
+          label="Дата исключения"
+          hint={
+            isEditing
+              ? "Вы редактируете уже существующее исключение. Выбранная дата подсвечена в календаре."
+              : "Выберите дату, для которой нужно задать отдельное правило работы."
+          }
           value={form.date}
-          onChange={(event) => onFormChange("date", event.target.value)}
-          className={styles.input}
+          onChange={(date) => onFormChange("date", date)}
+          datesMeta={buildOverrideCalendarMeta(overrides)}
+          emptyText="Выберите дату исключения"
+          disablePast
         />
 
         <label className={styles.checkboxRow}>
@@ -107,7 +127,7 @@ export function ScheduleOverridesSection({
               : "Сохранить исключение"}
           </button>
 
-          {isEditing && (
+          {isEditing ? (
             <button
               type="button"
               onClick={onCancelEdit}
@@ -115,7 +135,7 @@ export function ScheduleOverridesSection({
             >
               Отменить
             </button>
-          )}
+          ) : null}
         </div>
 
         <AdminFeedback
@@ -141,12 +161,10 @@ export function ScheduleOverridesSection({
             {overrides.map((item) => (
               <tr key={item.date}>
                 <td>{formatDate(item.date)}</td>
-                <td>
-                  {item.isWorkingDay ? "Рабочий день" : "Нерабочий день"}
-                </td>
+                <td>{item.isWorkingDay ? "Рабочий день" : "Выходной"}</td>
                 <td>
                   {item.isWorkingDay && item.startTime && item.endTime
-                    ? `${item.startTime}–${item.endTime}`
+                    ? `${item.startTime}-${item.endTime}`
                     : "-"}
                 </td>
                 <td>{item.note || "-"}</td>

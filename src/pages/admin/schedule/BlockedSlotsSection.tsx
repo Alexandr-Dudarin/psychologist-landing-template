@@ -1,8 +1,10 @@
 import type { FormEvent } from "react";
 
+import type { CalendarDateMeta } from "../../../components/calendar/calendar.types";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import { AdminScheduleDatePicker } from "./AdminScheduleDatePicker";
 import styles from "./SchedulePage.module.css";
 import {
   formatDate,
@@ -25,6 +27,30 @@ type BlockedSlotsSectionProps = {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
+function buildBlockedSlotsCalendarMeta(
+  blockedSlots: BlockedSlotsList
+): CalendarDateMeta[] {
+  const groupedBlockedSlots = new Map<string, BlockedSlotsList>();
+
+  for (const item of blockedSlots) {
+    const date = item.blockedDate.slice(0, 10);
+    const currentItems = groupedBlockedSlots.get(date) ?? [];
+    currentItems.push(item);
+    groupedBlockedSlots.set(date, currentItems);
+  }
+
+  return Array.from(groupedBlockedSlots.entries()).map(([date, items]) => ({
+    date,
+    state: "blocked",
+    label: items.length === 1 ? "Блокировка" : "Блокировки",
+    hint:
+      items.length === 1
+        ? `${items[0].startTime} - ${items[0].endTime}`
+        : `Слотов закрыто: ${items.length}`,
+    badge: String(items.length),
+  }));
+}
+
 export function BlockedSlotsSection({
   blockedSlotForm,
   blockedSlots,
@@ -43,11 +69,17 @@ export function BlockedSlotsSection({
   return (
     <AdminSection title="Ручное закрытие отдельных слотов">
       <form onSubmit={onSubmit} className={styles.stackForm}>
-        <input
-          type="date"
+        <AdminScheduleDatePicker
+          label="Дата блокировки"
+          hint={
+            isEditing
+              ? "Вы редактируете выбранную блокировку. Дата остаётся явно видимой над календарём."
+              : "Выберите дату, затем укажите диапазон времени, который нужно закрыть."
+          }
           value={blockedSlotForm.blockedDate}
-          onChange={(event) => onFormChange("blockedDate", event.target.value)}
-          className={styles.input}
+          onChange={(date) => onFormChange("blockedDate", date)}
+          datesMeta={buildBlockedSlotsCalendarMeta(blockedSlots)}
+          emptyText="Выберите дату блокировки"
         />
 
         <div className={styles.grid}>
@@ -94,7 +126,7 @@ export function BlockedSlotsSection({
               : "Создать блокировку"}
           </button>
 
-          {isEditing && (
+          {isEditing ? (
             <button
               type="button"
               onClick={onCancelEdit}
@@ -102,7 +134,7 @@ export function BlockedSlotsSection({
             >
               Отменить
             </button>
-          )}
+          ) : null}
         </div>
 
         <AdminFeedback
@@ -128,7 +160,7 @@ export function BlockedSlotsSection({
               <tr key={item.id}>
                 <td>{formatDate(item.blockedDate)}</td>
                 <td>
-                  {item.startTime}–{item.endTime}
+                  {item.startTime}-{item.endTime}
                 </td>
                 <td>{item.reason || "-"}</td>
                 <td className={styles.actionsCell}>

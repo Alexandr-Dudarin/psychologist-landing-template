@@ -26,6 +26,48 @@
   max-width: 720px;
 }
 
+.calendarField {
+  display: grid;
+  gap: 12px;
+}
+
+.calendarFieldHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.calendarFieldLabel {
+  display: block;
+  font-weight: 600;
+}
+
+.calendarFieldHint {
+  margin: 6px 0 0;
+  color: #5f6b7a;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.calendarFieldValue {
+  padding: 8px 12px;
+  border: 1px solid #d3dae3;
+  border-radius: 999px;
+  background: #f7f9fc;
+  color: #233044;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.calendarSurface {
+  border: 1px solid #dbe2ea;
+  border-radius: 18px;
+  padding: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
 .input {
   width: 100%;
   padding: 10px 12px;
