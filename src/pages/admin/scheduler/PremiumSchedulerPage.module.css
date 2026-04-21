@@ -174,8 +174,19 @@
   color: #ffffff;
 }
 
+.viewButtonActive:hover {
+  background: var(--admin-accent);
+  border-color: var(--admin-accent);
+  color: #ffffff;
+}
+
 .content {
   padding: 20px;
+}
+
+.weekFrame,
+.dayFrame {
+  --scheduler-row-height: 96px;
 }
 
 .weekFrame {
@@ -196,7 +207,7 @@
 
 .timeColumn {
   display: grid;
-  grid-template-rows: 96px repeat(15, 96px);
+  grid-template-rows: 96px repeat(15, var(--scheduler-row-height));
   border-right: 1px solid var(--admin-border);
   background: linear-gradient(180deg, #fbfcfd 0%, #f7fafc 100%);
 }
@@ -213,7 +224,7 @@
   padding: 10px 10px;
   border-bottom: 1px solid var(--admin-border);
   color: var(--admin-text-muted);
-  font-size: 0.84rem;
+  font-size: 0.9rem;
 }
 
 .columns {
@@ -391,7 +402,7 @@
 
 .gridBody {
   position: relative;
-  min-height: calc(96px * 15);
+  min-height: calc(var(--scheduler-row-height) * 15);
   background:
     linear-gradient(90deg, rgba(47, 93, 120, 0.05), rgba(47, 93, 120, 0) 42px),
     repeating-linear-gradient(
@@ -399,7 +410,7 @@
       rgba(215, 222, 230, 0.92) 0,
       rgba(215, 222, 230, 0.92) 1px,
       transparent 1px,
-      transparent 96px
+      transparent var(--scheduler-row-height)
     );
   overflow: hidden;
 }
@@ -494,8 +505,9 @@
 }
 
 .blockExpanded {
-  padding: 14px 16px 16px;
-  gap: 8px;
+  padding: 12px 14px 12px;
+  gap: 6px;
+  align-content: start;
 }
 
 .blockConflict {
@@ -609,16 +621,26 @@
 
 .blockTitle {
   font-weight: 700;
-  font-size: 1.05rem;
-  line-height: 1.3;
+  font-size: 1rem;
+  line-height: 1.18;
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .blockSubtitle {
   color: var(--admin-text-muted);
-  font-size: 0.82rem;
-  line-height: 1.4;
+  font-size: 0.8rem;
+  line-height: 1.24;
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .blockMetaRow {
@@ -636,10 +658,11 @@
 
 .blockNote {
   color: var(--admin-text-muted);
-  font-size: 0.79rem;
-  line-height: 1.4;
+  font-size: 0.75rem;
+  line-height: 1.25;
   display: -webkit-box;
-  -webkit-line-clamp: 5;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-wrap: pretty;

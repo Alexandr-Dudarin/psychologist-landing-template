@@ -21,7 +21,8 @@ import {
 import styles from "./PremiumSchedulerPage.module.css";
 
 const MINUTES_IN_HOUR = 60;
-const ROW_HEIGHT = 96;
+const WEEK_ROW_HEIGHT = 96;
+const DAY_ROW_HEIGHT = 124;
 const GRID_START_HOUR = 7;
 
 function getTodayDateKey(): string {
@@ -32,9 +33,14 @@ function getTodayDateKey(): string {
   return `${year}-${month}-${day}`;
 }
 
-function formatOverlayPosition(startMinutes: number, durationMinutes: number) {
-  const top = ((startMinutes - GRID_START_HOUR * MINUTES_IN_HOUR) / MINUTES_IN_HOUR) * ROW_HEIGHT;
-  const height = Math.max((durationMinutes / MINUTES_IN_HOUR) * ROW_HEIGHT, 72);
+function formatOverlayPosition(
+  startMinutes: number,
+  durationMinutes: number,
+  rowHeight: number
+) {
+  const top =
+    ((startMinutes - GRID_START_HOUR * MINUTES_IN_HOUR) / MINUTES_IN_HOUR) * rowHeight;
+  const height = Math.max((durationMinutes / MINUTES_IN_HOUR) * rowHeight, 72);
 
   return {
     top,
@@ -175,6 +181,7 @@ export function PremiumSchedulerPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<SchedulerDetail | null>(null);
+  const rowHeight = viewMode === "day" ? DAY_ROW_HEIGHT : WEEK_ROW_HEIGHT;
   const locale = "ru-RU";
 
   useEffect(() => {
@@ -602,7 +609,10 @@ export function PremiumSchedulerPage() {
                   ))}
                 </div>
               ) : (
-                <div className={viewMode === "week" ? styles.weekFrame : styles.dayFrame}>
+                                <div
+                  className={viewMode === "week" ? styles.weekFrame : styles.dayFrame}
+                  style={{ ["--scheduler-row-height" as string]: `${rowHeight}px` }}
+                >
                   <div className={styles.timeColumn}>
                     <div className={styles.timeHeader}>Время</div>
                     {hours.map((hour) => (
@@ -693,15 +703,15 @@ export function PremiumSchedulerPage() {
                               <div
                                 className={styles.workingHoursBand}
                                 style={{
-                                  top: `${
+                                                                    top: `${
                                     ((day.workStartMinutes - GRID_START_HOUR * MINUTES_IN_HOUR) /
                                       MINUTES_IN_HOUR) *
-                                    ROW_HEIGHT
+                                    rowHeight
                                   }px`,
                                   height: `${
                                     ((day.workEndMinutes - day.workStartMinutes) /
                                       MINUTES_IN_HOUR) *
-                                    ROW_HEIGHT
+                                    rowHeight
                                   }px`,
                                 }}
                               />
@@ -710,7 +720,8 @@ export function PremiumSchedulerPage() {
                             {day.nonWorkingRanges.map((range) => {
                               const { top, height } = formatOverlayPosition(
                                 range.startMinutes,
-                                range.durationMinutes
+                                  range.durationMinutes,
+                                  rowHeight
                               );
 
                               return (
@@ -732,15 +743,16 @@ export function PremiumSchedulerPage() {
                             {dayItems.map((item) => {
                               const { top, height } = formatOverlayPosition(
                                 item.startMinutes,
-                                item.durationMinutes
+                                item.durationMinutes,
+                                 rowHeight
                               );
                               const conflictOffset = item.hasConflict
                                 ? Math.min(item.conflictOrder * 14, 28)
                                 : 0;
                               const isWeekMode = viewMode === "week";
                               const visualHeight = isWeekMode
-  ? Math.max(height, 104)
-  : Math.max(height, 96);
+                                ? Math.max(height, 104)
+                                : Math.max(height, 124);
 
                               return (
                                 <button
@@ -775,7 +787,7 @@ export function PremiumSchedulerPage() {
                                           : truncateText(item.reasonPreview, 24)}
                                       </span>
                                     </>
-                                  ) : (
+                                                                ) : (
                                     <>
                                       <div className={styles.blockTop}>
                                         <span className={styles.blockTimePill}>{item.timeLabel}</span>
@@ -789,31 +801,23 @@ export function PremiumSchedulerPage() {
                                               Блокировка
                                             </span>
                                           )}
-                                          {item.hasConflict ? (
-                                            <span className={styles.blockConflictBadge}>
-                                              Конфликт x{item.conflictCount}
-                                            </span>
-                                          ) : null}
                                         </div>
                                       </div>
 
                                       <span className={styles.blockTitle}>{item.title}</span>
-                                      <span className={styles.blockSubtitle}>{item.subtitle}</span>
 
-                                      <div className={styles.blockMetaRow}>
-                                        <span className={styles.blockMeta}>
-                                          {item.startLabel} - {item.endLabel}
-                                        </span>
-                                        <span className={styles.blockMeta}>
-                                          {item.durationMinutes} мин
-                                        </span>
-                                      </div>
-
-                                      <span className={styles.blockNote}>
+                                      <span className={styles.blockSubtitle}>
                                         {item.tone === "session"
-                                          ? item.notePreview
-                                          : item.reasonPreview}
+                                          ? truncateText(item.serviceTitle, 88)
+                                          : truncateText(item.reasonPreview, 88)}
                                       </span>
+
+                                      {item.tone === "session" &&
+                                      item.notePreview !== "Без заметки" ? (
+                                        <span className={styles.blockNote}>
+                                          {truncateText(item.notePreview, 110)}
+                                        </span>
+                                      ) : null}
                                     </>
                                   )}
                                 </button>
