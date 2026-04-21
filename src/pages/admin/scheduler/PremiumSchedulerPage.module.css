@@ -76,8 +76,9 @@
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: 320px minmax(0, 1fr);
   gap: 20px;
+  align-items: start;
 }
 
 .mainColumn {
@@ -172,6 +173,7 @@
   grid-template-columns: 88px repeat(7, minmax(160px, 1fr));
   gap: 0;
   overflow: auto;
+  min-width: 0;
 }
 
 .dayFrame {
@@ -219,10 +221,22 @@
   position: relative;
   min-width: 0;
   border-right: 1px solid var(--admin-border);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
 }
 
 .dayColumn:last-child {
   border-right: none;
+}
+
+.dayColumnOverride .dayHeader {
+  background:
+    linear-gradient(180deg, rgba(231, 246, 237, 0.9) 0%, rgba(248, 251, 248, 0.92) 100%);
+}
+
+.dayColumnOverrideOff .dayHeader,
+.dayColumnDayOff .dayHeader {
+  background:
+    linear-gradient(180deg, rgba(253, 245, 245, 0.92) 0%, rgba(251, 249, 249, 0.96) 100%);
 }
 
 .dayHeader {
@@ -232,6 +246,13 @@
   padding: 14px 14px 12px;
   border-bottom: 1px solid var(--admin-border);
   background: rgba(248, 250, 252, 0.92);
+}
+
+.dayHeaderTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
 }
 
 .dayTitle {
@@ -252,6 +273,24 @@
   font-size: 0.8rem;
 }
 
+.detailToggle {
+  min-height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(47, 93, 120, 0.16);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--admin-text);
+  padding: 0 12px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.overrideNote {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
 .gridBody {
   position: relative;
   min-height: calc(72px * 15);
@@ -263,6 +302,39 @@
       transparent 1px,
       transparent 72px
     );
+  overflow: hidden;
+}
+
+.nonWorkingOverlay,
+.dayOffOverlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.nonWorkingOverlay {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(107, 121, 133, 0.06) 0,
+      rgba(107, 121, 133, 0.06) 10px,
+      rgba(255, 255, 255, 0.14) 10px,
+      rgba(255, 255, 255, 0.14) 20px
+    );
+}
+
+.dayOffOverlay {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(154, 75, 75, 0.08) 0,
+      rgba(154, 75, 75, 0.08) 10px,
+      rgba(255, 247, 247, 0.5) 10px,
+      rgba(255, 247, 247, 0.5) 20px
+    ),
+    rgba(255, 248, 248, 0.8);
 }
 
 .sessionBlock,
@@ -276,6 +348,10 @@
   overflow: hidden;
   display: grid;
   gap: 4px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  z-index: 2;
 }
 
 .sessionBlock {
@@ -308,6 +384,18 @@
   line-height: 1.35;
 }
 
+.blockMeta {
+  color: #35586d;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.blockNote {
+  color: var(--admin-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .monthGrid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -323,10 +411,27 @@
   display: grid;
   align-content: start;
   gap: 10px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
 }
 
 .monthCellMuted {
   opacity: 0.58;
+}
+
+.monthCellOverride {
+  border-color: rgba(77, 132, 98, 0.24);
+  box-shadow: inset 0 0 0 1px rgba(77, 132, 98, 0.08);
+}
+
+.monthCellDayOff {
+  border-color: rgba(154, 75, 75, 0.18);
+}
+
+.monthCellMutedState {
+  background:
+    linear-gradient(180deg, #fffafa 0%, #fdf7f7 100%);
 }
 
 .monthCellTop {
@@ -354,11 +459,55 @@
   font-size: 0.78rem;
 }
 
+.monthLoadCue {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  border: 1px solid transparent;
+}
+
+.monthLoadBusy {
+  background: rgba(47, 93, 120, 0.12);
+  color: #2f5d78;
+  border-color: rgba(47, 93, 120, 0.18);
+}
+
+.monthLoadLight {
+  background: rgba(94, 135, 112, 0.12);
+  color: #4d8462;
+  border-color: rgba(94, 135, 112, 0.18);
+}
+
+.monthLoadEmpty {
+  background: rgba(107, 121, 133, 0.08);
+  color: var(--admin-text-muted);
+  border-color: rgba(107, 121, 133, 0.14);
+}
+
+.monthCellBody {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.monthStateLabel {
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.monthActivityLabel,
+.monthOverrideNote {
+  color: var(--admin-text-muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
 .monthCellFooter {
   display: grid;
   gap: 6px;
   color: var(--admin-text-muted);
   font-size: 0.88rem;
+  margin-top: auto;
 }
 
 .infoPanel {
@@ -388,7 +537,8 @@
 }
 
 .legendSwatch,
-.legendSwatchBlocked {
+.legendSwatchBlocked,
+.legendSwatchMuted {
   width: 14px;
   height: 14px;
   border-radius: 4px;
@@ -410,6 +560,18 @@
       rgba(154, 75, 75, 0.08) 8px
     );
   border: 1px solid rgba(154, 75, 75, 0.22);
+}
+
+.legendSwatchMuted {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(107, 121, 133, 0.16) 0,
+      rgba(107, 121, 133, 0.16) 4px,
+      rgba(255, 255, 255, 0.4) 4px,
+      rgba(255, 255, 255, 0.4) 8px
+    );
+  border: 1px solid rgba(107, 121, 133, 0.18);
 }
 
 .legendText {
@@ -454,6 +616,92 @@
   text-align: right;
 }
 
+.detailCard {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(47, 93, 120, 0.08), transparent 38%),
+    linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+  border: 1px solid var(--admin-border);
+}
+
+.detailTop {
+  display: grid;
+  gap: 6px;
+}
+
+.detailKind {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(47, 93, 120, 0.1);
+  color: #2f5d78;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.detailTitle {
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+.detailSubtitle {
+  margin: 0;
+  color: var(--admin-text-muted);
+  line-height: 1.45;
+}
+
+.detailChips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.detailChip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--admin-surface-soft);
+  color: var(--admin-text-muted);
+  font-size: 0.8rem;
+}
+
+.detailNote {
+  margin: 0;
+  color: var(--admin-text);
+  line-height: 1.55;
+}
+
+.detailActions {
+  display: grid;
+  gap: 8px;
+}
+
+.detailLink,
+.detailLinkSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: 14px;
+  padding: 0 14px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.detailLink {
+  background: var(--admin-accent);
+  color: #ffffff;
+}
+
+.detailLinkSecondary {
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text);
+  background: #ffffff;
+}
+
 .stateBox {
   padding: 18px 20px;
   border-radius: 18px;
@@ -473,7 +721,12 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .mainColumn {
+    order: 1;
+  }
+
   .sideColumn {
+    order: 2;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -490,6 +743,10 @@
 
   .content {
     padding: 16px;
+  }
+
+  .panel {
+    border-radius: 20px;
   }
 
   .weekFrame,
@@ -515,6 +772,11 @@
     overflow: hidden;
   }
 
+  .dayHeaderTop {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .gridBody {
     min-height: 360px;
     background:
@@ -529,5 +791,10 @@
 
   .monthGrid {
     grid-template-columns: 1fr;
+  }
+
+  .detailCard {
+    border-radius: 20px 20px 0 0;
+    padding-bottom: 24px;
   }
 }

@@ -10,18 +10,59 @@ import type {
   ScheduleOverrideRecord,
   ScheduleRuleRecord,
 } from "../../../types/schedule";
-import type { CrmSessionRecord } from "../../../types/session";
+import type { CrmSessionRecord, SessionStatus } from "../../../types/session";
 
 export type SchedulerViewMode = "week" | "day" | "month";
 
-export type SchedulerOverlayItem = {
-  id: string;
-  title: string;
-  subtitle: string;
-  dayKey: string;
-  startMinutes: number;
-  durationMinutes: number;
-  tone: "session" | "blocked";
+export type SchedulerOverlayItem =
+  | {
+      id: string;
+      dayKey: string;
+      startMinutes: number;
+      durationMinutes: number;
+      tone: "session";
+      title: string;
+      subtitle: string;
+      timeLabel: string;
+      statusLabel: string;
+      notePreview: string;
+      clientName: string;
+      serviceTitle: string;
+      sessionId: number;
+      clientId: number;
+    }
+  | {
+      id: string;
+      dayKey: string;
+      startMinutes: number;
+      durationMinutes: number;
+      tone: "blocked";
+      title: string;
+      subtitle: string;
+      timeLabel: string;
+      reasonPreview: string;
+      blockedSlotId: number;
+    };
+
+export type SchedulerDaySummary = {
+  dateKey: string;
+  label: string;
+  sessionsCount: number;
+  blockedCount: number;
+  workingLabel: string;
+  isWorking: boolean;
+  isOverride: boolean;
+  workingStateTone: "working" | "override-working" | "day-off" | "override-day-off";
+  workStartMinutes: number | null;
+  workEndMinutes: number | null;
+  nonWorkingRanges: Array<{
+    id: string;
+    startMinutes: number;
+    durationMinutes: number;
+    tone: "non-working" | "day-off";
+  }>;
+  loadLabel: string;
+  overrideNotePreview: string;
 };
 
 export type SchedulerMonthCellSummary = {
@@ -32,6 +73,11 @@ export type SchedulerMonthCellSummary = {
   hasOverride: boolean;
   isWorkingOverride: boolean;
   isWorkingByRule: boolean;
+  workingStateTone: "working" | "override-working" | "day-off" | "override-day-off";
+  workingStateLabel: string;
+  activityLabel: string;
+  loadLevel: "empty" | "light" | "busy";
+  overrideNotePreview: string;
 };
 
 const SCHEDULER_START_HOUR = 7;
@@ -63,6 +109,18 @@ function getTimeLabel(hours: number): string {
   return `${String(hours).padStart(2, "0")}:00`;
 }
 
+function getTimeRangeLabel(startMinutes: number, durationMinutes: number): string {
+  const endMinutes = startMinutes + durationMinutes;
+
+  function toLabel(value: number) {
+    const hours = Math.floor(value / 60);
+    const minutes = value % 60;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  }
+
+  return `${toLabel(startMinutes)} - ${toLabel(endMinutes)}`;
+}
+
 function getMinutesSinceStartOfDay(value: string): number {
   const date = new Date(value);
   return date.getHours() * 60 + date.getMinutes();
@@ -73,6 +131,44 @@ function getDurationMinutes(startTime: string, endTime: string): number {
   const [endHours, endMinutes] = endTime.split(":").map(Number);
 
   return endHours * 60 + endMinutes - (startHours * 60 + startMinutes);
+}
+
+function getMinutesFromTimeLabel(time: string | null): number | null {
+  if (!time) {
+    return null;
+  }
+
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function getStatusLabel(status: SessionStatus): string {
+  switch (status) {
+    case "scheduled":
+      return "Запланирована";
+    case "completed":
+      return "Завершена";
+    case "cancelled":
+      return "Отменена";
+    case "no_show":
+      return "Не пришёл";
+    default:
+      return status;
+  }
+}
+
+function truncatePreview(value: string, maxLength = 88): string {
+  const compact = value.replace(/\s+/g, " ").trim();
+
+  if (!compact) {
+    return "Без заметки";
+  }
+
+  if (compact.length <= maxLength) {
+    return compact;
+  }
+
+  return `${compact.slice(0, maxLength - 1).trimEnd()}…`;
 }
 
 function toWeekday(dateKey: string): number {
@@ -97,7 +193,10 @@ function getRuleForDate(
     return {
       isOverride: true,
       isWorking: override.isWorkingDay,
-      label: override.isWorkingDay ? "Override: рабочий день" : "Override: выходной",
+      label: override.isWorkingDay ? "Исключение: рабочий день" : "Исключение: выходной",
+      startTime: override.startTime,
+      endTime: override.endTime,
+      note: override.note,
     };
   }
 
@@ -106,8 +205,43 @@ function getRuleForDate(
   return {
     isOverride: false,
     isWorking: rule?.isEnabled ?? false,
-    label: rule?.isEnabled ? "По базовому правилу рабочий день" : "По базовому правилу выходной",
+    label: rule?.isEnabled ? "Рабочий день по базовому правилу" : "Выходной по базовому правилу",
+    startTime: rule?.startTime ?? null,
+    endTime: rule?.endTime ?? null,
+    note: "",
   };
+}
+
+function getWorkingStateTone(ruleInfo: ReturnType<typeof getRuleForDate>) {
+  if (ruleInfo.isOverride && ruleInfo.isWorking) {
+    return "override-working" as const;
+  }
+
+  if (ruleInfo.isOverride && !ruleInfo.isWorking) {
+    return "override-day-off" as const;
+  }
+
+  if (ruleInfo.isWorking) {
+    return "working" as const;
+  }
+
+  return "day-off" as const;
+}
+
+function getLoadLabel(sessionsCount: number): string {
+  if (sessionsCount >= 5) {
+    return "Высокая загрузка";
+  }
+
+  if (sessionsCount >= 2) {
+    return "Ровная загрузка";
+  }
+
+  if (sessionsCount === 1) {
+    return "Есть одна запись";
+  }
+
+  return "Пока без записей";
 }
 
 export function getSchedulerHours(): Array<{ hour: number; label: string }> {
@@ -206,14 +340,24 @@ export function buildSchedulerOverlayItems(params: {
       continue;
     }
 
+    const startMinutes = getMinutesSinceStartOfDay(session.scheduledAt);
+    const timeLabel = getTimeRangeLabel(startMinutes, session.durationMinutes);
+
     items.push({
       id: `session-${session.id}`,
       title: session.clientName,
-      subtitle: `${session.serviceTitle} • ${session.status}`,
+      subtitle: session.serviceTitle,
       dayKey,
-      startMinutes: getMinutesSinceStartOfDay(session.scheduledAt),
+      startMinutes,
       durationMinutes: session.durationMinutes,
       tone: "session",
+      timeLabel,
+      statusLabel: getStatusLabel(session.status),
+      notePreview: truncatePreview(session.notes),
+      clientName: session.clientName,
+      serviceTitle: session.serviceTitle,
+      sessionId: session.id,
+      clientId: session.clientId,
     });
   }
 
@@ -224,18 +368,25 @@ export function buildSchedulerOverlayItems(params: {
       continue;
     }
 
+    const startMinutes = getDurationMinutes("00:00", blockedSlot.startTime);
+    const durationMinutes = getDurationMinutes(blockedSlot.startTime, blockedSlot.endTime);
+    const timeLabel = getTimeRangeLabel(startMinutes, durationMinutes);
+
     items.push({
       id: `blocked-${blockedSlot.id}`,
       title: "Блокировка",
       subtitle: blockedSlot.reason || "Слот закрыт",
       dayKey,
-      startMinutes: getDurationMinutes("00:00", blockedSlot.startTime),
-      durationMinutes: getDurationMinutes(blockedSlot.startTime, blockedSlot.endTime),
+      startMinutes,
+      durationMinutes,
       tone: "blocked",
+      timeLabel,
+      reasonPreview: truncatePreview(blockedSlot.reason || "Слот закрыт"),
+      blockedSlotId: blockedSlot.id,
     });
   }
 
-  return items;
+  return items.sort((left, right) => left.startMinutes - right.startMinutes);
 }
 
 export function buildMonthSummary(params: {
@@ -255,6 +406,9 @@ export function buildMonthSummary(params: {
       (slot) => slot.blockedDate.slice(0, 10) === item.date
     ).length;
     const ruleInfo = getRuleForDate(item.date, params.rules, params.overrides);
+    const workingStateTone = getWorkingStateTone(ruleInfo);
+    const loadLevel =
+      sessionsCount >= 5 ? "busy" : sessionsCount >= 1 ? "light" : "empty";
 
     return {
       date: item.date,
@@ -264,6 +418,16 @@ export function buildMonthSummary(params: {
       hasOverride: ruleInfo.isOverride,
       isWorkingOverride: ruleInfo.isOverride && ruleInfo.isWorking,
       isWorkingByRule: ruleInfo.isWorking,
+      workingStateTone,
+      workingStateLabel: ruleInfo.label,
+      activityLabel:
+        blockedCount > 0
+          ? `Блокировок: ${blockedCount}`
+          : sessionsCount > 0
+          ? getLoadLabel(sessionsCount)
+          : "Свободный обзорный день",
+      loadLevel,
+      overrideNotePreview: truncatePreview(ruleInfo.note, 64),
     };
   });
 }
@@ -276,7 +440,7 @@ export function getSchedulerDaySummaries(params: {
   overrides: ScheduleOverrideRecord[];
   rules: ScheduleRuleRecord[];
   locale: string;
-}) {
+}): SchedulerDaySummary[] {
   const visibleDates =
     params.viewMode === "day"
       ? [params.anchorDateKey]
@@ -290,6 +454,36 @@ export function getSchedulerDaySummaries(params: {
       (slot) => slot.blockedDate.slice(0, 10) === dateKey
     ).length;
     const ruleInfo = getRuleForDate(dateKey, params.rules, params.overrides);
+    const workStartMinutes = getMinutesFromTimeLabel(ruleInfo.startTime);
+    const workEndMinutes = getMinutesFromTimeLabel(ruleInfo.endTime);
+    const nonWorkingRanges: SchedulerDaySummary["nonWorkingRanges"] = [];
+
+    if (!ruleInfo.isWorking) {
+      nonWorkingRanges.push({
+        id: `${dateKey}-day-off`,
+        startMinutes: SCHEDULER_START_HOUR * 60,
+        durationMinutes: (SCHEDULER_END_HOUR - SCHEDULER_START_HOUR + 1) * 60,
+        tone: "day-off",
+      });
+    } else {
+      if (workStartMinutes && workStartMinutes > SCHEDULER_START_HOUR * 60) {
+        nonWorkingRanges.push({
+          id: `${dateKey}-before-work`,
+          startMinutes: SCHEDULER_START_HOUR * 60,
+          durationMinutes: workStartMinutes - SCHEDULER_START_HOUR * 60,
+          tone: "non-working",
+        });
+      }
+
+      if (workEndMinutes && workEndMinutes < (SCHEDULER_END_HOUR + 1) * 60) {
+        nonWorkingRanges.push({
+          id: `${dateKey}-after-work`,
+          startMinutes: workEndMinutes,
+          durationMinutes: (SCHEDULER_END_HOUR + 1) * 60 - workEndMinutes,
+          tone: "non-working",
+        });
+      }
+    }
 
     return {
       dateKey,
@@ -298,6 +492,13 @@ export function getSchedulerDaySummaries(params: {
       blockedCount,
       workingLabel: ruleInfo.label,
       isWorking: ruleInfo.isWorking,
+      isOverride: ruleInfo.isOverride,
+      workingStateTone: getWorkingStateTone(ruleInfo),
+      workStartMinutes,
+      workEndMinutes,
+      nonWorkingRanges,
+      loadLabel: getLoadLabel(sessionsCount),
+      overrideNotePreview: truncatePreview(ruleInfo.note, 72),
     };
   });
 }
