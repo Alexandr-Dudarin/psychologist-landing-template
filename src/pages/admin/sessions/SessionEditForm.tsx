@@ -8,6 +8,7 @@ import type { SessionStatus } from "../../../types/session";
 import { sessionStatuses } from "../../../types/session";
 import type { SessionForm } from "./sessionForm";
 import { sessionStatusLabels } from "./sessionForm";
+import { SessionDateTimeField } from "./SessionDateTimeField";
 import styles from "./SessionsPage.module.css";
 
 type SessionEditFormProps = {
@@ -58,11 +59,9 @@ export function SessionEditForm({
           ))}
         </select>
 
-        <input
-          type="datetime-local"
+        <SessionDateTimeField
           value={form.scheduledAt}
-          onChange={(e) => onFormChange("scheduledAt", e.target.value)}
-          className={styles.input}
+          onChange={(value) => onFormChange("scheduledAt", value)}
         />
 
         <input

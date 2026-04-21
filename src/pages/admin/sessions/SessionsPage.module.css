@@ -7,6 +7,10 @@
   width: 100%;
 }
 
+.form > * {
+  min-width: 0;
+}
+
 .textarea {
   composes: controlTextArea from "../../../components/admin/adminUi.module.css";
 }
@@ -69,4 +73,225 @@
 
 .linkStack {
   composes: linkStack from "../../../components/admin/adminUi.module.css";
+}
+
+.dateTimeField {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.dateTimeFieldHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.dateTimeFieldLabel {
+  display: block;
+  font-weight: 600;
+}
+
+.dateTimeFieldHint {
+  margin: 6px 0 0;
+  color: var(--admin-text-muted);
+  line-height: 1.45;
+  font-size: 0.94rem;
+}
+
+.dateTimeFieldValue {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--admin-accent-soft);
+  color: var(--admin-accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dateTimeFieldBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 14px;
+  align-items: start;
+}
+
+.dateTimeCalendar {
+  border-radius: 18px;
+  border: 1px solid #dbe2ea;
+  background: #ffffff;
+}
+
+.timePickerPanel {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--admin-border);
+  background: #ffffff;
+}
+
+.timePickerField {
+  display: grid;
+  gap: 8px;
+}
+
+.timePickerLabel {
+  font-weight: 600;
+}
+
+.timePickerHint {
+  margin: 0;
+  color: var(--admin-text-muted);
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.tableHead th {
+  vertical-align: bottom;
+}
+
+.primaryLink {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.wrapValue {
+  overflow-wrap: anywhere;
+}
+
+.dateValue {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.statusBadge,
+.sourceBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  line-height: 1.2;
+}
+
+.statusBadge {
+  background: var(--admin-accent-soft);
+  color: var(--admin-accent);
+}
+
+.sourceBadge {
+  background: var(--admin-surface-muted);
+  color: var(--admin-text-muted);
+}
+
+.notesPreview {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.45;
+  color: var(--admin-text-muted);
+}
+
+.clientCell,
+.serviceCell,
+.dateCell,
+.notesCell,
+.linksCell {
+  min-width: 0;
+}
+
+.clientCell {
+  width: 16%;
+}
+
+.serviceCell {
+  width: 15%;
+}
+
+.dateCell {
+  width: 13%;
+}
+
+.compactCell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.statusCell,
+.sourceCell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.notesCell {
+  width: 20%;
+}
+
+.linksCell {
+  width: 11%;
+}
+
+@media (max-width: 920px) {
+  .dateTimeFieldBody {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .tableHead {
+    display: none;
+  }
+
+  .sessionRow {
+    display: block;
+  }
+
+  .sessionRow td:first-child {
+    border-left: none;
+  }
+
+  .sessionRow {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 14px;
+    border-bottom: 1px solid var(--admin-border);
+  }
+
+  .sessionRow td {
+    display: grid;
+    gap: 6px;
+    padding: 0;
+    border-bottom: none;
+  }
+
+  .sessionRow td::before {
+    content: attr(data-label);
+    color: var(--admin-text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .idCell {
+    width: auto;
+  }
+
+  .actionCell {
+    text-align: left;
+  }
+
+  .actionsRow {
+    justify-content: flex-start;
+  }
+
+  .dateTimeFieldValue {
+    white-space: normal;
+  }
 }

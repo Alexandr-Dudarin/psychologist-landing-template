@@ -1,12 +1,17 @@
+import type { FormEvent } from "react";
+
 import type { ScheduleRuleRecord } from "../../../types/schedule";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import styles from "./SchedulePage.module.css";
 import { weekdayLabels } from "./schedulePage.shared";
 
 type ScheduleRulesTableProps = {
+  isSaving: boolean;
   rules: ScheduleRuleRecord[];
+  onSave: (event: FormEvent<HTMLFormElement>) => void;
   onRuleChange: (
     weekday: number,
     field: keyof ScheduleRuleRecord,
@@ -15,12 +20,24 @@ type ScheduleRulesTableProps = {
 };
 
 export function ScheduleRulesTable({
+  isSaving,
   rules,
+  onSave,
   onRuleChange,
 }: ScheduleRulesTableProps) {
   return (
     <AdminSection title="Рабочие дни и часы">
-      <AdminTable withTopMargin={false}>
+      <form onSubmit={onSave} className={styles.rulesSection}>
+        <div className={styles.rulesSectionHeader}>
+          <p className={styles.rulesSectionHint}>
+            Изменения рабочих дней и часов сохраняются этой кнопкой и общей логикой настроек.
+          </p>
+          <AdminButton type="submit" disabled={isSaving} variant="primary">
+            {isSaving ? "Сохранение..." : "Сохранить рабочие дни и часы"}
+          </AdminButton>
+        </div>
+
+        <AdminTable withTopMargin={false}>
           <thead>
             <tr>
               <th>День</th>
@@ -67,7 +84,17 @@ export function ScheduleRulesTable({
               </tr>
             ))}
           </tbody>
-      </AdminTable>
+        </AdminTable>
+
+        <div className={styles.rulesSectionFooter}>
+          <span className={styles.rulesSectionFootnote}>
+            Если вы изменили расписание выше, нажмите кнопку сохранения в этом блоке.
+          </span>
+          <AdminButton type="submit" disabled={isSaving} variant="secondary">
+            {isSaving ? "Сохранение..." : "Сохранить изменения блока"}
+          </AdminButton>
+        </div>
+      </form>
     </AdminSection>
   );
 }

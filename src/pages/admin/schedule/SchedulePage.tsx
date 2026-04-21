@@ -525,7 +525,12 @@ export function SchedulePage() {
             onCheckboxChange={handleSettingsCheckboxChange}
           />
 
-          <ScheduleRulesTable rules={rules} onRuleChange={handleRuleChange} />
+          <ScheduleRulesTable
+            rules={rules}
+            isSaving={isSaving}
+            onRuleChange={handleRuleChange}
+            onSave={handleSaveSettings}
+          />
 
           <ScheduleOverridesSection
             form={overrideForm}

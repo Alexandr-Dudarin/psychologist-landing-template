@@ -72,13 +72,21 @@ export function ScheduleSettingsForm({
             />
           </label>
 
-          <label className={`${styles.field} ${styles.checkboxFieldEnd}`}>
-            <span>{"Разрешить запись на текущий день"}</span>
-            <input
-              type="checkbox"
-              checked={settingsForm.allowSameDayBooking}
-              onChange={(event) => onCheckboxChange(event.target.checked)}
-            />
+          <label className={`${styles.field} ${styles.checkboxField}`}>
+            <span className={styles.checkboxLabelCopy}>
+              <span className={styles.checkboxLabelTitle}>Разрешить запись на текущий день</span>
+              <span className={styles.checkboxLabelHint}>
+                Включите, если запись на сегодня должна оставаться доступной в обычном режиме.
+              </span>
+            </span>
+            <span className={styles.checkboxControl}>
+              <input
+                type="checkbox"
+                checked={settingsForm.allowSameDayBooking}
+                onChange={(event) => onCheckboxChange(event.target.checked)}
+                className={styles.checkboxInput}
+              />
+            </span>
           </label>
         </div>
 

@@ -31,10 +31,10 @@ export const initialEditForm: SessionForm = {
 };
 
 export const sessionStatusLabels: Record<SessionStatus, string> = {
-  scheduled: "\u0417\u0430\u043f\u043b\u0430\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0430",
-  completed: "\u041f\u0440\u043e\u0432\u0435\u0434\u0435\u043d\u0430",
-  cancelled: "\u041e\u0442\u043c\u0435\u043d\u0435\u043d\u0430",
-  no_show: "\u041d\u0435\u044f\u0432\u043a\u0430",
+  scheduled: "Запланирована",
+  completed: "Проведена",
+  cancelled: "Отменена",
+  no_show: "Неявка",
 };
 
 export function toDateTimeLocalValue(value: string): string {
@@ -49,6 +49,41 @@ export function getNowDateTimeLocalValue(): string {
   const offset = now.getTimezoneOffset();
   const localDate = new Date(now.getTime() - offset * 60_000);
   return localDate.toISOString().slice(0, 16);
+}
+
+export function getDatePartFromDateTimeLocal(value: string): string {
+  return value.includes("T") ? value.slice(0, 10) : "";
+}
+
+export function getTimePartFromDateTimeLocal(value: string): string {
+  return value.includes("T") ? value.slice(11, 16) : "";
+}
+
+export function buildDateTimeLocalValue(date: string, time: string): string {
+  if (!date || !time) {
+    return "";
+  }
+
+  return `${date}T${time}`;
+}
+
+export function formatDateTimeLocalSummary(value: string): string {
+  if (!value) {
+    return "Дата и время пока не выбраны";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Дата и время пока не выбраны";
+  }
+
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
 export function isPastDateTimeLocal(value: string): boolean {

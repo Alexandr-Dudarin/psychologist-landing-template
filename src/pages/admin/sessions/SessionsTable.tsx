@@ -42,28 +42,28 @@ export function SessionsTable({
   }, [highlightedSessionId, items]);
 
   if (isLoading) {
-    return <p>{"\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u002e\u002e\u002e"}</p>;
+    return <p>Загрузка...</p>;
   }
 
   if (items.length === 0) {
-    return <p>{"\u0421\u0435\u0441\u0441\u0438\u0439\u0020\u043f\u043e\u043a\u0430\u0020\u043d\u0435\u0442\u002e"}</p>;
+    return <p>Сессий пока нет.</p>;
   }
 
   return (
     <AdminTable>
-      <thead>
+      <thead className={styles.tableHead}>
         <tr>
           <th className={styles.idCell}>ID</th>
-          <th>{"\u041a\u043b\u0438\u0435\u043d\u0442"}</th>
-          <th>{"\u0423\u0441\u043b\u0443\u0433\u0430"}</th>
-          <th>{"\u0414\u0430\u0442\u0430\u0020\u0438\u0020\u0432\u0440\u0435\u043c\u044f"}</th>
-          <th>{"\u0414\u043b\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c"}</th>
-          <th>{"\u0426\u0435\u043d\u0430"}</th>
-          <th>{"\u0421\u0442\u0430\u0442\u0443\u0441"}</th>
-          <th>{"\u0418\u0441\u0442\u043e\u0447\u043d\u0438\u043a"}</th>
-          <th>{"\u0417\u0430\u043c\u0435\u0442\u043a\u0438"}</th>
-          <th>{"\u0421\u0432\u044f\u0437\u0438"}</th>
-          <th className={styles.actionCell}>{"\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u044f"}</th>
+          <th className={styles.clientCell}>Клиент</th>
+          <th className={styles.serviceCell}>Услуга</th>
+          <th className={styles.dateCell}>Дата и время</th>
+          <th className={styles.compactCell}>Длительность</th>
+          <th className={styles.compactCell}>Цена</th>
+          <th className={styles.statusCell}>Статус</th>
+          <th className={styles.sourceCell}>Источник</th>
+          <th className={styles.notesCell}>Заметки</th>
+          <th className={styles.linksCell}>Связи</th>
+          <th className={styles.actionCell}>Действия</th>
         </tr>
       </thead>
       <tbody>
@@ -76,37 +76,56 @@ export function SessionsTable({
             <tr
               key={item.id}
               ref={isHighlighted ? highlightedRowRef : null}
-              className={isHighlighted ? styles.highlightedRow : undefined}
+              className={`${styles.sessionRow} ${
+                isHighlighted ? styles.highlightedRow : ""
+              }`}
             >
-              <td className={styles.idCell}>
+              <td className={styles.idCell} data-label="ID">
                 <span className={styles.idBadge}>{item.id}</span>
               </td>
-              <td>
+              <td className={styles.clientCell} data-label="Клиент">
                 <Link
                   to={`/admin/clients?search=${encodeURIComponent(
                     String(item.clientId)
                   )}&highlightClientId=${item.clientId}`}
+                  className={styles.primaryLink}
                 >
                   {item.clientName}
                 </Link>
               </td>
-              <td>{item.serviceTitle}</td>
-              <td>{new Date(item.scheduledAt).toLocaleString("ru-RU")}</td>
-              <td>{item.durationMinutes} {"\u043c\u0438\u043d"}</td>
-              <td>{item.price}</td>
-              <td>{sessionStatusLabels[item.status]}</td>
-              <td>{item.source}</td>
-              <td>{item.notes || "-"}</td>
-              <td>
+              <td className={styles.serviceCell} data-label="Услуга">
+                <span className={styles.wrapValue}>{item.serviceTitle}</span>
+              </td>
+              <td className={styles.dateCell} data-label="Дата и время">
+                <div className={styles.dateValue}>
+                  {new Date(item.scheduledAt).toLocaleString("ru-RU")}
+                </div>
+              </td>
+              <td className={styles.compactCell} data-label="Длительность">
+                {item.durationMinutes} мин
+              </td>
+              <td className={styles.compactCell} data-label="Цена">
+                {item.price} ₽
+              </td>
+              <td className={styles.statusCell} data-label="Статус">
+                <span className={styles.statusBadge}>{sessionStatusLabels[item.status]}</span>
+              </td>
+              <td className={styles.sourceCell} data-label="Источник">
+                <span className={styles.sourceBadge}>{item.source}</span>
+              </td>
+              <td className={styles.notesCell} data-label="Заметки">
+                <span className={styles.notesPreview}>{item.notes || "—"}</span>
+              </td>
+              <td className={styles.linksCell} data-label="Связи">
                 <div className={styles.linkStack}>
                   <Link
                     to={`/admin/notes?sessionId=${encodeURIComponent(String(item.id))}`}
                   >
-                    {"\u0417\u0430\u043c\u0435\u0442\u043a\u0438\u0020\u0441\u0435\u0441\u0441\u0438\u0438"}
+                    Заметки сессии
                   </Link>
                 </div>
               </td>
-              <td className={styles.actionCell}>
+              <td className={styles.actionCell} data-label="Действия">
                 <div className={styles.actionsRow}>
                   <AdminButton
                     type="button"
@@ -114,7 +133,7 @@ export function SessionsTable({
                     size="sm"
                     onClick={() => onEdit(item)}
                   >
-                    {"\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c"}
+                    Редактировать
                   </AdminButton>
 
                   <AdminButton
@@ -125,8 +144,8 @@ export function SessionsTable({
                     disabled={deletingId === item.id}
                   >
                     {deletingId === item.id
-                      ? "\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435\u002e\u002e\u002e"
-                      : "\u0423\u0434\u0430\u043b\u0438\u0442\u044c"}
+                      ? "Удаление..."
+                      : "Удалить"}
                   </AdminButton>
                 </div>
               </td>

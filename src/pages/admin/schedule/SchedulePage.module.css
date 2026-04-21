@@ -10,14 +10,49 @@
   gap: 8px;
 }
 
-.checkboxFieldEnd {
-  justify-content: flex-end;
+.checkboxField {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid #d7dee6;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
 }
 
 .checkboxRow {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.checkboxLabelCopy {
+  display: grid;
+  gap: 4px;
+}
+
+.checkboxLabelTitle {
+  font-weight: 600;
+}
+
+.checkboxLabelHint {
+  color: #5f6b7a;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.checkboxControl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkboxInput {
+  width: 22px;
+  height: 22px;
+  accent-color: #2f5d78;
+  cursor: pointer;
 }
 
 .stackForm {
@@ -98,6 +133,31 @@
   margin-top: 20px;
 }
 
+.rulesSection {
+  display: grid;
+  gap: 16px;
+}
+
+.rulesSectionHeader,
+.rulesSectionFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.rulesSectionHint,
+.rulesSectionFootnote {
+  margin: 0;
+  color: #5f6b7a;
+  line-height: 1.5;
+}
+
+.rulesSectionHint {
+  max-width: 58ch;
+}
+
 .actionsHeader {
   text-align: right;
   white-space: nowrap;
@@ -114,4 +174,14 @@
   justify-content: flex-end;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+@media (max-width: 720px) {
+  .checkboxField {
+    grid-template-columns: 1fr;
+  }
+
+  .checkboxControl {
+    justify-content: flex-start;
+  }
 }
