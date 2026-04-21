@@ -30,8 +30,6 @@ export type SchedulerOverlayItem =
       serviceTitle: string;
       sessionId: number;
       clientId: number;
-      laneIndex: number;
-      laneCount: number;
     }
   | {
       id: string;
@@ -78,7 +76,7 @@ export type SchedulerMonthCellSummary = {
   workingStateTone: "working" | "override-working" | "day-off" | "override-day-off";
   workingStateLabel: string;
   activityLabel: string;
-  loadLevel: "free" | "light" | "medium" | "busy";
+  loadLevel: "empty" | "light" | "busy";
   overrideNotePreview: string;
 };
 
@@ -231,69 +229,19 @@ function getWorkingStateTone(ruleInfo: ReturnType<typeof getRuleForDate>) {
 }
 
 function getLoadLabel(sessionsCount: number): string {
-  if (sessionsCount >= 6) {
-    return "Плотный день";
-  }
-
-  if (sessionsCount >= 4) {
-    return "Средняя загрузка";
+  if (sessionsCount >= 5) {
+    return "Высокая загрузка";
   }
 
   if (sessionsCount >= 2) {
-    return "Лёгкая загрузка";
+    return "Ровная загрузка";
   }
 
   if (sessionsCount === 1) {
-    return "Лёгкая загрузка";
+    return "Есть одна запись";
   }
 
-  return "Свободно";
-}
-
-function getMonthLoadLevel(sessionsCount: number): SchedulerMonthCellSummary["loadLevel"] {
-  if (sessionsCount >= 6) {
-    return "busy";
-  }
-
-  if (sessionsCount >= 4) {
-    return "medium";
-  }
-
-  if (sessionsCount >= 1) {
-    return "light";
-  }
-
-  return "free";
-}
-
-function buildSessionLanes(
-  sessions: Array<{
-    id: number;
-    startMinutes: number;
-    durationMinutes: number;
-  }>
-) {
-  const laneEndMinutes: number[] = [];
-  const laneAssignments = new Map<number, { laneIndex: number; laneCount: number }>();
-
-  for (const session of sessions) {
-    const endMinutes = session.startMinutes + session.durationMinutes;
-    let nextLaneIndex = laneEndMinutes.findIndex((laneEnd) => laneEnd <= session.startMinutes);
-
-    if (nextLaneIndex === -1) {
-      nextLaneIndex = laneEndMinutes.length;
-      laneEndMinutes.push(endMinutes);
-    } else {
-      laneEndMinutes[nextLaneIndex] = endMinutes;
-    }
-
-    laneAssignments.set(session.id, {
-      laneIndex: nextLaneIndex,
-      laneCount: laneEndMinutes.length,
-    });
-  }
-
-  return laneAssignments;
+  return "Пока без записей";
 }
 
 export function getSchedulerHours(): Array<{ hour: number; label: string }> {
@@ -384,41 +332,6 @@ export function buildSchedulerOverlayItems(params: {
 
   const visibleDateSet = new Set(visibleDates);
   const items: SchedulerOverlayItem[] = [];
-  const sessionsByDay = new Map<
-    string,
-    Array<{ id: number; startMinutes: number; durationMinutes: number }>
-  >();
-
-  for (const session of params.sessions) {
-    const dayKey = session.scheduledAt.slice(0, 10);
-
-    if (!visibleDateSet.has(dayKey)) {
-      continue;
-    }
-
-    const startMinutes = getMinutesSinceStartOfDay(session.scheduledAt);
-    const sessionsForDay = sessionsByDay.get(dayKey) ?? [];
-    sessionsForDay.push({
-      id: session.id,
-      startMinutes,
-      durationMinutes: session.durationMinutes,
-    });
-    sessionsByDay.set(dayKey, sessionsForDay);
-  }
-
-  const laneMaps = new Map<string, ReturnType<typeof buildSessionLanes>>();
-
-  for (const [dayKey, sessionsForDay] of sessionsByDay) {
-    const orderedSessions = [...sessionsForDay].sort((left, right) => {
-      if (left.startMinutes === right.startMinutes) {
-        return left.durationMinutes - right.durationMinutes;
-      }
-
-      return left.startMinutes - right.startMinutes;
-    });
-
-    laneMaps.set(dayKey, buildSessionLanes(orderedSessions));
-  }
 
   for (const session of params.sessions) {
     const dayKey = session.scheduledAt.slice(0, 10);
@@ -429,10 +342,6 @@ export function buildSchedulerOverlayItems(params: {
 
     const startMinutes = getMinutesSinceStartOfDay(session.scheduledAt);
     const timeLabel = getTimeRangeLabel(startMinutes, session.durationMinutes);
-    const laneData = laneMaps.get(dayKey)?.get(session.id) ?? {
-      laneIndex: 0,
-      laneCount: 1,
-    };
 
     items.push({
       id: `session-${session.id}`,
@@ -449,8 +358,6 @@ export function buildSchedulerOverlayItems(params: {
       serviceTitle: session.serviceTitle,
       sessionId: session.id,
       clientId: session.clientId,
-      laneIndex: laneData.laneIndex,
-      laneCount: laneData.laneCount,
     });
   }
 
@@ -479,21 +386,7 @@ export function buildSchedulerOverlayItems(params: {
     });
   }
 
-  return items.sort((left, right) => {
-    if (left.dayKey === right.dayKey) {
-      if (left.startMinutes === right.startMinutes) {
-        if (left.tone === "session" && right.tone === "session") {
-          return left.laneIndex - right.laneIndex;
-        }
-
-        return left.tone === "blocked" ? -1 : 1;
-      }
-
-      return left.startMinutes - right.startMinutes;
-    }
-
-    return left.dayKey.localeCompare(right.dayKey);
-  });
+  return items.sort((left, right) => left.startMinutes - right.startMinutes);
 }
 
 export function buildMonthSummary(params: {
@@ -514,7 +407,8 @@ export function buildMonthSummary(params: {
     ).length;
     const ruleInfo = getRuleForDate(item.date, params.rules, params.overrides);
     const workingStateTone = getWorkingStateTone(ruleInfo);
-    const loadLevel = getMonthLoadLevel(sessionsCount);
+    const loadLevel =
+      sessionsCount >= 5 ? "busy" : sessionsCount >= 1 ? "light" : "empty";
 
     return {
       date: item.date,
@@ -531,7 +425,7 @@ export function buildMonthSummary(params: {
           ? `Блокировок: ${blockedCount}`
           : sessionsCount > 0
           ? getLoadLabel(sessionsCount)
-          : "Свободный день",
+          : "Свободный обзорный день",
       loadLevel,
       overrideNotePreview: truncatePreview(ruleInfo.note, 64),
     };

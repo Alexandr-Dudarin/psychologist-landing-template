@@ -42,28 +42,6 @@ function formatOverlayPosition(startMinutes: number, durationMinutes: number) {
   };
 }
 
-function formatSessionBlockPosition(
-  startMinutes: number,
-  durationMinutes: number,
-  laneIndex: number,
-  laneCount: number
-) {
-  const { top, height } = formatOverlayPosition(startMinutes, durationMinutes);
-  const horizontalInset = 10;
-  const laneGap = 6;
-  const safeLaneCount = Math.max(laneCount, 1);
-  const availableWidth = `calc(100% - ${horizontalInset * 2}px - ${(safeLaneCount - 1) * laneGap}px)`;
-  const width = `calc(${availableWidth} / ${safeLaneCount})`;
-  const left = `calc(${horizontalInset}px + (${availableWidth} / ${safeLaneCount} + ${laneGap}px) * ${laneIndex})`;
-
-  return {
-    top,
-    height,
-    left,
-    width,
-  };
-}
-
 type SchedulerDetail =
   | {
       kind: "day";
@@ -119,7 +97,7 @@ function getDayDetail(summary: SchedulerDaySummary): SchedulerDetail {
       summary.isOverride && summary.overrideNotePreview !== "Без заметки"
         ? `Комментарий к исключению: ${summary.overrideNotePreview}`
         : summary.isWorking
-        ? "Рабочие часы и ограничения можно быстро просмотреть по сетке и по ключевым сигналам дня."
+        ? "Рабочие часы и ограничения можно быстро просмотреть по сетке и по summary-сигналам."
         : "День сейчас помечен как нерабочий, поэтому сетка показывает недоступность без лишнего шума.",
     primaryHref: `/admin/schedule`,
     secondaryHref: `/admin/sessions`,
@@ -285,12 +263,6 @@ export function PremiumSchedulerPage() {
   const totalBlockedSlots = safeScheduleData.blockedSlots.length;
   const totalOverrides = safeScheduleData.overrides.length;
   const rangeLabel = getDateRangeLabel(viewMode, anchorDate, locale);
-  const defaultViewLabel =
-    siteSettings.premiumModules.scheduler.defaultView === "week"
-      ? "Неделя"
-      : siteSettings.premiumModules.scheduler.defaultView === "day"
-      ? "День"
-      : "Месяц";
   const activeDetail = selectedDetail ?? (daySummaries[0] ? getDayDetail(daySummaries[0]) : null);
   const getDayDetailByDateKey = (dateKey: string) => {
     const detailSummary = getSchedulerDaySummaries({
@@ -318,13 +290,13 @@ export function PremiumSchedulerPage() {
     <main className={styles.page}>
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>Премиальный планировщик</p>
-          <h1 className={styles.title}>Планировщик с режимами неделя / день / месяц</h1>
+          <p className={styles.eyebrow}>Premium scheduler module</p>
+          <h1 className={styles.title}>Планировщик с каркасом week/day/month</h1>
           <p className={styles.description}>
-            Это доработанная версия премиального планировщика: отдельный модуль, отдельный экран,
-            рабочая сетка для плотного расписания и спокойный слой деталей для ежедневной работы
-            администратора. Он уже опирается на реальные сессии, блокировки, исключения и правила
-            графика, но остаётся компактным по объёму.
+            Это первая skeleton-версия premium scheduler: отдельный модуль, отдельный экран,
+            рабочая структура под временную сетку и будущие calendar interactions. На этом этапе
+            он уже опирается на реальные sessions, blocked slots, overrides и schedule rules, но
+            остаётся deliberately lightweight.
           </p>
         </div>
 
@@ -350,24 +322,24 @@ export function PremiumSchedulerPage() {
         <aside className={styles.sideColumn}>
           <section className={styles.panel}>
             <div className={styles.infoPanel}>
-              <h2 className={styles.panelTitle}>Навигация</h2>
+              <h2 className={styles.panelTitle}>Navigator</h2>
               <p className={styles.panelDescription}>
-                Неделя остаётся основным рабочим режимом. Слева находится спокойный вспомогательный
-                слой: легенда, ключевые сигналы и выбранная детализация по клику или тапу.
+                Week view остаётся основным рабочим режимом. Слева теперь живёт спокойный
+                helper-слой: легенда, product cues и выбранная детализация по клику или тапу.
               </p>
             </div>
           </section>
 
           <section className={styles.panel}>
             <div className={styles.infoPanel}>
-              <h2 className={styles.panelTitle}>Легенда</h2>
+              <h2 className={styles.panelTitle}>Legend</h2>
               <div className={styles.legend}>
                 <div className={styles.legendItem}>
                   <span className={styles.legendSwatch} />
                   <div className={styles.legendText}>
-                    <span className={styles.legendTitle}>Карточка сессии</span>
+                    <span className={styles.legendTitle}>Session block</span>
                     <span className={styles.legendHint}>
-                      Показывает клиента, услугу, время, статус и короткий предпросмотр заметки.
+                      Показывает клиента, услугу, время, статус и короткий preview заметки.
                     </span>
                   </div>
                 </div>
@@ -375,10 +347,10 @@ export function PremiumSchedulerPage() {
                 <div className={styles.legendItem}>
                   <span className={styles.legendSwatchBlocked} />
                   <div className={styles.legendText}>
-                    <span className={styles.legendTitle}>Заблокированная зона</span>
+                    <span className={styles.legendTitle}>Blocked area</span>
                     <span className={styles.legendHint}>
-                      Штриховка подчёркивает ручную блокировку и делает недоступность визуально
-                      мягкой и заметной.
+                      Штриховка подчёркивает ручную блокировку и удерживает unavailable state
+                      визуально мягким.
                     </span>
                   </div>
                 </div>
@@ -386,10 +358,9 @@ export function PremiumSchedulerPage() {
                 <div className={styles.legendItem}>
                   <span className={styles.legendSwatchMuted} />
                   <div className={styles.legendText}>
-                    <span className={styles.legendTitle}>Нерабочее время / выходной</span>
+                    <span className={styles.legendTitle}>Non-working / day off</span>
                     <span className={styles.legendHint}>
-                      Фоновый паттерн показывает нерабочие зоны и делает сигналы исключений
-                      заметнее.
+                      Фоновый паттерн показывает нерабочие зоны и делает override-сигналы заметнее.
                     </span>
                   </div>
                 </div>
@@ -438,7 +409,7 @@ export function PremiumSchedulerPage() {
                 </div>
               ) : (
                 <div className={styles.stateBox}>
-                  Выберите день, сессию или блокировку, чтобы открыть панель деталей.
+                  Выберите день, сессию или блокировку, чтобы открыть detail layer.
                 </div>
               )}
             </div>
@@ -449,25 +420,27 @@ export function PremiumSchedulerPage() {
               <h2 className={styles.panelTitle}>Сводка модуля</h2>
               <div className={styles.summaryList}>
                 <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Модуль</span>
+                  <span className={styles.summaryLabel}>Feature flag</span>
                   <span className={styles.summaryValue}>
                     {siteSettings.premiumModules.scheduler.enabled ? "Включён" : "Выключен"}
                   </span>
                 </div>
                 <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Режим по умолчанию</span>
-                  <span className={styles.summaryValue}>{defaultViewLabel}</span>
+                  <span className={styles.summaryLabel}>Default mode</span>
+                  <span className={styles.summaryValue}>
+                    {siteSettings.premiumModules.scheduler.defaultView}
+                  </span>
                 </div>
                 <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Правила графика</span>
+                  <span className={styles.summaryLabel}>Schedule rules</span>
                   <span className={styles.summaryValue}>{safeScheduleData.rules.length}</span>
                 </div>
                 <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Исключения</span>
+                  <span className={styles.summaryLabel}>Overrides</span>
                   <span className={styles.summaryValue}>{totalOverrides}</span>
                 </div>
                 <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Блокировки</span>
+                  <span className={styles.summaryLabel}>Blocked slots</span>
                   <span className={styles.summaryValue}>{totalBlockedSlots}</span>
                 </div>
               </div>
@@ -489,7 +462,8 @@ export function PremiumSchedulerPage() {
                 <div>
                   <div className={styles.toolbarTitle}>{rangeLabel}</div>
                   <div className={styles.toolbarHint}>
-                    Неделя остаётся главным рабочим режимом, а месяц работает как компактный обзор
+                    Week view остаётся основным рабочим режимом, а month view теперь работает как
+                    compact overview
                   </div>
                 </div>
               </div>
@@ -532,10 +506,10 @@ export function PremiumSchedulerPage() {
 
             <div className={styles.content}>
               {isLoading ? (
-                <div className={styles.stateBox}>Загружаем планировщик...</div>
+                <div className={styles.stateBox}>Загружаем skeleton scheduler...</div>
               ) : error ? (
                 <div className={`${styles.stateBox} ${styles.stateError}`}>
-                  Не удалось построить планировщик на текущих данных.
+                  Не удалось построить scheduler skeleton на текущих данных.
                 </div>
               ) : viewMode === "month" ? (
                 <div className={styles.monthGrid}>
@@ -573,19 +547,15 @@ export function PremiumSchedulerPage() {
                             className={`${styles.monthLoadCue} ${
                               day.loadLevel === "busy"
                                 ? styles.monthLoadBusy
-                                : day.loadLevel === "medium"
-                                ? styles.monthLoadMedium
                                 : day.loadLevel === "light"
                                 ? styles.monthLoadLight
-                                : styles.monthLoadFree
+                                : styles.monthLoadEmpty
                             }`}
                           >
                             {day.loadLevel === "busy"
-                              ? "Плотный день"
-                              : day.loadLevel === "medium"
-                              ? "Средняя загрузка"
+                              ? "Плотно"
                               : day.loadLevel === "light"
-                              ? "Лёгкая загрузка"
+                              ? "Есть движение"
                               : "Свободно"}
                           </span>
                         </div>
@@ -637,15 +607,13 @@ export function PremiumSchedulerPage() {
                         <header className={styles.dayHeader}>
                           <div className={styles.dayHeaderTop}>
                             <div className={styles.dayTitle}>{day.label}</div>
-                            {viewMode === "week" ? (
-                              <button
-                                type="button"
-                                className={styles.detailToggle}
-                                onClick={() => setSelectedDetail(getDayDetail(day))}
-                              >
-                                Детали дня
-                              </button>
-                            ) : null}
+                            <button
+                              type="button"
+                              className={styles.detailToggle}
+                              onClick={() => setSelectedDetail(getDayDetail(day))}
+                            >
+                              Детали дня
+                            </button>
                           </div>
                           <div className={styles.dayMeta}>
                             <span className={styles.metaBadge}>
@@ -690,44 +658,23 @@ export function PremiumSchedulerPage() {
                           {overlayItems
                             .filter((item) => item.dayKey === day.dateKey)
                             .map((item) => {
-                              const basicPosition = formatOverlayPosition(
+                              const { top, height } = formatOverlayPosition(
                                 item.startMinutes,
                                 item.durationMinutes
                               );
-                              const sessionPosition =
-                                item.tone === "session"
-                                  ? formatSessionBlockPosition(
-                                      item.startMinutes,
-                                      item.durationMinutes,
-                                      item.laneIndex,
-                                      item.laneCount
-                                    )
-                                  : null;
 
                               return (
                                 <button
                                   key={item.id}
                                   type="button"
                                   className={
-                                    `${item.tone === "session"
-                                      ? viewMode === "day"
-                                        ? styles.sessionBlockDay
-                                        : styles.sessionBlock
-                                      : styles.blockedBlock} ${
-                                      item.tone === "session" && item.laneCount > 1
-                                        ? styles.sessionBlockCompact
-                                        : ""
-                                    }`
+                                    item.tone === "session"
+                                      ? styles.sessionBlock
+                                      : styles.blockedBlock
                                   }
                                   style={{
-                                    top: `${basicPosition.top}px`,
-                                    height: `${basicPosition.height}px`,
-                                    ...(sessionPosition
-                                      ? {
-                                          left: sessionPosition.left,
-                                          width: sessionPosition.width,
-                                        }
-                                      : {}),
+                                    top: `${top}px`,
+                                    height: `${height}px`,
                                   }}
                                   onClick={() => setSelectedDetail(getOverlayDetail(item))}
                                 >
