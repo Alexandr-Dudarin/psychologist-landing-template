@@ -187,6 +187,7 @@
 .weekFrame,
 .dayFrame {
   --scheduler-row-height: 96px;
+  --scheduler-header-height: 88px;
 }
 
 .weekFrame {
@@ -207,15 +208,19 @@
 
 .timeColumn {
   display: grid;
-  grid-template-rows: 96px repeat(15, var(--scheduler-row-height));
+  grid-template-rows: var(--scheduler-header-height) repeat(15, var(--scheduler-row-height));
   border-right: 1px solid var(--admin-border);
   background: linear-gradient(180deg, #fbfcfd 0%, #f7fafc 100%);
 }
 
 .timeHeader {
-  padding: 14px 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 18px 14px 16px;
   border-bottom: 1px solid var(--admin-border);
   color: var(--admin-text-muted);
+  box-sizing: border-box;
   font-size: 0.82rem;
   font-weight: 700;
 }
@@ -271,22 +276,25 @@
 .dayHeader {
   display: grid;
   gap: 10px;
+  box-sizing: border-box;
   border-bottom: 1px solid var(--admin-border);
   background: rgba(248, 250, 252, 0.92);
 }
 
 .dayHeaderWeek {
-  height: 88px;
-  padding: 10px 8px;
-  grid-template-rows: 38px 22px 1fr;
+  height: var(--scheduler-header-height);
+  padding: 10px 10px;
+  grid-template-rows: 34px 18px 18px;
   gap: 4px;
   align-content: start;
   overflow: hidden;
 }
 
 .dayHeaderDay {
-  min-height: 126px;
+  height: var(--scheduler-header-height);
   padding: 18px 18px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .dayHeaderTop {

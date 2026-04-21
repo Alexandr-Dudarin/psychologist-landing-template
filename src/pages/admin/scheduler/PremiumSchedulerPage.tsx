@@ -182,6 +182,7 @@ export function PremiumSchedulerPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<SchedulerDetail | null>(null);
   const rowHeight = viewMode === "day" ? DAY_ROW_HEIGHT : WEEK_ROW_HEIGHT;
+  const headerHeight = viewMode === "day" ? 136 : 88;
   const locale = "ru-RU";
 
   useEffect(() => {
@@ -610,9 +611,12 @@ export function PremiumSchedulerPage() {
                   ))}
                 </div>
               ) : (
-                <div
+                                <div
                   className={viewMode === "week" ? styles.weekFrame : styles.dayFrame}
-                  style={{ ["--scheduler-row-height" as string]: `${rowHeight}px` }}
+                  style={{
+                    ["--scheduler-row-height" as string]: `${rowHeight}px`,
+                    ["--scheduler-header-height" as string]: `${headerHeight}px`,
+                  }}
                 >
                   <div className={styles.timeColumn}>
                     <div className={styles.timeHeader}>Время</div>
