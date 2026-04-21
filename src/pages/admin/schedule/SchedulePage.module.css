@@ -123,6 +123,28 @@
   background: #fff;
 }
 
+.actionButtonSecondary {
+  border-color: #cfd7e1;
+  background: #f8fafc;
+  color: #233044;
+}
+
+.actionButtonSecondary:hover {
+  background: #eef4f8;
+  border-color: #b9c8d5;
+}
+
+.actionButtonDanger {
+  border-color: #e7c9c9;
+  background: #fff1f1;
+  color: #9a4b4b;
+}
+
+.actionButtonDanger:hover {
+  background: #fde7e7;
+  border-color: #dcb0b0;
+}
+
 .buttonRow {
   display: flex;
   gap: 12px;
@@ -145,6 +167,10 @@
   gap: 16px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.rulesSectionFooter {
+  justify-content: flex-start;
 }
 
 .rulesSectionHint,

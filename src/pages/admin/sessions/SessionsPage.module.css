@@ -31,6 +31,27 @@
   composes: actionGroup from "../../../components/admin/adminUi.module.css";
 }
 
+.editActionButton {
+  box-shadow: inset 0 0 0 1px rgba(47, 93, 120, 0.08);
+}
+
+.editActionButton:hover:not(:disabled) {
+  background: #eef4f8;
+  border-color: #b9c8d5;
+  color: #20303c;
+}
+
+.deleteActionButton {
+  border-color: color-mix(in srgb, var(--admin-danger) 35%, white);
+  background: #fff0f0;
+}
+
+.deleteActionButton:hover:not(:disabled) {
+  background: #fde6e6;
+  border-color: color-mix(in srgb, var(--admin-danger) 48%, white);
+  color: #8c3c3c;
+}
+
 .quickViewBanner {
   composes: quickViewBanner from "../../../components/admin/adminUi.module.css";
 }

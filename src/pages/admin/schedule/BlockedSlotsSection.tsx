@@ -168,7 +168,7 @@ export function BlockedSlotsSection({
                     <button
                       type="button"
                       onClick={() => onEdit(item.id)}
-                      className={styles.button}
+                      className={`${styles.button} ${styles.actionButtonSecondary}`}
                     >
                       Редактировать
                     </button>
@@ -177,7 +177,7 @@ export function BlockedSlotsSection({
                       type="button"
                       onClick={() => onDelete(item.id)}
                       disabled={deletingBlockedSlotId === item.id}
-                      className={styles.button}
+                      className={`${styles.button} ${styles.actionButtonDanger}`}
                     >
                       {deletingBlockedSlotId === item.id
                         ? "Удаление..."

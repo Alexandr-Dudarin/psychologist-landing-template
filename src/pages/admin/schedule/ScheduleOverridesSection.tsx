@@ -173,7 +173,7 @@ export function ScheduleOverridesSection({
                     <button
                       type="button"
                       onClick={() => onEdit(item.date)}
-                      className={styles.button}
+                      className={`${styles.button} ${styles.actionButtonSecondary}`}
                     >
                       Редактировать
                     </button>
@@ -182,7 +182,7 @@ export function ScheduleOverridesSection({
                       type="button"
                       onClick={() => onDelete(item.date)}
                       disabled={deletingOverrideDate === item.date}
-                      className={styles.button}
+                      className={`${styles.button} ${styles.actionButtonDanger}`}
                     >
                       {deletingOverrideDate === item.date
                         ? "Удаление..."

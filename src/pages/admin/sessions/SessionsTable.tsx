@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import type { CrmSessionRecord } from "../../../types/session";
-import { sessionStatusLabels } from "./sessionForm";
+import { getSessionSourceLabel, sessionStatusLabels } from "./sessionForm";
 import styles from "./SessionsPage.module.css";
 
 type SessionsTableProps = {
@@ -108,10 +108,14 @@ export function SessionsTable({
                 {item.price} ₽
               </td>
               <td className={styles.statusCell} data-label="Статус">
-                <span className={styles.statusBadge}>{sessionStatusLabels[item.status]}</span>
+                <span className={styles.statusBadge}>
+                  {sessionStatusLabels[item.status]}
+                </span>
               </td>
               <td className={styles.sourceCell} data-label="Источник">
-                <span className={styles.sourceBadge}>{item.source}</span>
+                <span className={styles.sourceBadge}>
+                  {getSessionSourceLabel(item.source)}
+                </span>
               </td>
               <td className={styles.notesCell} data-label="Заметки">
                 <span className={styles.notesPreview}>{item.notes || "—"}</span>
@@ -131,6 +135,7 @@ export function SessionsTable({
                     type="button"
                     variant="secondary"
                     size="sm"
+                    className={styles.editActionButton}
                     onClick={() => onEdit(item)}
                   >
                     Редактировать
@@ -140,12 +145,11 @@ export function SessionsTable({
                     type="button"
                     variant="danger"
                     size="sm"
+                    className={styles.deleteActionButton}
                     onClick={() => onDelete(item.id)}
                     disabled={deletingId === item.id}
                   >
-                    {deletingId === item.id
-                      ? "Удаление..."
-                      : "Удалить"}
+                    {deletingId === item.id ? "Удаление..." : "Удалить"}
                   </AdminButton>
                 </div>
               </td>

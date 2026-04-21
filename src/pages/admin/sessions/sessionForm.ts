@@ -37,6 +37,14 @@ export const sessionStatusLabels: Record<SessionStatus, string> = {
   no_show: "Неявка",
 };
 
+export const sessionSourceLabels: Record<string, string> = {
+  manual: "Вручную",
+};
+
+export function getSessionSourceLabel(source: string): string {
+  return sessionSourceLabels[source] ?? source;
+}
+
 export function toDateTimeLocalValue(value: string): string {
   const date = new Date(value);
   const offset = date.getTimezoneOffset();

@@ -29,8 +29,9 @@ function buildTimeOptions(selectedTime: string): string[] {
   const options = new Set<string>();
 
   for (let hour = 7; hour <= 21; hour += 1) {
-    options.add(`${String(hour).padStart(2, "0")}:00`);
-    options.add(`${String(hour).padStart(2, "0")}:30`);
+    for (const minutes of ["00", "15", "30", "45"]) {
+      options.add(`${String(hour).padStart(2, "0")}:${minutes}`);
+    }
   }
 
   options.add("22:00");
@@ -70,7 +71,9 @@ export function SessionDateTimeField({
           <span className={styles.dateTimeFieldLabel}>Дата и время сессии</span>
           <p className={styles.dateTimeFieldHint}>{hint}</p>
         </div>
-        <div className={styles.dateTimeFieldValue}>{formatDateTimeLocalSummary(value)}</div>
+        <div className={styles.dateTimeFieldValue}>
+          {formatDateTimeLocalSummary(value)}
+        </div>
       </div>
 
       <div className={styles.dateTimeFieldBody}>
@@ -107,7 +110,7 @@ export function SessionDateTimeField({
 
           <p className={styles.timePickerHint}>
             {selectedDate
-              ? "Если нужен нестандартный слот, выберите ближайшее время и затем при необходимости скорректируйте длительность."
+              ? "Если нужен нестандартный слот, выберите ближайшее время с шагом 15 минут и затем при необходимости скорректируйте длительность."
               : "Сначала выберите дату, после этого станет доступен выбор времени."}
           </p>
         </div>
