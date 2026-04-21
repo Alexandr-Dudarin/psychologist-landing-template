@@ -21,7 +21,7 @@ import {
 import styles from "./PremiumSchedulerPage.module.css";
 
 const MINUTES_IN_HOUR = 60;
-const ROW_HEIGHT = 88;
+const ROW_HEIGHT = 96;
 const GRID_START_HOUR = 7;
 
 function getTodayDateKey(): string {
@@ -738,6 +738,9 @@ export function PremiumSchedulerPage() {
                                 ? Math.min(item.conflictOrder * 14, 28)
                                 : 0;
                               const isWeekMode = viewMode === "week";
+                              const visualHeight = isWeekMode
+  ? Math.max(height, 104)
+  : Math.max(height, 96);
 
                               return (
                                 <button
@@ -748,33 +751,29 @@ export function PremiumSchedulerPage() {
                                   } ${item.hasConflict ? styles.blockConflict : ""}`}
                                   style={{
                                     top: `${top}px`,
-                                    height: `${height}px`,
+                                    height: `${visualHeight}px`,
                                     left: `${isWeekMode ? 8 : 12 + conflictOffset}px`,
                                     right: `${isWeekMode ? 8 : 12 + Math.max(0, 16 - conflictOffset)}px`,
                                     zIndex: item.hasConflict ? 4 + item.conflictOrder : 3,
                                   }}
                                   onClick={() => setSelectedDetail(getOverlayDetail(item))}
                                 >
-                                  {isWeekMode ? (
+                                                                    {isWeekMode ? (
                                     <>
                                       <div className={styles.blockWeekTop}>
-                                        <span className={styles.blockTimePill}>{item.startLabel}</span>
-                                        {item.tone === "session" ? (
-                                          <span className={styles.blockWeekType}>
-                                            {item.statusLabel}
-                                          </span>
-                                        ) : (
-                                          <span className={styles.blockWeekTypeMuted}>
-                                            Блок
-                                          </span>
-                                        )}
+                                        <span className={styles.blockTimePill}>{item.timeLabel}</span>
+                                        {item.tone === "blocked" ? (
+                                          <span className={styles.blockWeekTypeMuted}>Блок</span>
+                                        ) : null}
                                       </div>
+
                                       <span className={styles.blockWeekTitle}>{item.title}</span>
-                                      {item.tone === "session" ? (
-                                        <span className={styles.blockWeekMeta}>
-                                          {truncateText(item.serviceTitle, 16)}
-                                        </span>
-                                      ) : null}
+
+                                      <span className={styles.blockWeekMeta}>
+                                        {item.tone === "session"
+                                          ? truncateText(item.serviceTitle, 24)
+                                          : truncateText(item.reasonPreview, 24)}
+                                      </span>
                                     </>
                                   ) : (
                                     <>
