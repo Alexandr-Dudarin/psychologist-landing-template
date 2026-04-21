@@ -95,8 +95,8 @@ function getDayDetail(summary: SchedulerDaySummary): SchedulerDetail {
     summary.isOverride && summary.overrideNotePreview !== "Без заметки"
       ? `Комментарий к исключению: ${summary.overrideNotePreview}`
       : summary.isWorking
-      ? `Рабочее окно: ${getDayWorkingHours(summary)}. В режиме дня эта колонка показывает живую ленту записей по времени без искусственного деления на обычные overlap-колонки.`
-      : "День помечен как нерабочий. Сетка остается обзорной и мягко подчеркивает недоступные часы без лишнего визуального шума.";
+        ? `Рабочее окно: ${getDayWorkingHours(summary)}. В режиме дня колонка показывает последовательную ленту записей по времени без лишнего визуального шума.`
+        : "День помечен как нерабочий. Сетка остается обзорной и мягко подчеркивает недоступные часы без лишнего визуального шума.";
 
   return {
     kind: "day",
@@ -123,7 +123,7 @@ function getOverlayDetail(item: SchedulerOverlayItem): SchedulerDetail {
         item.statusLabel,
         item.timeLabel,
         `Сессия #${item.sessionId}`,
-        
+
       ],
       note: item.notePreview,
       primaryHref: `/admin/clients?clientId=${item.clientId}`,
@@ -143,7 +143,7 @@ function getOverlayDetail(item: SchedulerOverlayItem): SchedulerDetail {
       "Блокировка",
       item.timeLabel,
       `Слот #${item.blockedSlotId}`,
-      
+
     ],
     note: item.reasonPreview,
     primaryHref: "/admin/schedule",
@@ -325,10 +325,12 @@ export function PremiumSchedulerPage() {
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>Премиум-планировщик</p>
           <h1 className={styles.title}>Планировщик с week/day/month каркасом</h1>
+          <p className={styles.eyebrow}>Премиальный планировщик</p>
+          <h1 className={styles.title}>Планировщик с режимами неделя / день / месяц</h1>
           <p className={styles.description}>
-            Экран строится вокруг одного специалиста: неделя дает спокойный обзор, день раскрывает
-            детали, а месяц остается обзорным слоем. Основная лента дня читается сверху вниз по
-            времени и не делает overlap-колонки нормальным сценарием.
+            Экран строится вокруг одного специалиста: неделя даёт спокойный обзор, день раскрывает
+            детали, а месяц остаётся обзорным режимом. Лента дня читается сверху вниз по времени и
+            показывает последовательные записи без лишнего визуального шума.
           </p>
         </div>
 
@@ -356,9 +358,9 @@ export function PremiumSchedulerPage() {
             <div className={styles.infoPanel}>
               <h2 className={styles.panelTitle}>Навигатор</h2>
               <p className={styles.panelDescription}>
-                Неделя работает как компактный обзор по дням, а режим дня дает больше воздуха,
-                текста и акцента на конкретном времени записи. Слева остается спокойная панель
-                деталей без перегруза.
+                Неделя работает как компактный обзор по дням, а режим дня даёт больше воздуха и
+                контекста по конкретной записи. Слева остаётся спокойная панель деталей без
+                перегруза.
               </p>
             </div>
           </section>
@@ -372,8 +374,7 @@ export function PremiumSchedulerPage() {
                   <div className={styles.legendText}>
                     <span className={styles.legendTitle}>Сессия</span>
                     <span className={styles.legendHint}>
-                      Карточка показывает время, клиента, услугу, статус и короткий preview
-                      заметки.
+                      Карточка показывает время, клиента, услугу, статус и короткое превью заметки.
                     </span>
                   </div>
                 </div>
@@ -412,8 +413,8 @@ export function PremiumSchedulerPage() {
                       {activeDetail.kind === "session"
                         ? "Сессия"
                         : activeDetail.kind === "blocked"
-                        ? "Блокировка"
-                        : "День"}
+                          ? "Блокировка"
+                          : "День"}
                     </span>
                     <h3 className={styles.detailTitle}>{activeDetail.title}</h3>
                     <p className={styles.detailSubtitle}>{activeDetail.subtitle}</p>
@@ -462,7 +463,11 @@ export function PremiumSchedulerPage() {
                 <div className={styles.summaryRow}>
                   <span className={styles.summaryLabel}>Режим по умолчанию</span>
                   <span className={styles.summaryValue}>
-                    {siteSettings.premiumModules.scheduler.defaultView}
+                    {siteSettings.premiumModules.scheduler.defaultView === "week"
+                      ? "Неделя"
+                      : siteSettings.premiumModules.scheduler.defaultView === "day"
+                        ? "День"
+                        : "Месяц"}
                   </span>
                 </div>
                 <div className={styles.summaryRow}>
@@ -499,8 +504,8 @@ export function PremiumSchedulerPage() {
                     {viewMode === "week"
                       ? "Неделя остается обзорным режимом с более компактными заголовками."
                       : viewMode === "day"
-                      ? "День раскрывает больше контекста по записи и лучше держит вертикальный ритм."
-                      : "Месяц остается обзорным слоем с понятными уровнями загрузки и доступности."}
+                        ? "День раскрывает больше контекста по записи и лучше держит вертикальный ритм."
+                        : "Месяц остается обзорным слоем с понятными уровнями загрузки и доступности."}
                   </div>
                 </div>
               </div>
@@ -525,9 +530,8 @@ export function PremiumSchedulerPage() {
                     <button
                       key={mode}
                       type="button"
-                      className={`${styles.viewButton} ${
-                        viewMode === mode ? styles.viewButtonActive : ""
-                      }`}
+                      className={`${styles.viewButton} ${viewMode === mode ? styles.viewButtonActive : ""
+                        }`}
                       onClick={() => setViewMode(mode)}
                     >
                       {mode === "week" ? "Неделя" : mode === "day" ? "День" : "Месяц"}
@@ -550,17 +554,15 @@ export function PremiumSchedulerPage() {
                     <button
                       key={day.date}
                       type="button"
-                      className={`${styles.monthCell} ${
-                        !day.inCurrentMonth ? styles.monthCellMuted : ""
-                      } ${
-                        day.workingStateTone === "override-working"
+                      className={`${styles.monthCell} ${!day.inCurrentMonth ? styles.monthCellMuted : ""
+                        } ${day.workingStateTone === "override-working"
                           ? styles.monthCellOverride
                           : day.workingStateTone === "override-day-off"
-                          ? styles.monthCellDayOff
-                          : day.workingStateTone === "day-off"
-                          ? styles.monthCellMutedState
-                          : ""
-                      }`}
+                            ? styles.monthCellDayOff
+                            : day.workingStateTone === "day-off"
+                              ? styles.monthCellMutedState
+                              : ""
+                        }`}
                       onClick={() => setSelectedDetail(getDayDetailByDateKey(day.date))}
                     >
                       <div className={styles.monthCellTop}>
@@ -573,23 +575,22 @@ export function PremiumSchedulerPage() {
                             <span className={styles.monthChip}>Блоки: {day.blockedCount}</span>
                           ) : null}
                           <span
-                            className={`${styles.monthLoadCue} ${
-                              day.loadLevel === "busy"
-                                ? styles.monthLoadBusy
-                                : day.loadLevel === "medium"
+                            className={`${styles.monthLoadCue} ${day.loadLevel === "busy"
+                              ? styles.monthLoadBusy
+                              : day.loadLevel === "medium"
                                 ? styles.monthLoadMedium
                                 : day.loadLevel === "light"
-                                ? styles.monthLoadLight
-                                : styles.monthLoadEmpty
-                            }`}
+                                  ? styles.monthLoadLight
+                                  : styles.monthLoadEmpty
+                              }`}
                           >
                             {day.loadLevel === "busy"
                               ? "Плотный день"
                               : day.loadLevel === "medium"
-                              ? "Средняя загрузка"
-                              : day.loadLevel === "light"
-                              ? "Лёгкая загрузка"
-                              : "Свободно"}
+                                ? "Средняя загрузка"
+                                : day.loadLevel === "light"
+                                  ? "Лёгкая загрузка"
+                                  : "Свободно"}
                           </span>
                         </div>
                       </div>
@@ -609,7 +610,7 @@ export function PremiumSchedulerPage() {
                   ))}
                 </div>
               ) : (
-                                <div
+                <div
                   className={viewMode === "week" ? styles.weekFrame : styles.dayFrame}
                   style={{ ["--scheduler-row-height" as string]: `${rowHeight}px` }}
                 >
@@ -623,9 +624,8 @@ export function PremiumSchedulerPage() {
                   </div>
 
                   <div
-                    className={`${styles.columns} ${
-                      viewMode === "week" ? styles.columnsWeek : styles.columnsDay
-                    }`}
+                    className={`${styles.columns} ${viewMode === "week" ? styles.columnsWeek : styles.columnsDay
+                      }`}
                   >
                     {daySummaries.map((day) => {
                       const dayItems = overlayItems.filter((item) => item.dayKey === day.dateKey);
@@ -633,20 +633,18 @@ export function PremiumSchedulerPage() {
                       return (
                         <section
                           key={day.dateKey}
-                          className={`${styles.dayColumn} ${
-                            day.workingStateTone === "override-working"
-                              ? styles.dayColumnOverride
-                              : day.workingStateTone === "override-day-off"
+                          className={`${styles.dayColumn} ${day.workingStateTone === "override-working"
+                            ? styles.dayColumnOverride
+                            : day.workingStateTone === "override-day-off"
                               ? styles.dayColumnOverrideOff
                               : day.workingStateTone === "day-off"
-                              ? styles.dayColumnDayOff
-                              : ""
-                          } ${viewMode === "day" ? styles.dayColumnExpanded : ""}`}
+                                ? styles.dayColumnDayOff
+                                : ""
+                            } ${viewMode === "day" ? styles.dayColumnExpanded : ""}`}
                         >
                           <header
-                            className={`${styles.dayHeader} ${
-                              viewMode === "week" ? styles.dayHeaderWeek : styles.dayHeaderDay
-                            }`}
+                            className={`${styles.dayHeader} ${viewMode === "week" ? styles.dayHeaderWeek : styles.dayHeaderDay
+                              }`}
                           >
                             <div className={styles.dayHeaderTop}>
                               <div className={styles.dayTitleGroup}>
@@ -703,16 +701,14 @@ export function PremiumSchedulerPage() {
                               <div
                                 className={styles.workingHoursBand}
                                 style={{
-                                                                    top: `${
-                                    ((day.workStartMinutes - GRID_START_HOUR * MINUTES_IN_HOUR) /
-                                      MINUTES_IN_HOUR) *
+                                  top: `${((day.workStartMinutes - GRID_START_HOUR * MINUTES_IN_HOUR) /
+                                    MINUTES_IN_HOUR) *
                                     rowHeight
-                                  }px`,
-                                  height: `${
-                                    ((day.workEndMinutes - day.workStartMinutes) /
-                                      MINUTES_IN_HOUR) *
+                                    }px`,
+                                  height: `${((day.workEndMinutes - day.workStartMinutes) /
+                                    MINUTES_IN_HOUR) *
                                     rowHeight
-                                  }px`,
+                                    }px`,
                                 }}
                               />
                             ) : null}
@@ -720,8 +716,8 @@ export function PremiumSchedulerPage() {
                             {day.nonWorkingRanges.map((range) => {
                               const { top, height } = formatOverlayPosition(
                                 range.startMinutes,
-                                  range.durationMinutes,
-                                  rowHeight
+                                range.durationMinutes,
+                                rowHeight
                               );
 
                               return (
@@ -744,7 +740,7 @@ export function PremiumSchedulerPage() {
                               const { top, height } = formatOverlayPosition(
                                 item.startMinutes,
                                 item.durationMinutes,
-                                 rowHeight
+                                rowHeight
                               );
                               const conflictOffset = item.hasConflict
                                 ? Math.min(item.conflictOrder * 14, 28)
@@ -758,9 +754,8 @@ export function PremiumSchedulerPage() {
                                 <button
                                   key={item.id}
                                   type="button"
-                                  className={`${item.tone === "session" ? styles.sessionBlock : styles.blockedBlock} ${
-                                    isWeekMode ? styles.blockWeek : styles.blockExpanded
-                                  } ${item.hasConflict ? styles.blockConflict : ""}`}
+                                  className={`${item.tone === "session" ? styles.sessionBlock : styles.blockedBlock} ${isWeekMode ? styles.blockWeek : styles.blockExpanded
+                                    } ${item.hasConflict ? styles.blockConflict : ""}`}
                                   style={{
                                     top: `${top}px`,
                                     height: `${visualHeight}px`,
@@ -770,7 +765,7 @@ export function PremiumSchedulerPage() {
                                   }}
                                   onClick={() => setSelectedDetail(getOverlayDetail(item))}
                                 >
-                                                                    {isWeekMode ? (
+                                  {isWeekMode ? (
                                     <>
                                       <div className={styles.blockWeekTop}>
                                         <span className={styles.blockTimePill}>{item.timeLabel}</span>
@@ -787,7 +782,7 @@ export function PremiumSchedulerPage() {
                                           : truncateText(item.reasonPreview, 24)}
                                       </span>
                                     </>
-                                                                ) : (
+                                  ) : (
                                     <>
                                       <div className={styles.blockTop}>
                                         <span className={styles.blockTimePill}>{item.timeLabel}</span>
@@ -813,7 +808,7 @@ export function PremiumSchedulerPage() {
                                       </span>
 
                                       {item.tone === "session" &&
-                                      item.notePreview !== "Без заметки" ? (
+                                        item.notePreview !== "Без заметки" ? (
                                         <span className={styles.blockNote}>
                                           {truncateText(item.notePreview, 110)}
                                         </span>
