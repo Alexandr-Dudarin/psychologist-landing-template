@@ -9,7 +9,7 @@
   justify-content: space-between;
   gap: 20px;
   flex-wrap: wrap;
-  padding: 24px;
+  padding: 20px;
   border-radius: 24px;
   border: 1px solid var(--admin-border);
   background:
@@ -142,12 +142,22 @@
   color: var(--admin-text);
   font: inherit;
   cursor: pointer;
-  transition: background-color 0.18s ease, border-color 0.18s ease;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
 }
 
 .iconButton:hover,
-.viewButton:hover {
+.viewButton:hover,
+.detailToggle:hover {
   background: var(--admin-surface-muted);
+}
+
+.iconButton:active,
+.viewButton:active,
+.detailToggle:active {
+  transform: translateY(1px);
 }
 
 .viewSwitch {
@@ -170,38 +180,40 @@
 
 .weekFrame {
   display: grid;
-  grid-template-columns: 88px repeat(7, minmax(160px, 1fr));
+  grid-template-columns: 74px repeat(7, minmax(124px, 1fr));
   gap: 0;
-  overflow: auto;
+  overflow: hidden;
   min-width: 0;
+  width: 100%;
 }
 
 .dayFrame {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
+  grid-template-columns: 96px minmax(0, 1fr);
   gap: 0;
   overflow: auto;
 }
 
 .timeColumn {
   display: grid;
-  grid-template-rows: 72px repeat(15, 72px);
+  grid-template-rows: 88px repeat(15, 88px);
   border-right: 1px solid var(--admin-border);
   background: linear-gradient(180deg, #fbfcfd 0%, #f7fafc 100%);
 }
 
 .timeHeader {
-  padding: 14px 12px;
+  padding: 14px 10px;
   border-bottom: 1px solid var(--admin-border);
   color: var(--admin-text-muted);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .timeCell {
-  padding: 8px 12px;
+  padding: 10px 10px;
   border-bottom: 1px solid var(--admin-border);
   color: var(--admin-text-muted);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
 }
 
 .columns {
@@ -210,7 +222,7 @@
 }
 
 .columnsWeek {
-  grid-template-columns: repeat(7, minmax(160px, 1fr));
+  grid-template-columns: repeat(7, minmax(124px, 1fr));
 }
 
 .columnsDay {
@@ -239,78 +251,175 @@
     linear-gradient(180deg, rgba(253, 245, 245, 0.92) 0%, rgba(251, 249, 249, 0.96) 100%);
 }
 
+.dayColumnExpanded {
+  background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+}
+
 .dayHeader {
   display: grid;
-  gap: 8px;
-  min-height: 72px;
-  padding: 14px 14px 12px;
+  gap: 10px;
   border-bottom: 1px solid var(--admin-border);
   background: rgba(248, 250, 252, 0.92);
+}
+
+.dayHeaderWeek {
+  height: 88px;
+  padding: 10px 8px;
+  grid-template-rows: 38px 22px 1fr;
+  gap: 4px;
+  align-content: start;
+  overflow: hidden;
+}
+
+.dayHeaderDay {
+  min-height: 126px;
+  padding: 18px 18px 16px;
 }
 
 .dayHeaderTop {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  align-items: center;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.dayTitleGroup {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
 }
 
 .dayTitle {
   font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.dayHeaderWeek .dayTitle {
+  font-size: 0.9rem;
+  line-height: 1.15;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dayHeaderDay .dayTitle {
+  font-size: 1.22rem;
+}
+
+.dayHeaderCaption {
+  color: var(--admin-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.dayHeaderWeek .dayHeaderCaption {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .dayMeta {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   flex-wrap: wrap;
+  align-items: flex-start;
 }
 
 .metaBadge {
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 999px;
   background: var(--admin-surface-soft);
   color: var(--admin-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.dayHeaderWeek .dayMeta {
+  min-height: 20px;
+  overflow: hidden;
 }
 
 .detailToggle {
-  min-height: 34px;
+  min-height: 26px;
   border-radius: 999px;
   border: 1px solid rgba(47, 93, 120, 0.16);
   background: rgba(255, 255, 255, 0.82);
   color: var(--admin-text);
-  padding: 0 12px;
+  padding: 0 8px;
   font: inherit;
+  font-size: 0.76rem;
   cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+  flex-shrink: 0;
 }
 
-.overrideNote {
-  margin: 0;
-  color: var(--admin-text-muted);
-  font-size: 0.85rem;
+.dayInsightRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dayInsight,
+.dayInsightMuted,
+.dayInsightEmphasis {
+  font-size: 0.9rem;
   line-height: 1.45;
+}
+
+.dayInsight {
+  color: var(--admin-text);
+}
+
+.dayInsightMuted {
+  color: var(--admin-text-muted);
+}
+
+.dayInsightEmphasis {
+  color: #7c3f3f;
 }
 
 .gridBody {
   position: relative;
-  min-height: calc(72px * 15);
+  min-height: calc(88px * 15);
   background:
+    linear-gradient(90deg, rgba(47, 93, 120, 0.05), rgba(47, 93, 120, 0) 42px),
     repeating-linear-gradient(
       to bottom,
-      rgba(215, 222, 230, 0.9) 0,
-      rgba(215, 222, 230, 0.9) 1px,
+      rgba(215, 222, 230, 0.92) 0,
+      rgba(215, 222, 230, 0.92) 1px,
       transparent 1px,
-      transparent 72px
+      transparent 88px
     );
   overflow: hidden;
 }
 
+.workingHoursBand,
 .nonWorkingOverlay,
 .dayOffOverlay {
   position: absolute;
   left: 0;
   right: 0;
   pointer-events: none;
+}
+
+.workingHoursBand {
+  z-index: 0;
+  background: linear-gradient(90deg, rgba(47, 93, 120, 0.04), rgba(47, 93, 120, 0.01));
+}
+
+.nonWorkingOverlay,
+.dayOffOverlay {
   z-index: 1;
 }
 
@@ -334,30 +443,35 @@
       rgba(255, 247, 247, 0.5) 10px,
       rgba(255, 247, 247, 0.5) 20px
     ),
-    rgba(255, 248, 248, 0.8);
+    rgba(255, 248, 248, 0.82);
 }
 
 .sessionBlock,
 .blockedBlock {
   position: absolute;
-  left: 10px;
-  right: 10px;
-  border-radius: 16px;
-  padding: 10px 12px;
+  border-radius: 18px;
   border: 1px solid transparent;
   overflow: hidden;
   display: grid;
-  gap: 4px;
   text-align: left;
   font: inherit;
   cursor: pointer;
   z-index: 2;
+  transition:
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.sessionBlock:hover,
+.blockedBlock:hover {
+  transform: translateY(-1px);
 }
 
 .sessionBlock {
   background: linear-gradient(180deg, #edf5fb 0%, #dfeef8 100%);
   border-color: rgba(47, 93, 120, 0.28);
-  box-shadow: 0 8px 18px rgba(47, 93, 120, 0.12);
+  box-shadow: 0 10px 24px rgba(47, 93, 120, 0.12);
 }
 
 .blockedBlock {
@@ -373,15 +487,143 @@
   border-color: rgba(154, 75, 75, 0.25);
 }
 
+.blockWeek {
+  gap: 4px;
+  padding: 8px 8px 9px;
+  align-content: start;
+}
+
+.blockExpanded {
+  padding: 14px 16px 16px;
+  gap: 8px;
+}
+
+.blockConflict {
+  border-color: rgba(175, 115, 56, 0.48);
+  box-shadow:
+    0 10px 24px rgba(47, 93, 120, 0.1),
+    inset 0 0 0 1px rgba(212, 154, 83, 0.18);
+}
+
+.blockWeekTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.blockWeekType,
+.blockWeekTypeMuted {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  max-width: 58px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.blockWeekType {
+  background: rgba(47, 93, 120, 0.12);
+  color: #2f5d78;
+}
+
+.blockWeekTypeMuted {
+  background: rgba(154, 75, 75, 0.12);
+  color: #7c3f3f;
+}
+
+.blockWeekTitle {
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.blockWeekMeta {
+  color: var(--admin-text-muted);
+  font-size: 0.74rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.blockTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.blockBadges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.blockTimePill,
+.blockStatusBadge,
+.blockStatusBadgeMuted,
+.blockConflictBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.blockTimePill {
+  background: rgba(255, 255, 255, 0.82);
+  color: #28495d;
+  border: 1px solid rgba(47, 93, 120, 0.12);
+}
+
+.blockStatusBadge {
+  background: rgba(47, 93, 120, 0.12);
+  color: #2f5d78;
+}
+
+.blockStatusBadgeMuted {
+  background: rgba(154, 75, 75, 0.12);
+  color: #7c3f3f;
+}
+
+.blockConflictBadge {
+  background: rgba(212, 154, 83, 0.18);
+  color: #7a5419;
+}
+
 .blockTitle {
   font-weight: 700;
-  font-size: 0.93rem;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .blockSubtitle {
   color: var(--admin-text-muted);
   font-size: 0.82rem;
-  line-height: 1.35;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.blockMetaRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .blockMeta {
@@ -392,8 +634,14 @@
 
 .blockNote {
   color: var(--admin-text-muted);
-  font-size: 0.78rem;
-  line-height: 1.35;
+  font-size: 0.79rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
 }
 
 .monthGrid {
@@ -430,8 +678,7 @@
 }
 
 .monthCellMutedState {
-  background:
-    linear-gradient(180deg, #fffafa 0%, #fdf7f7 100%);
+  background: linear-gradient(180deg, #fffafa 0%, #fdf7f7 100%);
 }
 
 .monthCellTop {
@@ -470,6 +717,12 @@
   background: rgba(47, 93, 120, 0.12);
   color: #2f5d78;
   border-color: rgba(47, 93, 120, 0.18);
+}
+
+.monthLoadMedium {
+  background: rgba(129, 110, 76, 0.12);
+  color: #7e653d;
+  border-color: rgba(129, 110, 76, 0.18);
 }
 
 .monthLoadLight {
@@ -543,6 +796,7 @@
   height: 14px;
   border-radius: 4px;
   margin-top: 4px;
+  flex-shrink: 0;
 }
 
 .legendSwatch {
@@ -577,6 +831,7 @@
 .legendText {
   display: grid;
   gap: 4px;
+  min-width: 0;
 }
 
 .legendTitle {
@@ -587,6 +842,7 @@
   color: var(--admin-text-muted);
   font-size: 0.92rem;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .summaryList {
@@ -614,6 +870,8 @@
 .summaryValue {
   font-weight: 700;
   text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .detailCard {
@@ -625,11 +883,13 @@
     radial-gradient(circle at top right, rgba(47, 93, 120, 0.08), transparent 38%),
     linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
   border: 1px solid var(--admin-border);
+  min-width: 0;
 }
 
 .detailTop {
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .detailKind {
@@ -646,12 +906,14 @@
 .detailTitle {
   margin: 0;
   font-size: 1.02rem;
+  overflow-wrap: anywhere;
 }
 
 .detailSubtitle {
   margin: 0;
   color: var(--admin-text-muted);
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .detailChips {
@@ -666,12 +928,16 @@
   background: var(--admin-surface-soft);
   color: var(--admin-text-muted);
   font-size: 0.8rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .detailNote {
   margin: 0;
   color: var(--admin-text);
   line-height: 1.55;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .detailActions {
@@ -689,6 +955,7 @@
   padding: 0 14px;
   text-decoration: none;
   font-weight: 600;
+  text-align: center;
 }
 
 .detailLink {
@@ -728,6 +995,15 @@
   .sideColumn {
     order: 2;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .weekFrame {
+    grid-template-columns: 70px repeat(7, minmax(120px, 1fr));
+    overflow: auto;
+  }
+
+  .columnsWeek {
+    grid-template-columns: repeat(7, minmax(120px, 1fr));
   }
 }
 
@@ -772,21 +1048,34 @@
     overflow: hidden;
   }
 
+  .gridBody {
+    min-height: 420px;
+    background:
+      linear-gradient(90deg, rgba(47, 93, 120, 0.05), rgba(47, 93, 120, 0) 42px),
+      repeating-linear-gradient(
+        to bottom,
+        rgba(215, 222, 230, 0.92) 0,
+        rgba(215, 222, 230, 0.92) 1px,
+        transparent 1px,
+        transparent 66px
+      );
+  }
+
   .dayHeaderTop {
-    align-items: flex-start;
     flex-direction: column;
   }
 
-  .gridBody {
-    min-height: 360px;
-    background:
-      repeating-linear-gradient(
-        to bottom,
-        rgba(215, 222, 230, 0.9) 0,
-        rgba(215, 222, 230, 0.9) 1px,
-        transparent 1px,
-        transparent 54px
-      );
+  .dayInsightRow,
+  .blockTop,
+  .blockMetaRow,
+  .monthCellTop {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .blockBadges,
+  .monthCellBadges {
+    justify-content: flex-start;
   }
 
   .monthGrid {

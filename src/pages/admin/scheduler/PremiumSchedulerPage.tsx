@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { siteSettings } from "../../../data/siteSettings";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
+import { siteSettings } from "../../../data/siteSettings";
 import { getAdminSchedule } from "../../../lib/api/adminSchedule";
 import { getAdminSessions } from "../../../lib/api/adminSessions";
 import type { AdminScheduleRecord } from "../../../types/schedule";
@@ -21,7 +21,7 @@ import {
 import styles from "./PremiumSchedulerPage.module.css";
 
 const MINUTES_IN_HOUR = 60;
-const ROW_HEIGHT = 72;
+const ROW_HEIGHT = 88;
 const GRID_START_HOUR = 7;
 
 function getTodayDateKey(): string {
@@ -34,7 +34,7 @@ function getTodayDateKey(): string {
 
 function formatOverlayPosition(startMinutes: number, durationMinutes: number) {
   const top = ((startMinutes - GRID_START_HOUR * MINUTES_IN_HOUR) / MINUTES_IN_HOUR) * ROW_HEIGHT;
-  const height = Math.max((durationMinutes / MINUTES_IN_HOUR) * ROW_HEIGHT, 56);
+  const height = Math.max((durationMinutes / MINUTES_IN_HOUR) * ROW_HEIGHT, 72);
 
   return {
     top,
@@ -42,66 +42,65 @@ function formatOverlayPosition(startMinutes: number, durationMinutes: number) {
   };
 }
 
-type SchedulerDetail =
-  | {
-      kind: "day";
-      title: string;
-      subtitle: string;
-      chips: string[];
-      note: string;
-      primaryHref: string;
-      secondaryHref: string;
-      tertiaryHref: string;
-      primaryLabel: string;
-      secondaryLabel: string;
-      tertiaryLabel: string;
-    }
-  | {
-      kind: "session";
-      title: string;
-      subtitle: string;
-      chips: string[];
-      note: string;
-      primaryHref: string;
-      secondaryHref: string;
-      tertiaryHref: string;
-      primaryLabel: string;
-      secondaryLabel: string;
-      tertiaryLabel: string;
-    }
-  | {
-      kind: "blocked";
-      title: string;
-      subtitle: string;
-      chips: string[];
-      note: string;
-      primaryHref: string;
-      secondaryHref: string;
-      tertiaryHref: string;
-      primaryLabel: string;
-      secondaryLabel: string;
-      tertiaryLabel: string;
-    };
+function truncateText(value: string, maxLength: number): string {
+  const compact = value.replace(/\s+/g, " ").trim();
+
+  if (compact.length <= maxLength) {
+    return compact;
+  }
+
+  return `${compact.slice(0, maxLength - 3).trimEnd()}...`;
+}
+
+function getDayWorkingHours(summary: SchedulerDaySummary): string {
+  if (!summary.isWorking || summary.workStartMinutes === null || summary.workEndMinutes === null) {
+    return "Вне рабочих часов";
+  }
+
+  const toLabel = (value: number) =>
+    `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`;
+
+  return `${toLabel(summary.workStartMinutes)} - ${toLabel(summary.workEndMinutes)}`;
+}
+
+type SchedulerDetail = {
+  kind: "day" | "session" | "blocked";
+  title: string;
+  subtitle: string;
+  chips: string[];
+  note: string;
+  primaryHref: string;
+  secondaryHref: string;
+  tertiaryHref: string;
+  primaryLabel: string;
+  secondaryLabel: string;
+  tertiaryLabel: string;
+};
 
 function getDayDetail(summary: SchedulerDaySummary): SchedulerDetail {
+  const chips = [
+    `Сессий: ${summary.sessionsCount}`,
+    `Блокировок: ${summary.blockedCount}`,
+    summary.loadLabel,
+    summary.compactWorkingLabel,
+  ];
+
+  const note =
+    summary.isOverride && summary.overrideNotePreview !== "Без заметки"
+      ? `Комментарий к исключению: ${summary.overrideNotePreview}`
+      : summary.isWorking
+      ? `Рабочее окно: ${getDayWorkingHours(summary)}. В режиме дня эта колонка показывает живую ленту записей по времени без искусственного деления на обычные overlap-колонки.`
+      : "День помечен как нерабочий. Сетка остается обзорной и мягко подчеркивает недоступные часы без лишнего визуального шума.";
+
   return {
     kind: "day",
-    title: summary.label,
-    subtitle: summary.workingLabel,
-    chips: [
-      `Сессии: ${summary.sessionsCount}`,
-      `Блокировки: ${summary.blockedCount}`,
-      summary.loadLabel,
-    ],
-    note:
-      summary.isOverride && summary.overrideNotePreview !== "Без заметки"
-        ? `Комментарий к исключению: ${summary.overrideNotePreview}`
-        : summary.isWorking
-        ? "Рабочие часы и ограничения можно быстро просмотреть по сетке и по summary-сигналам."
-        : "День сейчас помечен как нерабочий, поэтому сетка показывает недоступность без лишнего шума.",
-    primaryHref: `/admin/schedule`,
-    secondaryHref: `/admin/sessions`,
-    tertiaryHref: `/admin/notes`,
+    title: summary.fullLabel,
+    subtitle: `${summary.workingLabel}. ${getDayWorkingHours(summary)}`,
+    chips,
+    note,
+    primaryHref: "/admin/schedule",
+    secondaryHref: "/admin/sessions",
+    tertiaryHref: "/admin/notes",
     primaryLabel: "Открыть настройки графика",
     secondaryLabel: "Открыть список сессий",
     tertiaryLabel: "Открыть заметки",
@@ -113,8 +112,13 @@ function getOverlayDetail(item: SchedulerOverlayItem): SchedulerDetail {
     return {
       kind: "session",
       title: item.clientName,
-      subtitle: `${item.serviceTitle} • ${item.timeLabel}`,
-      chips: [item.statusLabel, item.timeLabel, `Сессия #${item.sessionId}`],
+      subtitle: `${item.serviceTitle}. ${item.timeLabel}`,
+      chips: [
+        item.statusLabel,
+        item.timeLabel,
+        `Сессия #${item.sessionId}`,
+        
+      ],
       note: item.notePreview,
       primaryHref: `/admin/clients?clientId=${item.clientId}`,
       secondaryHref: `/admin/sessions?sessionId=${item.sessionId}`,
@@ -129,7 +133,12 @@ function getOverlayDetail(item: SchedulerOverlayItem): SchedulerDetail {
     kind: "blocked",
     title: "Заблокированный слот",
     subtitle: item.timeLabel,
-    chips: ["Блокировка", item.timeLabel, `Слот #${item.blockedSlotId}`],
+    chips: [
+      "Блокировка",
+      item.timeLabel,
+      `Слот #${item.blockedSlotId}`,
+      
+    ],
     note: item.reasonPreview,
     primaryHref: "/admin/schedule",
     secondaryHref: "/admin/sessions",
@@ -138,6 +147,22 @@ function getOverlayDetail(item: SchedulerOverlayItem): SchedulerDetail {
     secondaryLabel: "К сессиям",
     tertiaryLabel: "К заметкам",
   };
+}
+
+function getWeekSummaryLabel(day: SchedulerDaySummary) {
+  if (day.blockedCount > 0 && day.sessionsCount > 0) {
+    return `${day.sessionsCount} сесс. / ${day.blockedCount} блок.`;
+  }
+
+  if (day.blockedCount > 0) {
+    return `${day.blockedCount} блок.`;
+  }
+
+  if (day.sessionsCount > 0) {
+    return `${day.sessionsCount} сессии`;
+  }
+
+  return "Свободно";
 }
 
 export function PremiumSchedulerPage() {
@@ -179,7 +204,7 @@ export function PremiumSchedulerPage() {
         setError(
           loadError instanceof Error
             ? loadError.message
-            : "Не удалось загрузить данные для scheduler."
+            : "Не удалось загрузить данные для планировщика."
         );
       } finally {
         if (isActive) {
@@ -264,6 +289,7 @@ export function PremiumSchedulerPage() {
   const totalOverrides = safeScheduleData.overrides.length;
   const rangeLabel = getDateRangeLabel(viewMode, anchorDate, locale);
   const activeDetail = selectedDetail ?? (daySummaries[0] ? getDayDetail(daySummaries[0]) : null);
+
   const getDayDetailByDateKey = (dateKey: string) => {
     const detailSummary = getSchedulerDaySummaries({
       viewMode: "day",
@@ -290,13 +316,12 @@ export function PremiumSchedulerPage() {
     <main className={styles.page}>
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>Premium scheduler module</p>
-          <h1 className={styles.title}>Планировщик с каркасом week/day/month</h1>
+          <p className={styles.eyebrow}>Премиум-планировщик</p>
+          <h1 className={styles.title}>Планировщик с week/day/month каркасом</h1>
           <p className={styles.description}>
-            Это первая skeleton-версия premium scheduler: отдельный модуль, отдельный экран,
-            рабочая структура под временную сетку и будущие calendar interactions. На этом этапе
-            он уже опирается на реальные sessions, blocked slots, overrides и schedule rules, но
-            остаётся deliberately lightweight.
+            Экран строится вокруг одного специалиста: неделя дает спокойный обзор, день раскрывает
+            детали, а месяц остается обзорным слоем. Основная лента дня читается сверху вниз по
+            времени и не делает overlap-колонки нормальным сценарием.
           </p>
         </div>
 
@@ -322,24 +347,26 @@ export function PremiumSchedulerPage() {
         <aside className={styles.sideColumn}>
           <section className={styles.panel}>
             <div className={styles.infoPanel}>
-              <h2 className={styles.panelTitle}>Navigator</h2>
+              <h2 className={styles.panelTitle}>Навигатор</h2>
               <p className={styles.panelDescription}>
-                Week view остаётся основным рабочим режимом. Слева теперь живёт спокойный
-                helper-слой: легенда, product cues и выбранная детализация по клику или тапу.
+                Неделя работает как компактный обзор по дням, а режим дня дает больше воздуха,
+                текста и акцента на конкретном времени записи. Слева остается спокойная панель
+                деталей без перегруза.
               </p>
             </div>
           </section>
 
           <section className={styles.panel}>
             <div className={styles.infoPanel}>
-              <h2 className={styles.panelTitle}>Legend</h2>
+              <h2 className={styles.panelTitle}>Легенда</h2>
               <div className={styles.legend}>
                 <div className={styles.legendItem}>
                   <span className={styles.legendSwatch} />
                   <div className={styles.legendText}>
-                    <span className={styles.legendTitle}>Session block</span>
+                    <span className={styles.legendTitle}>Сессия</span>
                     <span className={styles.legendHint}>
-                      Показывает клиента, услугу, время, статус и короткий preview заметки.
+                      Карточка показывает время, клиента, услугу, статус и короткий preview
+                      заметки.
                     </span>
                   </div>
                 </div>
@@ -347,10 +374,9 @@ export function PremiumSchedulerPage() {
                 <div className={styles.legendItem}>
                   <span className={styles.legendSwatchBlocked} />
                   <div className={styles.legendText}>
-                    <span className={styles.legendTitle}>Blocked area</span>
+                    <span className={styles.legendTitle}>Блокировка</span>
                     <span className={styles.legendHint}>
-                      Штриховка подчёркивает ручную блокировку и удерживает unavailable state
-                      визуально мягким.
+                      Штриховка подчеркивает закрытый слот и не конкурирует с обычными сессиями.
                     </span>
                   </div>
                 </div>
@@ -358,9 +384,10 @@ export function PremiumSchedulerPage() {
                 <div className={styles.legendItem}>
                   <span className={styles.legendSwatchMuted} />
                   <div className={styles.legendText}>
-                    <span className={styles.legendTitle}>Non-working / day off</span>
+                    <span className={styles.legendTitle}>Нерабочее время</span>
                     <span className={styles.legendHint}>
-                      Фоновый паттерн показывает нерабочие зоны и делает override-сигналы заметнее.
+                      Фоновые зоны мягко показывают часы вне рабочего окна и выходной день без
+                      визуального шума.
                     </span>
                   </div>
                 </div>
@@ -409,7 +436,7 @@ export function PremiumSchedulerPage() {
                 </div>
               ) : (
                 <div className={styles.stateBox}>
-                  Выберите день, сессию или блокировку, чтобы открыть detail layer.
+                  Выберите день, сессию или блокировку, чтобы открыть слой деталей.
                 </div>
               )}
             </div>
@@ -420,27 +447,27 @@ export function PremiumSchedulerPage() {
               <h2 className={styles.panelTitle}>Сводка модуля</h2>
               <div className={styles.summaryList}>
                 <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Feature flag</span>
+                  <span className={styles.summaryLabel}>Модуль</span>
                   <span className={styles.summaryValue}>
                     {siteSettings.premiumModules.scheduler.enabled ? "Включён" : "Выключен"}
                   </span>
                 </div>
                 <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Default mode</span>
+                  <span className={styles.summaryLabel}>Режим по умолчанию</span>
                   <span className={styles.summaryValue}>
                     {siteSettings.premiumModules.scheduler.defaultView}
                   </span>
                 </div>
                 <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Schedule rules</span>
+                  <span className={styles.summaryLabel}>Базовые правила</span>
                   <span className={styles.summaryValue}>{safeScheduleData.rules.length}</span>
                 </div>
                 <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Overrides</span>
+                  <span className={styles.summaryLabel}>Исключения</span>
                   <span className={styles.summaryValue}>{totalOverrides}</span>
                 </div>
                 <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Blocked slots</span>
+                  <span className={styles.summaryLabel}>Блокировки</span>
                   <span className={styles.summaryValue}>{totalBlockedSlots}</span>
                 </div>
               </div>
@@ -462,8 +489,11 @@ export function PremiumSchedulerPage() {
                 <div>
                   <div className={styles.toolbarTitle}>{rangeLabel}</div>
                   <div className={styles.toolbarHint}>
-                    Week view остаётся основным рабочим режимом, а month view теперь работает как
-                    compact overview
+                    {viewMode === "week"
+                      ? "Неделя остается обзорным режимом с более компактными заголовками."
+                      : viewMode === "day"
+                      ? "День раскрывает больше контекста по записи и лучше держит вертикальный ритм."
+                      : "Месяц остается обзорным слоем с понятными уровнями загрузки и доступности."}
                   </div>
                 </div>
               </div>
@@ -481,7 +511,7 @@ export function PremiumSchedulerPage() {
                   className={styles.iconButton}
                   onClick={() => setAnchorDate(getNextAnchorDate(viewMode, anchorDate, 1))}
                 >
-                  Вперёд
+                  Вперед
                 </button>
                 <div className={styles.viewSwitch}>
                   {(["week", "day", "month"] as SchedulerViewMode[]).map((mode) => (
@@ -493,11 +523,7 @@ export function PremiumSchedulerPage() {
                       }`}
                       onClick={() => setViewMode(mode)}
                     >
-                      {mode === "week"
-                        ? "Неделя"
-                        : mode === "day"
-                        ? "День"
-                        : "Месяц"}
+                      {mode === "week" ? "Неделя" : mode === "day" ? "День" : "Месяц"}
                     </button>
                   ))}
                 </div>
@@ -506,10 +532,10 @@ export function PremiumSchedulerPage() {
 
             <div className={styles.content}>
               {isLoading ? (
-                <div className={styles.stateBox}>Загружаем skeleton scheduler...</div>
+                <div className={styles.stateBox}>Загружаем планировщик...</div>
               ) : error ? (
                 <div className={`${styles.stateBox} ${styles.stateError}`}>
-                  Не удалось построить scheduler skeleton на текущих данных.
+                  Не удалось построить планировщик на текущих данных.
                 </div>
               ) : viewMode === "month" ? (
                 <div className={styles.monthGrid}>
@@ -534,28 +560,28 @@ export function PremiumSchedulerPage() {
                         <span className={styles.monthCellDate}>{day.date.slice(8, 10)}</span>
                         <div className={styles.monthCellBadges}>
                           {day.sessionsCount > 0 ? (
-                            <span className={styles.monthChip}>
-                              Сессии: {day.sessionsCount}
-                            </span>
+                            <span className={styles.monthChip}>Сессии: {day.sessionsCount}</span>
                           ) : null}
                           {day.blockedCount > 0 ? (
-                            <span className={styles.monthChip}>
-                              Блоки: {day.blockedCount}
-                            </span>
+                            <span className={styles.monthChip}>Блоки: {day.blockedCount}</span>
                           ) : null}
                           <span
                             className={`${styles.monthLoadCue} ${
                               day.loadLevel === "busy"
                                 ? styles.monthLoadBusy
+                                : day.loadLevel === "medium"
+                                ? styles.monthLoadMedium
                                 : day.loadLevel === "light"
                                 ? styles.monthLoadLight
                                 : styles.monthLoadEmpty
                             }`}
                           >
                             {day.loadLevel === "busy"
-                              ? "Плотно"
+                              ? "Плотный день"
+                              : day.loadLevel === "medium"
+                              ? "Средняя загрузка"
                               : day.loadLevel === "light"
-                              ? "Есть движение"
+                              ? "Лёгкая загрузка"
                               : "Свободно"}
                           </span>
                         </div>
@@ -591,115 +617,213 @@ export function PremiumSchedulerPage() {
                       viewMode === "week" ? styles.columnsWeek : styles.columnsDay
                     }`}
                   >
-                    {daySummaries.map((day) => (
-                      <section
-                        key={day.dateKey}
-                        className={`${styles.dayColumn} ${
-                          day.workingStateTone === "override-working"
-                            ? styles.dayColumnOverride
-                            : day.workingStateTone === "override-day-off"
-                            ? styles.dayColumnOverrideOff
-                            : day.workingStateTone === "day-off"
-                            ? styles.dayColumnDayOff
-                            : ""
-                        }`}
-                      >
-                        <header className={styles.dayHeader}>
-                          <div className={styles.dayHeaderTop}>
-                            <div className={styles.dayTitle}>{day.label}</div>
-                            <button
-                              type="button"
-                              className={styles.detailToggle}
-                              onClick={() => setSelectedDetail(getDayDetail(day))}
-                            >
-                              Детали дня
-                            </button>
-                          </div>
-                          <div className={styles.dayMeta}>
-                            <span className={styles.metaBadge}>
-                              Сессии: {day.sessionsCount}
-                            </span>
-                            <span className={styles.metaBadge}>
-                              Блокировки: {day.blockedCount}
-                            </span>
-                            <span className={styles.metaBadge}>{day.workingLabel}</span>
-                            <span className={styles.metaBadge}>{day.loadLabel}</span>
-                          </div>
-                          {day.isOverride && day.overrideNotePreview !== "Без заметки" ? (
-                            <p className={styles.overrideNote}>
-                              Комментарий к исключению: {day.overrideNotePreview}
-                            </p>
-                          ) : null}
-                        </header>
+                    {daySummaries.map((day) => {
+                      const dayItems = overlayItems.filter((item) => item.dayKey === day.dateKey);
 
-                        <div className={styles.gridBody}>
-                          {day.nonWorkingRanges.map((range) => {
-                            const { top, height } = formatOverlayPosition(
-                              range.startMinutes,
-                              range.durationMinutes
-                            );
+                      return (
+                        <section
+                          key={day.dateKey}
+                          className={`${styles.dayColumn} ${
+                            day.workingStateTone === "override-working"
+                              ? styles.dayColumnOverride
+                              : day.workingStateTone === "override-day-off"
+                              ? styles.dayColumnOverrideOff
+                              : day.workingStateTone === "day-off"
+                              ? styles.dayColumnDayOff
+                              : ""
+                          } ${viewMode === "day" ? styles.dayColumnExpanded : ""}`}
+                        >
+                          <header
+                            className={`${styles.dayHeader} ${
+                              viewMode === "week" ? styles.dayHeaderWeek : styles.dayHeaderDay
+                            }`}
+                          >
+                            <div className={styles.dayHeaderTop}>
+                              <div className={styles.dayTitleGroup}>
+                                <div className={styles.dayTitle}>
+                                  {viewMode === "week" ? day.shortLabel : day.fullLabel}
+                                </div>
+                                <div className={styles.dayHeaderCaption}>
+                                  {viewMode === "week"
+                                    ? getWeekSummaryLabel(day)
+                                    : `${day.workingLabel}. ${getDayWorkingHours(day)}`}
+                                </div>
+                              </div>
 
-                            return (
+                              <button
+                                type="button"
+                                className={styles.detailToggle}
+                                onClick={() => setSelectedDetail(getDayDetail(day))}
+                              >
+                                {viewMode === "week" ? "День" : "Открыть детали дня"}
+                              </button>
+                            </div>
+
+                            <div className={styles.dayMeta}>
+                              <span className={styles.metaBadge}>Сессии: {day.sessionsCount}</span>
+                              {day.blockedCount > 0 ? (
+                                <span className={styles.metaBadge}>Блоки: {day.blockedCount}</span>
+                              ) : null}
+                              <span className={styles.metaBadge}>
+                                {viewMode === "week" ? day.loadCompactLabel : day.compactWorkingLabel}
+                              </span>
+                              {viewMode === "day" ? (
+                                <span className={styles.metaBadge}>{day.compactWorkingLabel}</span>
+                              ) : null}
+                            </div>
+
+                            {viewMode === "day" ? (
+                              <div className={styles.dayInsightRow}>
+                                <span className={styles.dayInsight}>
+                                  Рабочее окно: {getDayWorkingHours(day)}
+                                </span>
+                                {day.isOverride && day.overrideNotePreview !== "Без заметки" ? (
+                                  <span className={styles.dayInsightEmphasis}>
+                                    Исключение: {day.overrideNotePreview}
+                                  </span>
+                                ) : (
+                                  <span className={styles.dayInsightMuted}>{day.loadLabel}</span>
+                                )}
+                              </div>
+                            ) : null}
+                          </header>
+
+                          <div className={styles.gridBody}>
+                            {day.workStartMinutes !== null && day.workEndMinutes !== null && day.isWorking ? (
                               <div
-                                key={range.id}
-                                className={
-                                  range.tone === "day-off"
-                                    ? styles.dayOffOverlay
-                                    : styles.nonWorkingOverlay
-                                }
+                                className={styles.workingHoursBand}
                                 style={{
-                                  top: `${top}px`,
-                                  height: `${height}px`,
+                                  top: `${
+                                    ((day.workStartMinutes - GRID_START_HOUR * MINUTES_IN_HOUR) /
+                                      MINUTES_IN_HOUR) *
+                                    ROW_HEIGHT
+                                  }px`,
+                                  height: `${
+                                    ((day.workEndMinutes - day.workStartMinutes) /
+                                      MINUTES_IN_HOUR) *
+                                    ROW_HEIGHT
+                                  }px`,
                                 }}
                               />
-                            );
-                          })}
+                            ) : null}
 
-                          {overlayItems
-                            .filter((item) => item.dayKey === day.dateKey)
-                            .map((item) => {
+                            {day.nonWorkingRanges.map((range) => {
                               const { top, height } = formatOverlayPosition(
-                                item.startMinutes,
-                                item.durationMinutes
+                                range.startMinutes,
+                                range.durationMinutes
                               );
 
                               return (
-                                <button
-                                  key={item.id}
-                                  type="button"
+                                <div
+                                  key={range.id}
                                   className={
-                                    item.tone === "session"
-                                      ? styles.sessionBlock
-                                      : styles.blockedBlock
+                                    range.tone === "day-off"
+                                      ? styles.dayOffOverlay
+                                      : styles.nonWorkingOverlay
                                   }
                                   style={{
                                     top: `${top}px`,
                                     height: `${height}px`,
                                   }}
+                                />
+                              );
+                            })}
+
+                            {dayItems.map((item) => {
+                              const { top, height } = formatOverlayPosition(
+                                item.startMinutes,
+                                item.durationMinutes
+                              );
+                              const conflictOffset = item.hasConflict
+                                ? Math.min(item.conflictOrder * 14, 28)
+                                : 0;
+                              const isWeekMode = viewMode === "week";
+
+                              return (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  className={`${item.tone === "session" ? styles.sessionBlock : styles.blockedBlock} ${
+                                    isWeekMode ? styles.blockWeek : styles.blockExpanded
+                                  } ${item.hasConflict ? styles.blockConflict : ""}`}
+                                  style={{
+                                    top: `${top}px`,
+                                    height: `${height}px`,
+                                    left: `${isWeekMode ? 8 : 12 + conflictOffset}px`,
+                                    right: `${isWeekMode ? 8 : 12 + Math.max(0, 16 - conflictOffset)}px`,
+                                    zIndex: item.hasConflict ? 4 + item.conflictOrder : 3,
+                                  }}
                                   onClick={() => setSelectedDetail(getOverlayDetail(item))}
                                 >
-                                  <span className={styles.blockTitle}>{item.title}</span>
-                                  {item.tone === "session" ? (
+                                  {isWeekMode ? (
                                     <>
-                                      <span className={styles.blockSubtitle}>{item.subtitle}</span>
-                                      <span className={styles.blockMeta}>
-                                        {item.timeLabel} • {item.statusLabel}
-                                      </span>
-                                      <span className={styles.blockNote}>{item.notePreview}</span>
+                                      <div className={styles.blockWeekTop}>
+                                        <span className={styles.blockTimePill}>{item.startLabel}</span>
+                                        {item.tone === "session" ? (
+                                          <span className={styles.blockWeekType}>
+                                            {item.statusLabel}
+                                          </span>
+                                        ) : (
+                                          <span className={styles.blockWeekTypeMuted}>
+                                            Блок
+                                          </span>
+                                        )}
+                                      </div>
+                                      <span className={styles.blockWeekTitle}>{item.title}</span>
+                                      {item.tone === "session" ? (
+                                        <span className={styles.blockWeekMeta}>
+                                          {truncateText(item.serviceTitle, 16)}
+                                        </span>
+                                      ) : null}
                                     </>
                                   ) : (
                                     <>
+                                      <div className={styles.blockTop}>
+                                        <span className={styles.blockTimePill}>{item.timeLabel}</span>
+                                        <div className={styles.blockBadges}>
+                                          {item.tone === "session" ? (
+                                            <span className={styles.blockStatusBadge}>
+                                              {item.statusLabel}
+                                            </span>
+                                          ) : (
+                                            <span className={styles.blockStatusBadgeMuted}>
+                                              Блокировка
+                                            </span>
+                                          )}
+                                          {item.hasConflict ? (
+                                            <span className={styles.blockConflictBadge}>
+                                              Конфликт x{item.conflictCount}
+                                            </span>
+                                          ) : null}
+                                        </div>
+                                      </div>
+
+                                      <span className={styles.blockTitle}>{item.title}</span>
                                       <span className={styles.blockSubtitle}>{item.subtitle}</span>
-                                      <span className={styles.blockMeta}>{item.timeLabel}</span>
-                                      <span className={styles.blockNote}>{item.reasonPreview}</span>
+
+                                      <div className={styles.blockMetaRow}>
+                                        <span className={styles.blockMeta}>
+                                          {item.startLabel} - {item.endLabel}
+                                        </span>
+                                        <span className={styles.blockMeta}>
+                                          {item.durationMinutes} мин
+                                        </span>
+                                      </div>
+
+                                      <span className={styles.blockNote}>
+                                        {item.tone === "session"
+                                          ? item.notePreview
+                                          : item.reasonPreview}
+                                      </span>
                                     </>
                                   )}
                                 </button>
                               );
                             })}
-                        </div>
-                      </section>
-                    ))}
+                          </div>
+                        </section>
+                      );
+                    })}
                   </div>
                 </div>
               )}

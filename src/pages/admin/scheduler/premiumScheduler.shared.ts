@@ -14,42 +14,58 @@ import type { CrmSessionRecord, SessionStatus } from "../../../types/session";
 
 export type SchedulerViewMode = "week" | "day" | "month";
 
+type SchedulerConflictMeta = {
+  hasConflict: boolean;
+  conflictCount: number;
+  conflictOrder: number;
+  conflictGroupId: string | null;
+};
+
 export type SchedulerOverlayItem =
-  | {
+  | ({
       id: string;
       dayKey: string;
       startMinutes: number;
+      endMinutes: number;
       durationMinutes: number;
       tone: "session";
       title: string;
       subtitle: string;
       timeLabel: string;
+      startLabel: string;
+      endLabel: string;
       statusLabel: string;
       notePreview: string;
       clientName: string;
       serviceTitle: string;
       sessionId: number;
       clientId: number;
-    }
-  | {
+    } & SchedulerConflictMeta)
+  | ({
       id: string;
       dayKey: string;
       startMinutes: number;
+      endMinutes: number;
       durationMinutes: number;
       tone: "blocked";
       title: string;
       subtitle: string;
       timeLabel: string;
+      startLabel: string;
+      endLabel: string;
       reasonPreview: string;
       blockedSlotId: number;
-    };
+    } & SchedulerConflictMeta);
 
 export type SchedulerDaySummary = {
   dateKey: string;
   label: string;
+  shortLabel: string;
+  fullLabel: string;
   sessionsCount: number;
   blockedCount: number;
   workingLabel: string;
+  compactWorkingLabel: string;
   isWorking: boolean;
   isOverride: boolean;
   workingStateTone: "working" | "override-working" | "day-off" | "override-day-off";
@@ -62,6 +78,7 @@ export type SchedulerDaySummary = {
     tone: "non-working" | "day-off";
   }>;
   loadLabel: string;
+  loadCompactLabel: string;
   overrideNotePreview: string;
 };
 
@@ -76,7 +93,7 @@ export type SchedulerMonthCellSummary = {
   workingStateTone: "working" | "override-working" | "day-off" | "override-day-off";
   workingStateLabel: string;
   activityLabel: string;
-  loadLevel: "empty" | "light" | "busy";
+  loadLevel: "empty" | "light" | "medium" | "busy";
   overrideNotePreview: string;
 };
 
@@ -91,34 +108,56 @@ function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-function getDateLabel(dateKey: string, locale: string): string {
+function formatDateLabel(
+  dateKey: string,
+  locale: string,
+  options: Intl.DateTimeFormatOptions
+): string {
   const date = parseDateKey(dateKey);
 
   if (!date) {
     return dateKey;
   }
 
-  return new Intl.DateTimeFormat(locale, {
+  return new Intl.DateTimeFormat(locale, options).format(date);
+}
+
+function getDateLabel(dateKey: string, locale: string): string {
+  return formatDateLabel(dateKey, locale, {
     weekday: "short",
     day: "numeric",
     month: "short",
-  }).format(date);
+  });
+}
+
+function getDateShortLabel(dateKey: string, locale: string): string {
+  return formatDateLabel(dateKey, locale, {
+    weekday: "short",
+    day: "numeric",
+  });
+}
+
+function getDateFullLabel(dateKey: string, locale: string): string {
+  return formatDateLabel(dateKey, locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 }
 
 function getTimeLabel(hours: number): string {
   return `${String(hours).padStart(2, "0")}:00`;
 }
 
+function toTimeLabel(value: number): string {
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
 function getTimeRangeLabel(startMinutes: number, durationMinutes: number): string {
   const endMinutes = startMinutes + durationMinutes;
-
-  function toLabel(value: number) {
-    const hours = Math.floor(value / 60);
-    const minutes = value % 60;
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-  }
-
-  return `${toLabel(startMinutes)} - ${toLabel(endMinutes)}`;
+  return `${toTimeLabel(startMinutes)} - ${toTimeLabel(endMinutes)}`;
 }
 
 function getMinutesSinceStartOfDay(value: string): number {
@@ -168,7 +207,7 @@ function truncatePreview(value: string, maxLength = 88): string {
     return compact;
   }
 
-  return `${compact.slice(0, maxLength - 1).trimEnd()}…`;
+  return `${compact.slice(0, maxLength - 3).trimEnd()}...`;
 }
 
 function toWeekday(dateKey: string): number {
@@ -194,6 +233,7 @@ function getRuleForDate(
       isOverride: true,
       isWorking: override.isWorkingDay,
       label: override.isWorkingDay ? "Исключение: рабочий день" : "Исключение: выходной",
+      compactLabel: override.isWorkingDay ? "Рабочий день" : "Выходной",
       startTime: override.startTime,
       endTime: override.endTime,
       note: override.note,
@@ -205,7 +245,10 @@ function getRuleForDate(
   return {
     isOverride: false,
     isWorking: rule?.isEnabled ?? false,
-    label: rule?.isEnabled ? "Рабочий день по базовому правилу" : "Выходной по базовому правилу",
+    label: rule?.isEnabled
+      ? "Рабочий день по базовому правилу"
+      : "Выходной по базовому правилу",
+    compactLabel: rule?.isEnabled ? "Рабочий день" : "Выходной",
     startTime: rule?.startTime ?? null,
     endTime: rule?.endTime ?? null,
     note: "",
@@ -242,6 +285,141 @@ function getLoadLabel(sessionsCount: number): string {
   }
 
   return "Пока без записей";
+}
+
+function getLoadCompactLabel(sessionsCount: number): string {
+  if (sessionsCount >= 5) {
+    return "Плотно";
+  }
+
+  if (sessionsCount >= 2) {
+    return "В работе";
+  }
+
+  if (sessionsCount === 1) {
+    return "Одна запись";
+  }
+
+  return "Свободно";
+}
+
+function getMonthLoadLevel(sessionsCount: number): SchedulerMonthCellSummary["loadLevel"] {
+  if (sessionsCount >= 5) {
+    return "busy";
+  }
+
+  if (sessionsCount >= 3) {
+    return "medium";
+  }
+
+  if (sessionsCount >= 1) {
+    return "light";
+  }
+
+  return "empty";
+}
+
+function getMonthLoadLabel(loadLevel: SchedulerMonthCellSummary["loadLevel"]): string {
+  switch (loadLevel) {
+    case "busy":
+      return "Плотный день";
+    case "medium":
+      return "Средняя загрузка";
+    case "light":
+      return "Лёгкая загрузка";
+    default:
+      return "Свободно";
+  }
+}
+
+function overlaps(left: SchedulerOverlayItem, right: SchedulerOverlayItem): boolean {
+  return left.startMinutes < right.endMinutes && right.startMinutes < left.endMinutes;
+}
+
+function applyConflictMeta(items: SchedulerOverlayItem[]): SchedulerOverlayItem[] {
+  const itemsByDay = new Map<string, SchedulerOverlayItem[]>();
+
+  for (const item of items) {
+    const dayItems = itemsByDay.get(item.dayKey) ?? [];
+    dayItems.push(item);
+    itemsByDay.set(item.dayKey, dayItems);
+  }
+
+  const withConflictMeta: SchedulerOverlayItem[] = [];
+
+  for (const dayItems of itemsByDay.values()) {
+    const ordered = [...dayItems].sort((left, right) => {
+      if (left.startMinutes !== right.startMinutes) {
+        return left.startMinutes - right.startMinutes;
+      }
+
+      return right.durationMinutes - left.durationMinutes;
+    });
+
+    const visited = new Set<string>();
+
+    for (const item of ordered) {
+      if (visited.has(item.id)) {
+        continue;
+      }
+
+      const queue = [item];
+      const group: SchedulerOverlayItem[] = [];
+      visited.add(item.id);
+
+      while (queue.length > 0) {
+        const current = queue.shift();
+
+        if (!current) {
+          continue;
+        }
+
+        group.push(current);
+
+        for (const candidate of ordered) {
+          if (visited.has(candidate.id)) {
+            continue;
+          }
+
+          if (overlaps(current, candidate)) {
+            visited.add(candidate.id);
+            queue.push(candidate);
+          }
+        }
+      }
+
+      const groupId = group.length > 1 ? `conflict-${group[0].dayKey}-${group[0].id}` : null;
+      const groupOrdered = [...group].sort((left, right) => {
+        if (left.startMinutes !== right.startMinutes) {
+          return left.startMinutes - right.startMinutes;
+        }
+
+        return right.durationMinutes - left.durationMinutes;
+      });
+
+      for (const [index, groupItem] of groupOrdered.entries()) {
+        withConflictMeta.push({
+          ...groupItem,
+          hasConflict: group.length > 1,
+          conflictCount: group.length,
+          conflictOrder: index,
+          conflictGroupId: groupId,
+        });
+      }
+    }
+  }
+
+  return withConflictMeta.sort((left, right) => {
+    if (left.dayKey !== right.dayKey) {
+      return left.dayKey.localeCompare(right.dayKey);
+    }
+
+    if (left.startMinutes !== right.startMinutes) {
+      return left.startMinutes - right.startMinutes;
+    }
+
+    return right.durationMinutes - left.durationMinutes;
+  });
 }
 
 export function getSchedulerHours(): Array<{ hour: number; label: string }> {
@@ -326,9 +504,7 @@ export function buildSchedulerOverlayItems(params: {
   blockedSlots: BlockedSlotRecord[];
 }): SchedulerOverlayItem[] {
   const visibleDates =
-    params.viewMode === "day"
-      ? [params.anchorDateKey]
-      : getWeekDays(params.anchorDateKey);
+    params.viewMode === "day" ? [params.anchorDateKey] : getWeekDays(params.anchorDateKey);
 
   const visibleDateSet = new Set(visibleDates);
   const items: SchedulerOverlayItem[] = [];
@@ -341,6 +517,7 @@ export function buildSchedulerOverlayItems(params: {
     }
 
     const startMinutes = getMinutesSinceStartOfDay(session.scheduledAt);
+    const endMinutes = startMinutes + session.durationMinutes;
     const timeLabel = getTimeRangeLabel(startMinutes, session.durationMinutes);
 
     items.push({
@@ -349,15 +526,22 @@ export function buildSchedulerOverlayItems(params: {
       subtitle: session.serviceTitle,
       dayKey,
       startMinutes,
+      endMinutes,
       durationMinutes: session.durationMinutes,
       tone: "session",
       timeLabel,
+      startLabel: toTimeLabel(startMinutes),
+      endLabel: toTimeLabel(endMinutes),
       statusLabel: getStatusLabel(session.status),
-      notePreview: truncatePreview(session.notes),
+      notePreview: truncatePreview(session.notes, 120),
       clientName: session.clientName,
       serviceTitle: session.serviceTitle,
       sessionId: session.id,
       clientId: session.clientId,
+      hasConflict: false,
+      conflictCount: 0,
+      conflictOrder: 0,
+      conflictGroupId: null,
     });
   }
 
@@ -370,6 +554,7 @@ export function buildSchedulerOverlayItems(params: {
 
     const startMinutes = getDurationMinutes("00:00", blockedSlot.startTime);
     const durationMinutes = getDurationMinutes(blockedSlot.startTime, blockedSlot.endTime);
+    const endMinutes = startMinutes + durationMinutes;
     const timeLabel = getTimeRangeLabel(startMinutes, durationMinutes);
 
     items.push({
@@ -378,15 +563,22 @@ export function buildSchedulerOverlayItems(params: {
       subtitle: blockedSlot.reason || "Слот закрыт",
       dayKey,
       startMinutes,
+      endMinutes,
       durationMinutes,
       tone: "blocked",
       timeLabel,
-      reasonPreview: truncatePreview(blockedSlot.reason || "Слот закрыт"),
+      startLabel: toTimeLabel(startMinutes),
+      endLabel: toTimeLabel(endMinutes),
+      reasonPreview: truncatePreview(blockedSlot.reason || "Слот закрыт", 120),
       blockedSlotId: blockedSlot.id,
+      hasConflict: false,
+      conflictCount: 0,
+      conflictOrder: 0,
+      conflictGroupId: null,
     });
   }
 
-  return items.sort((left, right) => left.startMinutes - right.startMinutes);
+  return applyConflictMeta(items);
 }
 
 export function buildMonthSummary(params: {
@@ -407,8 +599,7 @@ export function buildMonthSummary(params: {
     ).length;
     const ruleInfo = getRuleForDate(item.date, params.rules, params.overrides);
     const workingStateTone = getWorkingStateTone(ruleInfo);
-    const loadLevel =
-      sessionsCount >= 5 ? "busy" : sessionsCount >= 1 ? "light" : "empty";
+    const loadLevel = getMonthLoadLevel(sessionsCount);
 
     return {
       date: item.date,
@@ -424,8 +615,8 @@ export function buildMonthSummary(params: {
         blockedCount > 0
           ? `Блокировок: ${blockedCount}`
           : sessionsCount > 0
-          ? getLoadLabel(sessionsCount)
-          : "Свободный обзорный день",
+          ? getMonthLoadLabel(loadLevel)
+          : "Спокойный обзорный день",
       loadLevel,
       overrideNotePreview: truncatePreview(ruleInfo.note, 64),
     };
@@ -442,9 +633,7 @@ export function getSchedulerDaySummaries(params: {
   locale: string;
 }): SchedulerDaySummary[] {
   const visibleDates =
-    params.viewMode === "day"
-      ? [params.anchorDateKey]
-      : getWeekDays(params.anchorDateKey);
+    params.viewMode === "day" ? [params.anchorDateKey] : getWeekDays(params.anchorDateKey);
 
   return visibleDates.map((dateKey) => {
     const sessionsCount = params.sessions.filter(
@@ -488,9 +677,12 @@ export function getSchedulerDaySummaries(params: {
     return {
       dateKey,
       label: getDateLabel(dateKey, params.locale),
+      shortLabel: getDateShortLabel(dateKey, params.locale),
+      fullLabel: getDateFullLabel(dateKey, params.locale),
       sessionsCount,
       blockedCount,
       workingLabel: ruleInfo.label,
+      compactWorkingLabel: ruleInfo.compactLabel,
       isWorking: ruleInfo.isWorking,
       isOverride: ruleInfo.isOverride,
       workingStateTone: getWorkingStateTone(ruleInfo),
@@ -498,6 +690,7 @@ export function getSchedulerDaySummaries(params: {
       workEndMinutes,
       nonWorkingRanges,
       loadLabel: getLoadLabel(sessionsCount),
+      loadCompactLabel: getLoadCompactLabel(sessionsCount),
       overrideNotePreview: truncatePreview(ruleInfo.note, 72),
     };
   });
