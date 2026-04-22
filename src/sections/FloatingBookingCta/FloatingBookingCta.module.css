@@ -1,0 +1,23 @@
+.wrap {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 40;
+}
+
+.button {
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+}
+
+@media (max-width: 768px) {
+  .wrap {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+  }
+
+  .button {
+    width: 100%;
+    justify-content: center;
+  }
+}

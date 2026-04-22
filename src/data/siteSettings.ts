@@ -26,10 +26,16 @@ export const siteSettings = {
 
   booking: {
     mode: "slot_request" as "request_only" | "slot_request" | "paid_booking",
+    entryMode: "separate_page" as "inline_form" | "separate_page",
     separatePageEnabled: true,
     calendarEnabled: false,
     paymentEnabled: false,
     sessionDurationMinutes: 60,
     breakBetweenSessionsMinutes: 30,
+    floatingCta: {
+      enabled: true,
+      revealMode: "after_scroll" as "immediate" | "after_scroll",
+      scrollOffsetPx: 80,
+    },
   },
 };

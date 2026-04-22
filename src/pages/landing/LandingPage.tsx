@@ -8,8 +8,11 @@ import { Contacts } from "../../sections/Contacts/Contacts";
 import { FAQ } from "../../sections/FAQ/FAQ";
 import { Footer } from "../../sections/Footer/Footer";
 import { Privacy } from "../../sections/Privacy/Privacy";
+import { isInlineBookingFormEnabled } from "../../lib/booking/getBookingTarget";
 
 export function LandingPage() {
+  const showInlineBookingForm = isInlineBookingFormEnabled();
+
   return (
     <div id="top">
       <Header />
@@ -17,7 +20,7 @@ export function LandingPage() {
       <About />
       <Education />
       <Pricing />
-      <Booking />
+      {showInlineBookingForm ? <Booking /> : null}
       <Contacts />
       <FAQ />
       <Privacy />

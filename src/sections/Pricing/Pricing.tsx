@@ -4,9 +4,11 @@ import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
-import { siteSettings } from "../../data/siteSettings";
 import { getPublicServices } from "../../lib/api/publicServices";
-import { getBookingTarget } from "../../lib/booking/getBookingTarget";
+import {
+  getBookingTarget,
+  getPricingSourceMode,
+} from "../../lib/booking/getBookingTarget";
 import type { CrmServiceRecord } from "../../types/service";
 import styles from "./Pricing.module.css";
 
@@ -71,7 +73,7 @@ export function Pricing() {
   const copy = pricingCopyByLanguage[currentLanguage];
   const { config, content, ui } = t;
   const bookingTarget = getBookingTarget();
-  const pricingSource = siteSettings.pricing.source;
+  const pricingSource = getPricingSourceMode();
   const [databaseItems, setDatabaseItems] = useState<CrmServiceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(pricingSource === "database");
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -143,7 +145,9 @@ export function Pricing() {
         ) : null}
 
         {pricingSource === "database" && !isLoading && loadError ? (
-          <div className={`${styles.stateBox} ${styles.stateError}`}>{loadError}</div>
+          <div className={`${styles.stateBox} ${styles.stateError}`}>
+            {loadError}
+          </div>
         ) : null}
 
         {pricingSource === "database" &&
