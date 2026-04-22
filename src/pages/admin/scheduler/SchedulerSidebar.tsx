@@ -1,5 +1,6 @@
 import { siteSettings } from "../../../data/siteSettings";
-import styles from "./PremiumSchedulerPage.module.css";
+import pageStyles from "./PremiumSchedulerPage.module.css";
+import styles from "./SchedulerSidebar.module.css";
 import type { SchedulerDetail } from "./premiumScheduler.helpers";
 import { SchedulerDetailPanel } from "./SchedulerDetailPanel";
 
@@ -18,7 +19,7 @@ export function SchedulerSidebar({
 }: SchedulerSidebarProps) {
   return (
     <aside className={styles.sideColumn}>
-      <section className={styles.panel}>
+      <section className={pageStyles.panel}>
         <div className={styles.infoPanel}>
           <h2 className={styles.panelTitle}>Навигатор</h2>
           <p className={styles.panelDescription}>
@@ -28,7 +29,7 @@ export function SchedulerSidebar({
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={pageStyles.panel}>
         <div className={styles.infoPanel}>
           <h2 className={styles.panelTitle}>Легенда</h2>
           <div className={styles.legend}>
@@ -66,14 +67,14 @@ export function SchedulerSidebar({
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={pageStyles.panel}>
         <div className={styles.infoPanel}>
           <h2 className={styles.panelTitle}>Выбранная деталь</h2>
           <SchedulerDetailPanel detail={activeDetail} />
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={pageStyles.panel}>
         <div className={styles.infoPanel}>
           <h2 className={styles.panelTitle}>Сводка модуля</h2>
           <div className={styles.summaryList}>

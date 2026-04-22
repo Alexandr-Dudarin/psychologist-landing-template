@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 
-import styles from "./PremiumSchedulerPage.module.css";
+import pageStyles from "./PremiumSchedulerPage.module.css";
+import styles from "./SchedulerDetailPanel.module.css";
 import type { SchedulerDetail } from "./premiumScheduler.helpers";
 
 type SchedulerDetailPanelProps = {
@@ -10,7 +11,7 @@ type SchedulerDetailPanelProps = {
 export function SchedulerDetailPanel({ detail }: SchedulerDetailPanelProps) {
   if (!detail) {
     return (
-      <div className={styles.stateBox}>
+      <div className={pageStyles.stateBox}>
         Выберите день, сессию или блокировку, чтобы открыть слой деталей.
       </div>
     );

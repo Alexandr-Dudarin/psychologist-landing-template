@@ -1,4 +1,4 @@
-import styles from "./PremiumSchedulerPage.module.css";
+import styles from "./SchedulerEventCard.module.css";
 import { truncateText } from "./premiumScheduler.helpers";
 import type { SchedulerOverlayItem, SchedulerViewMode } from "./premiumScheduler.shared";
 

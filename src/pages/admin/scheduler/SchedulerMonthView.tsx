@@ -1,4 +1,4 @@
-import styles from "./PremiumSchedulerPage.module.css";
+import styles from "./SchedulerMonthView.module.css";
 import type { SchedulerDetail } from "./premiumScheduler.helpers";
 import type { SchedulerMonthCellSummary } from "./premiumScheduler.shared";
 

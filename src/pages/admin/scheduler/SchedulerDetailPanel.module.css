@@ -1,0 +1,101 @@
+.detailCard {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(47, 93, 120, 0.08), transparent 38%),
+    linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+  border: 1px solid var(--admin-border);
+  min-width: 0;
+}
+
+.detailTop {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.detailKind {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(47, 93, 120, 0.1);
+  color: #2f5d78;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.detailTitle {
+  margin: 0;
+  font-size: 1.02rem;
+  overflow-wrap: anywhere;
+}
+
+.detailSubtitle {
+  margin: 0;
+  color: var(--admin-text-muted);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.detailChips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.detailChip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--admin-surface-soft);
+  color: var(--admin-text-muted);
+  font-size: 0.8rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.detailNote {
+  margin: 0;
+  color: var(--admin-text);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.detailActions {
+  display: grid;
+  gap: 8px;
+}
+
+.detailLink,
+.detailLinkSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: 14px;
+  padding: 0 14px;
+  text-decoration: none;
+  font-weight: 600;
+  text-align: center;
+}
+
+.detailLink {
+  background: var(--admin-accent);
+  color: #ffffff;
+}
+
+.detailLinkSecondary {
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text);
+  background: #ffffff;
+}
+
+@media (max-width: 820px) {
+  .detailCard {
+    border-radius: 20px 20px 0 0;
+    padding-bottom: 24px;
+  }
+}

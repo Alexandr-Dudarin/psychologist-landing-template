@@ -1,0 +1,129 @@
+.sideColumn {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.infoPanel {
+  padding: 18px;
+}
+
+.panelTitle {
+  margin: 0 0 10px;
+  font-size: 1.02rem;
+}
+
+.panelDescription {
+  margin: 0;
+  color: var(--admin-text-muted);
+  line-height: 1.55;
+}
+
+.legend {
+  display: grid;
+  gap: 10px;
+}
+
+.legendItem {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.legendSwatch,
+.legendSwatchBlocked,
+.legendSwatchMuted {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.legendSwatch {
+  background: #dfeef8;
+  border: 1px solid rgba(47, 93, 120, 0.28);
+}
+
+.legendSwatchBlocked {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(154, 75, 75, 0.25) 0,
+      rgba(154, 75, 75, 0.25) 4px,
+      rgba(154, 75, 75, 0.08) 4px,
+      rgba(154, 75, 75, 0.08) 8px
+    );
+  border: 1px solid rgba(154, 75, 75, 0.22);
+}
+
+.legendSwatchMuted {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(107, 121, 133, 0.16) 0,
+      rgba(107, 121, 133, 0.16) 4px,
+      rgba(255, 255, 255, 0.4) 4px,
+      rgba(255, 255, 255, 0.4) 8px
+    );
+  border: 1px solid rgba(107, 121, 133, 0.18);
+}
+
+.legendText {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.legendTitle {
+  font-weight: 600;
+}
+
+.legendHint {
+  color: var(--admin-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.summaryList {
+  display: grid;
+  gap: 10px;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.summaryRow:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.summaryLabel {
+  color: var(--admin-text-muted);
+}
+
+.summaryValue {
+  font-weight: 700;
+  text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1100px) {
+  .sideColumn {
+    order: 2;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .sideColumn {
+    grid-template-columns: 1fr;
+  }
+}

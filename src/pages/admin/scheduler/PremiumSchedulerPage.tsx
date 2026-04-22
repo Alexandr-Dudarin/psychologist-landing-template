@@ -18,7 +18,7 @@ import {
 import { SchedulerSidebar } from "./SchedulerSidebar";
 import { SchedulerToolbar } from "./SchedulerToolbar";
 import { SchedulerWeekView } from "./SchedulerWeekView";
-import styles from "./PremiumSchedulerPage.module.css";
+import pageStyles from "./PremiumSchedulerPage.module.css";
 import {
   buildMonthSummary,
   buildSchedulerOverlayItems,
@@ -179,37 +179,37 @@ export function PremiumSchedulerPage() {
   }, [anchorDate, viewMode]);
 
   return (
-    <main className={styles.page}>
-      <section className={styles.hero}>
-        <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>Премиальный планировщик</p>
-          <h1 className={styles.title}>Планировщик с режимами неделя / день / месяц</h1>
-          <p className={styles.description}>
+    <main className={pageStyles.page}>
+      <section className={pageStyles.hero}>
+        <div className={pageStyles.heroCopy}>
+          <p className={pageStyles.eyebrow}>Премиальный планировщик</p>
+          <h1 className={pageStyles.title}>Планировщик с режимами неделя / день / месяц</h1>
+          <p className={pageStyles.description}>
             Экран строится вокруг одного специалиста: неделя даёт спокойный обзор, день раскрывает
             детали, а месяц остаётся обзорным режимом. Лента дня читается сверху вниз по времени и
             показывает последовательные записи без лишнего визуального шума.
           </p>
         </div>
 
-        <div className={styles.heroStats}>
-          <div className={styles.statCard}>
-            <span className={styles.statLabel}>Сессии</span>
-            <span className={styles.statValue}>{totalSessions}</span>
+        <div className={pageStyles.heroStats}>
+          <div className={pageStyles.statCard}>
+            <span className={pageStyles.statLabel}>Сессии</span>
+            <span className={pageStyles.statValue}>{totalSessions}</span>
           </div>
-          <div className={styles.statCard}>
-            <span className={styles.statLabel}>Блокировки</span>
-            <span className={styles.statValue}>{totalBlockedSlots}</span>
+          <div className={pageStyles.statCard}>
+            <span className={pageStyles.statLabel}>Блокировки</span>
+            <span className={pageStyles.statValue}>{totalBlockedSlots}</span>
           </div>
-          <div className={styles.statCard}>
-            <span className={styles.statLabel}>Исключения</span>
-            <span className={styles.statValue}>{totalOverrides}</span>
+          <div className={pageStyles.statCard}>
+            <span className={pageStyles.statLabel}>Исключения</span>
+            <span className={pageStyles.statValue}>{totalOverrides}</span>
           </div>
         </div>
       </section>
 
       <AdminFeedback message={error ?? ""} tone="error" />
 
-      <div className={styles.layout}>
+      <div className={pageStyles.layout}>
         <SchedulerSidebar
           activeDetail={activeDetail}
           rulesCount={safeScheduleData.rules.length}
@@ -217,8 +217,8 @@ export function PremiumSchedulerPage() {
           totalOverrides={totalOverrides}
         />
 
-        <div className={styles.mainColumn}>
-          <section className={styles.panel}>
+        <div className={pageStyles.mainColumn}>
+          <section className={pageStyles.panel}>
             <SchedulerToolbar
               rangeLabel={rangeLabel}
               viewMode={viewMode}
@@ -228,11 +228,11 @@ export function PremiumSchedulerPage() {
               onViewModeChange={setViewMode}
             />
 
-            <div className={styles.content}>
+            <div className={pageStyles.content}>
               {isLoading ? (
-                <div className={styles.stateBox}>Загружаем планировщик...</div>
+                <div className={pageStyles.stateBox}>Загружаем планировщик...</div>
               ) : error ? (
-                <div className={`${styles.stateBox} ${styles.stateError}`}>
+                <div className={`${pageStyles.stateBox} ${pageStyles.stateError}`}>
                   Не удалось построить планировщик на текущих данных.
                 </div>
               ) : viewMode === "month" ? (

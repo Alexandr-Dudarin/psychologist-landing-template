@@ -1,4 +1,4 @@
-import styles from "./PremiumSchedulerPage.module.css";
+import styles from "./SchedulerTimelineView.module.css";
 import {
   formatOverlayPosition,
   getDayDetail,

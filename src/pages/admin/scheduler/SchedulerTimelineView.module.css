@@ -1,0 +1,349 @@
+.weekFrame,
+.dayFrame {
+  --scheduler-row-height: 96px;
+  --scheduler-header-height: 88px;
+}
+
+.weekFrame {
+  display: grid;
+  grid-template-columns: 64px repeat(7, minmax(136px, 1fr));
+  gap: 0;
+  overflow: hidden;
+  min-width: 0;
+  width: 100%;
+}
+
+.dayFrame {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 0;
+  overflow: auto;
+}
+
+.timeColumn {
+  display: grid;
+  grid-template-rows: var(--scheduler-header-height) repeat(15, var(--scheduler-row-height));
+  border-right: 1px solid var(--admin-border);
+  background: linear-gradient(180deg, #fbfcfd 0%, #f7fafc 100%);
+}
+
+.timeHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 18px 14px 16px;
+  border-bottom: 1px solid var(--admin-border);
+  color: var(--admin-text-muted);
+  box-sizing: border-box;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.timeCell {
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--admin-border);
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+}
+
+.columns {
+  display: grid;
+  min-width: 0;
+  width: 100%;
+  grid-column: 2 / -1;
+}
+
+.columnsWeek {
+  grid-template-columns: repeat(7, minmax(136px, 1fr));
+}
+
+.columnsDay {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.dayColumn {
+  position: relative;
+  min-width: 0;
+  border-right: 1px solid var(--admin-border);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
+}
+
+.dayColumn:last-child {
+  border-right: none;
+}
+
+.dayColumnOverride .dayHeader {
+  background:
+    linear-gradient(180deg, rgba(231, 246, 237, 0.9) 0%, rgba(248, 251, 248, 0.92) 100%);
+}
+
+.dayColumnOverrideOff .dayHeader,
+.dayColumnDayOff .dayHeader {
+  background:
+    linear-gradient(180deg, rgba(253, 245, 245, 0.92) 0%, rgba(251, 249, 249, 0.96) 100%);
+}
+
+.dayColumnExpanded {
+  background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+}
+
+.dayHeader {
+  display: grid;
+  gap: 10px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--admin-border);
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.dayHeaderWeek {
+  height: var(--scheduler-header-height);
+  padding: 10px 10px;
+  grid-template-rows: 34px 18px 18px;
+  gap: 4px;
+  align-content: start;
+  overflow: hidden;
+}
+
+.dayHeaderDay {
+  height: var(--scheduler-header-height);
+  padding: 18px 18px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.dayHeaderTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.dayTitleGroup {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dayTitle {
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.dayHeaderWeek .dayTitle {
+  font-size: 0.9rem;
+  line-height: 1.15;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dayHeaderDay .dayTitle {
+  font-size: 1.22rem;
+}
+
+.dayHeaderCaption {
+  color: var(--admin-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.dayHeaderWeek .dayHeaderCaption {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dayMeta {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.metaBadge {
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: var(--admin-surface-soft);
+  color: var(--admin-text-muted);
+  font-size: 0.72rem;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.dayHeaderWeek .dayMeta {
+  min-height: 20px;
+  overflow: hidden;
+}
+
+.detailToggle {
+  min-height: 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(47, 93, 120, 0.16);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--admin-text);
+  padding: 0 8px;
+  font: inherit;
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+  flex-shrink: 0;
+}
+
+.detailToggle:hover {
+  background: var(--admin-surface-muted);
+}
+
+.detailToggle:active {
+  transform: translateY(1px);
+}
+
+.dayInsightRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dayInsight,
+.dayInsightMuted,
+.dayInsightEmphasis {
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.dayInsight {
+  color: var(--admin-text);
+}
+
+.dayInsightMuted {
+  color: var(--admin-text-muted);
+}
+
+.dayInsightEmphasis {
+  color: #7c3f3f;
+}
+
+.gridBody {
+  position: relative;
+  min-height: calc(var(--scheduler-row-height) * 15);
+  background:
+    linear-gradient(90deg, rgba(47, 93, 120, 0.05), rgba(47, 93, 120, 0) 42px),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(215, 222, 230, 0.92) 0,
+      rgba(215, 222, 230, 0.92) 1px,
+      transparent 1px,
+      transparent var(--scheduler-row-height)
+    );
+  overflow: hidden;
+}
+
+.workingHoursBand,
+.nonWorkingOverlay,
+.dayOffOverlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.workingHoursBand {
+  z-index: 0;
+  background: linear-gradient(90deg, rgba(47, 93, 120, 0.04), rgba(47, 93, 120, 0.01));
+}
+
+.nonWorkingOverlay,
+.dayOffOverlay {
+  z-index: 1;
+}
+
+.nonWorkingOverlay {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(107, 121, 133, 0.06) 0,
+      rgba(107, 121, 133, 0.06) 10px,
+      rgba(255, 255, 255, 0.14) 10px,
+      rgba(255, 255, 255, 0.14) 20px
+    );
+}
+
+.dayOffOverlay {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(154, 75, 75, 0.08) 0,
+      rgba(154, 75, 75, 0.08) 10px,
+      rgba(255, 247, 247, 0.5) 10px,
+      rgba(255, 247, 247, 0.5) 20px
+    ),
+    rgba(255, 248, 248, 0.82);
+}
+
+@media (max-width: 1100px) {
+  .weekFrame {
+    grid-template-columns: 70px repeat(7, minmax(120px, 1fr));
+    overflow: auto;
+  }
+
+  .columnsWeek {
+    grid-template-columns: repeat(7, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .weekFrame,
+  .dayFrame {
+    display: block;
+    overflow: visible;
+  }
+
+  .timeColumn {
+    display: none;
+  }
+
+  .columnsWeek,
+  .columnsDay {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .dayColumn {
+    border: 1px solid var(--admin-border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .gridBody {
+    min-height: 420px;
+    background:
+      linear-gradient(90deg, rgba(47, 93, 120, 0.05), rgba(47, 93, 120, 0) 42px),
+      repeating-linear-gradient(
+        to bottom,
+        rgba(215, 222, 230, 0.92) 0,
+        rgba(215, 222, 230, 0.92) 1px,
+        transparent 1px,
+        transparent 66px
+      );
+  }
+
+  .dayHeaderTop,
+  .dayInsightRow {
+    flex-direction: column;
+  }
+
+  .dayHeaderTop,
+  .dayInsightRow {
+    align-items: flex-start;
+  }
+}

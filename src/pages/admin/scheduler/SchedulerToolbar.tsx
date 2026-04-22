@@ -1,5 +1,5 @@
 import type { SchedulerViewMode } from "./premiumScheduler.shared";
-import styles from "./PremiumSchedulerPage.module.css";
+import styles from "./SchedulerToolbar.module.css";
 
 type SchedulerToolbarProps = {
   rangeLabel: string;
