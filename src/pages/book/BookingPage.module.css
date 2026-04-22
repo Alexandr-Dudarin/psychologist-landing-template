@@ -82,6 +82,7 @@
   margin: 0;
   color: var(--color-text-muted);
   line-height: 1.6;
+  max-width: 68ch;
 }
 
 .servicesGrid {
@@ -152,9 +153,11 @@
 .calendarBlock {
   display: grid;
   gap: 12px;
+  align-items: start;
 }
 
 .calendarSurface {
+  width: min(100%, 760px);
   max-width: 100%;
 }
 
@@ -183,10 +186,12 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 12px;
+  align-items: stretch;
 }
 
 .slotButton {
   width: 100%;
+  min-height: 52px;
   padding: 14px 12px;
   border: 1px solid var(--color-border);
   border-radius: 999px;
@@ -391,13 +396,80 @@
   color: var(--color-text);
 }
 
+@media (max-width: 1199px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.85fr);
+    gap: 20px;
+  }
+
+  .panel {
+    padding: 24px;
+  }
+
+  .summary {
+    padding: 22px;
+  }
+}
+
 @media (max-width: 960px) {
   .layout {
     grid-template-columns: 1fr;
+    gap: 18px;
   }
 
   .summary {
     position: static;
+    max-width: 760px;
+  }
+
+  .calendarSurface {
+    width: min(100%, 720px);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 960px) {
+  .page {
+    padding: 56px 0 80px;
+  }
+
+  .hero {
+    gap: 16px;
+    margin-bottom: 26px;
+  }
+
+  .title {
+    font-size: clamp(32px, 5vw, 46px);
+  }
+
+  .description {
+    font-size: 16px;
+    line-height: 1.58;
+  }
+
+  .section + .section {
+    margin-top: 28px;
+  }
+
+  .sectionTitle {
+    font-size: 22px;
+  }
+
+  .servicesGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .slotsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .slotButton {
+    min-height: 48px;
+    padding: 12px 10px;
+  }
+
+  .form {
+    gap: 14px;
   }
 }
 
@@ -409,16 +481,177 @@
 
 @media (max-width: 640px) {
   .page {
-    padding: 48px 0 72px;
+    padding: 40px 0 64px;
+  }
+
+  .hero {
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+  }
+
+  .title {
+    font-size: clamp(30px, 11vw, 40px);
+    line-height: 1.04;
+  }
+
+  .description {
+    font-size: 15px;
+    line-height: 1.55;
   }
 
   .panel,
   .summary {
-    padding: 20px;
+    padding: 18px;
+    border-radius: 22px;
   }
 
-  .servicesGrid,
-  .slotsGrid {
+  .section {
+    gap: 14px;
+  }
+
+  .section + .section {
+    margin-top: 24px;
+  }
+
+  .sectionHeader {
+    gap: 4px;
+  }
+
+  .sectionTitle {
+    font-size: 21px;
+  }
+
+  .sectionHint {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .calendarBlock {
+    gap: 10px;
+  }
+
+  .calendarNote {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .servicesGrid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .serviceCard {
+    padding: 16px;
+  }
+
+  .serviceCardTitle {
+    font-size: 17px;
+  }
+
+  .serviceCardMeta {
+    gap: 6px 10px;
+    font-size: 13px;
+  }
+
+  .slotButton {
+    min-height: 46px;
+    padding: 12px 10px;
+    font-size: 14px;
+  }
+
+  .slotsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .stateBox {
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .field {
+    gap: 6px;
+  }
+
+  .field label,
+  .summaryLabel,
+  .checkboxLabel,
+  .confirmationMeta {
+    font-size: 13px;
+  }
+
+  .field input,
+  .field textarea {
+    padding: 14px 16px;
+    border-radius: 16px;
+    font-size: 16px;
+  }
+
+  .field textarea {
+    min-height: 120px;
+  }
+
+  .summaryTitle {
+    margin-bottom: 14px;
+    font-size: 20px;
+  }
+
+  .summaryList {
+    gap: 12px;
+  }
+
+  .summaryValue {
+    font-size: 16px;
+  }
+
+  .summaryFootnote {
+    margin-top: 16px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .confirmationCard {
+    margin-top: 20px;
+    padding: 16px;
+  }
+
+  .confirmationTitle {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 420px) {
+  .panel,
+  .summary {
+    padding: 16px;
+  }
+
+  .slotsGrid {
+    gap: 8px;
+  }
+
+  .slotButton {
+    min-height: 44px;
+    padding: 11px 8px;
+    font-size: 13px;
+  }
+
+  .serviceCard {
+    padding: 14px;
+  }
+
+  .field input,
+  .field textarea {
+    padding: 13px 14px;
+  }
+
+  .checkboxLabel {
+    gap: 10px;
   }
 }
