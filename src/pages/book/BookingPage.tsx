@@ -11,6 +11,7 @@ import {
 import type {
   PublicBookingAvailabilityResponse,
   PublicBookingCreateSuccessResponse,
+  PublicBookingMonthDayAvailability,
   PublicBookingService,
   PublicBookingSlot,
 } from "../../types/booking";
@@ -57,6 +58,8 @@ type BookingPageCopy = {
   calendarAvailableHint: string;
   calendarUnavailableLabel: string;
   calendarUnavailableHint: string;
+  calendarDisabledLabel: string;
+  calendarDisabledHint: string;
 };
 
 type BookingFormState = {
@@ -135,6 +138,8 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     calendarAvailableHint: "На выбранную дату есть доступные слоты.",
     calendarUnavailableLabel: "Нет мест",
     calendarUnavailableHint: "На выбранную дату сейчас нет свободных слотов.",
+    calendarDisabledLabel: "Недоступно",
+    calendarDisabledHint: "Этот день недоступен для онлайн-записи.",
   },
   en: {
     eyebrow: "Booking",
@@ -186,6 +191,8 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     calendarAvailableHint: "This selected date currently has open slots.",
     calendarUnavailableLabel: "Busy",
     calendarUnavailableHint: "This selected date currently has no open slots.",
+    calendarDisabledLabel: "Closed",
+    calendarDisabledHint: "This day is not bookable online.",
   },
 };
 
@@ -268,29 +275,38 @@ function getInitialVisibleMonth(
 }
 
 function buildCalendarDatesMeta(params: {
-  selectedDate: string;
-  selectedServiceId: number | null;
-  slots: PublicBookingSlot[];
-  isRefreshingSlots: boolean;
+  monthAvailability: PublicBookingMonthDayAvailability[];
   copy: BookingPageCopy;
 }): CalendarDateMeta[] {
-  const { selectedDate, selectedServiceId, slots, isRefreshingSlots, copy } = params;
+  const { monthAvailability, copy } = params;
 
-  if (!selectedServiceId || !selectedDate || isRefreshingSlots) {
-    return [];
-  }
+  return monthAvailability.map((day) => {
+    if (day.state === "available") {
+      return {
+        date: day.date,
+        state: "available",
+        label: copy.calendarAvailableLabel,
+        hint: copy.calendarAvailableHint,
+        badge: day.slotCount ? String(day.slotCount) : undefined,
+      };
+    }
 
-  const hasSlots = slots.length > 0;
+    if (day.state === "unavailable") {
+      return {
+        date: day.date,
+        state: "unavailable",
+        label: copy.calendarUnavailableLabel,
+        hint: copy.calendarUnavailableHint,
+      };
+    }
 
-  return [
-    {
-      date: selectedDate,
-      state: hasSlots ? "available" : "unavailable",
-      label: hasSlots ? copy.calendarAvailableLabel : copy.calendarUnavailableLabel,
-      hint: hasSlots ? copy.calendarAvailableHint : copy.calendarUnavailableHint,
-      badge: hasSlots ? String(slots.length) : undefined,
-    },
-  ];
+    return {
+      date: day.date,
+      state: "disabled",
+      label: copy.calendarDisabledLabel,
+      hint: copy.calendarDisabledHint,
+    };
+  });
 }
 
 export function BookingPage() {
@@ -356,15 +372,17 @@ export function BookingPage() {
     };
   }, [copy.errorFallback]);
 
+  const resolvedVisibleMonth = visibleMonth || getInitialVisibleMonth(data, selectedDate);
+
   useEffect(() => {
-    if (!selectedServiceId || !selectedDate) {
+    if (!selectedServiceId || !resolvedVisibleMonth) {
       setSelectedSlot(null);
       return;
     }
 
     let isActive = true;
 
-    async function loadSlots() {
+    async function loadAvailability() {
       setIsRefreshingSlots(true);
       setError(null);
 
@@ -377,7 +395,8 @@ export function BookingPage() {
 
         const response = await getPublicBookingAvailability({
           serviceId: activeServiceId,
-          date: selectedDate,
+          date: selectedDate || undefined,
+          month: resolvedVisibleMonth,
         });
 
         if (!isActive) {
@@ -409,22 +428,20 @@ export function BookingPage() {
       }
     }
 
-    void loadSlots();
+    void loadAvailability();
 
     return () => {
       isActive = false;
     };
-  }, [copy.errorFallback, selectedDate, selectedServiceId]);
+  }, [copy.errorFallback, resolvedVisibleMonth, selectedDate, selectedServiceId]);
 
   const services = data?.services ?? [];
   const selectedService = getSelectedService(services, selectedServiceId);
   const slots = data?.slots ?? [];
+  const monthAvailability = data?.monthAvailability ?? [];
   const isFormEnabled = Boolean(selectedService && selectedDate && selectedSlot);
   const datesMeta = buildCalendarDatesMeta({
-    selectedDate,
-    selectedServiceId,
-    slots,
-    isRefreshingSlots,
+    monthAvailability,
     copy,
   });
 
@@ -447,7 +464,7 @@ export function BookingPage() {
   };
 
   const refreshSelectedDateAvailability = async () => {
-    if (!selectedServiceId || !selectedDate) {
+    if (!selectedServiceId || !resolvedVisibleMonth) {
       return;
     }
 
@@ -459,7 +476,8 @@ export function BookingPage() {
 
     const response = await getPublicBookingAvailability({
       serviceId: activeServiceId,
-      date: selectedDate,
+      date: selectedDate || undefined,
+      month: resolvedVisibleMonth,
     });
 
     setData(response);
@@ -608,15 +626,13 @@ export function BookingPage() {
                       setSubmitError(null);
                       setSubmitSuccess(null);
                     }}
-                    visibleMonth={
-                      visibleMonth || getInitialVisibleMonth(data, selectedDate)
-                    }
+                    visibleMonth={resolvedVisibleMonth}
                     onVisibleMonthChange={setVisibleMonth}
                     minDate={data?.dateBounds.min}
                     maxDate={data?.dateBounds.max}
                     disablePast
                     datesMeta={datesMeta}
-                    loading={isLoading}
+                    loading={isLoading || isRefreshingSlots}
                     error={error}
                     mode="single"
                     locale={locale}

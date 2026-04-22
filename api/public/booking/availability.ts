@@ -12,13 +12,16 @@ export default async function handler(req: any, res: any) {
 
   const rawServiceId = getSingleQueryValue(req.query?.serviceId).trim();
   const rawDate = getSingleQueryValue(req.query?.date).trim();
+  const rawMonth = getSingleQueryValue(req.query?.month).trim();
   const selectedServiceId = rawServiceId ? Number(rawServiceId) : null;
   const selectedDate = rawDate || null;
+  const visibleMonth = rawMonth || null;
 
   try {
     const result = await getPublicBookingAvailabilityData({
       serviceId: selectedServiceId,
       selectedDate,
+      visibleMonth,
     });
 
     if (!result.ok) {
@@ -28,6 +31,10 @@ export default async function handler(req: any, res: any) {
 
       if (result.reason === "invalid_date") {
         return res.status(400).json({ error: "Некорректная дата" });
+      }
+
+      if (result.reason === "invalid_month") {
+        return res.status(400).json({ error: "Некорректный месяц" });
       }
 
       if (result.reason === "service_not_found") {

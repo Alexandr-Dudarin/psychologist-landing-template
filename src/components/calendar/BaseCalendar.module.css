@@ -152,14 +152,15 @@
 }
 
 .dayDisabled {
-  opacity: 0.52;
+  opacity: 0.5;
   cursor: not-allowed;
+  color: rgba(111, 104, 95, 0.82);
 }
 
 .dayDisabled:hover,
 .dayDisabled:focus-visible {
   border-color: rgba(45, 42, 38, 0.08);
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(248, 245, 241, 0.9);
   transform: none;
   box-shadow: none;
 }
@@ -176,14 +177,16 @@
 
 .dayAvailable {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 250, 244, 0.88));
-  border-color: rgba(93, 156, 111, 0.22);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(240, 249, 238, 0.94));
+  border-color: rgba(93, 156, 111, 0.34);
+  box-shadow: inset 0 0 0 1px rgba(93, 156, 111, 0.1);
 }
 
 .dayUnavailable {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 240, 238, 0.9));
-  border-color: rgba(183, 64, 64, 0.14);
+    linear-gradient(180deg, rgba(255, 252, 251, 0.94), rgba(246, 238, 236, 0.96));
+  border-color: rgba(183, 64, 64, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(183, 64, 64, 0.06);
 }
 
 .daySelected {
@@ -227,6 +230,17 @@
   line-height: 1;
 }
 
+.dayAvailable .badge {
+  background: rgba(93, 156, 111, 0.16);
+  color: #3d6f49;
+}
+
+.dayUnavailable .badge,
+.dayDisabled .badge {
+  background: rgba(183, 64, 64, 0.1);
+  color: #8f3b3b;
+}
+
 .daySelected .badge {
   background: rgba(141, 110, 99, 0.18);
   color: #5b4138;
@@ -244,6 +258,11 @@
   color: var(--color-text-muted);
   font-size: 11px;
   line-height: 1.4;
+}
+
+.dayDisabled .label,
+.dayDisabled .hint {
+  color: rgba(111, 104, 95, 0.86);
 }
 
 .overlay {

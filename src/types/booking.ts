@@ -12,16 +12,29 @@ export type PublicBookingSlot = {
   endTime: string;
 };
 
+export type PublicBookingMonthDayState =
+  | "available"
+  | "unavailable"
+  | "disabled";
+
+export type PublicBookingMonthDayAvailability = {
+  date: string;
+  state: PublicBookingMonthDayState;
+  slotCount?: number;
+};
+
 export type PublicBookingAvailabilityResponse = {
   services: PublicBookingService[];
   selectedServiceId: number | null;
   selectedDate: string | null;
+  visibleMonth: string | null;
   dateBounds: {
     min: string;
     max: string;
   };
   slotStepMinutes: number;
   slots: PublicBookingSlot[];
+  monthAvailability: PublicBookingMonthDayAvailability[];
 };
 
 export type PublicBookingCreatePayload = {

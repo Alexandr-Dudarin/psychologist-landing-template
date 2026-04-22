@@ -8,6 +8,7 @@ import type {
 type PublicBookingAvailabilityParams = {
   serviceId?: number;
   date?: string;
+  month?: string;
 };
 
 type PublicBookingAvailabilityErrorResponse = {
@@ -30,6 +31,10 @@ export async function getPublicBookingAvailability(
 
   if (params.date) {
     searchParams.set("date", params.date);
+  }
+
+  if (params.month) {
+    searchParams.set("month", params.month);
   }
 
   const queryString = searchParams.toString();

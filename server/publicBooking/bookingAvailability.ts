@@ -4,6 +4,7 @@ import type { PoolClient } from "pg";
 import { pool } from "../db/pool";
 import type {
   PublicBookingAvailabilityResponse,
+  PublicBookingMonthDayAvailability,
   PublicBookingService,
   PublicBookingSlot,
 } from "../../src/types/booking";
@@ -124,6 +125,24 @@ export function parseDateOnly(value: string): Date | null {
   return date;
 }
 
+export function parseMonthOnly(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})$/.exec(value);
+
+  if (!match) {
+    return null;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const date = new Date(year, month - 1, 1);
+
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1) {
+    return null;
+  }
+
+  return date;
+}
+
 function parseDateTimeLocal(value: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
 
@@ -200,6 +219,10 @@ function startOfDay(date: Date): Date {
 
 function addDays(date: Date, days: number): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+
+function endOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
 }
 
 function addMinutes(date: Date, minutes: number): Date {
@@ -540,14 +563,86 @@ async function loadSessionRows(db: Queryable): Promise<SessionRow[]> {
   return sessionsResult.rows;
 }
 
+function buildMonthAvailability(params: {
+  monthDate: Date;
+  service: PublicBookingService;
+  baseData: PublicBookingBaseData;
+  bookingWindow: ReturnType<typeof getBookingWindow>;
+  sessionRows: SessionRow[];
+  now: Date;
+}): PublicBookingMonthDayAvailability[] {
+  const { monthDate, service, baseData, bookingWindow, sessionRows, now } = params;
+  const daysInMonth = endOfMonth(monthDate).getDate();
+  const days: PublicBookingMonthDayAvailability[] = [];
+
+  for (let dayOfMonth = 1; dayOfMonth <= daysInMonth; dayOfMonth += 1) {
+    const date = new Date(monthDate.getFullYear(), monthDate.getMonth(), dayOfMonth);
+    const dateKey = formatDateOnly(date);
+    const isWithinBookingWindow =
+      date >= bookingWindow.minDate && date <= bookingWindow.maxDate;
+
+    if (!isWithinBookingWindow) {
+      days.push({
+        date: dateKey,
+        state: "disabled",
+      });
+      continue;
+    }
+
+    const workingRange = getWorkingRange(date, baseData.rules, baseData.overrides);
+
+    if (!workingRange) {
+      days.push({
+        date: dateKey,
+        state: "disabled",
+      });
+      continue;
+    }
+
+    const blockedRanges = buildBlockedRanges(baseData.blockedSlotRows, date);
+    const busySessionRanges = buildBusySessionRanges(
+      sessionRows,
+      date,
+      baseData.settings.bufferMinutes
+    );
+    const slots = buildSlots({
+      selectedDate: date,
+      serviceDurationMinutes: service.durationMinutes,
+      settings: baseData.settings,
+      rules: baseData.rules,
+      overrides: baseData.overrides,
+      blockedRanges,
+      busySessionRanges,
+      now,
+    });
+
+    days.push({
+      date: dateKey,
+      state: slots.length > 0 ? "available" : "unavailable",
+      slotCount: slots.length > 0 ? slots.length : undefined,
+    });
+  }
+
+  return days;
+}
+
 export async function getPublicBookingAvailabilityData(params: {
   serviceId: number | null;
   selectedDate: string | null;
+  visibleMonth?: string | null;
   now?: Date;
   db?: Queryable;
 }): Promise<
   | { ok: true; payload: PublicBookingAvailabilityResponse }
-  | { ok: false; reason: "settings_missing" | "invalid_service" | "invalid_date" | "service_not_found" }
+  | {
+      ok: false;
+      reason:
+        | "settings_missing"
+        | "invalid_service"
+        | "invalid_date"
+        | "invalid_month"
+        | "service_not_found";
+    }
 > {
   const db = params.db ?? pool;
   const now = params.now ?? new Date();
@@ -560,6 +655,7 @@ export async function getPublicBookingAvailabilityData(params: {
   const bookingWindow = getBookingWindow(baseData.settings, now);
   const rawServiceId = params.serviceId;
   const rawDate = params.selectedDate;
+  const rawVisibleMonth = params.visibleMonth ?? null;
 
   if (rawServiceId !== null && (!Number.isInteger(rawServiceId) || rawServiceId <= 0)) {
     return { ok: false, reason: "invalid_service" };
@@ -569,15 +665,28 @@ export async function getPublicBookingAvailabilityData(params: {
     return { ok: false, reason: "invalid_date" };
   }
 
-  let slots: PublicBookingSlot[] = [];
+  if (rawVisibleMonth && !parseMonthOnly(rawVisibleMonth)) {
+    return { ok: false, reason: "invalid_month" };
+  }
 
-  if (rawServiceId !== null && rawDate) {
-    const selectedService = baseData.services.find((service) => service.id === rawServiceId);
+  let slots: PublicBookingSlot[] = [];
+  let monthAvailability: PublicBookingMonthDayAvailability[] = [];
+  let sessionRows: SessionRow[] | null = null;
+  let selectedService: PublicBookingService | null = null;
+
+  if (rawServiceId !== null) {
+    selectedService = baseData.services.find((service) => service.id === rawServiceId) ?? null;
 
     if (!selectedService) {
       return { ok: false, reason: "service_not_found" };
     }
+  }
 
+  if (selectedService && (rawDate || rawVisibleMonth)) {
+    sessionRows = await loadSessionRows(db);
+  }
+
+  if (selectedService && rawDate) {
     const selectedDateObject = parseDateOnly(rawDate);
 
     if (!selectedDateObject) {
@@ -589,13 +698,12 @@ export async function getPublicBookingAvailabilityData(params: {
       selectedDateObject <= bookingWindow.maxDate;
 
     if (isWithinBookingWindow) {
-      const sessionRows = await loadSessionRows(db);
       const blockedRanges = buildBlockedRanges(
         baseData.blockedSlotRows,
         selectedDateObject
       );
       const busySessionRanges = buildBusySessionRanges(
-        sessionRows,
+        sessionRows ?? [],
         selectedDateObject,
         baseData.settings.bufferMinutes
       );
@@ -613,18 +721,37 @@ export async function getPublicBookingAvailabilityData(params: {
     }
   }
 
+  if (selectedService && rawVisibleMonth) {
+    const visibleMonthDate = parseMonthOnly(rawVisibleMonth);
+
+    if (!visibleMonthDate) {
+      return { ok: false, reason: "invalid_month" };
+    }
+
+    monthAvailability = buildMonthAvailability({
+      monthDate: visibleMonthDate,
+      service: selectedService,
+      baseData,
+      bookingWindow,
+      sessionRows: sessionRows ?? [],
+      now,
+    });
+  }
+
   return {
     ok: true,
     payload: {
       services: baseData.services,
       selectedServiceId: rawServiceId,
       selectedDate: rawDate,
+      visibleMonth: rawVisibleMonth,
       dateBounds: {
         min: formatDateOnly(bookingWindow.minDate),
         max: formatDateOnly(bookingWindow.maxDate),
       },
       slotStepMinutes: SLOT_STEP_MINUTES,
       slots,
+      monthAvailability,
     },
   };
 }
@@ -647,6 +774,7 @@ export async function validateBookableSlot(params: {
   const availability = await getPublicBookingAvailabilityData({
     serviceId: params.serviceId,
     selectedDate,
+    visibleMonth: selectedDate.slice(0, 7),
     now,
     db,
   });

@@ -158,6 +158,50 @@ describe("public booking availability", () => {
     }
   });
 
+  it("returns month-level availability states for the visible month", async () => {
+    const result = await getPublicBookingAvailabilityData({
+      serviceId: 1,
+      selectedDate: "2026-04-20",
+      visibleMonth: "2026-04",
+      now,
+      db: createAvailabilityDb({
+        blockedSlots: [
+          {
+            blocked_date: "2026-04-27",
+            start_time: "10:00",
+            end_time: "13:00",
+          },
+        ],
+      }),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.payload.visibleMonth).toBe("2026-04");
+      expect(result.payload.monthAvailability).toEqual(
+        expect.arrayContaining([
+          {
+            date: "2026-04-18",
+            state: "disabled",
+          },
+          {
+            date: "2026-04-20",
+            state: "available",
+            slotCount: 5,
+          },
+          {
+            date: "2026-04-21",
+            state: "disabled",
+          },
+          {
+            date: "2026-04-27",
+            state: "unavailable",
+          },
+        ])
+      );
+    }
+  });
+
   it("excludes blocked slots from availability", async () => {
     const result = await getPublicBookingAvailabilityData({
       serviceId: 1,

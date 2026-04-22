@@ -133,10 +133,12 @@ export function BaseCalendar({
           const isSelected = value === day.date;
           const isToday = todayDateKey === day.date;
           const isOutsideMonth = !day.inCurrentMonth || metaState === "outsideMonth";
+          const isUnavailable = metaState === "unavailable";
           const isDisabled =
             readOnly ||
             metaState === "disabled" ||
             metaState === "blocked" ||
+            isUnavailable ||
             (minAllowedDate ? isDateBefore(day.date, minAllowedDate) : false) ||
             (maxDate ? isDateAfter(day.date, maxDate) : false);
 
