@@ -1,0 +1,143 @@
+import type { SchedulerDaySummary, SchedulerOverlayItem } from "./premiumScheduler.shared";
+
+const MINUTES_IN_HOUR = 60;
+const GRID_START_HOUR = 7;
+
+export const WEEK_ROW_HEIGHT = 96;
+export const DAY_ROW_HEIGHT = 124;
+
+export type SchedulerDetail = {
+  kind: "day" | "session" | "blocked";
+  title: string;
+  subtitle: string;
+  chips: string[];
+  note: string;
+  primaryHref: string;
+  secondaryHref: string;
+  tertiaryHref: string;
+  primaryLabel: string;
+  secondaryLabel: string;
+  tertiaryLabel: string;
+};
+
+export function getTodayDateKey(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function formatOverlayPosition(
+  startMinutes: number,
+  durationMinutes: number,
+  rowHeight: number
+) {
+  const top =
+    ((startMinutes - GRID_START_HOUR * MINUTES_IN_HOUR) / MINUTES_IN_HOUR) * rowHeight;
+  const height = Math.max((durationMinutes / MINUTES_IN_HOUR) * rowHeight, 72);
+
+  return {
+    top,
+    height,
+  };
+}
+
+export function truncateText(value: string, maxLength: number): string {
+  const compact = value.replace(/\s+/g, " ").trim();
+
+  if (compact.length <= maxLength) {
+    return compact;
+  }
+
+  return `${compact.slice(0, maxLength - 3).trimEnd()}...`;
+}
+
+export function getDayWorkingHours(summary: SchedulerDaySummary): string {
+  if (!summary.isWorking || summary.workStartMinutes === null || summary.workEndMinutes === null) {
+    return "Вне рабочих часов";
+  }
+
+  const toLabel = (value: number) =>
+    `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`;
+
+  return `${toLabel(summary.workStartMinutes)} - ${toLabel(summary.workEndMinutes)}`;
+}
+
+export function getDayDetail(summary: SchedulerDaySummary): SchedulerDetail {
+  const chips = [
+    `Сессий: ${summary.sessionsCount}`,
+    `Блокировок: ${summary.blockedCount}`,
+    summary.loadLabel,
+    summary.compactWorkingLabel,
+  ];
+
+  const note =
+    summary.isOverride && summary.overrideNotePreview !== "Без заметки"
+      ? `Комментарий к исключению: ${summary.overrideNotePreview}`
+      : summary.isWorking
+        ? `Рабочее окно: ${getDayWorkingHours(summary)}. В режиме дня колонка показывает последовательную ленту записей по времени без лишнего визуального шума.`
+        : "День помечен как нерабочий. Сетка остается обзорной и мягко подчеркивает недоступные часы без лишнего визуального шума.";
+
+  return {
+    kind: "day",
+    title: summary.fullLabel,
+    subtitle: `${summary.workingLabel}. ${getDayWorkingHours(summary)}`,
+    chips,
+    note,
+    primaryHref: "/admin/schedule",
+    secondaryHref: "/admin/sessions",
+    tertiaryHref: "/admin/notes",
+    primaryLabel: "Открыть настройки графика",
+    secondaryLabel: "Открыть список сессий",
+    tertiaryLabel: "Открыть заметки",
+  };
+}
+
+export function getOverlayDetail(item: SchedulerOverlayItem): SchedulerDetail {
+  if (item.tone === "session") {
+    return {
+      kind: "session",
+      title: item.clientName,
+      subtitle: `${item.serviceTitle}. ${item.timeLabel}`,
+      chips: [item.statusLabel, item.timeLabel, `Сессия #${item.sessionId}`],
+      note: item.notePreview,
+      primaryHref: `/admin/clients?clientId=${item.clientId}`,
+      secondaryHref: `/admin/sessions?sessionId=${item.sessionId}`,
+      tertiaryHref: `/admin/notes?clientId=${item.clientId}`,
+      primaryLabel: "К клиенту",
+      secondaryLabel: "К сессии",
+      tertiaryLabel: "К заметкам",
+    };
+  }
+
+  return {
+    kind: "blocked",
+    title: "Заблокированный слот",
+    subtitle: item.timeLabel,
+    chips: ["Блокировка", item.timeLabel, `Слот #${item.blockedSlotId}`],
+    note: item.reasonPreview,
+    primaryHref: "/admin/schedule",
+    secondaryHref: "/admin/sessions",
+    tertiaryHref: "/admin/notes",
+    primaryLabel: "К графику",
+    secondaryLabel: "К сессиям",
+    tertiaryLabel: "К заметкам",
+  };
+}
+
+export function getWeekSummaryLabel(day: SchedulerDaySummary) {
+  if (day.blockedCount > 0 && day.sessionsCount > 0) {
+    return `${day.sessionsCount} сесс. / ${day.blockedCount} блок.`;
+  }
+
+  if (day.blockedCount > 0) {
+    return `${day.blockedCount} блок.`;
+  }
+
+  if (day.sessionsCount > 0) {
+    return `${day.sessionsCount} сессии`;
+  }
+
+  return "Свободно";
+}
