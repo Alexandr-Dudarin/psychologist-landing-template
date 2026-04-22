@@ -1,16 +1,54 @@
 .wrap {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 40;
+  top: 24px;
+  right: 24px;
+  bottom: auto;
+  left: auto;
+  z-index: 140;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
 }
 
 .button {
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding-inline: 24px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    var(--color-accent) 0%,
+    var(--color-accent-hover) 100%
+  ) !important;
+  color: var(--color-white) !important;
+  text-decoration: none;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 1;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+  white-space: nowrap;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-hover) 0%,
+    var(--color-accent-hover) 100%
+  ) !important;
+  color: var(--color-white) !important;
+  box-shadow: 0 20px 42px rgba(15, 23, 42, 0.22);
 }
 
 @media (max-width: 768px) {
   .wrap {
+    top: auto;
     right: 16px;
     bottom: 16px;
     left: 16px;
