@@ -92,8 +92,9 @@
 }
 
 .summaryRow {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
   gap: 12px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--admin-border);
@@ -112,7 +113,7 @@
   font-weight: 700;
   text-align: right;
   min-width: 0;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 @media (max-width: 1100px) {
