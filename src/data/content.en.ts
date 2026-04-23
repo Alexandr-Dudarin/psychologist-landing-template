@@ -44,7 +44,8 @@ export const content = {
     note:
       "You can briefly describe your concern, and I will help you choose the most suitable format for our work.",
     fields: {
-      name: "Name",
+      firstName: "First name",
+      lastName: "Last name",
       phone: "Phone",
       email: "Email",
       message: "Message",
@@ -52,7 +53,8 @@ export const content = {
         "I agree to the processing of my personal data and accept the",
     },
     placeholders: {
-      name: "Your name",
+      firstName: "Your first name",
+      lastName: "Your last name",
       phone: "+7 (___) ___-__-__",
       email: "example@mail.com",
       message: "Briefly describe your concern",
@@ -65,7 +67,8 @@ export const content = {
       success: "Thank you! Your request has been sent.",
       error: "Failed to send your request. Please try again later.",
       consentError: "Consent to personal data processing is required",
-      nameError: "Please enter your name",
+      firstNameError: "Please enter your first name",
+      lastNameError: "Please enter your last name",
       phoneEmptyError: "Please enter your phone number",
       phoneInvalidError: "Please enter a valid phone number",
       emailEmptyError: "Please enter your email",

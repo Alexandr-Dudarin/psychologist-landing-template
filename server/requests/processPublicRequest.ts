@@ -19,10 +19,21 @@ type ExistingClientRow = {
 
 function isValidPayload(body: any): body is PublicRequestPayload {
   return (
-    typeof body?.name === "string" &&
+    typeof body?.firstName === "string" &&
+    typeof body?.lastName === "string" &&
     typeof body?.phone === "string" &&
     typeof body?.email === "string"
   );
+}
+
+function normalizeNamePart(value: string): string {
+  return value.trim().replace(/\s+/g, " ");
+}
+
+function buildFullName(firstName: string, lastName: string): string {
+  return [normalizeNamePart(firstName), normalizeNamePart(lastName)]
+    .filter(Boolean)
+    .join(" ");
 }
 
 function normalizePhoneDigits(value: string): string {
@@ -97,12 +108,14 @@ export async function processPublicRequest(
     };
   }
 
-  const name = body.name.trim();
+  const firstName = normalizeNamePart(body.firstName);
+  const lastName = normalizeNamePart(body.lastName);
+  const name = buildFullName(firstName, lastName);
   const phone = body.phone.trim();
   const email = body.email.trim();
   const message = body.message?.trim() ?? "";
 
-  if (!name || !phone || !email) {
+  if (!firstName || !lastName || !name || !phone || !email) {
     return {
       status: 400,
       body: {

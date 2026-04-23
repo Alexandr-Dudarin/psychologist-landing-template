@@ -40,7 +40,8 @@ export type PublicBookingAvailabilityResponse = {
 export type PublicBookingCreatePayload = {
   serviceId: number;
   startsAt: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   phone: string;
   email: string;
   message?: string;

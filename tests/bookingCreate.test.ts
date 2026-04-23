@@ -42,7 +42,8 @@ function createValidRequest(overrides: Record<string, unknown> = {}) {
     body: {
       serviceId: 1,
       startsAt: "2026-04-20T12:00",
-      name: "Irina",
+      firstName: "  Irina   Maria  ",
+      lastName: "  Petrova  ",
       phone: "+7 (999) 123-45-67",
       email: "irina@example.com",
       message: "",
@@ -201,7 +202,7 @@ describe("public booking create handler", () => {
 
     expect(clientInsert).toBeDefined();
     expect(requestInsert?.values).toEqual([
-      "Irina",
+      "Irina Maria Petrova",
       "+7 (999) 123-45-67",
       "irina@example.com",
       "Primary consultation",
@@ -267,7 +268,13 @@ describe("public booking create handler", () => {
       poolClient.queryLog.find((entry) =>
         entry.sql.includes("INSERT INTO requests")
       )?.values
-    ).toEqual(["Irina", "+7 (999) 000-00-00", "existing@example.com", "", 77]);
+    ).toEqual([
+      "Irina Maria Petrova",
+      "+7 (999) 000-00-00",
+      "existing@example.com",
+      "",
+      77,
+    ]);
     expect(
       poolClient.queryLog.find((entry) =>
         entry.sql.includes("INSERT INTO sessions")

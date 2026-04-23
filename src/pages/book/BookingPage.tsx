@@ -63,7 +63,8 @@ type BookingPageCopy = {
 };
 
 type BookingFormState = {
-  name: string;
+  firstName: string;
+  lastName: string;
   phone: string;
   email: string;
   message: string;
@@ -71,14 +72,16 @@ type BookingFormState = {
 };
 
 type BookingFormErrors = {
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   email?: string;
   consent?: string;
 };
 
 const initialFormState: BookingFormState = {
-  name: "",
+  firstName: "",
+  lastName: "",
   phone: "",
   email: "",
   message: "",
@@ -231,8 +234,12 @@ function validateForm(
 ): BookingFormErrors {
   const errors: BookingFormErrors = {};
 
-  if (!form.name.trim()) {
-    errors.name = bookingContent.messages.nameError;
+  if (!form.firstName.trim()) {
+    errors.firstName = bookingContent.messages.firstNameError;
+  }
+
+  if (!form.lastName.trim()) {
+    errors.lastName = bookingContent.messages.lastNameError;
   }
 
   if (!form.phone.trim()) {
@@ -507,7 +514,8 @@ export function BookingPage() {
       const response = await createPublicBooking({
         serviceId: selectedService.id,
         startsAt: selectedSlot.startsAt,
-        name: form.name.trim(),
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
         phone: form.phone.trim(),
         email: form.email.trim(),
         message: form.message.trim(),
@@ -697,16 +705,42 @@ export function BookingPage() {
               ) : (
                 <form className={styles.form} onSubmit={handleSubmit}>
                   <div className={styles.field}>
-                    <label htmlFor="booking-name">{bookingContent.fields.name}</label>
+                    <label htmlFor="booking-first-name">
+                      {bookingContent.fields.firstName}
+                    </label>
                     <input
-                      id="booking-name"
+                      id="booking-first-name"
                       type="text"
-                      value={form.name}
-                      onChange={(event) => handleFormChange("name", event.target.value)}
-                      placeholder={bookingContent.placeholders.name}
+                      value={form.firstName}
+                      onChange={(event) =>
+                        handleFormChange("firstName", event.target.value)
+                      }
+                      placeholder={bookingContent.placeholders.firstName}
                     />
-                    {formErrors.name ? (
-                      <span className={styles.fieldError}>{formErrors.name}</span>
+                    {formErrors.firstName ? (
+                      <span className={styles.fieldError}>
+                        {formErrors.firstName}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className={styles.field}>
+                    <label htmlFor="booking-last-name">
+                      {bookingContent.fields.lastName}
+                    </label>
+                    <input
+                      id="booking-last-name"
+                      type="text"
+                      value={form.lastName}
+                      onChange={(event) =>
+                        handleFormChange("lastName", event.target.value)
+                      }
+                      placeholder={bookingContent.placeholders.lastName}
+                    />
+                    {formErrors.lastName ? (
+                      <span className={styles.fieldError}>
+                        {formErrors.lastName}
+                      </span>
                     ) : null}
                   </div>
 

@@ -44,7 +44,8 @@ export const content = {
         note:
             "Вы можете кратко описать свой запрос, и я помогу подобрать удобный формат работы.",
         fields: {
-            name: "Имя",
+            firstName: "Имя",
+            lastName: "Фамилия",
             phone: "Телефон",
             email: "Email",
             message: "Сообщение",
@@ -52,7 +53,8 @@ export const content = {
                 "Я соглашаюсь на обработку персональных данных и принимаю политику конфиденциальности",
         },
         placeholders: {
-            name: "Ваше имя",
+            firstName: "Ваше имя",
+            lastName: "Ваша фамилия",
             phone: "+7 (___) ___-__-__",
             email: "example@mail.com",
             message: "Коротко опишите ваш запрос",
@@ -65,7 +67,8 @@ export const content = {
             success: "Спасибо! Ваша заявка отправлена.",
             error: "Не удалось отправить заявку. Попробуйте позже.",
             consentError: "Необходимо согласие на обработку персональных данных",
-            nameError: "Введите имя",
+            firstNameError: "Введите имя",
+            lastNameError: "Введите фамилию",
             phoneEmptyError: "Введите телефон",
             phoneInvalidError: "Введите корректный телефон",
             emailEmptyError: "Введите email",

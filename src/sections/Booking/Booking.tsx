@@ -11,7 +11,8 @@ import {
 import styles from "./Booking.module.css";
 
 type FormData = {
-  name: string;
+  firstName: string;
+  lastName: string;
   phone: string;
   email: string;
   message: string;
@@ -19,7 +20,8 @@ type FormData = {
 };
 
 type Errors = {
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   email?: string;
   consent?: string;
@@ -31,7 +33,8 @@ export function Booking() {
   const booking = content.booking;
 
   const [form, setForm] = useState<FormData>({
-    name: "",
+    firstName: "",
+    lastName: "",
     phone: "",
     email: "",
     message: "",
@@ -48,8 +51,12 @@ export function Booking() {
   const validate = () => {
     const newErrors: Errors = {};
 
-    if (!form.name.trim()) {
-      newErrors.name = booking.messages.nameError;
+    if (!form.firstName.trim()) {
+      newErrors.firstName = booking.messages.firstNameError;
+    }
+
+    if (!form.lastName.trim()) {
+      newErrors.lastName = booking.messages.lastNameError;
     }
 
     if (!form.phone.trim()) {
@@ -107,7 +114,8 @@ export function Booking() {
 
     try {
       await createPublicRequest({
-        name: form.name,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
         phone: form.phone,
         email: form.email,
         message: form.message,
@@ -115,7 +123,8 @@ export function Booking() {
 
       setIsSuccess(true);
       setForm({
-        name: "",
+        firstName: "",
+        lastName: "",
         phone: "",
         email: "",
         message: "",
@@ -147,15 +156,31 @@ export function Booking() {
 
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.field}>
-              <label htmlFor="name">{booking.fields.name}</label>
+              <label htmlFor="firstName">{booking.fields.firstName}</label>
               <input
-                id="name"
+                id="firstName"
                 type="text"
-                value={form.name}
-                onChange={(e) => handleChange("name", e.target.value)}
-                placeholder={booking.placeholders.name}
+                value={form.firstName}
+                onChange={(e) => handleChange("firstName", e.target.value)}
+                placeholder={booking.placeholders.firstName}
               />
-              {errors.name && <span className={styles.error}>{errors.name}</span>}
+              {errors.firstName && (
+                <span className={styles.error}>{errors.firstName}</span>
+              )}
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="lastName">{booking.fields.lastName}</label>
+              <input
+                id="lastName"
+                type="text"
+                value={form.lastName}
+                onChange={(e) => handleChange("lastName", e.target.value)}
+                placeholder={booking.placeholders.lastName}
+              />
+              {errors.lastName && (
+                <span className={styles.error}>{errors.lastName}</span>
+              )}
             </div>
 
             <div className={styles.field}>

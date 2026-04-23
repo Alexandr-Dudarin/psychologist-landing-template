@@ -11,6 +11,10 @@ import type {
 
 type ParsedPayload = PublicBookingCreatePayload;
 
+type NormalizedPayload = PublicBookingCreatePayload & {
+  name: string;
+};
+
 type ClientRow = {
   id: number | string;
   name: string;
@@ -45,7 +49,10 @@ function parseBody(body: any): ParsedPayload | null {
   const serviceId = Number(rawBody?.serviceId);
   const startsAt =
     typeof rawBody?.startsAt === "string" ? rawBody.startsAt.trim() : "";
-  const name = typeof rawBody?.name === "string" ? rawBody.name.trim() : "";
+  const firstName =
+    typeof rawBody?.firstName === "string" ? rawBody.firstName.trim() : "";
+  const lastName =
+    typeof rawBody?.lastName === "string" ? rawBody.lastName.trim() : "";
   const phone = typeof rawBody?.phone === "string" ? rawBody.phone.trim() : "";
   const email = typeof rawBody?.email === "string" ? rawBody.email.trim() : "";
   const message =
@@ -56,19 +63,30 @@ function parseBody(body: any): ParsedPayload | null {
     return null;
   }
 
-  if (!startsAt || !name || !phone || !email || !consent) {
+  if (!startsAt || !firstName || !lastName || !phone || !email || !consent) {
     return null;
   }
 
   return {
     serviceId,
     startsAt,
-    name,
+    firstName,
+    lastName,
     phone,
     email,
     message,
     consent,
   };
+}
+
+function normalizeNamePart(value: string): string {
+  return value.trim().replace(/\s+/g, " ");
+}
+
+function buildFullName(firstName: string, lastName: string): string {
+  return [normalizeNamePart(firstName), normalizeNamePart(lastName)]
+    .filter(Boolean)
+    .join(" ");
 }
 
 function normalizePhoneDigits(value: string): string {
@@ -125,7 +143,7 @@ async function findExistingClientByContacts(
 
 async function ensureClient(
   db: Pick<PoolClient, "query">,
-  payload: ParsedPayload
+  payload: NormalizedPayload
 ): Promise<{ clientId: number; alreadyExisted: boolean }> {
   const existingClient = await findExistingClientByContacts(
     db,
@@ -172,7 +190,7 @@ async function ensureClient(
 
 async function createBookedRequest(
   db: Pick<PoolClient, "query">,
-  payload: ParsedPayload,
+  payload: NormalizedPayload,
   clientId: number
 ): Promise<number> {
   const created = await db.query<RequestRow>(
@@ -229,8 +247,12 @@ function isValidEmail(value: string): boolean {
 }
 
 function getValidationError(payload: ParsedPayload): string | null {
-  if (!payload.name.trim()) {
+  if (!payload.firstName.trim()) {
     return "Введите имя.";
+  }
+
+  if (!payload.lastName.trim()) {
+    return "Введите фамилию.";
   }
 
   if (normalizePhoneDigits(payload.phone).length < 10) {
@@ -325,10 +347,15 @@ export default async function handler(req: any, res: any) {
       return res.status(errorPayload.status).json(errorPayload);
     }
 
-    const clientResult = await ensureClient(client, payload);
+    const normalizedPayload: NormalizedPayload = {
+      ...payload,
+      name: buildFullName(payload.firstName, payload.lastName),
+    };
+
+    const clientResult = await ensureClient(client, normalizedPayload);
     const requestId = await createBookedRequest(
       client,
-      payload,
+      normalizedPayload,
       clientResult.clientId
     );
     await setClientFirstRequestIfMissing(
@@ -360,7 +387,7 @@ export default async function handler(req: any, res: any) {
         slotValidation.slot.startsAt,
         slotValidation.service.durationMinutes,
         slotValidation.service.price,
-        payload.message,
+        normalizedPayload.message,
       ]
     );
 
@@ -382,13 +409,13 @@ export default async function handler(req: any, res: any) {
     try {
       const notificationResult = await sendBookingNotificationsBounded({
         sessionId: response.booking.sessionId,
-        clientName: payload.name,
-        clientPhone: payload.phone,
-        clientEmail: payload.email,
+        clientName: normalizedPayload.name,
+        clientPhone: normalizedPayload.phone,
+        clientEmail: normalizedPayload.email,
         serviceTitle: response.booking.serviceTitle,
         startsAt: response.booking.startsAt,
         endsAt: response.booking.endsAt,
-        comment: payload.message ?? "",
+        comment: normalizedPayload.message ?? "",
         alreadyExistedClient: response.alreadyExistedClient,
       });
 
