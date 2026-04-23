@@ -27,6 +27,10 @@ type SessionRow = {
   scheduled_at: string;
 };
 
+type RequestRow = {
+  id: number | string;
+};
+
 function parseBody(body: any): ParsedPayload | null {
   let rawBody = body;
 
@@ -166,6 +170,47 @@ async function ensureClient(
   };
 }
 
+async function createBookedRequest(
+  db: Pick<PoolClient, "query">,
+  payload: ParsedPayload,
+  clientId: number
+): Promise<number> {
+  const created = await db.query<RequestRow>(
+    `
+      INSERT INTO requests (
+        name,
+        phone,
+        email,
+        message,
+        status,
+        source,
+        client_id
+      )
+      VALUES ($1, $2, $3, $4, 'booked', 'website', $5)
+      RETURNING id
+    `,
+    [payload.name, payload.phone, payload.email, payload.message, clientId]
+  );
+
+  return Number(created.rows[0].id);
+}
+
+async function setClientFirstRequestIfMissing(
+  db: Pick<PoolClient, "query">,
+  clientId: number,
+  requestId: number
+) {
+  await db.query(
+    `
+      UPDATE clients
+      SET first_request_id = $2
+      WHERE id = $1
+        AND first_request_id IS NULL
+    `,
+    [clientId, requestId]
+  );
+}
+
 async function lockBookingDate(db: Pick<PoolClient, "query">, startsAt: string) {
   const bookingDateKey = startsAt.slice(0, 10);
 
@@ -281,6 +326,17 @@ export default async function handler(req: any, res: any) {
     }
 
     const clientResult = await ensureClient(client, payload);
+    const requestId = await createBookedRequest(
+      client,
+      payload,
+      clientResult.clientId
+    );
+    await setClientFirstRequestIfMissing(
+      client,
+      clientResult.clientId,
+      requestId
+    );
+
     const sessionInsert = await client.query<SessionRow>(
       `
         INSERT INTO sessions (
