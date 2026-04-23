@@ -20,6 +20,13 @@ export const siteSettings = {
     },
   },
 
+  sections: {
+  education: {
+    enabled: true,
+    documentsEnabled: false,
+  },
+},
+
   pricing: {
     source: "config" as "config" | "database",
   },

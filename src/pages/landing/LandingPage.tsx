@@ -8,17 +8,19 @@ import { Contacts } from "../../sections/Contacts/Contacts";
 import { FAQ } from "../../sections/FAQ/FAQ";
 import { Footer } from "../../sections/Footer/Footer";
 import { Privacy } from "../../sections/Privacy/Privacy";
+import { siteSettings } from "../../data/siteSettings";
 import { isInlineBookingFormEnabled } from "../../lib/booking/getBookingTarget";
 
 export function LandingPage() {
   const showInlineBookingForm = isInlineBookingFormEnabled();
+  const showEducation = siteSettings.sections.education.enabled;
 
   return (
     <div id="top">
       <Header />
       <Hero />
       <About />
-      <Education />
+      {showEducation ? <Education /> : null}
       <Pricing />
       {showInlineBookingForm ? <Booking /> : null}
       <Contacts />

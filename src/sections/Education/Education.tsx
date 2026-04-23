@@ -1,11 +1,13 @@
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
-import { useLanguage } from "../../app/providers/LanguageProvider";
+import { siteSettings } from "../../data/siteSettings";
 import styles from "./Education.module.css";
 
 export function Education() {
   const { t } = useLanguage();
   const { content } = t;
+  const showDocuments = siteSettings.sections.education.documentsEnabled;
 
   return (
     <section id="education" className={`${styles.section} section`}>
@@ -22,6 +24,12 @@ export function Education() {
             </div>
           ))}
         </div>
+
+        {showDocuments ? (
+          <>
+            {/* Здесь позже будет подблок дипломов и сертификатов */}
+          </>
+        ) : null}
       </Container>
     </section>
   );
