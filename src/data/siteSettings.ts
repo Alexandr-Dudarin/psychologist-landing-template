@@ -21,11 +21,14 @@ export const siteSettings = {
   },
 
   sections: {
-  education: {
-    enabled: true,
-    documentsEnabled: false,
+    education: {
+      enabled: true,
+      documentsEnabled: false,
+    },
+    contacts: {
+      socialLinksEnabled: true,
+    },
   },
-},
 
   pricing: {
     source: "config" as "config" | "database",

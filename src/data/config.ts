@@ -1,9 +1,28 @@
+import type { SocialLink } from "../types/config";
+
 export const config = {
   phone: "+7 918 555-55-55",
   phoneHref: "tel:+79185555555",
+
   telegramUsername: "@Dudarin23",
   telegramHref: "https://t.me/Dudarin23",
+
   email: "hello@example.com",
+
+  socialLinks: [
+    {
+      key: "telegram-channel",
+      label: "Telegram-канал",
+      username: "@DudarinChannel",
+      href: "https://t.me/DudarinChannel",
+    },
+    {
+      key: "instagram",
+      label: "Instagram",
+      username: "@Dudarin",
+      href: "https://instagram.com/Dudarin",
+    },
+  ] as SocialLink[],
 
   analytics: {
     provider: "yandex-metrika",

@@ -1,18 +1,48 @@
-import { Phone, Send } from "lucide-react";
+import { Instagram, Phone, Send } from "lucide-react";
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
-import { useLanguage } from "../../app/providers/LanguageProvider";
+import { siteSettings } from "../../data/siteSettings";
 import { trackPhoneClick, trackTelegramClick } from "../../lib/analytics/trackers";
+import type { SocialLink } from "../../types/config";
 import styles from "./Contacts.module.css";
 
 export function Contacts() {
   const { t, language } = useLanguage();
   const { config, content, ui } = t;
 
+  const showSocialLinks = siteSettings.sections.contacts.socialLinksEnabled;
+  const socialLinks = ("socialLinks" in config
+    ? config.socialLinks
+    : []) as SocialLink[];
+
   const phoneLabel = language === "ru" ? "Телефон" : "Phone";
   const telegramLabel = "Telegram";
   const formatLabel = language === "ru" ? "Формат" : "Format";
+
+  const contactsContent = content.contacts as typeof content.contacts & {
+    socialTitle?: string;
+    socialDescription?: string;
+  };
+
+  const socialTitle =
+    contactsContent.socialTitle ??
+    (language === "ru" ? "Мои соцсети" : "My social media");
+
+  const socialDescription =
+    contactsContent.socialDescription ??
+    (language === "ru"
+      ? "Здесь можно быстро перейти в социальные сети специалиста."
+      : "Here you can quickly open the specialist’s social media profiles.");
+
+  const getSocialIcon = (key: SocialLink["key"]) => {
+    if (key === "instagram") {
+      return <Instagram size={18} />;
+    }
+
+    return <Send size={18} />;
+  };
 
   return (
     <section id="contacts" className={`${styles.section} section`}>
@@ -24,6 +54,37 @@ export function Contacts() {
               title={content.contacts.title}
               description={content.contacts.description}
             />
+
+            {showSocialLinks && socialLinks.length > 0 ? (
+              <div className={styles.socialsBlock}>
+                <div className={styles.socialsHeader}>
+                  <h3 className={styles.socialsTitle}>{socialTitle}</h3>
+                  <p className={styles.socialsDescription}>{socialDescription}</p>
+                </div>
+
+                <div className={styles.socialsList}>
+                  {socialLinks.map((social: SocialLink) => (
+                    <a
+                      key={social.key}
+                      href={social.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={styles.socialItem}
+                      onClick={social.key === "telegram-channel" ? trackTelegramClick : undefined}
+                    >
+                      <span className={styles.socialIcon}>
+                        {getSocialIcon(social.key)}
+                      </span>
+
+                      <span className={styles.socialBody}>
+                        <span className={styles.socialLabel}>{social.label}</span>
+                        <span className={styles.socialUsername}>{social.username}</span>
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className={styles.right}>
@@ -72,9 +133,7 @@ export function Contacts() {
                   onClick={trackTelegramClick}
                 >
                   <Send size={18} />
-                  <span className={styles.linkText}>
-                    {config.telegramUsername}
-                  </span>
+                  <span className={styles.linkText}>{config.telegramUsername}</span>
                 </a>
               </div>
 

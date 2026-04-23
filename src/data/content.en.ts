@@ -88,6 +88,9 @@ export const content = {
     description:
       "You can book through the form, send a message on Telegram, or call.",
     format: "Online consultations",
+    socialTitle: "My social media",
+    socialDescription:
+      "Here you can quickly open the specialist’s social media profiles and choose a convenient way to connect.",
   },
 
   faq: {
