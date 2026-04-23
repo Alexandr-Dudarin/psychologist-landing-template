@@ -12,7 +12,10 @@ export function Contacts() {
   const { t, language } = useLanguage();
   const { config, content, ui } = t;
 
+  const showContactsSection = siteSettings.sections.contacts.enabled;
   const showSocialLinks = siteSettings.sections.contacts.socialLinksEnabled;
+  const showTelegramButton = siteSettings.sections.contacts.telegramButtonEnabled;
+  const showWhatsappButton = siteSettings.sections.contacts.whatsappButtonEnabled;
   const socialLinks = ("socialLinks" in config
     ? config.socialLinks
     : []) as SocialLink[];
@@ -44,6 +47,10 @@ export function Contacts() {
     (language === "ru"
       ? "Здесь можно быстро перейти в социальные сети специалиста."
       : "Here you can quickly open the specialist’s social media profiles.");
+
+        if (!showContactsSection) {
+    return null;
+  }
 
   const getSocialIcon = (key: SocialLink["key"]) => {
     if (key === "instagram") {
@@ -102,16 +109,18 @@ export function Contacts() {
 
           <div className={styles.right}>
             <div className={styles.buttons}>
-              <Button
-                href={config.telegramHref}
-                variant="primary"
-                target="_blank"
-                rel="noreferrer"
-                onClick={trackTelegramClick}
-              >
-                <Send size={16} />
-                {ui.buttons.writeTelegram}
-              </Button>
+              {showTelegramButton ? (
+                <Button
+                  href={config.telegramHref}
+                  variant="primary"
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={trackTelegramClick}
+                >
+                  <Send size={16} />
+                  {ui.buttons.writeTelegram}
+                </Button>
+              ) : null}
 
               <Button
                 href={config.phoneHref}
@@ -122,15 +131,17 @@ export function Contacts() {
                 {ui.buttons.call}
               </Button>
 
-              <Button
-                href={whatsappHref}
-                variant="secondary"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <MessageCircle size={16} />
-                {whatsappLabel}
-              </Button>
+              {showWhatsappButton ? (
+                <Button
+                  href={whatsappHref}
+                  variant="secondary"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <MessageCircle size={16} />
+                  {whatsappLabel}
+                </Button>
+              ) : null}
             </div>
 
             <div className={styles.info}>

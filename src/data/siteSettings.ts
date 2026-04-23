@@ -20,15 +20,39 @@ export const siteSettings = {
     },
   },
 
-  sections: {
-    education: {
-      enabled: true,
-      documentsEnabled: false,
-    },
-    contacts: {
-      socialLinksEnabled: true,
-    },
+sections: {
+  about: {
+    enabled: true,
   },
+  education: {
+    enabled: true,
+    documentsEnabled: false,
+  },
+  pricing: {
+    enabled: true,
+  },
+  booking: {
+    enabled: true,
+  },
+  contacts: {
+    enabled: true,
+    socialLinksEnabled: true,
+    telegramButtonEnabled: true,
+    whatsappButtonEnabled: true,
+  },
+  faq: {
+    enabled: true,
+  },
+  privacy: {
+    enabled: true,
+  },
+  guides: {
+    enabled: false,
+  },
+  reviews: {
+    enabled: false,
+  },
+},
 
   pricing: {
     source: "config" as "config" | "database",
