@@ -9,6 +9,7 @@ import { Footer } from "../../sections/Footer/Footer";
 import { Header } from "../../sections/Header/Header";
 import { Hero } from "../../sections/Hero/Hero";
 import { Pricing } from "../../sections/Pricing/Pricing";
+import { Guides } from "../../sections/Guides/Guides";
 import { Privacy } from "../../sections/Privacy/Privacy";
 
 export function LandingPage() {
@@ -23,6 +24,7 @@ export function LandingPage() {
       {siteSettings.sections.about.enabled ? <About /> : null}
       {siteSettings.sections.education.enabled ? <Education /> : null}
       {siteSettings.sections.pricing.enabled ? <Pricing /> : null}
+      {siteSettings.sections.guides.enabled ? <Guides /> : null}
       {showInlineBookingForm ? <Booking /> : null}
       {siteSettings.sections.contacts.enabled ? <Contacts /> : null}
       {siteSettings.sections.faq.enabled ? <FAQ /> : null}

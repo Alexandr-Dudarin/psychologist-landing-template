@@ -1,4 +1,5 @@
 import type { EducationDocument } from "../types/content";
+import type { GuideItem } from "../types/guides";
 
 export const content = {
     hero: {
@@ -41,6 +42,31 @@ export const content = {
         description:
             "Вы можете выбрать удобный формат: разовую встречу или пакет консультаций для более устойчивой работы.",
     },
+
+  guides: {
+    eyebrow: "Бесплатные материалы",
+    title: "Дарю 2 полезных гайда",
+    description:
+      "Подпишитесь на мои соцсети и получите полезные материалы, которые помогут лучше понять себя и начать изменения уже сейчас.",
+    items: [
+      {
+        platform: "telegram-channel",
+        coverLabel: "Telegram",
+        title: "Как снизить тревогу",
+        description:
+          "Короткий практический гайд с простыми шагами, которые помогут лучше справляться с тревогой и внутренним напряжением.",
+        buttonLabel: "Получить в Telegram",
+      },
+      {
+        platform: "instagram",
+        coverLabel: "Instagram",
+        title: "Как лучше понять себя",
+        description:
+          "Небольшой материал о том, как замечать свои эмоции, потребности и внутренние состояния более бережно и ясно.",
+        buttonLabel: "Получить в Instagram",
+      },
+    ] as GuideItem[],
+  },
 
     booking: {
         eyebrow: "Запись",

@@ -1,4 +1,5 @@
 import type { EducationDocument } from "../types/content";
+import type { GuideItem } from "../types/guides";
 
 export const content = {
   hero: {
@@ -40,6 +41,31 @@ export const content = {
     title: "Formats and consultation fees",
     description:
       "You can choose the format that suits you best: a single session or a package for more consistent support.",
+  },
+
+  guides: {
+    eyebrow: "Free materials",
+    title: "2 helpful free guides",
+    description:
+      "Subscribe to my social media and get useful materials that will help you understand yourself better and start making changes right away.",
+    items: [
+      {
+        platform: "telegram-channel",
+        coverLabel: "Telegram",
+        title: "How to reduce anxiety",
+        description:
+          "A short practical guide with simple steps that can help you deal with anxiety and inner tension more steadily.",
+        buttonLabel: "Get it on Telegram",
+      },
+      {
+        platform: "instagram",
+        coverLabel: "Instagram",
+        title: "How to understand yourself better",
+        description:
+          "A short material about noticing your emotions, needs, and inner states with more clarity and care.",
+        buttonLabel: "Get it on Instagram",
+      },
+    ] as GuideItem[],
   },
 
   booking: {

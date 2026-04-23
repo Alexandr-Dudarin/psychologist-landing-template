@@ -47,7 +47,7 @@ sections: {
     enabled: true,
   },
   guides: {
-    enabled: false,
+    enabled: true,
   },
   reviews: {
     enabled: false,
