@@ -7,6 +7,9 @@ export const config = {
   telegramUsername: "@Dudarin23",
   telegramHref: "https://t.me/Dudarin23",
 
+  whatsappLabel: "WhatsApp",
+  whatsappHref: "https://wa.me/79185555555",
+
   email: "hello@example.com",
 
   socialLinks: [

@@ -19,6 +19,11 @@
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
+  align-items: stretch;
+}
+
+.buttons > * {
+  flex: 0 0 auto;
 }
 
 .info {
@@ -72,13 +77,13 @@
 .left {
   display: grid;
   align-content: start;
-  gap: 28px;
+  gap: 18px;
 }
 
 .socialsBlock {
   display: grid;
-  gap: 18px;
-  padding: 24px;
+  gap: 14px;
+  padding: 20px;
   border-radius: 24px;
   border: 1px solid var(--color-border);
   background-color: var(--color-surface);
@@ -87,7 +92,7 @@
 
 .socialsHeader {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .socialsTitle {
@@ -111,8 +116,8 @@
 .socialItem {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
+  gap: 12px;
+  padding: 14px 16px;
   border-radius: 18px;
   border: 1px solid var(--color-border);
   background-color: var(--color-surface-strong);

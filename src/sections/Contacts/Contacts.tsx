@@ -1,4 +1,4 @@
-import { Instagram, Phone, Send } from "lucide-react";
+import { Instagram, MessageCircle, Phone, Send } from "lucide-react";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
@@ -16,6 +16,15 @@ export function Contacts() {
   const socialLinks = ("socialLinks" in config
     ? config.socialLinks
     : []) as SocialLink[];
+
+  const whatsappHref =
+    "whatsappHref" in config ? config.whatsappHref : "https://wa.me/79185555555";
+  const whatsappLabel =
+    "whatsappLabel" in config
+      ? config.whatsappLabel
+      : language === "ru"
+        ? "WhatsApp"
+        : "WhatsApp";
 
   const phoneLabel = language === "ru" ? "Телефон" : "Phone";
   const telegramLabel = "Telegram";
@@ -70,7 +79,11 @@ export function Contacts() {
                       target="_blank"
                       rel="noreferrer"
                       className={styles.socialItem}
-                      onClick={social.key === "telegram-channel" ? trackTelegramClick : undefined}
+                      onClick={
+                        social.key === "telegram-channel"
+                          ? trackTelegramClick
+                          : undefined
+                      }
                     >
                       <span className={styles.socialIcon}>
                         {getSocialIcon(social.key)}
@@ -107,6 +120,16 @@ export function Contacts() {
               >
                 <Phone size={16} />
                 {ui.buttons.call}
+              </Button>
+
+              <Button
+                href={whatsappHref}
+                variant="secondary"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <MessageCircle size={16} />
+                {whatsappLabel}
               </Button>
             </div>
 
