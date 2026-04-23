@@ -1,3 +1,5 @@
+import type { EducationDocument } from "../types/content";
+
 export const content = {
     hero: {
         eyebrow: "Психолог · Онлайн-консультации",
@@ -27,6 +29,10 @@ export const content = {
             "Дополнительные курсы по работе с тревожными состояниями",
             "Повышение квалификации в области работы с расстройствами пищевого поведения",
         ],
+        documentsTitle: "Дипломы и сертификаты",
+        documentsDescription:
+            "При необходимости здесь можно показать дипломы, сертификаты и другие документы, подтверждающие квалификацию специалиста.",
+        documents: [] as EducationDocument[],
     },
 
     pricing: {

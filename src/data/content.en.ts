@@ -1,3 +1,5 @@
+import type { EducationDocument } from "../types/content";
+
 export const content = {
   hero: {
     eyebrow: "Psychologist · Online consultations",
@@ -27,6 +29,10 @@ export const content = {
       "Additional training in working with anxiety-related conditions",
       "Advanced training in the field of eating disorder support",
     ],
+    documentsTitle: "Diplomas and certificates",
+    documentsDescription:
+      "This section can later display diplomas, certificates, and other documents confirming the specialist’s qualifications.",
+    documents: [] as EducationDocument[],
   },
 
   pricing: {

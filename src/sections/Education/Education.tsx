@@ -8,6 +8,7 @@ export function Education() {
   const { t } = useLanguage();
   const { content } = t;
   const showDocuments = siteSettings.sections.education.documentsEnabled;
+  const hasDocuments = content.education.documents.length > 0;
 
   return (
     <section id="education" className={`${styles.section} section`}>
@@ -25,10 +26,53 @@ export function Education() {
           ))}
         </div>
 
-        {showDocuments ? (
-          <>
-            {/* Здесь позже будет подблок дипломов и сертификатов */}
-          </>
+        {showDocuments && hasDocuments ? (
+          <div className={styles.documentsBlock}>
+            <div className={styles.documentsHeader}>
+              <h3 className={styles.documentsTitle}>
+                {content.education.documentsTitle}
+              </h3>
+              {content.education.documentsDescription ? (
+                <p className={styles.documentsDescription}>
+                  {content.education.documentsDescription}
+                </p>
+              ) : null}
+            </div>
+
+            <div className={styles.documentsGrid}>
+              {content.education.documents.map((document) => (
+                <a
+                  key={document.title}
+                  href={document.image}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.documentCard}
+                >
+                  <div className={styles.documentPreview}>
+                    <img
+                      src={document.image}
+                      alt={document.title}
+                      className={styles.documentImage}
+                      loading="lazy"
+                    />
+                  </div>
+
+                  <div className={styles.documentBody}>
+                    <div className={styles.documentTitleRow}>
+                      <h4 className={styles.documentTitle}>{document.title}</h4>
+                      {document.year ? (
+                        <span className={styles.documentYear}>{document.year}</span>
+                      ) : null}
+                    </div>
+
+                    {document.subtitle ? (
+                      <p className={styles.documentSubtitle}>{document.subtitle}</p>
+                    ) : null}
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
         ) : null}
       </Container>
     </section>
