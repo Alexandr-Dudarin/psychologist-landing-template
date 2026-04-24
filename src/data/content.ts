@@ -43,30 +43,32 @@ export const content = {
             "Вы можете выбрать удобный формат: разовую встречу или пакет консультаций для более устойчивой работы.",
     },
 
-  guides: {
-    eyebrow: "Бесплатные материалы",
-    title: "Дарю 2 полезных гайда",
-    description:
-      "Подпишитесь на мои соцсети и получите полезные материалы, которые помогут лучше понять себя и начать изменения уже сейчас.",
-    items: [
-      {
-        platform: "telegram-channel",
-        coverLabel: "Telegram",
-        title: "Как снизить тревогу",
+    guides: {
+        eyebrow: "Бесплатные материалы",
+        title: "Дарю 2 полезных гайда",
         description:
-          "Короткий практический гайд с простыми шагами, которые помогут лучше справляться с тревогой и внутренним напряжением.",
-        buttonLabel: "Получить в Telegram",
-      },
-      {
-        platform: "instagram",
-        coverLabel: "Instagram",
-        title: "Как лучше понять себя",
-        description:
-          "Небольшой материал о том, как замечать свои эмоции, потребности и внутренние состояния более бережно и ясно.",
-        buttonLabel: "Получить в Instagram",
-      },
-    ] as GuideItem[],
-  },
+            "Подпишитесь на мои соцсети и получите полезные материалы, которые помогут лучше понять себя и начать изменения уже сейчас.",
+        items: [
+            {
+                platform: "telegram-channel",
+                coverLabel: "Telegram",
+                title: "Как снизить тревогу",
+                description:
+                    "Короткий практический гайд с простыми шагами, которые помогут лучше справляться с тревогой и внутренним напряжением.",
+                desktopButtonLabel: "Получить в Telegram",
+                mobileButtonLabel: "В Telegram",
+            },
+            {
+                platform: "instagram",
+                coverLabel: "Instagram",
+                title: "Как лучше понять себя",
+                description:
+                    "Небольшой материал о том, как замечать свои эмоции, потребности и внутренние состояния более бережно и ясно.",
+                desktopButtonLabel: "Получить в Instagram",
+                mobileButtonLabel: "В Instagram",
+            },
+        ] as GuideItem[],
+    },
 
     booking: {
         eyebrow: "Запись",

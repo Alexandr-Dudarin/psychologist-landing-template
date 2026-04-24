@@ -55,7 +55,8 @@ export const content = {
         title: "How to reduce anxiety",
         description:
           "A short practical guide with simple steps that can help you deal with anxiety and inner tension more steadily.",
-        buttonLabel: "Get it on Telegram",
+        desktopButtonLabel: "Get it on Telegram",
+        mobileButtonLabel: "Telegram",
       },
       {
         platform: "instagram",
@@ -63,7 +64,8 @@ export const content = {
         title: "How to understand yourself better",
         description:
           "A short material about noticing your emotions, needs, and inner states with more clarity and care.",
-        buttonLabel: "Get it on Instagram",
+        desktopButtonLabel: "Get it on Instagram",
+        mobileButtonLabel: "Instagram",
       },
     ] as GuideItem[],
   },

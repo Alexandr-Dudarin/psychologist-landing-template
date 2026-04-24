@@ -5,5 +5,6 @@ export type GuideItem = {
   coverLabel: string;
   title: string;
   description: string;
-  buttonLabel: string;
+  desktopButtonLabel: string;
+  mobileButtonLabel: string;
 };

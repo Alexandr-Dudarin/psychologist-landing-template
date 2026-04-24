@@ -1,13 +1,11 @@
-import { ArrowUpRight, Instagram, Send } from "lucide-react";
+import { Instagram, Send } from "lucide-react";
 import { useLanguage } from "../../app/providers/LanguageProvider";
-import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { siteSettings } from "../../data/siteSettings";
-import type { GuideItem, GuidePlatform } from "../../types/guides";
 import type { SocialLink } from "../../types/config";
+import type { GuideItem, GuidePlatform } from "../../types/guides";
 import styles from "./Guides.module.css";
-
 
 function getGuideIcon(platform: GuidePlatform) {
   if (platform === "instagram") {
@@ -33,7 +31,7 @@ export function Guides() {
     return socialLinks.find((item) => item.key === platform)?.href ?? "#";
   };
 
-    const guideItems = content.guides.items as GuideItem[];
+  const guideItems = content.guides.items as GuideItem[];
 
   return (
     <section id="guides" className={`${styles.section} section`}>
@@ -45,7 +43,7 @@ export function Guides() {
         />
 
         <div className={styles.grid}>
-          {guideItems.map((guide: GuideItem, index) => {
+          {guideItems.map((guide, index) => {
             const href = getHrefByPlatform(guide.platform);
 
             return (
@@ -55,6 +53,9 @@ export function Guides() {
                     index % 2 === 0 ? styles.coverLavender : styles.coverPeach
                   }`}
                 >
+                  <div className={styles.coverNoise} />
+                  <div className={styles.coverLines} />
+
                   <div className={styles.coverInner}>
                     <span className={styles.coverLabel}>{guide.coverLabel}</span>
                     <h3 className={styles.coverTitle}>{guide.title}</h3>
@@ -62,22 +63,30 @@ export function Guides() {
                 </div>
 
                 <div className={styles.body}>
-                  <h3 className={styles.cardTitle}>{guide.title}</h3>
                   <p className={styles.cardDescription}>{guide.description}</p>
                 </div>
 
                 <div className={styles.actions}>
-                  <Button
+                  <a
                     href={href}
-                    variant="secondary"
-                    className={styles.button}
                     target="_blank"
                     rel="noreferrer"
+                    className={styles.ctaButton}
                   >
-                    {getGuideIcon(guide.platform)}
-                    {guide.buttonLabel}
-                    <ArrowUpRight size={16} />
-                  </Button>
+                    <span className={styles.ctaButtonInner}>
+                      <span className={styles.ctaIcon}>
+                        {getGuideIcon(guide.platform)}
+                      </span>
+
+                      <span className={styles.ctaLabelDesktop}>
+                        {guide.desktopButtonLabel}
+                      </span>
+
+                      <span className={styles.ctaLabelMobile}>
+                        {guide.mobileButtonLabel}
+                      </span>
+                    </span>
+                  </a>
                 </div>
               </article>
             );
