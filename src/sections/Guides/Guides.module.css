@@ -6,51 +6,60 @@
     margin-top: 40px;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
+    gap: 20px;
     align-items: stretch;
 }
 
 .card {
     display: grid;
     grid-template-rows: auto 1fr auto;
-    gap: 20px;
+    gap: 18px;
     min-height: 100%;
-    padding: 18px;
-    border-radius: 30px;
-    border: 1px solid var(--color-border);
-    background-color: var(--color-surface);
-    box-shadow: var(--shadow-soft);
+    padding: 16px;
+    border-radius: 32px;
+    border: 1px solid color-mix(in srgb, var(--color-border) 82%, white 18%);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.42)),
+        var(--color-surface);
+    box-shadow:
+        0 16px 40px rgba(37, 24, 16, 0.06),
+        0 2px 6px rgba(37, 24, 16, 0.04);
 }
 
 .cover {
     position: relative;
-    min-height: 390px;
-    border-radius: 24px;
+    min-height: 430px;
+    border-radius: 26px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.62);
     isolation: isolate;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.32),
+        0 8px 24px rgba(109, 83, 66, 0.06);
 }
 
 .coverLavender {
     background:
-        radial-gradient(circle at top right, rgba(255, 255, 255, 0.6), transparent 34%),
-        linear-gradient(135deg, #eee6ff 0%, #ded5f8 42%, #f7f2ff 100%);
+        radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.52), transparent 30%),
+        radial-gradient(circle at 18% 88%, rgba(255, 255, 255, 0.18), transparent 24%),
+        linear-gradient(145deg, #f1ebff 0%, #e2d8f9 46%, #f8f4ff 100%);
 }
 
 .coverPeach {
     background:
-        radial-gradient(circle at top right, rgba(255, 255, 255, 0.58), transparent 34%),
-        linear-gradient(135deg, #ffe8df 0%, #f6d8cb 42%, #fff4ee 100%);
+        radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.5), transparent 30%),
+        radial-gradient(circle at 20% 84%, rgba(255, 255, 255, 0.16), transparent 22%),
+        linear-gradient(145deg, #ffede5 0%, #f5dacc 46%, #fff5ef 100%);
 }
 
 .coverNoise {
     position: absolute;
     inset: 0;
-    opacity: 0.08;
+    opacity: 0.055;
     pointer-events: none;
     background-image:
-        radial-gradient(rgba(0, 0, 0, 0.18) 0.5px, transparent 0.5px);
-    background-size: 6px 6px;
+        radial-gradient(rgba(58, 38, 25, 0.22) 0.45px, transparent 0.45px);
+    background-size: 5px 5px;
     mix-blend-mode: soft-light;
 }
 
@@ -65,21 +74,21 @@
     content: "";
     position: absolute;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.28);
 }
 
 .coverLines::before {
-    width: 240px;
-    height: 240px;
-    top: -120px;
-    right: -60px;
+    width: 290px;
+    height: 290px;
+    top: -160px;
+    right: -86px;
 }
 
 .coverLines::after {
-    width: 200px;
-    height: 200px;
-    bottom: -105px;
-    left: -70px;
+    width: 250px;
+    height: 250px;
+    bottom: -132px;
+    left: -92px;
 }
 
 .coverInner {
@@ -89,30 +98,30 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    gap: 16px;
-    padding: 24px;
+    gap: 14px;
+    padding: 26px 26px 36px;
 }
 
 .coverLabel {
     display: inline-flex;
     width: fit-content;
-    padding: 7px 12px;
+    padding: 6px 11px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.78);
-    border: 1px solid rgba(255, 255, 255, 0.88);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.82);
     color: var(--color-text-muted);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
 .coverTitle {
     margin: 0;
-    max-width: 8ch;
-    min-height: 4.2em;
-    font-size: clamp(36px, 3vw, 52px);
-    line-height: 0.98;
+    max-width: 7.5ch;
+    min-height: 5.2em;
+    font-size: clamp(38px, 3vw, 54px);
+    line-height: 0.95;
     font-weight: 600;
     color: var(--color-text);
     text-wrap: balance;
@@ -126,8 +135,8 @@
 .cardDescription {
     margin: 0;
     color: var(--color-text-muted);
-    line-height: 1.7;
-    font-size: 18px;
+    line-height: 1.66;
+    font-size: 17px;
 }
 
 .actions {
@@ -137,20 +146,24 @@
 
 .ctaButton {
     width: 100%;
-    min-height: 58px;
+    min-height: 56px;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0 18px;
     border-radius: 18px;
-    background: var(--color-accent, #9b7a68);
+    background: linear-gradient(180deg,
+            color-mix(in srgb, var(--color-accent, #9b7a68) 92%, white 8%),
+            var(--color-accent, #9b7a68));
     color: var(--color-accent-contrast, #ffffff);
     text-decoration: none;
     transition:
         background-color 0.2s ease,
         transform 0.2s ease,
         box-shadow 0.2s ease;
-    box-shadow: 0 8px 20px rgba(155, 122, 104, 0.16);
+    box-shadow:
+        0 10px 24px rgba(155, 122, 104, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .ctaButton:hover {
@@ -203,26 +216,26 @@
     }
 
     .card {
-        padding: 12px;
+        padding: 10px;
         border-radius: 24px;
-        gap: 14px;
+        gap: 12px;
     }
 
     .cover {
-        min-height: 320px;
+        min-height: 340px;
         border-radius: 18px;
     }
 
     .coverInner {
-        padding: 16px;
-        gap: 10px;
+        padding: 14px 14px 24px;
+        gap: 8px;
     }
 
     .coverTitle {
-        max-width: 6ch;
-        min-height: 4.2em;
-        font-size: clamp(18px, 4.7vw, 28px);
-        line-height: 1.02;
+        max-width: 5.7ch;
+        min-height: 5em;
+        font-size: clamp(19px, 4.7vw, 28px);
+        line-height: 0.98;
     }
 
     .coverLabel {
@@ -269,12 +282,12 @@
     }
 
     .cover {
-        min-height: 300px;
+        min-height: 322px;
     }
 
     .coverTitle {
         font-size: 16px;
-        min-height: 4.2em;
+        min-height: 5.2em;
     }
 
     .cardDescription {
