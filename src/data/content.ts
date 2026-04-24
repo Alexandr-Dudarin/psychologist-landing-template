@@ -1,5 +1,6 @@
 import type { EducationDocument } from "../types/content";
 import type { GuideItem } from "../types/guides";
+import type { ReviewItem } from "../types/reviews";
 
 export const content = {
     hero: {
@@ -68,6 +69,35 @@ export const content = {
                 mobileButtonLabel: "В Instagram",
             },
         ] as GuideItem[],
+    },
+
+    reviews: {
+        eyebrow: "Отзывы",
+        title: "Что говорят клиенты",
+        description:
+            "Ниже — реальные отзывы о консультациях и совместной работе.",
+        items: [
+            {
+                image: "/images/reviews/review-01.jpg",
+                alt: "Отзыв клиента 1",
+            },
+            {
+                image: "/images/reviews/review-02.jpg",
+                alt: "Отзыв клиента 2",
+            },
+            {
+                image: "/images/reviews/review-03.jpg",
+                alt: "Отзыв клиента 3",
+            },
+            {
+                image: "/images/reviews/review-04.jpg",
+                alt: "Отзыв клиента 4",
+            },
+            {
+                image: "/images/reviews/review-05.jpg",
+                alt: "Отзыв клиента 5",
+            },
+        ] as ReviewItem[],
     },
 
     booking: {

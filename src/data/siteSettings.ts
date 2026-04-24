@@ -50,7 +50,7 @@ sections: {
     enabled: true,
   },
   reviews: {
-    enabled: false,
+    enabled: true,
   },
 },
 

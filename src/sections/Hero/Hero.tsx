@@ -1,4 +1,3 @@
-import heroImage from "../../assets/images/hero.jpg";
 import { Phone, Send } from "lucide-react";
 import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
@@ -60,7 +59,7 @@ export function Hero() {
             <div className={styles.imageCard}>
               <img
                 className={styles.image}
-                src={heroImage}
+                src="/images/hero/hero.jpg"
                 alt={profile.imageAlt}
               />
             </div>
