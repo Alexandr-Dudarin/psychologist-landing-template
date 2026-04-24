@@ -1,183 +1,177 @@
 .section {
-  padding-bottom: 120px;
+    padding-bottom: 120px;
 }
 
 .carouselShell {
-  position: relative;
-  margin-top: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    position: relative;
+    margin-top: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .controlButton {
-  position: absolute;
-  top: 50%;
-  z-index: 2;
-  width: 52px;
-  height: 52px;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: var(--color-surface);
-  color: var(--color-text);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transform: translateY(-50%);
-  transition:
-    transform var(--transition-base),
-    background-color var(--transition-base),
-    border-color var(--transition-base),
-    box-shadow var(--transition-base);
-  box-shadow: var(--shadow-soft);
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    width: 52px;
+    height: 52px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition:
+        transform var(--transition-base),
+        background-color var(--transition-base),
+        border-color var(--transition-base),
+        box-shadow var(--transition-base);
+    box-shadow: var(--shadow-soft);
 }
 
 .controlButton:hover {
-  background: var(--color-surface-strong);
-  box-shadow: 0 10px 24px rgba(37, 24, 16, 0.08);
+    background: var(--color-surface-strong);
+    box-shadow: 0 10px 24px rgba(37, 24, 16, 0.08);
 }
 
 .controlButtonLeft {
-  left: -26px;
+    left: -10px;
 }
 
 .controlButtonRight {
-  right: -26px;
+    right: -10px;
 }
 
 .carousel {
-  width: min(100%, 860px);
-  overflow: hidden;
+    width: 100%;
+    overflow: hidden;
 }
 
 .track {
-  display: flex;
-  transition: transform 0.35s ease;
-  will-change: transform;
+    display: flex;
+    transition: transform 0.35s ease;
+    will-change: transform;
 }
 
 .slide {
-  min-width: 100%;
-  flex: 0 0 100%;
+    min-width: 0;
+    padding: 0 10px;
+    box-sizing: border-box;
 }
 
 .card {
-  margin-inline: auto;
-  width: min(100%, 860px);
-  border-radius: 32px;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--color-border) 82%, white 18%);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.42)),
-    var(--color-surface);
-  box-shadow:
-    0 16px 40px rgba(37, 24, 16, 0.06),
-    0 2px 6px rgba(37, 24, 16, 0.04);
+    width: 100%;
+    border-radius: 28px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-border) 82%, white 18%);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.42)),
+        var(--color-surface);
+    box-shadow:
+        0 16px 40px rgba(37, 24, 16, 0.06),
+        0 2px 6px rgba(37, 24, 16, 0.04);
 }
 
 .image {
-  display: block;
-  width: 100%;
-  height: auto;
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 .dots {
-  margin-top: 18px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
 }
 
 .dot {
-  width: 10px;
-  height: 10px;
-  border: 0;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-accent) 26%, white 74%);
-  cursor: pointer;
-  transition:
-    transform var(--transition-base),
-    background-color var(--transition-base),
-    opacity var(--transition-base);
-  opacity: 0.9;
+    width: 10px;
+    height: 10px;
+    border: 0;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-accent) 26%, white 74%);
+    cursor: pointer;
+    transition:
+        transform var(--transition-base),
+        background-color var(--transition-base),
+        opacity var(--transition-base);
+    opacity: 0.9;
 }
 
 .dotActive {
-  background: var(--color-accent);
-  transform: scale(1.15);
-  opacity: 1;
+    background: var(--color-accent);
+    transform: scale(1.15);
+    opacity: 1;
 }
 
-@media (max-width: 1100px) {
-  .controlButtonLeft {
-    left: -10px;
-  }
+@media (max-width: 1200px) {
+    .controlButtonLeft {
+        left: -4px;
+    }
 
-  .controlButtonRight {
-    right: -10px;
-  }
+    .controlButtonRight {
+        right: -4px;
+    }
 
-  .carousel {
-    width: min(100%, 760px);
-  }
-
-  .card {
-    width: min(100%, 760px);
-  }
+    .slide {
+        padding: 0 8px;
+    }
 }
 
 @media (max-width: 900px) {
-  .section {
-    padding-bottom: 96px;
-  }
+    .section {
+        padding-bottom: 96px;
+    }
 
-  .carouselShell {
-    margin-top: 28px;
-  }
+    .carouselShell {
+        margin-top: 28px;
+    }
 
-  .controlButton {
-    width: 46px;
-    height: 46px;
-  }
+    .controlButton {
+        width: 46px;
+        height: 46px;
+    }
 
-  .controlButtonLeft {
-    left: -4px;
-  }
+    .controlButtonLeft {
+        left: 2px;
+    }
 
-  .controlButtonRight {
-    right: -4px;
-  }
+    .controlButtonRight {
+        right: 2px;
+    }
 
-  .carousel {
-    width: min(100%, 620px);
-  }
+    .slide {
+        padding: 0 7px;
+    }
 
-  .card {
-    width: min(100%, 620px);
-    border-radius: 24px;
-  }
+    .card {
+        border-radius: 22px;
+    }
 }
 
 @media (max-width: 560px) {
-  .carouselShell {
-    margin-top: 24px;
-  }
+    .carouselShell {
+        margin-top: 24px;
+    }
 
-  .controlButton {
-    display: none;
-  }
+    .controlButton {
+        display: none;
+    }
 
-  .carousel {
-    width: 100%;
-  }
+    .slide {
+        padding: 0;
+    }
 
-  .card {
-    width: 100%;
-    border-radius: 20px;
-  }
+    .card {
+        border-radius: 20px;
+    }
 
-  .dots {
-    margin-top: 14px;
-  }
+    .dots {
+        margin-top: 14px;
+    }
 }

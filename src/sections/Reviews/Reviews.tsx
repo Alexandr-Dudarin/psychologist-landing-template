@@ -1,11 +1,23 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { siteSettings } from "../../data/siteSettings";
 import type { ReviewItem } from "../../types/reviews";
 import styles from "./Reviews.module.css";
+
+function getVisibleCount(width: number) {
+  if (width >= 1100) {
+    return 3;
+  }
+
+  if (width >= 700) {
+    return 2;
+  }
+
+  return 1;
+}
 
 export function Reviews() {
   const { t, language } = useLanguage();
@@ -19,22 +31,50 @@ export function Reviews() {
     () => content.reviews.items as ReviewItem[],
     [content.reviews.items]
   );
+
   const [activeIndex, setActiveIndex] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(() =>
+    typeof window === "undefined" ? 1 : getVisibleCount(window.innerWidth)
+  );
+
   const touchStartXRef = useRef<number | null>(null);
   const touchDeltaXRef = useRef(0);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setVisibleCount(getVisibleCount(window.innerWidth));
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   if (!items.length) {
     return null;
   }
 
-  const hasMultiple = items.length > 1;
+  const actualVisibleCount = Math.min(visibleCount, items.length);
+  const maxIndex = Math.max(0, items.length - actualVisibleCount);
+  const hasNavigation = items.length > actualVisibleCount;
+  const pageCount = maxIndex + 1;
+  const slideWidthPercent = 100 / actualVisibleCount;
+
+  useEffect(() => {
+    if (activeIndex > maxIndex) {
+      setActiveIndex(maxIndex);
+    }
+  }, [activeIndex, maxIndex]);
 
   const goPrev = () => {
-    setActiveIndex((prev) => (prev === 0 ? items.length - 1 : prev - 1));
+    setActiveIndex((prev) => (prev === 0 ? maxIndex : prev - 1));
   };
 
   const goNext = () => {
-    setActiveIndex((prev) => (prev === items.length - 1 ? 0 : prev + 1));
+    setActiveIndex((prev) => (prev === maxIndex ? 0 : prev + 1));
   };
 
   const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
@@ -52,7 +92,7 @@ export function Reviews() {
   };
 
   const handleTouchEnd = () => {
-    if (!hasMultiple) {
+    if (!hasNavigation) {
       touchStartXRef.current = null;
       touchDeltaXRef.current = 0;
       return;
@@ -71,11 +111,11 @@ export function Reviews() {
   };
 
   const prevLabel =
-    language === "ru" ? "Предыдущий отзыв" : "Previous review";
+    language === "ru" ? "Предыдущие отзывы" : "Previous reviews";
   const nextLabel =
-    language === "ru" ? "Следующий отзыв" : "Next review";
+    language === "ru" ? "Следующие отзывы" : "Next reviews";
   const dotLabelPrefix =
-    language === "ru" ? "Перейти к отзыву" : "Go to review";
+    language === "ru" ? "Перейти к слайду" : "Go to slide";
 
   return (
     <section id="reviews" className={`${styles.section} section`}>
@@ -87,7 +127,7 @@ export function Reviews() {
         />
 
         <div className={styles.carouselShell}>
-          {hasMultiple ? (
+          {hasNavigation ? (
             <button
               type="button"
               className={`${styles.controlButton} ${styles.controlButtonLeft}`}
@@ -106,10 +146,16 @@ export function Reviews() {
           >
             <div
               className={styles.track}
-              style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+              style={{
+                transform: `translateX(-${activeIndex * slideWidthPercent}%)`,
+              }}
             >
               {items.map((item) => (
-                <div key={item.image} className={styles.slide}>
+                <div
+                  key={item.image}
+                  className={styles.slide}
+                  style={{ flex: `0 0 ${slideWidthPercent}%` }}
+                >
                   <div className={styles.card}>
                     <img
                       src={item.image}
@@ -123,7 +169,7 @@ export function Reviews() {
             </div>
           </div>
 
-          {hasMultiple ? (
+          {hasNavigation ? (
             <button
               type="button"
               className={`${styles.controlButton} ${styles.controlButtonRight}`}
@@ -135,11 +181,11 @@ export function Reviews() {
           ) : null}
         </div>
 
-        {hasMultiple ? (
+        {hasNavigation ? (
           <div className={styles.dots}>
-            {items.map((item, index) => (
+            {Array.from({ length: pageCount }).map((_, index) => (
               <button
-                key={item.image}
+                key={index}
                 type="button"
                 className={`${styles.dot} ${index === activeIndex ? styles.dotActive : ""}`}
                 onClick={() => setActiveIndex(index)}
