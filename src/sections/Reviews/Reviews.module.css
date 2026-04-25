@@ -240,11 +240,11 @@
   }
 
   .controlButtonLeft {
-    left: -22px;
+    left: 30px;
   }
 
   .controlButtonRight {
-    right: -22px;
+    right: 30px;
   }
 
   .carousel {
@@ -285,11 +285,20 @@
 
 @media (min-width: 701px) and (max-width: 900px) {
   .carousel {
-    width: min(100%, 580px);
+    width: min(100%, 560px);
+  }
+
+  .carouselShell {
+  padding-inline: 18px;
+}
+
+  .slide {
+    padding: 0 6px;
   }
 
   .card {
-    max-width: 214px;
+    width: 100%;
+    max-width: none;
   }
 
   .lightboxInner {
