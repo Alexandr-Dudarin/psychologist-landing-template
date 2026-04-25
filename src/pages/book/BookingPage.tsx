@@ -1,9 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../app/providers/LanguageProvider";
-import { Button } from "../../components/Button/Button";
-import { BaseCalendar } from "../../components/calendar/BaseCalendar";
-import type { CalendarDateMeta } from "../../components/calendar/calendar.types";
 import { Container } from "../../components/Container/Container";
 import {
   createPublicBooking,
@@ -12,82 +9,27 @@ import {
 import type {
   PublicBookingAvailabilityResponse,
   PublicBookingCreateSuccessResponse,
-  PublicBookingMonthDayAvailability,
-  PublicBookingService,
   PublicBookingSlot,
 } from "../../types/booking";
+import { BookingDateStep } from "./BookingDateStep";
+import { BookingFormStep } from "./BookingFormStep";
+import {
+  buildCalendarDatesMeta,
+  getInitialVisibleMonth,
+  getSelectedService,
+  validateForm,
+} from "./bookingPage.helpers";
+import { BookingPageSkeleton } from "./BookingPageSkeleton";
+import { BookingServiceStep } from "./BookingServiceStep";
+import { BookingSlotsStep } from "./BookingSlotsStep";
+import { BookingSummary } from "./BookingSummary";
+import {
+  initialFormState,
+  type BookingFormErrors,
+  type BookingFormState,
+  type BookingPageCopy,
+} from "./bookingPage.types";
 import styles from "./BookingPage.module.css";
-
-type BookingPageCopy = {
-  eyebrow: string;
-  title: string;
-  description: string;
-  serviceTitle: string;
-  serviceHint: string;
-  serviceEmpty: string;
-  dateTitle: string;
-  dateHint: string;
-  dateLabel: string;
-  dateEmpty: string;
-  slotsTitle: string;
-  slotsHint: string;
-  slotsEmptySelection: string;
-  slotsEmpty: string;
-  loading: string;
-  loadingCalendar: string;
-  errorFallback: string;
-  summaryTitle: string;
-  summaryService: string;
-  summaryDate: string;
-  summarySlot: string;
-  summaryWaiting: string;
-  summaryFootnote: string;
-  duration: string;
-  durationUnit: string;
-  price: string;
-  formTitle: string;
-  formHint: string;
-  formDisabled: string;
-  submitIdle: string;
-  submitLoading: string;
-  submitSuccess: string;
-  submitConflict: string;
-  submitErrorFallback: string;
-  confirmationTitle: string;
-  confirmationText: string;
-  calendarAvailableLabel: string;
-  calendarAvailableHint: string;
-  calendarUnavailableLabel: string;
-  calendarUnavailableHint: string;
-  calendarDisabledLabel: string;
-  calendarDisabledHint: string;
-};
-
-type BookingFormState = {
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email: string;
-  message: string;
-  consent: boolean;
-};
-
-type BookingFormErrors = {
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  email?: string;
-  consent?: string;
-};
-
-const initialFormState: BookingFormState = {
-  firstName: "",
-  lastName: "",
-  phone: "",
-  email: "",
-  message: "",
-  consent: false,
-};
 
 const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
   ru: {
@@ -199,253 +141,6 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     calendarDisabledHint: "This day is not bookable online.",
   },
 };
-
-function formatDateLabel(value: string, language: "ru" | "en") {
-  const [year, month, day] = value.split("-").map(Number);
-
-  if (!year || !month || !day) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(language === "ru" ? "ru-RU" : "en-US", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(new Date(year, month - 1, day));
-}
-
-function formatPrice(value: number, language: "ru" | "en") {
-  return new Intl.NumberFormat(language === "ru" ? "ru-RU" : "en-US", {
-    style: "currency",
-    currency: "RUB",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function getSelectedService(
-  services: PublicBookingService[],
-  selectedServiceId: number | null
-) {
-  return services.find((service) => service.id === selectedServiceId) ?? null;
-}
-
-function validateForm(
-  form: BookingFormState,
-  bookingContent: ReturnType<typeof useLanguage>["t"]["content"]["booking"]
-): BookingFormErrors {
-  const errors: BookingFormErrors = {};
-
-  if (!form.firstName.trim()) {
-    errors.firstName = bookingContent.messages.firstNameError;
-  }
-
-  if (!form.lastName.trim()) {
-    errors.lastName = bookingContent.messages.lastNameError;
-  }
-
-  if (!form.phone.trim()) {
-    errors.phone = bookingContent.messages.phoneEmptyError;
-  } else if (form.phone.replace(/\D/g, "").length < 10) {
-    errors.phone = bookingContent.messages.phoneInvalidError;
-  }
-
-  if (!form.email.trim()) {
-    errors.email = bookingContent.messages.emailEmptyError;
-  } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-    errors.email = bookingContent.messages.emailInvalidError;
-  }
-
-  if (!form.consent) {
-    errors.consent = bookingContent.messages.consentError;
-  }
-
-  return errors;
-}
-
-function getInitialVisibleMonth(
-  response: PublicBookingAvailabilityResponse | null,
-  selectedDate: string
-): string {
-  if (selectedDate) {
-    return selectedDate.slice(0, 7);
-  }
-
-  if (response?.selectedDate) {
-    return response.selectedDate.slice(0, 7);
-  }
-
-  if (response?.dateBounds.min) {
-    return response.dateBounds.min.slice(0, 7);
-  }
-
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
-
-function buildCalendarDatesMeta(params: {
-  monthAvailability: PublicBookingMonthDayAvailability[];
-  copy: BookingPageCopy;
-}): CalendarDateMeta[] {
-  const { monthAvailability, copy } = params;
-
-  return monthAvailability.map((day) => {
-    if (day.state === "available") {
-      return {
-        date: day.date,
-        state: "available",
-        label: copy.calendarAvailableLabel,
-        hint: copy.calendarAvailableHint,
-        badge: day.slotCount ? String(day.slotCount) : undefined,
-      };
-    }
-
-    if (day.state === "unavailable") {
-      return {
-        date: day.date,
-        state: "unavailable",
-        label: copy.calendarUnavailableLabel,
-        hint: copy.calendarUnavailableHint,
-      };
-    }
-
-    return {
-      date: day.date,
-      state: "disabled",
-      label: copy.calendarDisabledLabel,
-      hint: copy.calendarDisabledHint,
-    };
-  });
-}
-
-function BookingPageSkeleton({ copy }: { copy: BookingPageCopy }) {
-  return (
-    <div className={styles.layout}>
-      <section className={styles.panel}>
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <div className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
-            <div className={`${styles.skeletonLine} ${styles.skeletonHint}`} />
-          </div>
-
-          <div className={styles.servicesGrid}>
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className={styles.skeletonServiceCard}>
-                <div className={`${styles.skeletonLine} ${styles.skeletonCardTitle}`} />
-                <div className={`${styles.skeletonLine} ${styles.skeletonCardMeta}`} />
-                <div className={`${styles.skeletonLine} ${styles.skeletonCardText}`} />
-                <div className={`${styles.skeletonLine} ${styles.skeletonCardTextShort}`} />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <div className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
-            <div className={`${styles.skeletonLine} ${styles.skeletonHint}`} />
-          </div>
-
-          <div className={styles.skeletonCalendar}>
-            <div className={`${styles.skeletonLine} ${styles.skeletonLabel}`} />
-            <div className={styles.skeletonCalendarSurface}>
-              <div className={styles.skeletonCalendarHeader}>
-                <div className={`${styles.skeletonCircle} ${styles.skeletonCalendarArrow}`} />
-                <div className={`${styles.skeletonLine} ${styles.skeletonCalendarMonth}`} />
-                <div className={`${styles.skeletonCircle} ${styles.skeletonCalendarArrow}`} />
-              </div>
-
-              <div className={styles.skeletonWeekdays}>
-                {Array.from({ length: 7 }).map((_, index) => (
-                  <div key={index} className={`${styles.skeletonLine} ${styles.skeletonWeekday}`} />
-                ))}
-              </div>
-
-              <div className={styles.skeletonDaysGrid}>
-                {Array.from({ length: 35 }).map((_, index) => (
-                  <div key={index} className={styles.skeletonDay} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <div className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
-            <div className={`${styles.skeletonLine} ${styles.skeletonHint}`} />
-          </div>
-
-          <div className={styles.skeletonSlotsGrid}>
-            {Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className={styles.skeletonSlot} />
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <div className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
-            <div className={`${styles.skeletonLine} ${styles.skeletonHint}`} />
-          </div>
-
-          <div className={styles.skeletonForm}>
-            <div className={styles.skeletonField}>
-              <div className={`${styles.skeletonLine} ${styles.skeletonLabel}`} />
-              <div className={styles.skeletonInput} />
-            </div>
-
-            <div className={styles.skeletonField}>
-              <div className={`${styles.skeletonLine} ${styles.skeletonLabel}`} />
-              <div className={styles.skeletonInput} />
-            </div>
-
-            <div className={styles.skeletonField}>
-              <div className={`${styles.skeletonLine} ${styles.skeletonLabel}`} />
-              <div className={styles.skeletonInput} />
-            </div>
-
-            <div className={styles.skeletonField}>
-              <div className={`${styles.skeletonLine} ${styles.skeletonLabel}`} />
-              <div className={styles.skeletonInput} />
-            </div>
-
-            <div className={`${styles.skeletonField} ${styles.skeletonFieldFull}`}>
-              <div className={`${styles.skeletonLine} ${styles.skeletonLabel}`} />
-              <div className={styles.skeletonTextarea} />
-            </div>
-
-            <div className={`${styles.skeletonLine} ${styles.skeletonCheckbox}`} />
-            <div className={styles.skeletonSubmit} />
-          </div>
-        </div>
-      </section>
-
-      <aside className={styles.summary}>
-        <h2 className={styles.summaryTitle}>{copy.summaryTitle}</h2>
-
-        <div className={styles.summaryList}>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>{copy.summaryService}</span>
-            <div className={`${styles.skeletonLine} ${styles.skeletonSummaryValue}`} />
-          </div>
-
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>{copy.summaryDate}</span>
-            <div className={`${styles.skeletonLine} ${styles.skeletonSummaryValue}`} />
-          </div>
-
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>{copy.summarySlot}</span>
-            <div className={`${styles.skeletonLine} ${styles.skeletonSummaryValue}`} />
-          </div>
-        </div>
-
-        <div className={`${styles.skeletonLine} ${styles.skeletonSummaryFootnote}`} />
-        <div className={`${styles.skeletonLine} ${styles.skeletonSummaryFootnoteShort}`} />
-      </aside>
-    </div>
-  );
-}
 
 export function BookingPage() {
   const { language, t } = useLanguage();
@@ -583,7 +278,10 @@ export function BookingPage() {
     copy,
   });
 
-  const handleFormChange = (field: keyof BookingFormState, value: string | boolean) => {
+  const handleFormChange = <Field extends keyof BookingFormState>(
+    field: Field,
+    value: BookingFormState[Field]
+  ) => {
     setForm((current) => ({
       ...current,
       [field]: value,
@@ -622,7 +320,7 @@ export function BookingPage() {
     setSelectedSlot(null);
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!selectedService || !selectedSlot) {
@@ -699,325 +397,86 @@ export function BookingPage() {
           <p className={styles.description}>{copy.description}</p>
         </div>
 
-        {isLoading ? <BookingPageSkeleton copy={copy} /> : <div className={styles.layout}>
-          <section className={styles.panel}>
-            <div className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>{copy.serviceTitle}</h2>
-                <p className={styles.sectionHint}>{copy.serviceHint}</p>
-              </div>
+        {isLoading ? (
+          <BookingPageSkeleton copy={copy} />
+        ) : (
+          <div className={styles.layout}>
+            <section className={styles.panel}>
+              <BookingServiceStep
+                copy={copy}
+                currentLanguage={currentLanguage}
+                services={services}
+                selectedServiceId={selectedServiceId}
+                onSelect={(serviceId) => {
+                  setSelectedServiceId(serviceId);
+                  setSelectedSlot(null);
+                  setSubmitError(null);
+                  setSubmitSuccess(null);
+                }}
+              />
 
-              {isLoading ? (
-                <div className={styles.stateBox}>{copy.loading}</div>
-              ) : services.length === 0 ? (
-                <div className={styles.stateBox}>{copy.serviceEmpty}</div>
-              ) : (
-                <div className={styles.servicesGrid}>
-                  {services.map((service) => {
-                    const isActive = service.id === selectedServiceId;
+              <BookingDateStep
+                copy={copy}
+                selectedService={Boolean(selectedService)}
+                selectedDate={selectedDate}
+                visibleMonth={resolvedVisibleMonth}
+                minDate={data?.dateBounds.min}
+                maxDate={data?.dateBounds.max}
+                datesMeta={datesMeta}
+                isRefreshingSlots={isRefreshingSlots}
+                error={error}
+                locale={locale}
+                weekStartsOn={weekStartsOn}
+                onDateChange={(date) => {
+                  setSelectedDate(date);
+                  setVisibleMonth(date.slice(0, 7));
+                  setSelectedSlot(null);
+                  setSubmitError(null);
+                  setSubmitSuccess(null);
+                }}
+                onVisibleMonthChange={setVisibleMonth}
+              />
 
-                    return (
-                      <button
-                        key={service.id}
-                        type="button"
-                        className={`${styles.serviceCard} ${isActive ? styles.serviceCardActive : ""
-                          }`}
-                        onClick={() => {
-                          setSelectedServiceId(service.id);
-                          setSelectedSlot(null);
-                          setSubmitError(null);
-                          setSubmitSuccess(null);
-                        }}
-                      >
-                        <h3 className={styles.serviceCardTitle}>{service.title}</h3>
-                        <div className={styles.serviceCardMeta}>
-                          <span>
-                            {copy.duration}: {service.durationMinutes} {copy.durationUnit}
-                          </span>
-                          <span>
-                            {copy.price}: {formatPrice(service.price, currentLanguage)}
-                          </span>
-                        </div>
-                        {service.description ? (
-                          <p className={styles.serviceCardDescription}>
-                            {service.description}
-                          </p>
-                        ) : null}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+              <BookingSlotsStep
+                copy={copy}
+                error={error}
+                selectedService={Boolean(selectedService)}
+                selectedDate={selectedDate}
+                isRefreshingSlots={isRefreshingSlots}
+                slots={slots}
+                selectedSlot={selectedSlot}
+                onSelect={(slot) => {
+                  setSelectedSlot(slot);
+                  setSubmitError(null);
+                  setSubmitSuccess(null);
+                }}
+              />
 
-            <div className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>{copy.dateTitle}</h2>
-                <p className={styles.sectionHint}>{copy.dateHint}</p>
-              </div>
+              <BookingFormStep
+                copy={copy}
+                bookingContent={bookingContent}
+                privacyLinkText={privacyLinkText}
+                isFormEnabled={isFormEnabled}
+                form={form}
+                formErrors={formErrors}
+                isSubmitting={isSubmitting}
+                submitError={submitError}
+                submitSuccess={submitSuccess}
+                onSubmit={handleSubmit}
+                onFieldChange={handleFormChange}
+              />
+            </section>
 
-              {!selectedService ? (
-                <div className={styles.stateBox}>{copy.dateEmpty}</div>
-              ) : (
-                <div className={styles.calendarBlock}>
-                  <label className={styles.label}>{copy.dateLabel}</label>
-                  <BaseCalendar
-                    value={selectedDate || null}
-                    onChange={(date) => {
-                      setSelectedDate(date);
-                      setVisibleMonth(date.slice(0, 7));
-                      setSelectedSlot(null);
-                      setSubmitError(null);
-                      setSubmitSuccess(null);
-                    }}
-                    visibleMonth={resolvedVisibleMonth}
-                    onVisibleMonthChange={setVisibleMonth}
-                    minDate={data?.dateBounds.min}
-                    maxDate={data?.dateBounds.max}
-                    disablePast
-                    datesMeta={datesMeta}
-                    loading={isLoading || isRefreshingSlots}
-                    error={error}
-                    mode="single"
-                    locale={locale}
-                    weekStartsOn={weekStartsOn}
-                    className={styles.calendarSurface}
-                  />
-                  {isRefreshingSlots ? (
-                    <p className={styles.calendarNote}>{copy.loadingCalendar}</p>
-                  ) : null}
-                </div>
-              )}
-            </div>
-
-            <div className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>{copy.slotsTitle}</h2>
-                <p className={styles.sectionHint}>{copy.slotsHint}</p>
-              </div>
-
-              {error ? (
-                <div className={`${styles.stateBox} ${styles.errorBox}`}>{error}</div>
-              ) : !selectedService || !selectedDate ? (
-                <div className={styles.stateBox}>{copy.slotsEmptySelection}</div>
-              ) : isRefreshingSlots ? (
-                <div className={styles.stateBox}>{copy.loading}</div>
-              ) : slots.length === 0 ? (
-                <div className={styles.stateBox}>{copy.slotsEmpty}</div>
-              ) : (
-                <div className={styles.slotsGrid}>
-                  {slots.map((slot) => {
-                    const isActive = slot.startsAt === selectedSlot?.startsAt;
-
-                    return (
-                      <button
-                        key={slot.startsAt}
-                        type="button"
-                        className={`${styles.slotButton} ${isActive ? styles.slotButtonActive : ""
-                          }`}
-                        onClick={() => {
-                          setSelectedSlot(slot);
-                          setSubmitError(null);
-                          setSubmitSuccess(null);
-                        }}
-                      >
-                        {slot.startTime}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>{copy.formTitle}</h2>
-                <p className={styles.sectionHint}>{copy.formHint}</p>
-              </div>
-
-              {!isFormEnabled ? (
-                <div className={styles.stateBox}>{copy.formDisabled}</div>
-              ) : (
-                <form className={styles.form} onSubmit={handleSubmit}>
-                  <div className={styles.field}>
-                    <label htmlFor="booking-first-name">
-                      {bookingContent.fields.firstName}
-                    </label>
-                    <input
-                      id="booking-first-name"
-                      type="text"
-                      value={form.firstName}
-                      onChange={(event) =>
-                        handleFormChange("firstName", event.target.value)
-                      }
-                      placeholder={bookingContent.placeholders.firstName}
-                    />
-                    {formErrors.firstName ? (
-                      <span className={styles.fieldError}>
-                        {formErrors.firstName}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <div className={styles.field}>
-                    <label htmlFor="booking-last-name">
-                      {bookingContent.fields.lastName}
-                    </label>
-                    <input
-                      id="booking-last-name"
-                      type="text"
-                      value={form.lastName}
-                      onChange={(event) =>
-                        handleFormChange("lastName", event.target.value)
-                      }
-                      placeholder={bookingContent.placeholders.lastName}
-                    />
-                    {formErrors.lastName ? (
-                      <span className={styles.fieldError}>
-                        {formErrors.lastName}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <div className={styles.field}>
-                    <label htmlFor="booking-phone">{bookingContent.fields.phone}</label>
-                    <input
-                      id="booking-phone"
-                      type="tel"
-                      value={form.phone}
-                      onChange={(event) => handleFormChange("phone", event.target.value)}
-                      placeholder={bookingContent.placeholders.phone}
-                    />
-                    {formErrors.phone ? (
-                      <span className={styles.fieldError}>{formErrors.phone}</span>
-                    ) : null}
-                  </div>
-
-                  <div className={styles.field}>
-                    <label htmlFor="booking-email">{bookingContent.fields.email}</label>
-                    <input
-                      id="booking-email"
-                      type="email"
-                      value={form.email}
-                      onChange={(event) => handleFormChange("email", event.target.value)}
-                      placeholder={bookingContent.placeholders.email}
-                    />
-                    {formErrors.email ? (
-                      <span className={styles.fieldError}>{formErrors.email}</span>
-                    ) : null}
-                  </div>
-
-                  <div className={`${styles.field} ${styles.fullWidth}`}>
-                    <label htmlFor="booking-message">{bookingContent.fields.message}</label>
-                    <textarea
-                      id="booking-message"
-                      value={form.message}
-                      onChange={(event) => handleFormChange("message", event.target.value)}
-                      placeholder={bookingContent.placeholders.message}
-                    />
-                  </div>
-
-                  <div className={`${styles.checkboxField} ${styles.fullWidth}`}>
-                    <label className={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        checked={form.consent}
-                        onChange={(event) =>
-                          handleFormChange("consent", event.target.checked)
-                        }
-                      />
-                      <span>
-                        {bookingContent.fields.consent}{" "}
-                        <a href="#privacy" className={styles.policyLink}>
-                          {privacyLinkText}
-                        </a>
-                      </span>
-                    </label>
-                    {formErrors.consent ? (
-                      <span className={styles.fieldError}>{formErrors.consent}</span>
-                    ) : null}
-                  </div>
-
-                  <div className={styles.formActions}>
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      fullWidth
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? copy.submitLoading : copy.submitIdle}
-                    </Button>
-                  </div>
-
-                  {submitError ? (
-                    <div className={`${styles.stateBox} ${styles.errorBox}`}>
-                      {submitError}
-                    </div>
-                  ) : null}
-
-                  {submitSuccess ? (
-                    <div className={`${styles.stateBox} ${styles.successBox}`}>
-                      {submitSuccess}
-                    </div>
-                  ) : null}
-                </form>
-              )}
-            </div>
-          </section>
-
-          <aside className={styles.summary}>
-            <h2 className={styles.summaryTitle}>{copy.summaryTitle}</h2>
-
-            <div className={styles.summaryList}>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>{copy.summaryService}</span>
-                <span className={styles.summaryValue}>
-                  {selectedService?.title ?? copy.summaryWaiting}
-                </span>
-              </div>
-
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>{copy.summaryDate}</span>
-                <span className={styles.summaryValue}>
-                  {selectedDate
-                    ? formatDateLabel(selectedDate, currentLanguage)
-                    : copy.summaryWaiting}
-                </span>
-              </div>
-
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>{copy.summarySlot}</span>
-                <span className={styles.summaryValue}>
-                  {selectedSlot
-                    ? `${selectedSlot.startTime} - ${selectedSlot.endTime}`
-                    : copy.summaryWaiting}
-                </span>
-              </div>
-            </div>
-
-            <p className={styles.summaryFootnote}>{copy.summaryFootnote}</p>
-
-            {confirmedBooking ? (
-              <div className={styles.confirmationCard}>
-                <h3 className={styles.confirmationTitle}>{copy.confirmationTitle}</h3>
-                <p className={styles.confirmationText}>{copy.confirmationText}</p>
-                <div className={styles.confirmationMeta}>
-                  <span>{confirmedBooking.serviceTitle}</span>
-                  <span>
-                    {formatDateLabel(
-                      confirmedBooking.startsAt.slice(0, 10),
-                      currentLanguage
-                    )}
-                  </span>
-                  <span>
-                    {confirmedBooking.startsAt.slice(11, 16)} -{" "}
-                    {confirmedBooking.endsAt.slice(11, 16)}
-                  </span>
-                </div>
-              </div>
-            ) : null}
-          </aside>
-        </div>}
+            <BookingSummary
+              copy={copy}
+              currentLanguage={currentLanguage}
+              selectedService={selectedService}
+              selectedDate={selectedDate}
+              selectedSlot={selectedSlot}
+              confirmedBooking={confirmedBooking}
+            />
+          </div>
+        )}
       </Container>
     </main>
   );
