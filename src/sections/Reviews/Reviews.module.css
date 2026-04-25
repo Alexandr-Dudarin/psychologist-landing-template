@@ -39,15 +39,16 @@
 }
 
 .controlButtonLeft {
-    left: -10px;
+    left: -36px;
 }
 
 .controlButtonRight {
-    right: -10px;
+    right: -36px;
 }
 
 .carousel {
-    width: 100%;
+    width: min(100%, 1180px);
+    margin-inline: auto;
     overflow: hidden;
 }
 
@@ -59,13 +60,15 @@
 
 .slide {
     min-width: 0;
-    padding: 0 10px;
+    padding: 0 12px;
     box-sizing: border-box;
 }
 
 .card {
     width: 100%;
-    border-radius: 28px;
+    border-radius: 24px;
+    max-width: 320px;
+    margin-inline: auto;
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--color-border) 82%, white 18%);
     background:
@@ -110,68 +113,101 @@
 }
 
 @media (max-width: 1200px) {
-    .controlButtonLeft {
-        left: -4px;
-    }
+  .controlButtonLeft {
+    left: -18px;
+  }
 
-    .controlButtonRight {
-        right: -4px;
-    }
+  .controlButtonRight {
+    right: -18px;
+  }
 
-    .slide {
-        padding: 0 8px;
-    }
+  .carousel {
+    width: min(100%, 860px);
+  }
+
+  .slide {
+    padding: 0 8px;
+  }
+
+  .card {
+    max-width: 280px;
+  }
 }
 
 @media (max-width: 900px) {
-    .section {
-        padding-bottom: 96px;
-    }
+  .section {
+    padding-bottom: 96px;
+  }
 
-    .carouselShell {
-        margin-top: 28px;
-    }
+  .carouselShell {
+    margin-top: 28px;
+  }
 
-    .controlButton {
-        width: 46px;
-        height: 46px;
-    }
+  .controlButton {
+    width: 44px;
+    height: 44px;
+  }
 
-    .controlButtonLeft {
-        left: 2px;
-    }
+  .controlButtonLeft {
+    left: -10px;
+  }
 
-    .controlButtonRight {
-        right: 2px;
-    }
+  .controlButtonRight {
+    right: -10px;
+  }
 
-    .slide {
-        padding: 0 7px;
-    }
+  .carousel {
+    width: min(100%, 760px);
+  }
 
-    .card {
-        border-radius: 22px;
-    }
+  .slide {
+    padding: 0 6px;
+  }
+
+  .card {
+    max-width: 260px;
+    border-radius: 20px;
+  }
 }
 
 @media (max-width: 560px) {
-    .carouselShell {
-        margin-top: 24px;
-    }
+  .carouselShell {
+    margin-top: 22px;
+  }
 
-    .controlButton {
-        display: none;
-    }
+  .controlButton {
+    display: none;
+  }
 
-    .slide {
-        padding: 0;
-    }
+  .carousel {
+    width: min(100%, 340px);
+  }
 
-    .card {
-        border-radius: 20px;
-    }
+  .slide {
+    padding: 0;
+  }
 
-    .dots {
-        margin-top: 14px;
-    }
+  .card {
+    max-width: 332px;
+    border-radius: 18px;
+  }
+
+  .dots {
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .carousel {
+    width: min(100%, 292px);
+  }
+
+  .card {
+    max-width: 292px;
+    border-radius: 16px;
+  }
+
+  .dots {
+    margin-top: 10px;
+  }
 }
