@@ -92,55 +92,163 @@
 
 @media (max-width: 960px) {
   .hero {
-    padding: 20px 0 88px;
+    padding: 16px 0 88px;
   }
 
   .grid {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 24px;
     min-height: auto;
   }
 
   .content {
     max-width: 100%;
-    order: 1;
+    order: 2;
   }
 
   .imageWrapper {
-    order: 2;
+    order: 1;
+  }
+
+  .imageCard {
+    max-width: 420px;
+    padding: 12px;
+    border-radius: 28px;
+  }
+
+  .image {
+    aspect-ratio: 4 / 4.6;
+    border-radius: 20px;
+  }
+
+  .title {
+    font-size: clamp(42px, 9vw, 68px);
+  }
+
+  .description {
+    margin-top: 20px;
+    max-width: 100%;
   }
 
   .actions {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
   }
 
   .actions > * {
     width: 100%;
-    max-width: 320px;
   }
 }
 
 @media (max-width: 640px) {
+  .hero {
+    padding: 4px 0 64px;
+  }
+
+  .grid {
+    gap: 16px;
+  }
+
+  .imageWrapper {
+    margin-top: -4px;
+  }
+
+  .imageCard {
+    max-width: 340px;
+    padding: 8px;
+    border-radius: 20px;
+  }
+
+  .image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: auto;
+    border-radius: 16px;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .content {
+    text-align: center;
+  }
+
+  .eyebrow {
+    margin-bottom: 12px;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    line-height: 1.4;
+  }
+
+  .title {
+    font-size: clamp(32px, 10.5vw, 46px);
+    line-height: 0.95;
+  }
+
   .description {
-    font-size: 17px;
+    margin: 16px auto 0;
+    max-width: 30ch;
+    font-size: 15px;
+    line-height: 1.55;
   }
 
   .tags {
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .tags span {
+    min-height: 34px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .actions {
+    margin-top: 24px;
     gap: 10px;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 0 0 56px;
+  }
+
+  .imageCard {
+    max-width: 320px;
+    padding: 8px;
+    border-radius: 18px;
+  }
+
+  .image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: auto;
+    border-radius: 14px;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.17em;
+  }
+
+  .title {
+    font-size: clamp(30px, 10vw, 42px);
+  }
+
+  .description {
+    font-size: 15px;
+    line-height: 1.5;
   }
 
   .tags span {
     width: 100%;
     justify-content: center;
-  }
-
-  .imageCard {
-    padding: 12px;
-    border-radius: 24px;
-  }
-
-  .image {
-    border-radius: 18px;
   }
 }

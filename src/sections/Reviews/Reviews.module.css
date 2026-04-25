@@ -228,7 +228,7 @@
 
   .carouselShell {
     margin-top: 28px;
-    padding-inline: 28px;
+    padding-inline: 34px;
   }
 
   .controlButton {
@@ -254,7 +254,7 @@
   }
 
   .card {
-    max-width: 246px;
+    max-width: 228px;
     border-radius: 20px;
   }
 
@@ -280,7 +280,15 @@
   }
 }
 
-@media (min-width: 700px) and (max-width: 900px) {
+@media (min-width: 701px) and (max-width: 900px) {
+  .carousel {
+    width: min(100%, 600px);
+  }
+
+  .card {
+    max-width: 220px;
+  }
+
   .lightboxInner {
     max-width: min(76vw, 540px);
   }
