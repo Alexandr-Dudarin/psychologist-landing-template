@@ -3,6 +3,7 @@ import type {
   ButtonHTMLAttributes,
   ReactNode,
 } from "react";
+import { Link } from "react-router-dom";
 import styles from "./Button.module.css";
 
 type ButtonVariant = "primary" | "secondary" | "outline";
@@ -26,6 +27,14 @@ type LinkButtonProps = BaseProps &
 
 type ButtonProps = NativeButtonProps | LinkButtonProps;
 
+function isInternalAppLink(href: string) {
+  return href.startsWith("/") && !href.startsWith("//");
+}
+
+function isAnchorLink(href: string) {
+  return href.startsWith("#");
+}
+
 export function Button(props: ButtonProps) {
   const {
     children,
@@ -45,6 +54,35 @@ export function Button(props: ButtonProps) {
 
   if ("href" in props && typeof props.href === "string") {
     const { href, ...anchorProps } = props;
+
+    if (isInternalAppLink(href)) {
+      const {
+        onClick,
+        target,
+        rel,
+        download,
+        hrefLang,
+        media,
+        ping,
+        referrerPolicy,
+        type,
+        ...linkProps
+      } = anchorProps;
+
+      return (
+        <Link to={href} className={classes} onClick={onClick} {...linkProps}>
+          {children}
+        </Link>
+      );
+    }
+
+    if (isAnchorLink(href)) {
+      return (
+        <a href={href} className={classes} {...anchorProps}>
+          {children}
+        </a>
+      );
+    }
 
     return (
       <a href={href} className={classes} {...anchorProps}>
