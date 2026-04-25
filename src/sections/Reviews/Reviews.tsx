@@ -41,6 +41,9 @@ export function Reviews() {
   const touchStartXRef = useRef<number | null>(null);
   const touchDeltaXRef = useRef(0);
 
+  const lightboxTouchStartXRef = useRef<number | null>(null);
+  const lightboxTouchDeltaXRef = useRef(0);
+
   useEffect(() => {
     const handleResize = () => {
       setVisibleCount(getVisibleCount(window.innerWidth));
@@ -158,6 +161,42 @@ export function Reviews() {
     touchDeltaXRef.current = 0;
   };
 
+  const handleLightboxTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    lightboxTouchStartXRef.current = event.touches[0]?.clientX ?? null;
+    lightboxTouchDeltaXRef.current = 0;
+  };
+
+  const handleLightboxTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (lightboxTouchStartXRef.current === null) {
+      return;
+    }
+
+    const currentX =
+      event.touches[0]?.clientX ?? lightboxTouchStartXRef.current;
+
+    lightboxTouchDeltaXRef.current =
+      currentX - lightboxTouchStartXRef.current;
+  };
+
+  const handleLightboxTouchEnd = () => {
+    if (items.length <= 1) {
+      lightboxTouchStartXRef.current = null;
+      lightboxTouchDeltaXRef.current = 0;
+      return;
+    }
+
+    const threshold = 50;
+
+    if (lightboxTouchDeltaXRef.current <= -threshold) {
+      goLightboxNext();
+    } else if (lightboxTouchDeltaXRef.current >= threshold) {
+      goLightboxPrev();
+    }
+
+    lightboxTouchStartXRef.current = null;
+    lightboxTouchDeltaXRef.current = 0;
+  };
+
   const prevLabel =
     language === "ru" ? "Предыдущие отзывы" : "Previous reviews";
   const nextLabel =
@@ -270,6 +309,9 @@ export function Reviews() {
           <div
             className={styles.lightboxInner}
             onClick={(event) => event.stopPropagation()}
+            onTouchStart={handleLightboxTouchStart}
+            onTouchMove={handleLightboxTouchMove}
+            onTouchEnd={handleLightboxTouchEnd}
           >
             <button
               type="button"

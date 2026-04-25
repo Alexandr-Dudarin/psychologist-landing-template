@@ -228,6 +228,7 @@
 
   .carouselShell {
     margin-top: 28px;
+    padding-inline: 28px;
   }
 
   .controlButton {
@@ -236,44 +237,64 @@
   }
 
   .controlButtonLeft {
-    left: -10px;
+    left: 0;
   }
 
   .controlButtonRight {
-    right: -10px;
+    right: 0;
   }
 
   .carousel {
-    width: min(100%, 760px);
+    width: min(100%, 620px);
+    margin-inline: auto;
   }
 
   .slide {
-    padding: 0 6px;
+    padding: 0 8px;
   }
 
   .card {
-    max-width: 260px;
+    max-width: 246px;
     border-radius: 20px;
   }
 
   .lightbox {
-    padding: 20px;
+    padding: 24px;
   }
 
   .lightboxInner {
-    max-width: min(94vw, 760px);
+    max-width: min(78vw, 560px);
   }
 
   .lightboxImage {
+    max-height: 78vh;
     border-radius: 18px;
   }
 
   .lightboxControlLeft {
-    left: -52px;
+    left: -56px;
   }
 
   .lightboxControlRight {
-    right: -52px;
+    right: -56px;
+  }
+}
+
+@media (min-width: 700px) and (max-width: 900px) {
+  .lightboxInner {
+    max-width: min(76vw, 540px);
+  }
+
+  .lightboxImage {
+    max-height: 76vh;
+  }
+
+  .lightboxControlLeft {
+    left: -64px;
+  }
+
+  .lightboxControlRight {
+    right: -64px;
   }
 }
 
