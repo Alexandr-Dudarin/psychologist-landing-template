@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Container } from "../../components/Container/Container";
@@ -33,6 +33,7 @@ export function Reviews() {
   );
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(() =>
     typeof window === "undefined" ? 1 : getVisibleCount(window.innerWidth)
   );
@@ -69,12 +70,59 @@ export function Reviews() {
     }
   }, [activeIndex, maxIndex]);
 
+  useEffect(() => {
+    if (lightboxIndex === null) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setLightboxIndex(null);
+        return;
+      }
+
+      if (event.key === "ArrowLeft") {
+        setLightboxIndex((prev) =>
+          prev === null ? prev : prev === 0 ? items.length - 1 : prev - 1
+        );
+      }
+
+      if (event.key === "ArrowRight") {
+        setLightboxIndex((prev) =>
+          prev === null ? prev : prev === items.length - 1 ? 0 : prev + 1
+        );
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [items.length, lightboxIndex]);
+
   const goPrev = () => {
     setActiveIndex((prev) => (prev === 0 ? maxIndex : prev - 1));
   };
 
   const goNext = () => {
     setActiveIndex((prev) => (prev === maxIndex ? 0 : prev + 1));
+  };
+
+  const goLightboxPrev = () => {
+    setLightboxIndex((prev) =>
+      prev === null ? prev : prev === 0 ? items.length - 1 : prev - 1
+    );
+  };
+
+  const goLightboxNext = () => {
+    setLightboxIndex((prev) =>
+      prev === null ? prev : prev === items.length - 1 ? 0 : prev + 1
+    );
   };
 
   const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
@@ -116,6 +164,10 @@ export function Reviews() {
     language === "ru" ? "Следующие отзывы" : "Next reviews";
   const dotLabelPrefix =
     language === "ru" ? "Перейти к слайду" : "Go to slide";
+  const closeLabel =
+    language === "ru" ? "Закрыть просмотр" : "Close preview";
+  const openLabel =
+    language === "ru" ? "Открыть отзыв крупнее" : "Open review larger";
 
   return (
     <section id="reviews" className={`${styles.section} section`}>
@@ -150,20 +202,31 @@ export function Reviews() {
                 transform: `translateX(-${activeIndex * slideWidthPercent}%)`,
               }}
             >
-              {items.map((item) => (
+              {items.map((item, index) => (
                 <div
                   key={item.image}
                   className={styles.slide}
                   style={{ flex: `0 0 ${slideWidthPercent}%` }}
                 >
-                  <div className={styles.card}>
+                  <button
+                    type="button"
+                    className={styles.card}
+                    onClick={() => {
+                      if (typeof window !== "undefined" && window.innerWidth <= 560) {
+                        return;
+                      }
+
+                      setLightboxIndex(index);
+                    }}
+                    aria-label={openLabel}
+                  >
                     <img
                       src={item.image}
                       alt={item.alt}
                       className={styles.image}
                       loading="lazy"
                     />
-                  </div>
+                  </button>
                 </div>
               ))}
             </div>
@@ -195,6 +258,58 @@ export function Reviews() {
           </div>
         ) : null}
       </Container>
+
+      {lightboxIndex !== null ? (
+        <div
+          className={styles.lightbox}
+          role="dialog"
+          aria-modal="true"
+          aria-label={openLabel}
+          onClick={() => setLightboxIndex(null)}
+        >
+          <div
+            className={styles.lightboxInner}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className={styles.lightboxClose}
+              onClick={() => setLightboxIndex(null)}
+              aria-label={closeLabel}
+            >
+              <X size={18} />
+            </button>
+
+            {items.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  className={`${styles.lightboxControl} ${styles.lightboxControlLeft}`}
+                  onClick={goLightboxPrev}
+                  aria-label={prevLabel}
+                >
+                  <ChevronLeft size={20} />
+                </button>
+
+                <button
+                  type="button"
+                  className={`${styles.lightboxControl} ${styles.lightboxControlRight}`}
+                  onClick={goLightboxNext}
+                  aria-label={nextLabel}
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </>
+            ) : null}
+
+            <img
+              src={items[lightboxIndex].image}
+              alt={items[lightboxIndex].alt}
+              className={styles.lightboxImage}
+            />
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
