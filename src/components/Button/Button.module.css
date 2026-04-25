@@ -30,7 +30,7 @@
     var(--color-accent) 0%,
     var(--color-accent-hover) 100%
   );
-  color: var(--color-white);
+  color: var(--color-accent-contrast);
   box-shadow: var(--shadow-button);
 }
 

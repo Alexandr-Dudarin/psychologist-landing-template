@@ -31,7 +31,7 @@
   line-height: 1;
   font-size: 16px;
   font-weight: 600;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+  box-shadow: var(--shadow-floating);
   white-space: nowrap;
 }
 
@@ -43,7 +43,7 @@
     var(--color-accent-hover) 100%
   ) !important;
   color: var(--color-white) !important;
-  box-shadow: 0 20px 42px rgba(15, 23, 42, 0.22);
+  box-shadow: var(--shadow-soft-hover);
 }
 
 @media (max-width: 768px) {
