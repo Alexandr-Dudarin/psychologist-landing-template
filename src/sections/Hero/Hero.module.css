@@ -117,7 +117,11 @@
   }
 
   .image {
-    aspect-ratio: 4 / 4.6;
+    width: 100%;
+    height: auto;
+    aspect-ratio: auto;
+    object-fit: contain;
+    object-position: center;
     border-radius: 20px;
   }
 

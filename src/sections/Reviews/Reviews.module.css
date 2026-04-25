@@ -4,7 +4,9 @@
 
 .carouselShell {
     position: relative;
-    margin-top: 36px;
+    width: fit-content;
+    max-width: 100%;
+    margin: 36px auto 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -227,8 +229,9 @@
   }
 
   .carouselShell {
-    margin-top: 28px;
-    padding-inline: 34px;
+    margin: 28px auto 0;
+    width: fit-content;
+    max-width: 100%;
   }
 
   .controlButton {
@@ -237,15 +240,15 @@
   }
 
   .controlButtonLeft {
-    left: 0;
+    left: -22px;
   }
 
   .controlButtonRight {
-    right: 0;
+    right: -22px;
   }
 
   .carousel {
-    width: min(100%, 620px);
+    width: min(100%, 600px);
     margin-inline: auto;
   }
 
@@ -254,7 +257,7 @@
   }
 
   .card {
-    max-width: 228px;
+    max-width: 220px;
     border-radius: 20px;
   }
 
@@ -263,46 +266,46 @@
   }
 
   .lightboxInner {
-    max-width: min(78vw, 560px);
-  }
-
-  .lightboxImage {
-    max-height: 78vh;
-    border-radius: 18px;
-  }
-
-  .lightboxControlLeft {
-    left: -56px;
-  }
-
-  .lightboxControlRight {
-    right: -56px;
-  }
-}
-
-@media (min-width: 701px) and (max-width: 900px) {
-  .carousel {
-    width: min(100%, 600px);
-  }
-
-  .card {
-    max-width: 220px;
-  }
-
-  .lightboxInner {
     max-width: min(76vw, 540px);
   }
 
   .lightboxImage {
     max-height: 76vh;
+    border-radius: 18px;
   }
 
   .lightboxControlLeft {
-    left: -64px;
+    left: -72px;
   }
 
   .lightboxControlRight {
-    right: -64px;
+    right: -72px;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 900px) {
+  .carousel {
+    width: min(100%, 580px);
+  }
+
+  .card {
+    max-width: 214px;
+  }
+
+  .lightboxInner {
+    max-width: min(74vw, 520px);
+  }
+
+  .lightboxImage {
+    max-height: 74vh;
+  }
+
+  .lightboxControlLeft {
+    left: -76px;
+  }
+
+  .lightboxControlRight {
+    right: -76px;
   }
 }
 
