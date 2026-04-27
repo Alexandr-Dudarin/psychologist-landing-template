@@ -45,12 +45,22 @@ export function BookingFormStep({
         <p className={styles.sectionHint}>{copy.formHint}</p>
       </div>
 
+      {submitSuccess ? (
+        <div className={`${styles.stateBox} ${styles.successBox}`}>
+          {submitSuccess}
+        </div>
+      ) : null}
+
       {!isFormEnabled ? (
-        <div className={styles.stateBox}>{copy.formDisabled}</div>
+        submitSuccess ? null : (
+          <div className={styles.stateBox}>{copy.formDisabled}</div>
+        )
       ) : (
         <form className={styles.form} onSubmit={onSubmit}>
           <div className={styles.field}>
-            <label htmlFor="booking-first-name">{bookingContent.fields.firstName}</label>
+            <label htmlFor="booking-first-name">
+              {bookingContent.fields.firstName}
+            </label>
             <input
               id="booking-first-name"
               type="text"
@@ -64,7 +74,9 @@ export function BookingFormStep({
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="booking-last-name">{bookingContent.fields.lastName}</label>
+            <label htmlFor="booking-last-name">
+              {bookingContent.fields.lastName}
+            </label>
             <input
               id="booking-last-name"
               type="text"
@@ -82,6 +94,8 @@ export function BookingFormStep({
             <input
               id="booking-phone"
               type="tel"
+              inputMode="tel"
+              autoComplete="tel"
               value={form.phone}
               onChange={(event) => onFieldChange("phone", event.target.value)}
               placeholder={bookingContent.placeholders.phone}
@@ -106,7 +120,9 @@ export function BookingFormStep({
           </div>
 
           <div className={`${styles.field} ${styles.fullWidth}`}>
-            <label htmlFor="booking-message">{bookingContent.fields.message}</label>
+            <label htmlFor="booking-message">
+              {bookingContent.fields.message}
+            </label>
             <textarea
               id="booking-message"
               value={form.message}
@@ -141,11 +157,9 @@ export function BookingFormStep({
           </div>
 
           {submitError ? (
-            <div className={`${styles.stateBox} ${styles.errorBox}`}>{submitError}</div>
-          ) : null}
-
-          {submitSuccess ? (
-            <div className={`${styles.stateBox} ${styles.successBox}`}>{submitSuccess}</div>
+            <div className={`${styles.stateBox} ${styles.errorBox}`}>
+              {submitError}
+            </div>
           ) : null}
         </form>
       )}

@@ -40,6 +40,31 @@ export function getSelectedService(
   return services.find((service) => service.id === selectedServiceId) ?? null;
 }
 
+function getRussianBookingPhoneError(rawPhone: string) {
+  const trimmed = rawPhone.trim();
+
+  if (!trimmed) {
+    return "empty" as const;
+  }
+
+  const digits = trimmed.replace(/\D/g, "");
+
+  const startsWithPlusSeven =
+    trimmed.startsWith("+7") && digits.startsWith("7");
+  const startsWithEight =
+    trimmed.startsWith("8") && digits.startsWith("8");
+
+  if (!startsWithPlusSeven && !startsWithEight) {
+    return "prefix" as const;
+  }
+
+  if (digits.length !== 11) {
+    return "length" as const;
+  }
+
+  return null;
+}
+
 export function validateForm(
   form: BookingFormState,
   bookingContent: BookingContent
@@ -54,10 +79,14 @@ export function validateForm(
     errors.lastName = bookingContent.messages.lastNameError;
   }
 
+  const phoneError = getRussianBookingPhoneError(form.phone);
+
   if (!form.phone.trim()) {
     errors.phone = bookingContent.messages.phoneEmptyError;
-  } else if (form.phone.replace(/\D/g, "").length < 10) {
-    errors.phone = bookingContent.messages.phoneInvalidError;
+  } else if (phoneError === "prefix") {
+    errors.phone = "Номер должен начинаться с +7 или 8";
+  } else if (phoneError === "length") {
+    errors.phone = "После +7 или 8 введите ещё 10 цифр";
   }
 
   if (!form.email.trim()) {

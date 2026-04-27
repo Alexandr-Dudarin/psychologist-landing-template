@@ -338,8 +338,21 @@
 
 .summary {
   position: sticky;
-  top: 24px;
+  top: 20px;
+  align-self: start;
+  height: fit-content;
+  max-height: calc(100vh - 40px);
+  overflow: auto;
   padding: 24px;
+}
+
+.summary::-webkit-scrollbar {
+  width: 8px;
+}
+
+.summary::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-accent) 24%, transparent);
+  border-radius: 999px;
 }
 
 .section {
@@ -564,7 +577,7 @@
 .field input:focus,
 .field textarea:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 4px rgba(141, 110, 99, 0.12);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 12%, transparent);
   background-color: var(--color-surface-strong);
 }
 
@@ -575,7 +588,7 @@
 
 .fieldError {
   font-size: 13px;
-  color: #d96b6b;
+  color: var(--color-danger);
 }
 
 .fullWidth {
