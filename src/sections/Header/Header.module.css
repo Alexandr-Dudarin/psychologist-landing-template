@@ -1,6 +1,5 @@
 .header {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 30;
   padding: 14px 0;
   color: var(--color-text);
@@ -162,6 +161,8 @@
 
 @media (max-width: 960px) {
   .header {
+    position: sticky;
+    top: 0;
     padding: 10px 0;
   }
 

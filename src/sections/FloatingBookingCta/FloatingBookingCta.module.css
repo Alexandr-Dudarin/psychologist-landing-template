@@ -46,16 +46,8 @@
   box-shadow: var(--shadow-soft-hover);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .wrap {
-    top: auto;
-    right: 16px;
-    bottom: 16px;
-    left: 16px;
-  }
-
-  .button {
-    width: 100%;
-    justify-content: center;
+    display: none;
   }
 }
