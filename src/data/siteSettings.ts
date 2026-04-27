@@ -54,9 +54,7 @@ sections: {
   },
 },
 
-  pricing: {
-    source: "config" as "config" | "database",
-  },
+  pricingSource: "database" as "config" | "database",
 
   booking: {
     mode: "slot_request" as "request_only" | "slot_request" | "paid_booking",

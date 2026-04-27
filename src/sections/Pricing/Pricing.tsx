@@ -1,21 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
-import { getPublicServices } from "../../lib/api/publicServices";
-import {
-  getBookingTarget,
-  getPricingSourceMode,
-} from "../../lib/booking/getBookingTarget";
-import type { CrmServiceRecord } from "../../types/service";
+
+import { getPublicPricingServices } from "../../lib/services/getPublicPricingServices";
+import { getBookingTarget } from "../../lib/booking/getBookingTarget";
+
 import styles from "./Pricing.module.css";
 
 type PricingCard = {
+  id: string;
   title: string;
   price: string;
   description: string;
+  durationMinutes?: number;
   featured?: boolean;
 };
 
@@ -49,43 +49,21 @@ function formatServicePrice(value: number, language: "ru" | "en"): string {
   }).format(value);
 }
 
-function mapDatabaseServicesToPricingCards(
-  items: CrmServiceRecord[],
-  language: "ru" | "en",
-  durationLabel: string
-): PricingCard[] {
-  return items.map((item, index) => {
-    const descriptionParts = [item.description?.trim() || ""];
-    descriptionParts.push(`${item.durationMinutes} ${durationLabel}`);
-
-    return {
-      title: item.title,
-      price: formatServicePrice(item.price, language),
-      description: descriptionParts.filter(Boolean).join(" • "),
-      featured: index === 0,
-    };
-  });
-}
-
 export function Pricing() {
   const { language, t } = useLanguage();
   const currentLanguage = language === "en" ? "en" : "ru";
   const copy = pricingCopyByLanguage[currentLanguage];
-  const { config, content, ui } = t;
+
   const bookingTarget = getBookingTarget();
-  const pricingSource = getPricingSourceMode();
-  const [databaseItems, setDatabaseItems] = useState<CrmServiceRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(pricingSource === "database");
+
+  const [services, setServices] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (pricingSource !== "database") {
-      setDatabaseItems([]);
-      setIsLoading(false);
-      setLoadError(null);
-      return;
-    }
+  const cardsRef = useRef<HTMLElement[]>([]);
 
+  // загрузка данных
+  useEffect(() => {
     let isActive = true;
 
     async function loadServices() {
@@ -93,17 +71,13 @@ export function Pricing() {
       setLoadError(null);
 
       try {
-        const items = await getPublicServices();
+        const items = await getPublicPricingServices();
 
-        if (!isActive) {
-          return;
-        }
+        if (!isActive) return;
 
-        setDatabaseItems(items);
+        setServices(items);
       } catch (error) {
-        if (!isActive) {
-          return;
-        }
+        if (!isActive) return;
 
         setLoadError(
           error instanceof Error ? error.message : copy.errorFallback
@@ -120,54 +94,89 @@ export function Pricing() {
     return () => {
       isActive = false;
     };
-  }, [copy.errorFallback, pricingSource]);
+  }, [copy.errorFallback]);
 
-  const pricingCards =
-    pricingSource === "database"
-      ? mapDatabaseServicesToPricingCards(
-          databaseItems,
-          currentLanguage,
-          copy.durationLabel
-        )
-      : config.pricing;
+  // stagger-анимация
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry, index) => {
+          if (entry.isIntersecting) {
+            const el = entry.target as HTMLElement;
+
+            setTimeout(() => {
+              el.classList.add(styles.cardVisible);
+            }, index * 80);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    cardsRef.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [services]);
+
+  const pricingCards: PricingCard[] = services.map((item, index) => {
+    return {
+      id: item.id,
+      title: item.title,
+      price: formatServicePrice(item.price, currentLanguage),
+      description: item.description?.trim() || "",
+      durationMinutes: item.durationMinutes,
+      featured: index === 0,
+    };
+  });
 
   return (
     <section id="pricing" className={`${styles.section} section`}>
       <Container>
         <SectionTitle
-          eyebrow={content.pricing.eyebrow}
-          title={content.pricing.title}
-          description={content.pricing.description}
+          eyebrow={t.content.pricing.eyebrow}
+          title={t.content.pricing.title}
+          description={t.content.pricing.description}
         />
 
-        {pricingSource === "database" && isLoading ? (
+        {isLoading && (
           <div className={styles.stateBox}>{copy.loading}</div>
-        ) : null}
+        )}
 
-        {pricingSource === "database" && !isLoading && loadError ? (
+        {!isLoading && loadError && (
           <div className={`${styles.stateBox} ${styles.stateError}`}>
             {loadError}
           </div>
-        ) : null}
+        )}
 
-        {pricingSource === "database" &&
-        !isLoading &&
-        !loadError &&
-        pricingCards.length === 0 ? (
+        {!isLoading && !loadError && pricingCards.length === 0 && (
           <div className={styles.stateBox}>{copy.empty}</div>
-        ) : null}
+        )}
 
-        {(pricingSource === "config" ||
-          (!isLoading && !loadError && pricingCards.length > 0)) && (
+        {!isLoading && !loadError && pricingCards.length > 0 && (
           <div className={styles.grid}>
-            {pricingCards.map((item) => (
+            {pricingCards.map((item, index) => (
               <article
-                key={item.title}
-                className={`${styles.card} ${item.featured ? styles.featured : ""}`}
+                key={item.id}
+                ref={(el) => {
+                  if (el) {
+                    cardsRef.current[index] = el;
+                  }
+                }}
+                className={`${styles.card} ${
+                  item.featured ? styles.featured : ""
+                }`}
               >
                 <div className={styles.cardTop}>
                   <h3 className={styles.cardTitle}>{item.title}</h3>
                   <p className={styles.price}>{item.price}</p>
+
+                  {item.durationMinutes && (
+                    <p className={styles.duration}>
+                      {item.durationMinutes} {copy.durationLabel}
+                    </p>
+                  )}
                 </div>
 
                 <p className={styles.description}>{item.description}</p>
@@ -177,7 +186,7 @@ export function Pricing() {
                   variant={item.featured ? "primary" : "secondary"}
                   fullWidth
                 >
-                  {ui.buttons.book}
+                  {t.ui.buttons.book}
                 </Button>
               </article>
             ))}

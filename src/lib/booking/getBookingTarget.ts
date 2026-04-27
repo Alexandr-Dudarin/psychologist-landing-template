@@ -21,7 +21,7 @@ export function getBookingTarget() {
 }
 
 export function getPricingSourceMode() {
-  return siteSettings.pricing.source;
+  return siteSettings.pricingSource;
 }
 
 export function canRenderFloatingBookingCta(pathname: string) {
