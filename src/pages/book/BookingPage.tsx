@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, useRef, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Container } from "../../components/Container/Container";
@@ -151,6 +151,10 @@ export function BookingPage() {
   const bookingContent = t.content.booking;
   const privacyLinkText = t.ui.booking.privacyLinkText;
 
+  const dateRef = useRef<HTMLDivElement | null>(null);
+  const slotsRef = useRef<HTMLDivElement | null>(null);
+  const formRef = useRef<HTMLDivElement | null>(null);
+
   const [data, setData] = useState<PublicBookingAvailabilityResponse | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
@@ -166,6 +170,7 @@ export function BookingPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const [pulseSummary, setPulseSummary] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -177,24 +182,18 @@ export function BookingPage() {
       try {
         const response = await getPublicBookingAvailability();
 
-        if (!isActive) {
-          return;
-        }
+        if (!isActive) return;
 
         setData(response);
         setVisibleMonth((current) => current || getInitialVisibleMonth(response, ""));
       } catch (loadError) {
-        if (!isActive) {
-          return;
-        }
+        if (!isActive) return;
 
         setError(
           loadError instanceof Error ? loadError.message : copy.errorFallback
         );
       } finally {
-        if (isActive) {
-          setIsLoading(false);
-        }
+        if (isActive) setIsLoading(false);
       }
     }
 
@@ -221,10 +220,7 @@ export function BookingPage() {
 
       try {
         const activeServiceId = selectedServiceId;
-
-        if (activeServiceId === null) {
-          return;
-        }
+        if (activeServiceId === null) return;
 
         const response = await getPublicBookingAvailability({
           serviceId: activeServiceId,
@@ -232,32 +228,23 @@ export function BookingPage() {
           month: resolvedVisibleMonth,
         });
 
-        if (!isActive) {
-          return;
-        }
+        if (!isActive) return;
 
         setData(response);
         setSelectedSlot((currentSlot) => {
-          if (!currentSlot) {
-            return null;
-          }
-
+          if (!currentSlot) return null;
           return (
             response.slots.find((slot) => slot.startsAt === currentSlot.startsAt) ?? null
           );
         });
       } catch (loadError) {
-        if (!isActive) {
-          return;
-        }
+        if (!isActive) return;
 
         setError(
           loadError instanceof Error ? loadError.message : copy.errorFallback
         );
       } finally {
-        if (isActive) {
-          setIsRefreshingSlots(false);
-        }
+        if (isActive) setIsRefreshingSlots(false);
       }
     }
 
@@ -273,42 +260,26 @@ export function BookingPage() {
   const slots = data?.slots ?? [];
   const monthAvailability = data?.monthAvailability ?? [];
   const isFormEnabled = Boolean(selectedService && selectedDate && selectedSlot);
-  const datesMeta = buildCalendarDatesMeta({
-    monthAvailability,
-    copy,
-  });
+  const datesMeta = buildCalendarDatesMeta({ monthAvailability, copy });
 
   const handleFormChange = <Field extends keyof BookingFormState>(
     field: Field,
     value: BookingFormState[Field]
   ) => {
-    setForm((current) => ({
-      ...current,
-      [field]: value,
-    }));
+    setForm((current) => ({ ...current, [field]: value }));
 
     if (formErrors[field as keyof BookingFormErrors]) {
-      setFormErrors((current) => ({
-        ...current,
-        [field]: undefined,
-      }));
+      setFormErrors((current) => ({ ...current, [field]: undefined }));
     }
 
-    if (submitError) {
-      setSubmitError(null);
-    }
+    if (submitError) setSubmitError(null);
   };
 
   const refreshSelectedDateAvailability = async () => {
-    if (!selectedServiceId || !resolvedVisibleMonth) {
-      return;
-    }
+    if (!selectedServiceId || !resolvedVisibleMonth) return;
 
     const activeServiceId = selectedServiceId;
-
-    if (activeServiceId === null) {
-      return;
-    }
+    if (activeServiceId === null) return;
 
     const response = await getPublicBookingAvailability({
       serviceId: activeServiceId,
@@ -333,9 +304,7 @@ export function BookingPage() {
     setSubmitError(null);
     setSubmitSuccess(null);
 
-    if (Object.keys(validationErrors).length > 0) {
-      return;
-    }
+    if (Object.keys(validationErrors).length > 0) return;
 
     setIsSubmitting(true);
 
@@ -412,69 +381,104 @@ export function BookingPage() {
                   setSelectedSlot(null);
                   setSubmitError(null);
                   setSubmitSuccess(null);
+
+                  setTimeout(() => {
+                    dateRef.current?.scrollIntoView({ behavior: "smooth" });
+                  }, 120);
                 }}
               />
 
-              <BookingDateStep
-                copy={copy}
-                selectedService={Boolean(selectedService)}
-                selectedDate={selectedDate}
-                visibleMonth={resolvedVisibleMonth}
-                minDate={data?.dateBounds.min}
-                maxDate={data?.dateBounds.max}
-                datesMeta={datesMeta}
-                isRefreshingSlots={isRefreshingSlots}
-                error={error}
-                locale={locale}
-                weekStartsOn={weekStartsOn}
-                onDateChange={(date) => {
-                  setSelectedDate(date);
-                  setVisibleMonth(date.slice(0, 7));
-                  setSelectedSlot(null);
-                  setSubmitError(null);
-                  setSubmitSuccess(null);
-                }}
-                onVisibleMonthChange={setVisibleMonth}
-              />
+              <div
+                ref={dateRef}
+                className={!selectedService ? styles.stepDisabled : styles.stepActive}
+              >
+                <BookingDateStep
+                  copy={copy}
+                  selectedService={Boolean(selectedService)}
+                  selectedDate={selectedDate}
+                  visibleMonth={resolvedVisibleMonth}
+                  minDate={data?.dateBounds.min}
+                  maxDate={data?.dateBounds.max}
+                  datesMeta={datesMeta}
+                  isRefreshingSlots={isRefreshingSlots}
+                  error={error}
+                  locale={locale}
+                  weekStartsOn={weekStartsOn}
+                  onDateChange={(date) => {
+                    setSelectedDate(date);
+                    setVisibleMonth(date.slice(0, 7));
+                    setSelectedSlot(null);
+                    setSubmitError(null);
+                    setSubmitSuccess(null);
 
-              <BookingSlotsStep
-                copy={copy}
-                error={error}
-                selectedService={Boolean(selectedService)}
-                selectedDate={selectedDate}
-                isRefreshingSlots={isRefreshingSlots}
-                slots={slots}
-                selectedSlot={selectedSlot}
-                onSelect={(slot) => {
-                  setSelectedSlot(slot);
-                  setSubmitError(null);
-                  setSubmitSuccess(null);
-                }}
-              />
+                    setTimeout(() => {
+                      slotsRef.current?.scrollIntoView({ behavior: "smooth" });
+                    }, 120);
+                  }}
+                  onVisibleMonthChange={setVisibleMonth}
+                />
+              </div>
 
-              <BookingFormStep
-                copy={copy}
-                bookingContent={bookingContent}
-                privacyLinkText={privacyLinkText}
-                isFormEnabled={isFormEnabled}
-                form={form}
-                formErrors={formErrors}
-                isSubmitting={isSubmitting}
-                submitError={submitError}
-                submitSuccess={submitSuccess}
-                onSubmit={handleSubmit}
-                onFieldChange={handleFormChange}
-              />
+              <div
+                ref={slotsRef}
+                className={
+                  !selectedService || !selectedDate
+                    ? styles.stepDisabled
+                    : styles.stepActive
+                }
+              >
+                <BookingSlotsStep
+                  copy={copy}
+                  error={error}
+                  selectedService={Boolean(selectedService)}
+                  selectedDate={selectedDate}
+                  isRefreshingSlots={isRefreshingSlots}
+                  slots={slots}
+                  selectedSlot={selectedSlot}
+                  onSelect={(slot) => {
+                    setSelectedSlot(slot);
+                    setSubmitError(null);
+                    setSubmitSuccess(null);
+
+                    setPulseSummary(true);
+                    setTimeout(() => setPulseSummary(false), 400);
+
+                    setTimeout(() => {
+                      formRef.current?.scrollIntoView({ behavior: "smooth" });
+                    }, 120);
+                  }}
+                />
+              </div>
+
+              <div
+                ref={formRef}
+                className={!isFormEnabled ? styles.stepDisabled : styles.stepActive}
+              >
+                <BookingFormStep
+                  copy={copy}
+                  bookingContent={bookingContent}
+                  privacyLinkText={privacyLinkText}
+                  isFormEnabled={isFormEnabled}
+                  form={form}
+                  formErrors={formErrors}
+                  isSubmitting={isSubmitting}
+                  submitError={submitError}
+                  submitSuccess={submitSuccess}
+                  onSubmit={handleSubmit}
+                  onFieldChange={handleFormChange}
+                />
+              </div>
             </section>
-
-            <BookingSummary
-              copy={copy}
-              currentLanguage={currentLanguage}
-              selectedService={selectedService}
-              selectedDate={selectedDate}
-              selectedSlot={selectedSlot}
-              confirmedBooking={confirmedBooking}
-            />
+            <div className={pulseSummary ? styles.summaryPulse : ""}>
+              <BookingSummary
+                copy={copy}
+                currentLanguage={currentLanguage}
+                selectedService={selectedService}
+                selectedDate={selectedDate}
+                selectedSlot={selectedSlot}
+                confirmedBooking={confirmedBooking}
+              />
+            </div>
           </div>
         )}
       </Container>

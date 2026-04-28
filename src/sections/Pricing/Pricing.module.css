@@ -38,14 +38,12 @@
   box-shadow: var(--shadow-soft);
   scroll-snap-align: start;
 
-  /* анимация */
   transition:
     transform 0.28s ease,
     box-shadow 0.28s ease,
     border-color 0.28s ease,
     background-color 0.28s ease;
 
-  /* для появления */
   opacity: 0;
   transform: translateY(20px);
 }
@@ -166,19 +164,44 @@
   transform: translateY(-1px);
 }
 
-/* ---------- TABLET ---------- */
-@media (max-width: 1100px) {
+/* ===== LARGE TABLET / SMALL DESKTOP ===== */
+@media (max-width: 1199px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    min-height: 300px;
   }
 }
 
-/* ---------- MOBILE (SWIPE) ---------- */
-@media (max-width: 768px) {
+/* ===== TABLET ===== */
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    padding: 24px;
+  }
+
+  .cardTitle {
+    font-size: 22px;
+  }
+
+  .price {
+    font-size: 28px;
+  }
+}
+
+/* ===== MOBILE (SWIPE) ===== */
+@media (max-width: 640px) {
   .grid {
     display: flex;
     overflow-x: auto;
-    gap: 16px;
+    gap: 14px;
     padding-bottom: 8px;
 
     scroll-snap-type: x mandatory;
@@ -190,12 +213,38 @@
   }
 
   .card {
-    min-width: 85%;
-    max-width: 85%;
+    min-width: 84%;
+    max-width: 84%;
     min-height: auto;
+    padding: 22px;
   }
 
   .featured {
     transform: none;
+  }
+}
+
+/* ===== SMALL MOBILE ===== */
+@media (max-width: 420px) {
+  .grid {
+    gap: 12px;
+  }
+
+  .card {
+    min-width: 88%;
+    max-width: 88%;
+    padding: 20px;
+  }
+
+  .cardTitle {
+    font-size: 20px;
+  }
+
+  .price {
+    font-size: 26px;
+  }
+
+  .description {
+    font-size: 15px;
   }
 }
