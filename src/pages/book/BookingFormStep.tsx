@@ -13,7 +13,7 @@ type BookingFormStepProps = {
   bookingContent: BookingContent;
   privacyLinkText: string;
   isFormEnabled: boolean;
-  isCompleted?: boolean; // 👈 ДОБАВИЛИ
+  isCompleted?: boolean;
   form: BookingFormState;
   formErrors: BookingFormErrors;
   isSubmitting: boolean;
@@ -31,7 +31,7 @@ export function BookingFormStep({
   bookingContent,
   privacyLinkText,
   isFormEnabled,
-  isCompleted = false, // 👈 ДОБАВИЛИ
+  isCompleted = false,
   form,
   formErrors,
   isSubmitting,
@@ -40,7 +40,7 @@ export function BookingFormStep({
   onSubmit,
   onFieldChange,
 }: BookingFormStepProps) {
-  const isLocked = isCompleted || isSubmitting; // 👈 единая логика
+  const isLocked = isCompleted || isSubmitting;
 
   return (
     <div className={styles.section}>
@@ -69,7 +69,7 @@ export function BookingFormStep({
               id="booking-first-name"
               type="text"
               value={form.firstName}
-              disabled={isLocked} // 👈 ВОТ КЛЮЧ
+              disabled={isLocked}
               onChange={(event) => onFieldChange("firstName", event.target.value)}
               placeholder={bookingContent.placeholders.firstName}
             />
@@ -165,9 +165,9 @@ export function BookingFormStep({
           <div className={styles.formActions}>
             <Button
               type="submit"
-              variant="primary"
+              variant="premium"
               fullWidth
-              disabled={isLocked} // 👈 КНОПКА ТОЖЕ
+              disabled={isLocked}
             >
               {isSubmitting ? copy.submitLoading : copy.submitIdle}
             </Button>

@@ -29,7 +29,7 @@ export function Hero() {
             </div>
 
             <div className={styles.actions}>
-              <Button variant="primary" href={bookingTarget}>
+              <Button variant="premium" href={bookingTarget}>
                 {ui.buttons.book}
               </Button>
 

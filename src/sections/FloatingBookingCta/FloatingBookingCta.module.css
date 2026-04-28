@@ -2,52 +2,14 @@
   position: fixed;
   top: 24px;
   right: 24px;
-  bottom: auto;
-  left: auto;
   z-index: 140;
+
   display: flex;
   justify-content: flex-end;
+
   pointer-events: none;
 }
 
 .button {
   pointer-events: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 56px;
-  padding-inline: 24px;
-  border: none;
-  border-radius: 999px;
-  background: linear-gradient(
-    135deg,
-    var(--color-accent) 0%,
-    var(--color-accent-hover) 100%
-  ) !important;
-  color: var(--color-white) !important;
-  text-decoration: none;
-  text-align: center;
-  vertical-align: middle;
-  line-height: 1;
-  font-size: 16px;
-  font-weight: 600;
-  box-shadow: var(--shadow-floating);
-  white-space: nowrap;
-}
-
-.button:hover {
-  transform: translateY(-1px);
-  background: linear-gradient(
-    135deg,
-    var(--color-accent-hover) 0%,
-    var(--color-accent-hover) 100%
-  ) !important;
-  color: var(--color-white) !important;
-  box-shadow: var(--shadow-soft-hover);
-}
-
-@media (max-width: 960px) {
-  .wrap {
-    display: none;
-  }
 }

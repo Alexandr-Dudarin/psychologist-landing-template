@@ -46,9 +46,11 @@ export function FloatingBookingCta() {
 
   return (
     <div className={styles.wrap}>
-      <Button href={bookingTarget} variant="primary" className={styles.button}>
-        {t.ui.buttons.book}
-      </Button>
+      <div className={styles.button}>
+        <Button href={bookingTarget} variant="premium">
+          {t.ui.buttons.book}
+        </Button>
+      </div>
     </div>
   );
 }

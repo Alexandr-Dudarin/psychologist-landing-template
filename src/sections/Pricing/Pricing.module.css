@@ -5,7 +5,6 @@
   gap: 24px;
 }
 
-/* состояния */
 .stateBox {
   margin-top: 40px;
   padding: 22px 24px;
@@ -20,7 +19,6 @@
   border-color: color-mix(in srgb, var(--color-accent) 28%, var(--color-border));
 }
 
-/* карточка */
 .card {
   position: relative;
 
@@ -48,7 +46,6 @@
   transform: translateY(20px);
 }
 
-/* появление */
 .cardVisible {
   opacity: 1;
   transform: translateY(0);
@@ -57,7 +54,6 @@
     transform 0.6s ease;
 }
 
-/* hover */
 .card:hover {
   transform: translateY(-6px);
 
@@ -72,7 +68,6 @@
   );
 }
 
-/* glow эффект */
 .card::after {
   content: "";
   position: absolute;
@@ -95,7 +90,6 @@
   opacity: 1;
 }
 
-/* featured */
 .featured {
   background-color: var(--color-surface-strong);
   border-color: var(--color-accent);
@@ -155,7 +149,6 @@
   opacity: 0.8;
 }
 
-/* кнопка */
 .card :global(button) {
   transition: transform 0.2s ease;
 }
@@ -164,7 +157,6 @@
   transform: translateY(-1px);
 }
 
-/* ===== LARGE TABLET / SMALL DESKTOP ===== */
 @media (max-width: 1199px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -176,7 +168,6 @@
   }
 }
 
-/* ===== TABLET ===== */
 @media (max-width: 960px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -196,7 +187,6 @@
   }
 }
 
-/* ===== MOBILE (SWIPE) ===== */
 @media (max-width: 640px) {
   .grid {
     display: flex;
@@ -224,7 +214,6 @@
   }
 }
 
-/* ===== SMALL MOBILE ===== */
 @media (max-width: 420px) {
   .grid {
     gap: 12px;

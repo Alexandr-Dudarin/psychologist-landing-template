@@ -6,7 +6,7 @@ import type {
 import { Link } from "react-router-dom";
 import styles from "./Button.module.css";
 
-type ButtonVariant = "primary" | "secondary" | "outline";
+type ButtonVariant = "primary" | "secondary" | "outline" | "premium";
 
 type BaseProps = {
   children: ReactNode;

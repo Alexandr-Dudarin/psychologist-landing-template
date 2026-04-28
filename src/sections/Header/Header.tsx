@@ -135,7 +135,7 @@ export function Header() {
                 </div>
               )}
 
-              <Button href={bookingTarget} variant="primary">
+              <Button href={bookingTarget} variant="premium">
                 {ui.buttons.book}
               </Button>
 
@@ -216,7 +216,7 @@ export function Header() {
               </div>
             )}
 
-            <Button href={bookingTarget} variant="primary" fullWidth>
+            <Button href={bookingTarget} variant="premium" fullWidth>
               {ui.buttons.book}
             </Button>
           </div>

@@ -183,7 +183,7 @@ export function Pricing() {
 
                 <Button
                   href={bookingTarget}
-                  variant={item.featured ? "primary" : "secondary"}
+                  variant="premium"
                   fullWidth
                 >
                   {t.ui.buttons.book}
