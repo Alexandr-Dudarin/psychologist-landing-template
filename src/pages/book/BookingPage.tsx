@@ -171,6 +171,7 @@ export function BookingPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [pulseSummary, setPulseSummary] = useState(false);
+  const isCompleted = Boolean(confirmedBooking);
 
   useEffect(() => {
     let isActive = true;
@@ -234,7 +235,7 @@ export function BookingPage() {
         setSelectedSlot((currentSlot) => {
           if (!currentSlot) return null;
           return (
-            response.slots.find((slot) => slot.startsAt === currentSlot.startsAt) ?? null
+            response.slots.find((slot) => slot.startsAt === currentSlot.startsAt) ?? currentSlot
           );
         });
       } catch (loadError) {
@@ -288,7 +289,14 @@ export function BookingPage() {
     });
 
     setData(response);
-    setSelectedSlot(null);
+
+    setSelectedSlot((current) => {
+      if (!current) return null;
+
+      return (
+        response.slots.find((slot) => slot.startsAt === current.startsAt) ?? current
+      );
+    });
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -322,8 +330,9 @@ export function BookingPage() {
 
       setConfirmedBooking(response.booking);
       setSubmitSuccess(copy.submitSuccess);
-      setForm(initialFormState);
+
       setFormErrors({});
+
       await refreshSelectedDateAvailability();
     } catch (submitErrorValue) {
       const publicError = submitErrorValue as Error & {
@@ -378,6 +387,7 @@ export function BookingPage() {
                   services={services}
                   selectedServiceId={selectedServiceId}
                   onSelect={(serviceId) => {
+                    if (isCompleted) return;
                     setSelectedServiceId(serviceId);
                     setSelectedSlot(null);
                     setSubmitError(null);
@@ -410,6 +420,7 @@ export function BookingPage() {
                   locale={locale}
                   weekStartsOn={weekStartsOn}
                   onDateChange={(date) => {
+                    if (isCompleted) return;
                     setSelectedDate(date);
                     setVisibleMonth(date.slice(0, 7));
                     setSelectedSlot(null);
@@ -420,7 +431,7 @@ export function BookingPage() {
                     setTimeout(() => setPulseSummary(false), 300);
 
                     setTimeout(() => {
-                      slotsRef.current?.scrollIntoView({ behavior: "smooth", block: "start", });
+                      slotsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                     }, 120);
                   }}
                   onVisibleMonthChange={setVisibleMonth}
@@ -444,6 +455,7 @@ export function BookingPage() {
                   slots={slots}
                   selectedSlot={selectedSlot}
                   onSelect={(slot) => {
+                    if (isCompleted) return;
                     setSelectedSlot(slot);
                     setSubmitError(null);
                     setSubmitSuccess(null);
@@ -468,6 +480,7 @@ export function BookingPage() {
                   privacyLinkText={privacyLinkText}
                   isFormEnabled={isFormEnabled}
                   form={form}
+                  isCompleted={isCompleted}
                   formErrors={formErrors}
                   isSubmitting={isSubmitting}
                   submitError={submitError}

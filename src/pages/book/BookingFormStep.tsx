@@ -13,6 +13,7 @@ type BookingFormStepProps = {
   bookingContent: BookingContent;
   privacyLinkText: string;
   isFormEnabled: boolean;
+  isCompleted?: boolean; // 👈 ДОБАВИЛИ
   form: BookingFormState;
   formErrors: BookingFormErrors;
   isSubmitting: boolean;
@@ -30,6 +31,7 @@ export function BookingFormStep({
   bookingContent,
   privacyLinkText,
   isFormEnabled,
+  isCompleted = false, // 👈 ДОБАВИЛИ
   form,
   formErrors,
   isSubmitting,
@@ -38,6 +40,8 @@ export function BookingFormStep({
   onSubmit,
   onFieldChange,
 }: BookingFormStepProps) {
+  const isLocked = isCompleted || isSubmitting; // 👈 единая логика
+
   return (
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
@@ -65,6 +69,7 @@ export function BookingFormStep({
               id="booking-first-name"
               type="text"
               value={form.firstName}
+              disabled={isLocked} // 👈 ВОТ КЛЮЧ
               onChange={(event) => onFieldChange("firstName", event.target.value)}
               placeholder={bookingContent.placeholders.firstName}
             />
@@ -81,6 +86,7 @@ export function BookingFormStep({
               id="booking-last-name"
               type="text"
               value={form.lastName}
+              disabled={isLocked}
               onChange={(event) => onFieldChange("lastName", event.target.value)}
               placeholder={bookingContent.placeholders.lastName}
             />
@@ -97,6 +103,7 @@ export function BookingFormStep({
               inputMode="tel"
               autoComplete="tel"
               value={form.phone}
+              disabled={isLocked}
               onChange={(event) => onFieldChange("phone", event.target.value)}
               placeholder={bookingContent.placeholders.phone}
             />
@@ -111,6 +118,7 @@ export function BookingFormStep({
               id="booking-email"
               type="email"
               value={form.email}
+              disabled={isLocked}
               onChange={(event) => onFieldChange("email", event.target.value)}
               placeholder={bookingContent.placeholders.email}
             />
@@ -126,6 +134,7 @@ export function BookingFormStep({
             <textarea
               id="booking-message"
               value={form.message}
+              disabled={isLocked}
               onChange={(event) => onFieldChange("message", event.target.value)}
               placeholder={bookingContent.placeholders.message}
             />
@@ -136,7 +145,10 @@ export function BookingFormStep({
               <input
                 type="checkbox"
                 checked={form.consent}
-                onChange={(event) => onFieldChange("consent", event.target.checked)}
+                disabled={isLocked}
+                onChange={(event) =>
+                  onFieldChange("consent", event.target.checked)
+                }
               />
               <span>
                 {bookingContent.fields.consent}{" "}
@@ -151,7 +163,12 @@ export function BookingFormStep({
           </div>
 
           <div className={styles.formActions}>
-            <Button type="submit" variant="primary" fullWidth disabled={isSubmitting}>
+            <Button
+              type="submit"
+              variant="primary"
+              fullWidth
+              disabled={isLocked} // 👈 КНОПКА ТОЖЕ
+            >
               {isSubmitting ? copy.submitLoading : copy.submitIdle}
             </Button>
           </div>
