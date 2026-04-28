@@ -61,6 +61,7 @@ export function BookingDateStep({
             locale={locale}
             weekStartsOn={weekStartsOn}
             className={styles.calendarSurface}
+            variant="public"
           />
           {isRefreshingSlots ? (
             <p className={styles.calendarNote}>{copy.loadingCalendar}</p>

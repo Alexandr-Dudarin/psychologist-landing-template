@@ -51,6 +51,7 @@ export function BaseCalendar({
   locale = "en-US",
   weekStartsOn = 1,
   className,
+  variant = "admin" as const,
 }: BaseCalendarProps) {
   const resolvedVisibleMonth = visibleMonth ?? getDefaultVisibleMonth(value, minDate);
   const monthGrid = getMonthGrid(resolvedVisibleMonth, weekStartsOn);
@@ -84,6 +85,7 @@ export function BaseCalendar({
     <div
       className={getClassName([
         styles.calendar,
+        variant === "public" && styles.calendarPublic, // 👈 ВАЖНО
         readOnly && styles.calendarReadonly,
         className,
       ])}
