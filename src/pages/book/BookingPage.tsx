@@ -383,6 +383,9 @@ export function BookingPage() {
                     setSubmitError(null);
                     setSubmitSuccess(null);
 
+                    setPulseSummary(true);
+                    setTimeout(() => setPulseSummary(false), 300);
+
                     setTimeout(() => {
                       dateRef.current?.scrollIntoView({ behavior: "smooth" });
                     }, 120);
@@ -413,8 +416,11 @@ export function BookingPage() {
                     setSubmitError(null);
                     setSubmitSuccess(null);
 
+                    setPulseSummary(true);
+                    setTimeout(() => setPulseSummary(false), 300);
+
                     setTimeout(() => {
-                      slotsRef.current?.scrollIntoView({ behavior: "smooth" });
+                      slotsRef.current?.scrollIntoView({ behavior: "smooth", block: "start", });
                     }, 120);
                   }}
                   onVisibleMonthChange={setVisibleMonth}
@@ -472,15 +478,15 @@ export function BookingPage() {
               </div>
             </section>
             <div className={styles.summaryWrapper}>
-            <BookingSummary
-              className={pulseSummary ? styles.summaryPulse : ""}
-              copy={copy}
-              currentLanguage={currentLanguage}
-              selectedService={selectedService}
-              selectedDate={selectedDate}
-              selectedSlot={selectedSlot}
-              confirmedBooking={confirmedBooking}
-            />
+              <BookingSummary
+                className={pulseSummary ? styles.summaryPulse : ""}
+                copy={copy}
+                currentLanguage={currentLanguage}
+                selectedService={selectedService}
+                selectedDate={selectedDate}
+                selectedSlot={selectedSlot}
+                confirmedBooking={confirmedBooking}
+              />
             </div>
           </div>
         )}

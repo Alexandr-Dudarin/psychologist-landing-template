@@ -389,10 +389,6 @@
   overflow: visible !important;
 }
 
-.layout > * {
-  min-height: 0;
-}
-
 .panel,
 .summary {
   background: var(--color-surface);
@@ -417,6 +413,13 @@
   position: relative;
   align-self: start;
   padding: 20px;
+  transition: box-shadow 0.3s ease;
+}
+
+.summary:hover {
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.08),
+    0 0 0 1px color-mix(in srgb, var(--color-accent) 10%, transparent);
 }
 
 .summary::-webkit-scrollbar {
