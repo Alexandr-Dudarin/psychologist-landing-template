@@ -1,3 +1,10 @@
+.page,
+.layout,
+.panel,
+.summary {
+  overflow: visible !important;
+}
+
 .page {
   min-height: 100vh;
   padding: 72px 0 96px;
@@ -379,6 +386,11 @@
   grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
   gap: 24px;
   align-items: start;
+  overflow: visible !important;
+}
+
+.layout > * {
+  min-height: 0;
 }
 
 .panel,
@@ -392,16 +404,19 @@
 
 .panel {
   padding: 28px;
+  overflow: visible !important;
 }
 
-.summary {
+.summaryWrapper {
   position: sticky;
   top: 20px;
   align-self: start;
-  height: fit-content;
-  max-height: calc(100vh - 40px);
-  overflow: auto;
-  padding: 24px;
+}
+
+.summary {
+  position: relative;
+  align-self: start;
+  padding: 20px;
 }
 
 .summary::-webkit-scrollbar {

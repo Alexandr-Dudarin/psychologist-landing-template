@@ -471,15 +471,16 @@ export function BookingPage() {
                 />
               </div>
             </section>
-            <div className={pulseSummary ? styles.summaryPulse : ""}>
-              <BookingSummary
-                copy={copy}
-                currentLanguage={currentLanguage}
-                selectedService={selectedService}
-                selectedDate={selectedDate}
-                selectedSlot={selectedSlot}
-                confirmedBooking={confirmedBooking}
-              />
+            <div className={styles.summaryWrapper}>
+            <BookingSummary
+              className={pulseSummary ? styles.summaryPulse : ""}
+              copy={copy}
+              currentLanguage={currentLanguage}
+              selectedService={selectedService}
+              selectedDate={selectedDate}
+              selectedSlot={selectedSlot}
+              confirmedBooking={confirmedBooking}
+            />
             </div>
           </div>
         )}

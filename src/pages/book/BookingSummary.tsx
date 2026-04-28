@@ -4,6 +4,7 @@ import type { BookingPageCopy, ConfirmedBooking } from "./bookingPage.types";
 import styles from "./BookingPage.module.css";
 
 type BookingSummaryProps = {
+  className?: string;
   copy: BookingPageCopy;
   currentLanguage: "ru" | "en";
   selectedService: PublicBookingService | null;
@@ -13,6 +14,7 @@ type BookingSummaryProps = {
 };
 
 export function BookingSummary({
+  className,
   copy,
   currentLanguage,
   selectedService,
@@ -37,7 +39,7 @@ export function BookingSummary({
     : null;
 
   return (
-    <aside className={styles.summary}>
+    <aside className={`${styles.summary} ${className || ""}`}>
       <h2 className={styles.summaryTitle}>{copy.summaryTitle}</h2>
 
       <div className={styles.summaryList}>
