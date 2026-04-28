@@ -11,6 +11,8 @@ import type {
   PublicBookingCreateSuccessResponse,
   PublicBookingSlot,
 } from "../../types/booking";
+import { createPayment } from "../../lib/api/payment";
+import { siteSettings } from "../../data/siteSettings";
 import { BookingDateStep } from "./BookingDateStep";
 import { BookingFormStep } from "./BookingFormStep";
 import {
@@ -172,6 +174,7 @@ export function BookingPage() {
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [pulseSummary, setPulseSummary] = useState(false);
   const isCompleted = Boolean(confirmedBooking);
+  const isPaymentEnabled = siteSettings.booking.paymentEnabled;
 
   useEffect(() => {
     let isActive = true;
@@ -317,7 +320,7 @@ export function BookingPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await createPublicBooking({
+      const payload = {
         serviceId: selectedService.id,
         startsAt: selectedSlot.startsAt,
         firstName: form.firstName.trim(),
@@ -326,7 +329,16 @@ export function BookingPage() {
         email: form.email.trim(),
         message: form.message.trim(),
         consent: form.consent,
-      });
+      };
+
+      if (isPaymentEnabled) {
+        const payment = await createPayment(payload);
+
+        window.location.href = payment.confirmationUrl;
+        return;
+      }
+
+      const response = await createPublicBooking(payload);
 
       setConfirmedBooking(response.booking);
       setSubmitSuccess(copy.submitSuccess);

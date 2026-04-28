@@ -61,7 +61,7 @@ sections: {
     entryMode: "separate_page" as "inline_form" | "separate_page",
     separatePageEnabled: true,
     calendarEnabled: false,
-    paymentEnabled: false,
+    paymentEnabled: true,
     sessionDurationMinutes: 60,
     breakBetweenSessionsMinutes: 30,
     floatingCta: {

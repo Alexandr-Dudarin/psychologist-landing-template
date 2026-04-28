@@ -14,6 +14,7 @@ import { NotesPage } from "../../pages/admin/notes/NotesPage";
 import { SchedulePage } from "../../pages/admin/schedule/SchedulePage";
 import { PremiumSchedulerPage } from "../../pages/admin/scheduler/PremiumSchedulerPage";
 import { AdminHelpPage } from "../../pages/admin/help/AdminHelpPage";
+import { PaymentSuccessPage } from "../../pages/PaymentSuccessPage/PaymentSuccessPage";
 import { siteSettings } from "../../data/siteSettings";
 
 export function AppRouter() {
@@ -22,6 +23,7 @@ export function AppRouter() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/book" element={<BookingPage />} />
+        <Route path="/payment-success" element={<PaymentSuccessPage />} />
       </Route>
 
       <Route path="/admin/login" element={<AdminLoginPage />} />
