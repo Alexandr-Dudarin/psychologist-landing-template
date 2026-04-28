@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { PublicBookingService, PublicBookingSlot } from "../../types/booking";
 import { formatDateLabel } from "./bookingPage.helpers";
 import type { BookingPageCopy, ConfirmedBooking } from "./bookingPage.types";
@@ -22,6 +23,37 @@ export function BookingSummary({
   selectedSlot,
   confirmedBooking,
 }: BookingSummaryProps) {
+  const [animateField, setAnimateField] = useState<
+    "service" | "date" | "slot" | null
+  >(null);
+
+  // 👉 определяем, что именно изменилось
+  useEffect(() => {
+    if (selectedService) {
+      setAnimateField("service");
+    }
+  }, [selectedService]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      setAnimateField("date");
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    if (selectedSlot) {
+      setAnimateField("slot");
+    }
+  }, [selectedSlot]);
+
+  // 👉 сбрасываем анимацию
+  useEffect(() => {
+    if (!animateField) return;
+
+    const t = setTimeout(() => setAnimateField(null), 300);
+    return () => clearTimeout(t);
+  }, [animateField]);
+
   const selectedDateLabel = selectedDate
     ? formatDateLabel(selectedDate, currentLanguage)
     : copy.summaryWaiting;
@@ -43,21 +75,40 @@ export function BookingSummary({
       <h2 className={styles.summaryTitle}>{copy.summaryTitle}</h2>
 
       <div className={styles.summaryList}>
+        {/* УСЛУГА */}
         <div className={styles.summaryItem}>
           <span className={styles.summaryLabel}>{copy.summaryService}</span>
-          <span className={styles.summaryValue}>
+          <span
+            className={`${styles.summaryValue} ${
+              animateField === "service" ? styles.summaryValueAnimate : ""
+            }`}
+          >
             {selectedService?.title ?? copy.summaryWaiting}
           </span>
         </div>
 
+        {/* ДАТА */}
         <div className={styles.summaryItem}>
           <span className={styles.summaryLabel}>{copy.summaryDate}</span>
-          <span className={styles.summaryValue}>{selectedDateLabel}</span>
+          <span
+            className={`${styles.summaryValue} ${
+              animateField === "date" ? styles.summaryValueAnimate : ""
+            }`}
+          >
+            {selectedDateLabel}
+          </span>
         </div>
 
+        {/* СЛОТ */}
         <div className={styles.summaryItem}>
           <span className={styles.summaryLabel}>{copy.summarySlot}</span>
-          <span className={styles.summaryValue}>{selectedSlotLabel}</span>
+          <span
+            className={`${styles.summaryValue} ${
+              animateField === "slot" ? styles.summaryValueAnimate : ""
+            }`}
+          >
+            {selectedSlotLabel}
+          </span>
         </div>
       </div>
 

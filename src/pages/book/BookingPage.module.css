@@ -751,6 +751,23 @@
 .summaryValue {
   font-size: 18px;
   font-weight: 600;
+
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.summaryValueAnimate {
+  animation: summaryFadeIn 0.3s ease;
+}
+
+@keyframes summaryFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .summaryFootnote {
