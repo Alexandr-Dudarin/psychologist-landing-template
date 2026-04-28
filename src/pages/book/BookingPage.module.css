@@ -40,6 +40,10 @@
   color: var(--color-accent);
 }
 
+.stepActive:first-child::before {
+  opacity: 0.9;
+}
+
 .summaryPulse {
   animation: summaryPulse 0.4s ease;
 }
@@ -534,37 +538,57 @@
 
 .slotsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 12px;
-  align-items: stretch;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
 }
 
 .slotButton {
+  position: relative;
+
   width: 100%;
-  min-height: 52px;
-  padding: 14px 12px;
-  border: 1px solid var(--color-border);
+  min-height: 48px;
+  padding: 12px 14px;
+
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-surface-strong) 82%, transparent);
-  color: inherit;
+  border: 1px solid var(--color-border);
+
+  background: color-mix(in srgb, var(--color-surface-strong) 80%, transparent);
+  color: var(--color-text);
+
+  font-size: 14px;
+  font-weight: 500;
+
   cursor: pointer;
+
   transition:
-    border-color var(--transition-base),
-    background var(--transition-base),
-    transform var(--transition-base);
+    all 0.25s ease,
+    transform 0.18s ease;
 }
 
 .slotButton:hover,
 .slotButton:focus-visible {
   border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
-  background: color-mix(in srgb, var(--color-surface-strong) 95%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+
   transform: translateY(-1px);
   outline: none;
 }
 
 .slotButtonActive {
   border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+
+  transform: scale(1.05);
+
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.08),
+    0 0 0 2px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+.slotButton:active {
+  transform: scale(0.97);
 }
 
 .stateBox {

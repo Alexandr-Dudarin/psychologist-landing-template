@@ -371,22 +371,24 @@ export function BookingPage() {
         ) : (
           <div className={styles.layout}>
             <section className={styles.panel}>
-              <BookingServiceStep
-                copy={copy}
-                currentLanguage={currentLanguage}
-                services={services}
-                selectedServiceId={selectedServiceId}
-                onSelect={(serviceId) => {
-                  setSelectedServiceId(serviceId);
-                  setSelectedSlot(null);
-                  setSubmitError(null);
-                  setSubmitSuccess(null);
+              <div className={styles.stepActive}>
+                <BookingServiceStep
+                  copy={copy}
+                  currentLanguage={currentLanguage}
+                  services={services}
+                  selectedServiceId={selectedServiceId}
+                  onSelect={(serviceId) => {
+                    setSelectedServiceId(serviceId);
+                    setSelectedSlot(null);
+                    setSubmitError(null);
+                    setSubmitSuccess(null);
 
-                  setTimeout(() => {
-                    dateRef.current?.scrollIntoView({ behavior: "smooth" });
-                  }, 120);
-                }}
-              />
+                    setTimeout(() => {
+                      dateRef.current?.scrollIntoView({ behavior: "smooth" });
+                    }, 120);
+                  }}
+                />
+              </div>
 
               <div
                 ref={dateRef}
