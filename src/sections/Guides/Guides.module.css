@@ -150,24 +150,22 @@
     justify-content: center;
     padding: 0 18px;
     border-radius: 18px;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--color-accent) 92%, white 8%),
-        var(--color-accent)
-    );
+    background: linear-gradient(180deg,
+            color-mix(in srgb, var(--color-accent) 92%, white 8%),
+            var(--color-accent));
     color: var(--color-accent-contrast);
     text-decoration: none;
     transition:
-        background-color 0.2s ease,
         transform 0.2s ease,
-        box-shadow 0.2s ease;
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
     box-shadow:
         var(--shadow-button),
         inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .ctaButton:hover {
-    background: var(--color-accent-hover);
+    filter: brightness(0.95);
     transform: translateY(-1px);
 }
 

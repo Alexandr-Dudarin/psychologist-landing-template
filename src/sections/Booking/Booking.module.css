@@ -160,3 +160,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+.button:active {
+  transform: scale(0.97);
+  filter: brightness(0.98);
+}

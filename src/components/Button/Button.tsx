@@ -1,7 +1,9 @@
-import type {
-  AnchorHTMLAttributes,
-  ButtonHTMLAttributes,
-  ReactNode,
+import {
+  useRef,
+  type AnchorHTMLAttributes,
+  type ButtonHTMLAttributes,
+  type ReactNode,
+  type MouseEvent,
 } from "react";
 import { Link } from "react-router-dom";
 import styles from "./Button.module.css";
@@ -43,6 +45,8 @@ export function Button(props: ButtonProps) {
     className = "",
   } = props;
 
+  const ref = useRef<HTMLElement | null>(null);
+
   const classes = [
     styles.button,
     styles[variant],
@@ -51,6 +55,37 @@ export function Button(props: ButtonProps) {
   ]
     .filter(Boolean)
     .join(" ");
+
+  const handleMouseMove = (e: MouseEvent<HTMLElement>) => {
+    if (variant !== "premium" || !ref.current) return;
+
+    const rect = ref.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    ref.current.style.setProperty("--x", `${x}px`);
+    ref.current.style.setProperty("--y", `${y}px`);
+
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const moveX = (x - centerX) * 0.15;
+    const moveY = (y - centerY) * 0.2;
+
+    ref.current.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.02)`;
+  };
+
+  const handleMouseLeave = () => {
+    if (!ref.current) return;
+    ref.current.style.transform = "";
+  };
+
+  const commonProps = {
+    className: classes,
+    ref: ref as any,
+    onMouseMove: handleMouseMove,
+    onMouseLeave: handleMouseLeave,
+  };
 
   if ("href" in props && typeof props.href === "string") {
     const { href, ...anchorProps } = props;
@@ -70,7 +105,7 @@ export function Button(props: ButtonProps) {
       } = anchorProps;
 
       return (
-        <Link to={href} className={classes} onClick={onClick} {...linkProps}>
+        <Link to={href} {...commonProps} onClick={onClick} {...linkProps}>
           {children}
         </Link>
       );
@@ -78,14 +113,14 @@ export function Button(props: ButtonProps) {
 
     if (isAnchorLink(href)) {
       return (
-        <a href={href} className={classes} {...anchorProps}>
+        <a href={href} {...commonProps} {...anchorProps}>
           {children}
         </a>
       );
     }
 
     return (
-      <a href={href} className={classes} {...anchorProps}>
+      <a href={href} {...commonProps} {...anchorProps}>
         {children}
       </a>
     );
@@ -94,7 +129,7 @@ export function Button(props: ButtonProps) {
   const { type = "button", ...buttonProps } = props;
 
   return (
-    <button type={type} className={classes} {...buttonProps}>
+    <button type={type} {...commonProps} {...buttonProps}>
       {children}
     </button>
   );

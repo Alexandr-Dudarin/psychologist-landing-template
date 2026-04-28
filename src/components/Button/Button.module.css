@@ -124,3 +124,23 @@
     transform: translateX(120%);
   }
 }
+
+.premium::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: radial-gradient(
+    circle at var(--x, 50%) var(--y, 50%),
+    rgba(255, 255, 255, 0.25),
+    transparent 60%
+  );
+
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.premium:hover::before {
+  opacity: 1;
+}
