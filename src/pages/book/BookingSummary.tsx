@@ -4,6 +4,12 @@ import { formatDateLabel } from "./bookingPage.helpers";
 import type { BookingPageCopy, ConfirmedBooking } from "./bookingPage.types";
 import styles from "./BookingPage.module.css";
 
+import {
+  formatBookingTime,
+} from "../../lib/booking/formatBookingDateTime";
+import { siteSettings } from "../../data/siteSettings";
+import { getTimezoneLabel } from "../../lib/booking/getTimezoneLabel";
+
 type BookingSummaryProps = {
   className?: string;
   copy: BookingPageCopy;
@@ -27,29 +33,25 @@ export function BookingSummary({
     "service" | "date" | "slot" | null
   >(null);
 
-  // 👉 определяем, что именно изменилось
+  const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
+
+  const timezone = siteSettings.booking.timezone;
+  const timezoneLabel = getTimezoneLabel(timezone, currentLanguage);
+
   useEffect(() => {
-    if (selectedService) {
-      setAnimateField("service");
-    }
+    if (selectedService) setAnimateField("service");
   }, [selectedService]);
 
   useEffect(() => {
-    if (selectedDate) {
-      setAnimateField("date");
-    }
+    if (selectedDate) setAnimateField("date");
   }, [selectedDate]);
 
   useEffect(() => {
-    if (selectedSlot) {
-      setAnimateField("slot");
-    }
+    if (selectedSlot) setAnimateField("slot");
   }, [selectedSlot]);
 
-  // 👉 сбрасываем анимацию
   useEffect(() => {
     if (!animateField) return;
-
     const t = setTimeout(() => setAnimateField(null), 300);
     return () => clearTimeout(t);
   }, [animateField]);
@@ -59,7 +61,11 @@ export function BookingSummary({
     : copy.summaryWaiting;
 
   const selectedSlotLabel = selectedSlot
-    ? `${selectedSlot.startTime} - ${selectedSlot.endTime}`
+    ? `${formatBookingTime(selectedSlot.startsAt, locale, timezone)} - ${formatBookingTime(
+        selectedSlot.endsAt,
+        locale,
+        timezone
+      )}`
     : copy.summaryWaiting;
 
   const confirmedDateLabel = confirmedBooking
@@ -67,7 +73,15 @@ export function BookingSummary({
     : null;
 
   const confirmedTimeLabel = confirmedBooking
-    ? `${confirmedBooking.startsAt.slice(11, 16)} - ${confirmedBooking.endsAt.slice(11, 16)}`
+    ? `${formatBookingTime(
+        confirmedBooking.startsAt,
+        locale,
+        timezone
+      )} - ${formatBookingTime(
+        confirmedBooking.endsAt,
+        locale,
+        timezone
+      )}`
     : null;
 
   return (
@@ -75,7 +89,7 @@ export function BookingSummary({
       <h2 className={styles.summaryTitle}>{copy.summaryTitle}</h2>
 
       <div className={styles.summaryList}>
-        {/* УСЛУГА */}
+        {}
         <div className={styles.summaryItem}>
           <span className={styles.summaryLabel}>{copy.summaryService}</span>
           <span
@@ -87,7 +101,7 @@ export function BookingSummary({
           </span>
         </div>
 
-        {/* ДАТА */}
+        {}
         <div className={styles.summaryItem}>
           <span className={styles.summaryLabel}>{copy.summaryDate}</span>
           <span
@@ -99,7 +113,7 @@ export function BookingSummary({
           </span>
         </div>
 
-        {/* СЛОТ */}
+        {}
         <div className={styles.summaryItem}>
           <span className={styles.summaryLabel}>{copy.summarySlot}</span>
           <span
@@ -109,6 +123,19 @@ export function BookingSummary({
           >
             {selectedSlotLabel}
           </span>
+
+          {}
+          {selectedSlot && (
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 12,
+                color: "var(--color-text-muted)",
+              }}
+            >
+              {timezoneLabel}
+            </div>
+          )}
         </div>
       </div>
 
@@ -116,13 +143,28 @@ export function BookingSummary({
 
       {confirmedBooking ? (
         <div className={styles.confirmationCard}>
-          <h3 className={styles.confirmationTitle}>{copy.confirmationTitle}</h3>
-          <p className={styles.confirmationText}>{copy.confirmationText}</p>
+          <h3 className={styles.confirmationTitle}>
+            {copy.confirmationTitle}
+          </h3>
+          <p className={styles.confirmationText}>
+            {copy.confirmationText}
+          </p>
 
           <div className={styles.confirmationMeta}>
             <span>{confirmedBooking.serviceTitle}</span>
             {confirmedDateLabel ? <span>{confirmedDateLabel}</span> : null}
             {confirmedTimeLabel ? <span>{confirmedTimeLabel}</span> : null}
+          </div>
+
+          {}
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: 12,
+              color: "var(--color-text-muted)",
+            }}
+          >
+            {timezoneLabel}
           </div>
         </div>
       ) : null}

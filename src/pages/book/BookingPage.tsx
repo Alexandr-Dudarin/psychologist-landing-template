@@ -465,15 +465,12 @@ export function BookingPage() {
               >
 
                 {selectedService && selectedDate && (
-                  <p
-                    style={{
-                      marginBottom: 12,
-                      color: "var(--color-text-muted)",
-                      fontSize: 14,
-                    }}
-                  >
-                    Все слоты указаны {timezoneLabel}
-                  </p>
+                  <div className={styles.timezoneNotice}>
+                    <span className={styles.timezoneIcon}>🕒</span>
+                    <span>
+                      Время указано {timezoneLabel}. Пожалуйста, учитывайте это при выборе слота.
+                    </span>
+                  </div>
                 )}
 
                 <BookingSlotsStep
