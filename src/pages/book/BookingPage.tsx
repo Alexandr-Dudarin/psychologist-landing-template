@@ -267,9 +267,9 @@ export function BookingPage() {
   const isFormEnabled = Boolean(selectedService && selectedDate && selectedSlot);
   const datesMeta = buildCalendarDatesMeta({ monthAvailability, copy });
   const timezoneLabel = getTimezoneLabel(
-  siteSettings.booking.timezone,
-  currentLanguage
-);
+    siteSettings.booking.timezone,
+    currentLanguage
+  );
 
   const handleFormChange = <Field extends keyof BookingFormState>(
     field: Field,

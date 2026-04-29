@@ -6,105 +6,107 @@ import { Button } from "../../components/Button/Button";
 import styles from "./PaymentSuccessPage.module.css";
 import { getTimezoneLabel } from "../../lib/booking/getTimezoneLabel";
 import {
-  formatBookingDate,
-  formatBookingTime,
+    formatBookingDate,
+    formatBookingTime,
 } from "../../lib/booking/formatBookingDateTime";
 
 type BookingPayload = {
-  serviceId: string;
-  startsAt: string;
-  firstName: string;
-  lastName?: string;
-  email?: string;
+    serviceId: string;
+    startsAt: string;
+    firstName: string;
+    lastName?: string;
+    email?: string;
 };
 
 export function PaymentSuccessPage() {
-  const [searchParams] = useSearchParams();
-  const [isReady, setIsReady] = useState(false);
+    const [searchParams] = useSearchParams();
+    const [isReady, setIsReady] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 600); 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsReady(true);
+        }, 600);
 
-    return () => clearTimeout(timer);
-  }, []);
+        return () => clearTimeout(timer);
+    }, []);
 
-  const timezoneLabel = getTimezoneLabel(
-  siteSettings.booking.timezone,
-  "ru"
-);
+    const locale = "ru-RU";
 
-  const data = useMemo(() => {
-    const encoded = searchParams.get("payload");
+    const timezoneLabel = getTimezoneLabel(
+        siteSettings.booking.timezone,
+        locale.startsWith("ru") ? "ru" : "en"
+    );
 
-    if (!encoded) return null;
+    const data = useMemo(() => {
+        const encoded = searchParams.get("payload");
 
-    try {
-      return JSON.parse(decodeURIComponent(encoded)) as BookingPayload;
-    } catch {
-      return null;
-    }
-  }, [searchParams]);
+        if (!encoded) return null;
 
-  return (
-    <section className={styles.section}>
-      <Container>
-        <div className={`${styles.card} ${isReady ? styles.visible : ""}`}>
-          {/* 🎉 Конфетти */}
-          {isReady && <div className={styles.confetti} />}
+        try {
+            return JSON.parse(decodeURIComponent(encoded)) as BookingPayload;
+        } catch {
+            return null;
+        }
+    }, [searchParams]);
 
-          <div className={styles.icon}>🎉</div>
+    return (
+        <section className={styles.section}>
+            <Container>
+                <div className={`${styles.card} ${isReady ? styles.visible : ""}`}>
+                    {/* 🎉 Конфетти */}
+                    {isReady && <div className={styles.confetti} />}
 
-          <h1 className={styles.title}>Запись подтверждена</h1>
+                    <div className={styles.icon}>🎉</div>
 
-          {data ? (
-            <div className={styles.details}>
-              <p>
-  <strong>Дата:</strong>{" "}
-  {formatBookingDate(
-    data.startsAt,
-    "ru-RU",
-    siteSettings.booking.timezone
-  )}
-</p>
+                    <h1 className={styles.title}>Запись подтверждена</h1>
 
-<p>
-  <strong>Время:</strong>{" "}
-  {formatBookingTime(
-    data.startsAt,
-    "ru-RU",
-    siteSettings.booking.timezone
-  )}{" "}
-  ({timezoneLabel})
-</p>
-              <p>
-                <strong>Имя:</strong> {data.firstName} {data.lastName ?? ""}
-              </p>
+                    {data ? (
+                        <div className={styles.details}>
+                            <p>
+                                <strong>Дата:</strong>{" "}
+                                {formatBookingDate(
+                                    data.startsAt,
+                                    "ru-RU",
+                                    siteSettings.booking.timezone
+                                )}
+                            </p>
 
-              {data.email && (
-                <p>
-                  <strong>Email:</strong> {data.email}
-                </p>
-              )}
-            </div>
-          ) : (
-            <p className={styles.fallback}>
-              Мы получили вашу оплату и скоро свяжемся с вами 🤍
-            </p>
-          )}
+                            <p>
+                                <strong>Время:</strong>{" "}
+                                {formatBookingTime(
+                                    data.startsAt,
+                                    "ru-RU",
+                                    siteSettings.booking.timezone
+                                )}{" "}
+                                ({timezoneLabel})
+                            </p>
+                            <p>
+                                <strong>Имя:</strong> {data.firstName} {data.lastName ?? ""}
+                            </p>
 
-          <p className={styles.note}>
-            Я свяжусь с вами в ближайшее время для подтверждения деталей.
-          </p>
+                            {data.email && (
+                                <p>
+                                    <strong>Email:</strong> {data.email}
+                                </p>
+                            )}
+                        </div>
+                    ) : (
+                        <p className={styles.fallback}>
+                            Мы получили вашу оплату и скоро свяжемся с вами 🤍
+                        </p>
+                    )}
 
-          <div className={styles.actions}>
-            <Button href="/" variant="premium">
-              На главную
-            </Button>
-          </div>
-        </div>
-      </Container>
-    </section>
-  );
+                    <p className={styles.note}>
+                        Я свяжусь с вами в ближайшее время для подтверждения деталей.
+                    </p>
+
+                    <div className={styles.actions}>
+                        <Button href="/" variant="premium">
+                            На главную
+                        </Button>
+                    </div>
+                </div>
+            </Container>
+        </section>
+    );
 }

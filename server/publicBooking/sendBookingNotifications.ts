@@ -1,6 +1,13 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
+import { siteSettings } from "../../src/data/siteSettings";
+import {
+  formatBookingDate,
+  formatBookingTimeRange,
+} from "../utils/formatBookingDateTime";
+
+const timezone = siteSettings.booking.timezone;
 
 export type BookingNotificationDeliveryStatus = "sent" | "failed" | "skipped";
 
@@ -17,15 +24,15 @@ export type BookingNotificationsResult = {
 
 export type SendBookingNotificationsBoundedResult =
   | {
-      completed: true;
-      notifications: BookingNotificationsResult;
-      timeoutMs: number;
-    }
+    completed: true;
+    notifications: BookingNotificationsResult;
+    timeoutMs: number;
+  }
   | {
-      completed: false;
-      timeoutMs: number;
-      reason: "timeout" | "error";
-    };
+    completed: false;
+    timeoutMs: number;
+    reason: "timeout" | "error";
+  };
 
 export type SendBookingNotificationsPayload = {
   sessionId: number;
@@ -50,16 +57,6 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function getBookingDateLabel(startsAt: string): string {
-  return startsAt.slice(0, 10) || "-";
-}
-
-function getBookingTimeLabel(startsAt: string, endsAt: string): string {
-  const startTime = startsAt.slice(11, 16) || "--:--";
-  const endTime = endsAt.slice(11, 16) || "--:--";
-  return `${startTime} - ${endTime}`;
-}
-
 function getClientKindLabel(alreadyExistedClient: boolean): string {
   return alreadyExistedClient ? "существующий" : "новый";
 }
@@ -73,8 +70,8 @@ function getOwnerTelegramText(payload: SendBookingNotificationsPayload): string 
     `Телефон: ${payload.clientPhone}`,
     `Email: ${payload.clientEmail}`,
     `Услуга: ${payload.serviceTitle}`,
-    `Дата: ${getBookingDateLabel(payload.startsAt)}`,
-    `Время: ${getBookingTimeLabel(payload.startsAt, payload.endsAt)}`,
+    `Дата: ${formatBookingDate(payload.startsAt, timezone)}`,
+    `Время: ${formatBookingTimeRange(payload.startsAt, payload.endsAt, timezone)} (${timezone})`,
     `Комментарий: ${payload.comment || "-"}`,
     `Клиент в CRM: ${getClientKindLabel(payload.alreadyExistedClient)}`,
   ].join("\n");
@@ -88,14 +85,17 @@ function getOwnerEmailHtml(payload: SendBookingNotificationsPayload): string {
     <p><strong>Телефон:</strong> ${escapeHtml(payload.clientPhone)}</p>
     <p><strong>Email:</strong> ${escapeHtml(payload.clientEmail)}</p>
     <p><strong>Услуга:</strong> ${escapeHtml(payload.serviceTitle)}</p>
-    <p><strong>Дата:</strong> ${escapeHtml(getBookingDateLabel(payload.startsAt))}</p>
-    <p><strong>Время:</strong> ${escapeHtml(
-      getBookingTimeLabel(payload.startsAt, payload.endsAt)
-    )}</p>
+    <p><strong>Дата:</strong> ${escapeHtml(formatBookingDate(payload.startsAt, timezone))}</p>
+    <p>
+  <strong>Время:</strong>
+  ${escapeHtml(
+    formatBookingTimeRange(payload.startsAt, payload.endsAt, timezone)
+  )} (${timezone})
+</p>
     <p><strong>Комментарий:</strong> ${escapeHtml(payload.comment || "-")}</p>
     <p><strong>Клиент в CRM:</strong> ${escapeHtml(
-      getClientKindLabel(payload.alreadyExistedClient)
-    )}</p>
+    getClientKindLabel(payload.alreadyExistedClient)
+  )}</p>
   `;
 }
 
@@ -105,10 +105,13 @@ function getClientEmailHtml(payload: SendBookingNotificationsPayload): string {
     <p>Здравствуйте, ${escapeHtml(payload.clientName)}.</p>
     <p>Ваша запись успешно получена.</p>
     <p><strong>Услуга:</strong> ${escapeHtml(payload.serviceTitle)}</p>
-    <p><strong>Дата:</strong> ${escapeHtml(getBookingDateLabel(payload.startsAt))}</p>
-    <p><strong>Время:</strong> ${escapeHtml(
-      getBookingTimeLabel(payload.startsAt, payload.endsAt)
-    )}</p>
+    <p><strong>Дата:</strong> ${escapeHtml(formatBookingDate(payload.startsAt, timezone))}</p>
+    <p>
+  <strong>Время:</strong>
+  ${escapeHtml(
+    formatBookingTimeRange(payload.startsAt, payload.endsAt, timezone)
+  )} (${timezone})
+</p>
     <p>Если потребуется, мы дополнительно свяжемся с вами для уточнения деталей.</p>
   `;
 }
