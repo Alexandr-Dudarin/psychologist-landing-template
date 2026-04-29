@@ -49,6 +49,26 @@ export function PaymentSuccessPage() {
         }
     }, [searchParams]);
 
+    useEffect(() => {
+        if (!data) return;
+
+        async function confirm() {
+            try {
+                await fetch("/api/public/booking/confirm-after-payment", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
+                });
+            } catch (e) {
+                console.error("Confirm booking failed", e);
+            }
+        }
+
+        confirm();
+    }, [data]);
+
     return (
         <section className={styles.section}>
             <Container>
