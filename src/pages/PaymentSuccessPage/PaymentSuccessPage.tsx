@@ -1,8 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { siteSettings } from "../../data/siteSettings";
 import { Container } from "../../components/Container/Container";
 import { Button } from "../../components/Button/Button";
 import styles from "./PaymentSuccessPage.module.css";
+import { getTimezoneLabel } from "../../lib/booking/getTimezoneLabel";
+import {
+  formatBookingDate,
+  formatBookingTime,
+} from "../../lib/booking/formatBookingDateTime";
 
 type BookingPayload = {
   serviceId: string;
@@ -12,25 +18,6 @@ type BookingPayload = {
   email?: string;
 };
 
-function formatDate(dateString: string) {
-  const date = new Date(dateString);
-
-  return new Intl.DateTimeFormat("ru-RU", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(date);
-}
-
-function formatTime(dateString: string) {
-  const date = new Date(dateString);
-
-  return new Intl.DateTimeFormat("ru-RU", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
 export function PaymentSuccessPage() {
   const [searchParams] = useSearchParams();
   const [isReady, setIsReady] = useState(false);
@@ -38,10 +25,15 @@ export function PaymentSuccessPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsReady(true);
-    }, 600); // 🔥 задержка (ощущение обработки)
+    }, 600); 
 
     return () => clearTimeout(timer);
   }, []);
+
+  const timezoneLabel = getTimezoneLabel(
+  siteSettings.booking.timezone,
+  "ru"
+);
 
   const data = useMemo(() => {
     const encoded = searchParams.get("payload");
@@ -69,13 +61,23 @@ export function PaymentSuccessPage() {
           {data ? (
             <div className={styles.details}>
               <p>
-                <strong>Дата:</strong> {formatDate(data.startsAt)}
-              </p>
+  <strong>Дата:</strong>{" "}
+  {formatBookingDate(
+    data.startsAt,
+    "ru-RU",
+    siteSettings.booking.timezone
+  )}
+</p>
 
-              <p>
-                <strong>Время:</strong> {formatTime(data.startsAt)}
-              </p>
-
+<p>
+  <strong>Время:</strong>{" "}
+  {formatBookingTime(
+    data.startsAt,
+    "ru-RU",
+    siteSettings.booking.timezone
+  )}{" "}
+  ({timezoneLabel})
+</p>
               <p>
                 <strong>Имя:</strong> {data.firstName} {data.lastName ?? ""}
               </p>

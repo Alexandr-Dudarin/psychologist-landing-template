@@ -21,6 +21,7 @@ import {
   getSelectedService,
   validateForm,
 } from "./bookingPage.helpers";
+import { getTimezoneLabel } from "../../lib/booking/getTimezoneLabel";
 import { BookingPageSkeleton } from "./BookingPageSkeleton";
 import { BookingServiceStep } from "./BookingServiceStep";
 import { BookingSlotsStep } from "./BookingSlotsStep";
@@ -265,6 +266,10 @@ export function BookingPage() {
   const monthAvailability = data?.monthAvailability ?? [];
   const isFormEnabled = Boolean(selectedService && selectedDate && selectedSlot);
   const datesMeta = buildCalendarDatesMeta({ monthAvailability, copy });
+  const timezoneLabel = getTimezoneLabel(
+  siteSettings.booking.timezone,
+  currentLanguage
+);
 
   const handleFormChange = <Field extends keyof BookingFormState>(
     field: Field,
@@ -458,6 +463,19 @@ export function BookingPage() {
                     : styles.stepActive
                 }
               >
+
+                {selectedService && selectedDate && (
+                  <p
+                    style={{
+                      marginBottom: 12,
+                      color: "var(--color-text-muted)",
+                      fontSize: 14,
+                    }}
+                  >
+                    Все слоты указаны {timezoneLabel}
+                  </p>
+                )}
+
                 <BookingSlotsStep
                   copy={copy}
                   error={error}

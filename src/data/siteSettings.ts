@@ -62,6 +62,7 @@ sections: {
     separatePageEnabled: true,
     calendarEnabled: false,
     paymentEnabled: true,
+    timezone: "Europe/Moscow",
     sessionDurationMinutes: 60,
     breakBetweenSessionsMinutes: 30,
     floatingCta: {
