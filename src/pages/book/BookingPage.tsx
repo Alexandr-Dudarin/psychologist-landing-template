@@ -323,9 +323,12 @@ export function BookingPage() {
     if (Object.keys(validationErrors).length > 0) return;
 
     setIsSubmitting(true);
+    
+    const requestId = crypto.randomUUID();
 
     try {
       const payload = {
+        requestId,
         serviceId: selectedService.id,
         startsAt: selectedSlot.startsAt,
         firstName: form.firstName.trim(),

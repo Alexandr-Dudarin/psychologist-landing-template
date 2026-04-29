@@ -11,6 +11,7 @@ import {
 } from "../../lib/booking/formatBookingDateTime";
 
 type BookingPayload = {
+    requestId: string;
     serviceId: string;
     startsAt: string;
     firstName: string;
@@ -21,6 +22,8 @@ type BookingPayload = {
 export function PaymentSuccessPage() {
     const [searchParams] = useSearchParams();
     const [isReady, setIsReady] = useState(false);
+    const [isConfirmed, setIsConfirmed] = useState(false);
+    const [isConfirming, setIsConfirming] = useState(true);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -50,7 +53,7 @@ export function PaymentSuccessPage() {
     }, [searchParams]);
 
     useEffect(() => {
-        if (!data) return;
+        if (!data || isConfirmed) return;
 
         async function confirm() {
             try {
@@ -61,13 +64,17 @@ export function PaymentSuccessPage() {
                     },
                     body: JSON.stringify(data),
                 });
+
+                setIsConfirmed(true);
+                setIsConfirming(false);
             } catch (e) {
                 console.error("Confirm booking failed", e);
+                setIsConfirming(false);
             }
         }
 
         confirm();
-    }, [data]);
+    }, [data, isConfirmed]);
 
     return (
         <section className={styles.section}>
@@ -78,9 +85,15 @@ export function PaymentSuccessPage() {
 
                     <div className={styles.icon}>🎉</div>
 
-                    <h1 className={styles.title}>Запись подтверждена</h1>
+                    <h1 className={styles.title}>
+                        {isConfirming ? "Подтверждаем запись..." : "Запись подтверждена"}
+                    </h1>
 
-                    {data ? (
+                    {isConfirming ? (
+                        <p className={styles.fallback}>
+                            Пожалуйста, подождите, мы подтверждаем вашу запись...
+                        </p>
+                    ) : data ? (
                         <div className={styles.details}>
                             <p>
                                 <strong>Дата:</strong>{" "}
@@ -100,6 +113,7 @@ export function PaymentSuccessPage() {
                                 )}{" "}
                                 ({timezoneLabel})
                             </p>
+
                             <p>
                                 <strong>Имя:</strong> {data.firstName} {data.lastName ?? ""}
                             </p>
