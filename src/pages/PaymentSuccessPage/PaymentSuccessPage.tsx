@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Container } from "../../components/Container/Container";
 import { Button } from "../../components/Button/Button";
@@ -33,6 +33,15 @@ function formatTime(dateString: string) {
 
 export function PaymentSuccessPage() {
   const [searchParams] = useSearchParams();
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 600); // 🔥 задержка (ощущение обработки)
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const data = useMemo(() => {
     const encoded = searchParams.get("payload");
@@ -49,8 +58,11 @@ export function PaymentSuccessPage() {
   return (
     <section className={styles.section}>
       <Container>
-        <div className={styles.card}>
-          <div className={styles.icon}>✅</div>
+        <div className={`${styles.card} ${isReady ? styles.visible : ""}`}>
+          {/* 🎉 Конфетти */}
+          {isReady && <div className={styles.confetti} />}
+
+          <div className={styles.icon}>🎉</div>
 
           <h1 className={styles.title}>Запись подтверждена</h1>
 
@@ -65,8 +77,7 @@ export function PaymentSuccessPage() {
               </p>
 
               <p>
-                <strong>Имя:</strong> {data.firstName}{" "}
-                {data.lastName ?? ""}
+                <strong>Имя:</strong> {data.firstName} {data.lastName ?? ""}
               </p>
 
               {data.email && (
