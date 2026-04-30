@@ -322,17 +322,14 @@
   color: var(--color-text);
 }
 
-/* свободно */
 .calendarPublic .dayAvailable {
   background: color-mix(in srgb, var(--color-success) 10%, transparent);
 }
 
-/* нет мест */
 .calendarPublic .dayUnavailable {
   opacity: 0.45;
 }
 
-/* заблокировано */
 .calendarPublic .dayDisabled {
   opacity: 0.3;
 }

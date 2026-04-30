@@ -57,7 +57,7 @@ export function PaymentSuccessPage() {
 
         async function confirm() {
             try {
-                await fetch("/api/public/booking/confirm-after-payment", {
+                const res = await fetch("/api/public/booking/confirm-after-payment", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -65,10 +65,14 @@ export function PaymentSuccessPage() {
                     body: JSON.stringify(data),
                 });
 
+                const json = await res.json();
+
+                console.log("CONFIRM RESPONSE:", json);
+
                 setIsConfirmed(true);
-                setIsConfirming(false);
             } catch (e) {
                 console.error("Confirm booking failed", e);
+            } finally {
                 setIsConfirming(false);
             }
         }
