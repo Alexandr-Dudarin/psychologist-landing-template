@@ -864,6 +864,10 @@
   color: var(--color-text);
 }
 
+.backLink:active {
+  transform: scale(0.97);
+}
+
 .timezoneNotice {
   margin-top: 20px; 
   margin-bottom: 20px;
@@ -883,6 +887,7 @@
   align-items: center;
   gap: 10px;
 
+  backdrop-filter: blur(8px);
  
   animation: timezoneFadeIn 0.4s ease-out;
 }
