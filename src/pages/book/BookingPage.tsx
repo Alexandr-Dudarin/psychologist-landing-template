@@ -170,6 +170,7 @@ export function BookingPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshingSlots, setIsRefreshingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requestId, setRequestId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
@@ -307,78 +308,83 @@ export function BookingPage() {
     });
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
 
-    if (!selectedService || !selectedSlot) {
-      setSubmitError(copy.formDisabled);
+  if (isSubmitting) return;
+
+  if (!selectedService || !selectedSlot) {
+    setSubmitError(copy.formDisabled);
+    return;
+  }
+
+  const validationErrors = validateForm(form, bookingContent);
+  setFormErrors(validationErrors);
+  setSubmitError(null);
+  setSubmitSuccess(null);
+
+  if (Object.keys(validationErrors).length > 0) return;
+
+  setIsSubmitting(true);
+
+  try {
+    const currentRequestId = requestId ?? crypto.randomUUID();
+    setRequestId(currentRequestId);
+
+    const payload = {
+      requestId: currentRequestId,
+      serviceId: selectedService.id,
+      startsAt: selectedSlot.startsAt,
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      phone: form.phone.trim(),
+      email: form.email.trim(),
+      message: form.message.trim(),
+      consent: form.consent,
+    };
+
+    if (isPaymentEnabled) {
+      const payment = await createPayment(payload);
+      window.location.href = payment.confirmationUrl;
       return;
     }
 
-    const validationErrors = validateForm(form, bookingContent);
-    setFormErrors(validationErrors);
-    setSubmitError(null);
-    setSubmitSuccess(null);
+    const response = await createPublicBooking(payload);
 
-    if (Object.keys(validationErrors).length > 0) return;
+    setConfirmedBooking(response.booking);
+    setSubmitSuccess(copy.submitSuccess);
 
-    setIsSubmitting(true);
-    
-    const requestId = crypto.randomUUID();
+    setFormErrors({});
+    setRequestId(null);
 
-    try {
-      const payload = {
-        requestId,
-        serviceId: selectedService.id,
-        startsAt: selectedSlot.startsAt,
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        phone: form.phone.trim(),
-        email: form.email.trim(),
-        message: form.message.trim(),
-        consent: form.consent,
-      };
+    await refreshSelectedDateAvailability();
 
-      if (isPaymentEnabled) {
-        const payment = await createPayment(payload);
+  } catch (submitErrorValue) {
+    const publicError = submitErrorValue as Error & {
+      code?: string;
+      status?: number;
+    };
 
-        window.location.href = payment.confirmationUrl;
-        return;
+    if (publicError.code === "slot_unavailable" || publicError.status === 409) {
+      setSubmitError(copy.submitConflict);
+
+      try {
+        await refreshSelectedDateAvailability();
+      } catch (refreshError) {
+        setError(
+          refreshError instanceof Error
+            ? refreshError.message
+            : copy.errorFallback
+        );
       }
-
-      const response = await createPublicBooking(payload);
-
-      setConfirmedBooking(response.booking);
-      setSubmitSuccess(copy.submitSuccess);
-
-      setFormErrors({});
-
-      await refreshSelectedDateAvailability();
-    } catch (submitErrorValue) {
-      const publicError = submitErrorValue as Error & {
-        code?: string;
-        status?: number;
-      };
-
-      if (publicError.code === "slot_unavailable" || publicError.status === 409) {
-        setSubmitError(copy.submitConflict);
-
-        try {
-          await refreshSelectedDateAvailability();
-        } catch (refreshError) {
-          setError(
-            refreshError instanceof Error
-              ? refreshError.message
-              : copy.errorFallback
-          );
-        }
-      } else {
-        setSubmitError(publicError.message || copy.submitErrorFallback);
-      }
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setSubmitError(publicError.message || copy.submitErrorFallback);
     }
-  };
+
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <main className={styles.page}>
