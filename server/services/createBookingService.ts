@@ -189,19 +189,22 @@ export async function createBookingService(
     alreadyExistedClient: clientResult.alreadyExisted,
   };
 
-  try {
-    await sendBookingNotificationsBounded({
+  void sendBookingNotificationsBounded({
+    sessionId: response.booking.sessionId,
+    clientName: normalizedPayload.name,
+    clientPhone: normalizedPayload.phone,
+    clientEmail: normalizedPayload.email,
+    serviceTitle: response.booking.serviceTitle,
+    startsAt: response.booking.startsAt,
+    endsAt: response.booking.endsAt,
+    comment: normalizedPayload.message ?? "",
+    alreadyExistedClient: response.alreadyExistedClient,
+  }).catch((error) => {
+    console.error("Async booking notifications failed:", {
       sessionId: response.booking.sessionId,
-      clientName: normalizedPayload.name,
-      clientPhone: normalizedPayload.phone,
-      clientEmail: normalizedPayload.email,
-      serviceTitle: response.booking.serviceTitle,
-      startsAt: response.booking.startsAt,
-      endsAt: response.booking.endsAt,
-      comment: normalizedPayload.message ?? "",
-      alreadyExistedClient: response.alreadyExistedClient,
+      error: error instanceof Error ? error.message : "Unknown error",
     });
-  } catch {}
+  });
 
   return response;
 }

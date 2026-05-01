@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Container } from "../../components/Container/Container";
 import {
@@ -147,6 +147,7 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
 
 export function BookingPage() {
   const { language, t } = useLanguage();
+  const navigate = useNavigate();
   const currentLanguage = language === "en" ? "en" : "ru";
   const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
   const weekStartsOn = currentLanguage === "ru" ? 1 : 0;
@@ -175,8 +176,22 @@ export function BookingPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [pulseSummary, setPulseSummary] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
   const isCompleted = Boolean(confirmedBooking);
   const isPaymentEnabled = siteSettings.booking.paymentEnabled;
+
+  useEffect(() => {
+    if (isRedirecting) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isRedirecting]);
 
   useEffect(() => {
     let isActive = true;
@@ -210,7 +225,8 @@ export function BookingPage() {
     };
   }, [copy.errorFallback]);
 
-  const resolvedVisibleMonth = visibleMonth || getInitialVisibleMonth(data, selectedDate);
+  const resolvedVisibleMonth =
+    visibleMonth || getInitialVisibleMonth(data, selectedDate);
 
   useEffect(() => {
     if (!selectedServiceId || !resolvedVisibleMonth) {
@@ -240,7 +256,8 @@ export function BookingPage() {
         setSelectedSlot((currentSlot) => {
           if (!currentSlot) return null;
           return (
-            response.slots.find((slot) => slot.startsAt === currentSlot.startsAt) ?? currentSlot
+            response.slots.find((slot) => slot.startsAt === currentSlot.startsAt) ??
+            currentSlot
           );
         });
       } catch (loadError) {
@@ -308,83 +325,92 @@ export function BookingPage() {
     });
   };
 
-const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-  event.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-  if (isSubmitting) return;
+    if (isSubmitting) return;
 
-  if (!selectedService || !selectedSlot) {
-    setSubmitError(copy.formDisabled);
-    return;
-  }
-
-  const validationErrors = validateForm(form, bookingContent);
-  setFormErrors(validationErrors);
-  setSubmitError(null);
-  setSubmitSuccess(null);
-
-  if (Object.keys(validationErrors).length > 0) return;
-
-  setIsSubmitting(true);
-
-  try {
-    const currentRequestId = requestId ?? crypto.randomUUID();
-    setRequestId(currentRequestId);
-
-    const payload = {
-      requestId: currentRequestId,
-      serviceId: selectedService.id,
-      startsAt: selectedSlot.startsAt,
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      phone: form.phone.trim(),
-      email: form.email.trim(),
-      message: form.message.trim(),
-      consent: form.consent,
-    };
-
-    if (isPaymentEnabled) {
-      const payment = await createPayment(payload);
-      window.location.href = payment.confirmationUrl;
+    if (!selectedService || !selectedSlot) {
+      setSubmitError(copy.formDisabled);
       return;
     }
 
-    const response = await createPublicBooking(payload);
+    const validationErrors = validateForm(form, bookingContent);
+    setFormErrors(validationErrors);
+    setSubmitError(null);
+    setSubmitSuccess(null);
 
-    setConfirmedBooking(response.booking);
-    setSubmitSuccess(copy.submitSuccess);
+    if (Object.keys(validationErrors).length > 0) return;
 
-    setFormErrors({});
-    setRequestId(null);
+    setIsSubmitting(true);
 
-    await refreshSelectedDateAvailability();
+    try {
+      const currentRequestId = requestId ?? crypto.randomUUID();
+      setRequestId(currentRequestId);
 
-  } catch (submitErrorValue) {
-    const publicError = submitErrorValue as Error & {
-      code?: string;
-      status?: number;
-    };
+      const payload = {
+        requestId: currentRequestId,
+        serviceId: selectedService.id,
+        startsAt: selectedSlot.startsAt,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        message: form.message.trim(),
+        consent: form.consent,
+      };
 
-    if (publicError.code === "slot_unavailable" || publicError.status === 409) {
-      setSubmitError(copy.submitConflict);
+      if (isPaymentEnabled) {
+        const payment = await createPayment(payload);
+        const target = new URL(payment.confirmationUrl, window.location.origin);
 
-      try {
-        await refreshSelectedDateAvailability();
-      } catch (refreshError) {
-        setError(
-          refreshError instanceof Error
-            ? refreshError.message
-            : copy.errorFallback
-        );
+        setIsRedirecting(true);
+
+        if (target.origin === window.location.origin) {
+          navigate(`${target.pathname}${target.search}${target.hash}`);
+          return;
+        }
+
+        window.location.href = payment.confirmationUrl;
+        return;
       }
-    } else {
-      setSubmitError(publicError.message || copy.submitErrorFallback);
-    }
 
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      const response = await createPublicBooking(payload);
+
+      setConfirmedBooking(response.booking);
+      setSubmitSuccess(copy.submitSuccess);
+
+      setFormErrors({});
+      setRequestId(null);
+
+      await refreshSelectedDateAvailability();
+    } catch (submitErrorValue) {
+      setIsRedirecting(false);
+
+      const publicError = submitErrorValue as Error & {
+        code?: string;
+        status?: number;
+      };
+
+      if (publicError.code === "slot_unavailable" || publicError.status === 409) {
+        setSubmitError(copy.submitConflict);
+
+        try {
+          await refreshSelectedDateAvailability();
+        } catch (refreshError) {
+          setError(
+            refreshError instanceof Error
+              ? refreshError.message
+              : copy.errorFallback
+          );
+        }
+      } else {
+        setSubmitError(publicError.message || copy.submitErrorFallback);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <main className={styles.page}>
@@ -457,7 +483,10 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
                     setTimeout(() => setPulseSummary(false), 300);
 
                     setTimeout(() => {
-                      slotsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      slotsRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
                     }, 120);
                   }}
                   onVisibleMonthChange={setVisibleMonth}
@@ -472,12 +501,12 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
                     : styles.stepActive
                 }
               >
-
                 {selectedService && selectedDate && (
                   <div className={styles.timezoneNotice}>
                     <span className={styles.timezoneIcon}>🕒</span>
                     <span>
-                      Время указано {timezoneLabel}. Пожалуйста, учитывайте это при выборе слота.
+                      Время указано {timezoneLabel}. Пожалуйста, учитывайте это при
+                      выборе слота.
                     </span>
                   </div>
                 )}
@@ -526,6 +555,7 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
                 />
               </div>
             </section>
+
             <div className={styles.summaryWrapper}>
               <BookingSummary
                 className={pulseSummary ? styles.summaryPulse : ""}
@@ -540,6 +570,13 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
           </div>
         )}
       </Container>
+
+      {isRedirecting && (
+        <div className={styles.redirectOverlay}>
+          <div className={styles.loader} />
+          <p>Переходим к оплате...</p>
+        </div>
+      )}
     </main>
   );
 }
