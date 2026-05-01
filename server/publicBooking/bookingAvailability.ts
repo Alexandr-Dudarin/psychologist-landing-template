@@ -1,18 +1,18 @@
 /// <reference types="node" />
 
 import type { PoolClient } from "pg";
-import { pool } from "../db/pool";
+import { pool } from "../db/pool.js";
 import type {
   PublicBookingAvailabilityResponse,
   PublicBookingMonthDayAvailability,
   PublicBookingService,
   PublicBookingSlot,
-} from "../../src/types/booking";
+} from "../../src/types/booking.js";
 import type {
   BookingSettingsRecord,
   ScheduleOverrideRecord,
   ScheduleRuleRecord,
-} from "../../src/types/schedule";
+} from "../../src/types/schedule.js";
 
 const SLOT_STEP_MINUTES = 30;
 
@@ -72,6 +72,27 @@ type PublicBookingBaseData = {
   blockedSlotRows: BlockedSlotRow[];
 };
 
+type PublicBookingAvailabilityErrorReason =
+  | "settings_missing"
+  | "invalid_service"
+  | "invalid_date"
+  | "invalid_month"
+  | "service_not_found";
+
+type PublicBookingAvailabilitySuccessResult = {
+  ok: true;
+  payload: PublicBookingAvailabilityResponse;
+};
+
+type PublicBookingAvailabilityErrorResult = {
+  ok: false;
+  reason: PublicBookingAvailabilityErrorReason;
+};
+
+export type GetPublicBookingAvailabilityDataResult =
+  | PublicBookingAvailabilitySuccessResult
+  | PublicBookingAvailabilityErrorResult;
+
 export type SlotValidationResult =
   | {
       ok: true;
@@ -89,6 +110,12 @@ export type SlotValidationResult =
         | "outside_booking_window"
         | "slot_unavailable";
     };
+
+function isPublicBookingAvailabilityError(
+  result: GetPublicBookingAvailabilityDataResult
+): result is PublicBookingAvailabilityErrorResult {
+  return result.ok === false;
+}
 
 function ensureValidDate(date: Date): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
@@ -632,18 +659,7 @@ export async function getPublicBookingAvailabilityData(params: {
   visibleMonth?: string | null;
   now?: Date;
   db?: Queryable;
-}): Promise<
-  | { ok: true; payload: PublicBookingAvailabilityResponse }
-  | {
-      ok: false;
-      reason:
-        | "settings_missing"
-        | "invalid_service"
-        | "invalid_date"
-        | "invalid_month"
-        | "service_not_found";
-    }
-> {
+}): Promise<GetPublicBookingAvailabilityDataResult> {
   const db = params.db ?? pool;
   const now = params.now ?? new Date();
   const baseData = await loadBaseData(db);
@@ -675,7 +691,8 @@ export async function getPublicBookingAvailabilityData(params: {
   let selectedService: PublicBookingService | null = null;
 
   if (rawServiceId !== null) {
-    selectedService = baseData.services.find((service) => service.id === rawServiceId) ?? null;
+    selectedService =
+      baseData.services.find((service) => service.id === rawServiceId) ?? null;
 
     if (!selectedService) {
       return { ok: false, reason: "service_not_found" };
@@ -779,7 +796,7 @@ export async function validateBookableSlot(params: {
     db,
   });
 
-  if (!availability.ok) {
+  if (isPublicBookingAvailabilityError(availability)) {
     if (availability.reason === "settings_missing") {
       return { ok: false, reason: "settings_missing" };
     }
@@ -809,10 +826,14 @@ export async function validateBookableSlot(params: {
     return { ok: false, reason: "invalid_date" };
   }
 
-  if (
-    parsedSelectedDate < parseDateOnly(availability.payload.dateBounds.min)! ||
-    parsedSelectedDate > parseDateOnly(availability.payload.dateBounds.max)!
-  ) {
+  const minDate = parseDateOnly(availability.payload.dateBounds.min);
+  const maxDate = parseDateOnly(availability.payload.dateBounds.max);
+
+  if (!minDate || !maxDate) {
+    return { ok: false, reason: "settings_missing" };
+  }
+
+  if (parsedSelectedDate < minDate || parsedSelectedDate > maxDate) {
     return { ok: false, reason: "outside_booking_window" };
   }
 

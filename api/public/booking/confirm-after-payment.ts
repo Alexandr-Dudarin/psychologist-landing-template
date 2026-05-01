@@ -1,13 +1,13 @@
-import { pool } from "../../../server/db/pool";
+import { pool } from "../../../server/db/pool.js";
 import {
   createBookingService,
   isCreateBookingServiceError,
-} from "../../../server/services/createBookingService";
-import { sendBookingNotificationsBounded } from "../../../server/publicBooking/sendBookingNotifications";
+} from "../../../server/services/createBookingService.js";
+import { sendBookingNotificationsBounded } from "../../../server/publicBooking/sendBookingNotifications.js";
 import {
   getPublicBookingValidationError,
   parsePublicBookingCreatePayload,
-} from "../../../server/publicBooking/parsePublicBookingCreatePayload";
+} from "../../../server/publicBooking/parsePublicBookingCreatePayload.js";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
@@ -68,10 +68,15 @@ export default async function handler(req: any, res: any) {
       created: true,
       booking: result.response.booking,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     await client.query("ROLLBACK").catch(() => undefined);
 
-    if (error?.code === "23505") {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "23505"
+    ) {
       return res.status(200).json({
         success: true,
         alreadyProcessed: true,

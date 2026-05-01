@@ -1,15 +1,15 @@
 /// <reference types="node" />
 
-import { pool } from "../../../server/db/pool";
+import { pool } from "../../../server/db/pool.js";
 import {
   createBookingService,
   isCreateBookingServiceError,
-} from "../../../server/services/createBookingService";
-import { sendBookingNotificationsBounded } from "../../../server/publicBooking/sendBookingNotifications";
+} from "../../../server/services/createBookingService.js";
+import { sendBookingNotificationsBounded } from "../../../server/publicBooking/sendBookingNotifications.js";
 import {
   getPublicBookingValidationError,
   parsePublicBookingCreatePayload,
-} from "../../../server/publicBooking/parsePublicBookingCreatePayload";
+} from "../../../server/publicBooking/parsePublicBookingCreatePayload.js";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {

@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import type { PublicBookingCreatePayload } from "../../src/types/booking";
+import type { PublicBookingCreatePayload } from "../../src/types/booking.js";
 
 function normalizePhoneDigits(value: string): string {
   return value.replace(/\D/g, "");

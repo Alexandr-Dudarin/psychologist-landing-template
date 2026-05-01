@@ -1,11 +1,11 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
-import { siteSettings } from "../../src/data/siteSettings";
+import { siteSettings } from "../../src/data/siteSettings.js";
 import {
   formatBookingDate,
   formatBookingTimeRange,
-} from "../utils/formatBookingDateTime";
+} from "../utils/formatBookingDateTime.js";
 
 const timezone = siteSettings.booking.timezone;
 
@@ -22,17 +22,21 @@ export type BookingNotificationsResult = {
   clientEmail: BookingNotificationChannelResult;
 };
 
+type SendBookingNotificationsBoundedCompletedResult = {
+  completed: true;
+  notifications: BookingNotificationsResult;
+  timeoutMs: number;
+};
+
+type SendBookingNotificationsBoundedIncompleteResult = {
+  completed: false;
+  timeoutMs: number;
+  reason: "timeout" | "error";
+};
+
 export type SendBookingNotificationsBoundedResult =
-  | {
-    completed: true;
-    notifications: BookingNotificationsResult;
-    timeoutMs: number;
-  }
-  | {
-    completed: false;
-    timeoutMs: number;
-    reason: "timeout" | "error";
-  };
+  | SendBookingNotificationsBoundedCompletedResult
+  | SendBookingNotificationsBoundedIncompleteResult;
 
 export type SendBookingNotificationsPayload = {
   sessionId: number;
@@ -87,15 +91,15 @@ function getOwnerEmailHtml(payload: SendBookingNotificationsPayload): string {
     <p><strong>Услуга:</strong> ${escapeHtml(payload.serviceTitle)}</p>
     <p><strong>Дата:</strong> ${escapeHtml(formatBookingDate(payload.startsAt, timezone))}</p>
     <p>
-  <strong>Время:</strong>
-  ${escapeHtml(
-    formatBookingTimeRange(payload.startsAt, payload.endsAt, timezone)
-  )} (${timezone})
-</p>
+      <strong>Время:</strong>
+      ${escapeHtml(
+        formatBookingTimeRange(payload.startsAt, payload.endsAt, timezone)
+      )} (${timezone})
+    </p>
     <p><strong>Комментарий:</strong> ${escapeHtml(payload.comment || "-")}</p>
     <p><strong>Клиент в CRM:</strong> ${escapeHtml(
-    getClientKindLabel(payload.alreadyExistedClient)
-  )}</p>
+      getClientKindLabel(payload.alreadyExistedClient)
+    )}</p>
   `;
 }
 
@@ -107,11 +111,11 @@ function getClientEmailHtml(payload: SendBookingNotificationsPayload): string {
     <p><strong>Услуга:</strong> ${escapeHtml(payload.serviceTitle)}</p>
     <p><strong>Дата:</strong> ${escapeHtml(formatBookingDate(payload.startsAt, timezone))}</p>
     <p>
-  <strong>Время:</strong>
-  ${escapeHtml(
-    formatBookingTimeRange(payload.startsAt, payload.endsAt, timezone)
-  )} (${timezone})
-</p>
+      <strong>Время:</strong>
+      ${escapeHtml(
+        formatBookingTimeRange(payload.startsAt, payload.endsAt, timezone)
+      )} (${timezone})
+    </p>
     <p>Если потребуется, мы дополнительно свяжемся с вами для уточнения деталей.</p>
   `;
 }
@@ -329,7 +333,7 @@ export async function sendBookingNotificationsBounded(
     } satisfies SendBookingNotificationsBoundedResult;
   });
 
-  if (!result.completed && result.reason === "timeout") {
+  if (result.completed === false && result.reason === "timeout") {
     console.error("Booking notifications timed out before response:", {
       sessionId: payload.sessionId,
       timeoutMs,

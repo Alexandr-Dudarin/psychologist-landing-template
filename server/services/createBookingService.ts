@@ -1,10 +1,10 @@
 import type { PoolClient } from "pg";
-import { validateBookableSlot } from "../publicBooking/bookingAvailability";
-import type { SendBookingNotificationsPayload } from "../publicBooking/sendBookingNotifications";
+import { validateBookableSlot } from "../publicBooking/bookingAvailability.js";
+import type { SendBookingNotificationsPayload } from "../publicBooking/sendBookingNotifications.js";
 import type {
   PublicBookingCreatePayload,
   PublicBookingCreateSuccessResponse,
-} from "../../src/types/booking";
+} from "../../src/types/booking.js";
 
 type NormalizedPayload = PublicBookingCreatePayload & {
   name: string;
