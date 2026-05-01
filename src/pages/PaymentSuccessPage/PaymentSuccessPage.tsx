@@ -9,21 +9,18 @@ import {
   formatBookingDate,
   formatBookingTime,
 } from "../../lib/booking/formatBookingDateTime";
-
-type BookingPayload = {
-  requestId: string;
-  serviceId: string;
-  startsAt: string;
-  firstName: string;
-  lastName?: string;
-  email?: string;
-};
+import {
+  completeMockPayment,
+  getPaymentStatus,
+  type PaymentStatusResponse,
+} from "../../lib/api/payment";
 
 export function PaymentSuccessPage() {
   const [searchParams] = useSearchParams();
-  const [isConfirmed, setIsConfirmed] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(true);
+  const [payment, setPayment] = useState<PaymentStatusResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const locale = "ru-RU";
 
@@ -32,61 +29,67 @@ export function PaymentSuccessPage() {
     locale.startsWith("ru") ? "ru" : "en"
   );
 
-  const data = useMemo(() => {
-    const encoded = searchParams.get("payload");
-
-    if (!encoded) return null;
-
-    try {
-      return JSON.parse(decodeURIComponent(encoded)) as BookingPayload;
-    } catch {
-      return null;
-    }
+  const requestId = useMemo(() => {
+    const raw = searchParams.get("requestId");
+    return raw?.trim() ?? "";
   }, [searchParams]);
 
   useEffect(() => {
-    if (!data) {
-      setIsConfirming(false);
-      return;
-    }
+    let isMounted = true;
 
-    if (isConfirmed) return;
-
-    async function confirm() {
-      try {
-        const res = await fetch("/api/public/booking/confirm-after-payment", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to confirm booking");
+    async function syncPaymentState() {
+      if (!requestId) {
+        if (isMounted) {
+          setErrorMessage("Не удалось найти данные оплаты.");
+          setIsLoading(false);
         }
+        return;
+      }
 
-        await res.json();
-        setIsConfirmed(true);
-      } catch (e) {
-        console.error("Confirm booking failed", e);
+      try {
+        // ВРЕМЕННЫЙ MOCK-ПРОВАЙДЕР:
+        // позже это место заменится реальным webhook от платёжного сервиса.
+        await completeMockPayment(requestId).catch(() => undefined);
+
+        const status = await getPaymentStatus(requestId);
+
+        if (!isMounted) return;
+
+        setPayment(status);
+        setErrorMessage(status.errorMessage ?? null);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Не удалось загрузить статус оплаты."
+        );
       } finally {
-        setIsConfirming(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
 
-    void confirm();
-  }, [data, isConfirmed]);
+    void syncPaymentState();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [requestId]);
 
   useEffect(() => {
-    if (!isConfirmed) {
+    if (payment?.status !== "paid") {
       setShowConfetti(false);
       return;
     }
 
     const timer = setTimeout(() => setShowConfetti(true), 200);
     return () => clearTimeout(timer);
-  }, [isConfirmed]);
+  }, [payment?.status]);
+
+  const bookingStartsAt = payment?.booking.startsAt ?? "";
 
   return (
     <section className={styles.section}>
@@ -97,24 +100,26 @@ export function PaymentSuccessPage() {
           <div className={styles.icon}>🎉</div>
 
           <h1 className={styles.title}>
-            {isConfirming
-              ? "Подтверждаем запись..."
-              : isConfirmed
+            {isLoading
+              ? "Подтверждаем оплату..."
+              : payment?.status === "paid"
               ? "Запись подтверждена"
-              : "Оплата получена"}
+              : payment?.status === "pending"
+              ? "Оплата получена"
+              : "Не удалось подтвердить оплату"}
           </h1>
 
           <div className={styles.contentWrapper}>
-            {isConfirming ? (
+            {isLoading ? (
               <p className={styles.fallback}>
-                Пожалуйста, подождите, мы подтверждаем вашу запись...
+                Пожалуйста, подождите, мы проверяем статус оплаты и записи...
               </p>
-            ) : isConfirmed && data ? (
+            ) : payment?.status === "paid" && bookingStartsAt ? (
               <div className={styles.details}>
                 <p>
                   <strong>Дата:</strong>{" "}
                   {formatBookingDate(
-                    data.startsAt,
+                    bookingStartsAt,
                     "ru-RU",
                     siteSettings.booking.timezone
                   )}
@@ -123,7 +128,7 @@ export function PaymentSuccessPage() {
                 <p>
                   <strong>Время:</strong>{" "}
                   {formatBookingTime(
-                    data.startsAt,
+                    bookingStartsAt,
                     "ru-RU",
                     siteSettings.booking.timezone
                   )}{" "}
@@ -131,35 +136,40 @@ export function PaymentSuccessPage() {
                 </p>
 
                 <p>
-                  <strong>Имя:</strong> {data.firstName} {data.lastName ?? ""}
+                  <strong>Имя:</strong> {payment.booking.firstName}{" "}
+                  {payment.booking.lastName}
                 </p>
 
-                {data.email && (
+                {payment.booking.email ? (
                   <p>
-                    <strong>Email:</strong> {data.email}
+                    <strong>Email:</strong> {payment.booking.email}
                   </p>
-                )}
+                ) : null}
               </div>
+            ) : payment?.status === "pending" ? (
+              <p className={styles.fallback}>
+                Мы получили информацию об оплате. Пожалуйста, подождите ещё немного.
+              </p>
             ) : (
               <p className={styles.fallback}>
-                Мы получили вашу оплату и скоро свяжемся с вами 🤍
+                {errorMessage || "Не удалось подтвердить оплату или создать запись."}
               </p>
             )}
           </div>
 
-          {isConfirmed && (
+          {payment?.status === "paid" ? (
             <p className={styles.note}>
               Я свяжусь с вами в ближайшее время для подтверждения деталей.
             </p>
-          )}
+          ) : null}
 
-          {!isConfirming && (
+          {!isLoading ? (
             <div className={styles.actions}>
               <Button href="/" variant="premium">
                 На главную
               </Button>
             </div>
-          )}
+          ) : null}
         </div>
       </Container>
     </section>

@@ -180,11 +180,18 @@ describe("public booking create handler", () => {
         endsAt: "2026-04-20T13:00",
       },
       alreadyExistedClient: false,
-      notifications: {
-        telegram: { status: "sent" },
-        ownerEmail: { status: "sent" },
-        clientEmail: { status: "sent" },
-      },
+    });
+
+    expect(sendBookingNotificationsBoundedMock).toHaveBeenCalledWith({
+      sessionId: 901,
+      clientName: "Irina Maria Petrova",
+      clientPhone: "+7 (999) 123-45-67",
+      clientEmail: "irina@example.com",
+      serviceTitle: "Consultation",
+      startsAt: "2026-04-20T12:00",
+      endsAt: "2026-04-20T13:00",
+      comment: "Primary consultation",
+      alreadyExistedClient: false,
     });
 
     const clientInsert = poolClient.queryLog.find((entry) =>
