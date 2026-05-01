@@ -1,6 +1,6 @@
 import type { PoolClient } from "pg";
 import { validateBookableSlot } from "../publicBooking/bookingAvailability";
-import { sendBookingNotificationsBounded } from "../publicBooking/sendBookingNotifications";
+import type { SendBookingNotificationsPayload } from "../publicBooking/sendBookingNotifications";
 import type {
   PublicBookingCreatePayload,
   PublicBookingCreateSuccessResponse,
@@ -21,6 +21,77 @@ type SessionRow = {
 type RequestRow = {
   id: number | string;
 };
+
+type SlotValidationErrorReason =
+  | "invalid_service"
+  | "invalid_date"
+  | "invalid_slot"
+  | "settings_missing"
+  | "outside_booking_window"
+  | "slot_unavailable";
+
+export type CreateBookingServiceResult = {
+  response: PublicBookingCreateSuccessResponse;
+  notificationPayload: SendBookingNotificationsPayload;
+};
+
+export class CreateBookingServiceError extends Error {
+  status: number;
+  code: string;
+
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.name = "CreateBookingServiceError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+export function isCreateBookingServiceError(
+  error: unknown
+): error is CreateBookingServiceError {
+  return error instanceof CreateBookingServiceError;
+}
+
+function mapSlotError(reason: SlotValidationErrorReason): CreateBookingServiceError {
+  if (reason === "invalid_service") {
+    return new CreateBookingServiceError(
+      400,
+      "invalid_service",
+      "Услуга недоступна для онлайн-записи."
+    );
+  }
+
+  if (reason === "invalid_date" || reason === "invalid_slot") {
+    return new CreateBookingServiceError(
+      400,
+      "invalid_slot",
+      "Некорректный слот для записи."
+    );
+  }
+
+  if (reason === "outside_booking_window") {
+    return new CreateBookingServiceError(
+      409,
+      "slot_unavailable",
+      "Этот слот уже вне окна онлайн-записи. Пожалуйста, выберите другой."
+    );
+  }
+
+  if (reason === "settings_missing") {
+    return new CreateBookingServiceError(
+      500,
+      "settings_missing",
+      "Не удалось загрузить настройки записи."
+    );
+  }
+
+  return new CreateBookingServiceError(
+    409,
+    "slot_unavailable",
+    "Выбранный слот уже недоступен. Пожалуйста, выберите другой."
+  );
+}
 
 function normalizeNamePart(value: string): string {
   return value.trim().replace(/\s+/g, " ");
@@ -78,8 +149,15 @@ async function ensureClient(
 
   const created = await db.query<ClientRow>(
     `
-      INSERT INTO clients (name, phone, email, source, status)
-      VALUES ($1, $2, $3, 'website', 'active')
+      INSERT INTO clients (
+        name,
+        phone,
+        email,
+        source,
+        status,
+        first_request_id
+      )
+      VALUES ($1, $2, $3, 'website', 'active', NULL)
       RETURNING id
     `,
     [payload.name, payload.phone, payload.email]
@@ -98,7 +176,15 @@ async function createBookedRequest(
 ) {
   const created = await db.query<RequestRow>(
     `
-      INSERT INTO requests (name, phone, email, message, status, source, client_id)
+      INSERT INTO requests (
+        name,
+        phone,
+        email,
+        message,
+        status,
+        source,
+        client_id
+      )
       VALUES ($1, $2, $3, $4, 'booked', 'website', $5)
       RETURNING id
     `,
@@ -106,6 +192,22 @@ async function createBookedRequest(
   );
 
   return Number(created.rows[0].id);
+}
+
+async function setClientFirstRequestIfMissing(
+  db: Pick<PoolClient, "query">,
+  clientId: number,
+  requestId: number
+) {
+  await db.query(
+    `
+      UPDATE clients
+      SET first_request_id = $2
+      WHERE id = $1
+        AND first_request_id IS NULL
+    `,
+    [clientId, requestId]
+  );
 }
 
 async function lockBookingDate(db: Pick<PoolClient, "query">, startsAt: string) {
@@ -124,8 +226,7 @@ async function lockBookingDate(db: Pick<PoolClient, "query">, startsAt: string) 
 export async function createBookingService(
   client: PoolClient,
   payload: PublicBookingCreatePayload
-): Promise<PublicBookingCreateSuccessResponse> {
-
+): Promise<CreateBookingServiceResult> {
   await lockBookingDate(client, payload.startsAt);
 
   const slotValidation = await validateBookableSlot({
@@ -135,7 +236,7 @@ export async function createBookingService(
   });
 
   if (!slotValidation.ok) {
-    throw new Error("Slot not available");
+    throw mapSlotError(slotValidation.reason);
   }
 
   const normalizedPayload: NormalizedPayload = {
@@ -145,10 +246,16 @@ export async function createBookingService(
 
   const clientResult = await ensureClient(client, normalizedPayload);
 
-  await createBookedRequest(
+  const createdRequestId = await createBookedRequest(
     client,
     normalizedPayload,
     clientResult.clientId
+  );
+
+  await setClientFirstRequestIfMissing(
+    client,
+    clientResult.clientId,
+    createdRequestId
   );
 
   const sessionInsert = await client.query<SessionRow>(
@@ -189,7 +296,7 @@ export async function createBookingService(
     alreadyExistedClient: clientResult.alreadyExisted,
   };
 
-  void sendBookingNotificationsBounded({
+  const notificationPayload: SendBookingNotificationsPayload = {
     sessionId: response.booking.sessionId,
     clientName: normalizedPayload.name,
     clientPhone: normalizedPayload.phone,
@@ -199,12 +306,10 @@ export async function createBookingService(
     endsAt: response.booking.endsAt,
     comment: normalizedPayload.message ?? "",
     alreadyExistedClient: response.alreadyExistedClient,
-  }).catch((error) => {
-    console.error("Async booking notifications failed:", {
-      sessionId: response.booking.sessionId,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  });
+  };
 
-  return response;
+  return {
+    response,
+    notificationPayload,
+  };
 }
