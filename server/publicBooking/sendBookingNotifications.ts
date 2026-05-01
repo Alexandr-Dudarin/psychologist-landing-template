@@ -52,6 +52,12 @@ export type SendBookingNotificationsPayload = {
 
 const BOOKING_NOTIFICATIONS_TIMEOUT_MS = 1500;
 
+function isIncompleteNotificationsResult(
+  result: SendBookingNotificationsBoundedResult
+): result is SendBookingNotificationsBoundedIncompleteResult {
+  return result.completed === false;
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -93,13 +99,13 @@ function getOwnerEmailHtml(payload: SendBookingNotificationsPayload): string {
     <p>
       <strong>Время:</strong>
       ${escapeHtml(
-        formatBookingTimeRange(payload.startsAt, payload.endsAt, timezone)
-      )} (${timezone})
+    formatBookingTimeRange(payload.startsAt, payload.endsAt, timezone)
+  )} (${timezone})
     </p>
     <p><strong>Комментарий:</strong> ${escapeHtml(payload.comment || "-")}</p>
     <p><strong>Клиент в CRM:</strong> ${escapeHtml(
-      getClientKindLabel(payload.alreadyExistedClient)
-    )}</p>
+    getClientKindLabel(payload.alreadyExistedClient)
+  )}</p>
   `;
 }
 
@@ -113,8 +119,8 @@ function getClientEmailHtml(payload: SendBookingNotificationsPayload): string {
     <p>
       <strong>Время:</strong>
       ${escapeHtml(
-        formatBookingTimeRange(payload.startsAt, payload.endsAt, timezone)
-      )} (${timezone})
+    formatBookingTimeRange(payload.startsAt, payload.endsAt, timezone)
+  )} (${timezone})
     </p>
     <p>Если потребуется, мы дополнительно свяжемся с вами для уточнения деталей.</p>
   `;
@@ -333,7 +339,7 @@ export async function sendBookingNotificationsBounded(
     } satisfies SendBookingNotificationsBoundedResult;
   });
 
-  if (result.completed === false && result.reason === "timeout") {
+  if (isIncompleteNotificationsResult(result) && result.reason === "timeout") {
     console.error("Booking notifications timed out before response:", {
       sessionId: payload.sessionId,
       timeoutMs,

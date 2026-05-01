@@ -53,6 +53,12 @@ export function isCreateBookingServiceError(
   return error instanceof CreateBookingServiceError;
 }
 
+function isSlotValidationError(
+  result: Awaited<ReturnType<typeof validateBookableSlot>>
+): result is Extract<Awaited<ReturnType<typeof validateBookableSlot>>, { ok: false }> {
+  return result.ok === false;
+}
+
 function mapSlotError(reason: SlotValidationErrorReason): CreateBookingServiceError {
   if (reason === "invalid_service") {
     return new CreateBookingServiceError(
@@ -235,7 +241,7 @@ export async function createBookingService(
     db: client,
   });
 
-  if (!slotValidation.ok) {
+  if (isSlotValidationError(slotValidation)) {
     throw mapSlotError(slotValidation.reason);
   }
 
