@@ -2,8 +2,8 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   finalizeMockPayment,
   isPaymentFlowError,
-} from "../../server/payment/finalizeMockPayment";
-import { isCreateBookingServiceError } from "../../server/services/createBookingService";
+} from "../../server/payment/finalizeMockPayment.js";
+import { isCreateBookingServiceError } from "../../server/services/createBookingService.js";
 
 export default async function handler(
   req: VercelRequest,

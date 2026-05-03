@@ -1,10 +1,10 @@
-import { pool } from "../db/pool";
-import { sendBookingNotificationsBounded } from "../publicBooking/sendBookingNotifications";
+import { pool } from "../db/pool.js";
+import { sendBookingNotificationsBounded } from "../publicBooking/sendBookingNotifications.js";
 import {
   createBookingService,
   isCreateBookingServiceError,
-} from "../services/createBookingService";
-import type { PublicBookingCreatePayload } from "../../src/types/booking";
+} from "../services/createBookingService.js";
+import type { PublicBookingCreatePayload } from "../../src/types/booking.js";
 
 type PaymentRow = {
   id: number | string;

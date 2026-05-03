@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { pool } from "../../server/db/pool";
+import { pool } from "../../server/db/pool.js";
 
 type PaymentRow = {
   request_id: string;

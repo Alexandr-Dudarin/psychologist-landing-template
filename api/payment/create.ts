@@ -1,12 +1,23 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { pool } from "../../server/db/pool";
-import { validateBookableSlot } from "../../server/publicBooking/bookingAvailability";
+import { pool } from "../../server/db/pool.js";
+import { validateBookableSlot } from "../../server/publicBooking/bookingAvailability.js";
 import {
   getPublicBookingValidationError,
   parsePublicBookingCreatePayload,
-} from "../../server/publicBooking/parsePublicBookingCreatePayload";
+} from "../../server/publicBooking/parsePublicBookingCreatePayload.js";
 
-function mapSlotError(reason: string) {
+type SlotValidationErrorResult = Extract<
+  Awaited<ReturnType<typeof validateBookableSlot>>,
+  { ok: false }
+>;
+
+function isSlotValidationError(
+  result: Awaited<ReturnType<typeof validateBookableSlot>>
+): result is SlotValidationErrorResult {
+  return result.ok === false;
+}
+
+function mapSlotError(reason: SlotValidationErrorResult["reason"]) {
   if (reason === "invalid_service") {
     return {
       status: 400,
@@ -91,7 +102,7 @@ export default async function handler(
       db: client,
     });
 
-    if (!slotValidation.ok) {
+    if (isSlotValidationError(slotValidation)) {
       const errorPayload = mapSlotError(slotValidation.reason);
       return res.status(errorPayload.status).json({
         message: errorPayload.error,

@@ -3,7 +3,18 @@
 import {
   getPublicBookingAvailabilityData,
   getSingleQueryValue,
-} from "../../../server/publicBooking/bookingAvailability";
+} from "../../../server/publicBooking/bookingAvailability.js";
+
+type AvailabilityErrorResult = Extract<
+  Awaited<ReturnType<typeof getPublicBookingAvailabilityData>>,
+  { ok: false }
+>;
+
+function isAvailabilityError(
+  result: Awaited<ReturnType<typeof getPublicBookingAvailabilityData>>
+): result is AvailabilityErrorResult {
+  return result.ok === false;
+}
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
@@ -24,7 +35,7 @@ export default async function handler(req: any, res: any) {
       visibleMonth,
     });
 
-    if (!result.ok) {
+    if (isAvailabilityError(result)) {
       if (result.reason === "invalid_service") {
         return res.status(400).json({ error: "Некорректная услуга" });
       }

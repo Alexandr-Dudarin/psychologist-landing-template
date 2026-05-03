@@ -1,12 +1,12 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
-import { pool } from "../db/pool";
+import { pool } from "../db/pool.js";
 import type {
   PublicRequestPayload,
   PublicRequestSuccessResponse,
   PublicRequestErrorResponse,
-} from "../../src/types/request";
+} from "../../src/types/request.js";
 
 type ProcessPublicRequestResult = {
   status: number;

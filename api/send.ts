@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { processPublicRequest } from "../server/requests/processPublicRequest";
+import { processPublicRequest } from "../server/requests/processPublicRequest.js";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
