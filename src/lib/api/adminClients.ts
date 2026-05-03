@@ -62,8 +62,8 @@ export async function getAdminClients(
 
   const queryString = params.toString();
   const url = queryString
-    ? `/api/admin/clients/list?${queryString}`
-    : "/api/admin/clients/list";
+    ? `/api/admin/clients?${queryString}`
+    : "/api/admin/clients";
 
   const response = await fetch(url);
 
@@ -88,7 +88,7 @@ export async function getAdminClients(
 export async function createClientFromRequest(
   requestId: number
 ): Promise<{ item: CrmClientRecord; alreadyExisted: boolean }> {
-  const response = await fetch("/api/admin/clients/create-from-request", {
+  const response = await fetch("/api/admin/clients?action=create-from-request", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -120,7 +120,7 @@ export async function createClientFromRequest(
 export async function createManualClient(
   payload: CreateManualClientPayload
 ): Promise<{ item: CrmClientRecord; alreadyExisted: boolean }> {
-  const response = await fetch("/api/admin/clients/create", {
+  const response = await fetch("/api/admin/clients?action=create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -152,7 +152,7 @@ export async function createManualClient(
 export async function updateClient(
   payload: UpdateClientPayload
 ): Promise<CrmClientRecord> {
-  const response = await fetch("/api/admin/clients/update", {
+  const response = await fetch("/api/admin/clients?action=update", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

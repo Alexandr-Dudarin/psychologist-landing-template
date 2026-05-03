@@ -19,7 +19,7 @@ async function parseJsonSafe<T>(response: Response): Promise<T | null> {
 }
 
 export async function loginAdmin(password: string): Promise<void> {
-  const response = await fetch("/api/admin/login", {
+  const response = await fetch("/api/admin/auth?action=login", {
     method: "POST",
     credentials: "include",
     headers: {
@@ -38,7 +38,7 @@ export async function loginAdmin(password: string): Promise<void> {
 }
 
 export async function getAdminSession(): Promise<AdminSessionResponse> {
-  const response = await fetch("/api/admin/me", {
+  const response = await fetch("/api/admin/auth", {
     method: "GET",
     credentials: "include",
   });
@@ -53,7 +53,7 @@ export async function getAdminSession(): Promise<AdminSessionResponse> {
 }
 
 export async function logoutAdmin(): Promise<void> {
-  const response = await fetch("/api/admin/logout", {
+  const response = await fetch("/api/admin/auth?action=logout", {
     method: "POST",
     credentials: "include",
   });

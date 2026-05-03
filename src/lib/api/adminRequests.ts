@@ -44,8 +44,8 @@ export async function getAdminRequests(
 
   const queryString = params.toString();
   const url = queryString
-    ? `/api/admin/requests/list?${queryString}`
-    : "/api/admin/requests/list";
+    ? `/api/admin/requests?${queryString}`
+    : "/api/admin/requests";
 
   const response = await fetch(url);
 
@@ -70,7 +70,7 @@ export async function getAdminRequests(
 export async function updateAdminRequestStatus(
   payload: UpdateRequestStatusPayload
 ): Promise<{ id: number; status: RequestStatus }> {
-  const response = await fetch("/api/admin/requests/update", {
+  const response = await fetch("/api/admin/requests?action=update", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

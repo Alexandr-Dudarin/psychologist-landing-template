@@ -59,8 +59,8 @@ export async function getAdminServices(
 
   const queryString = params.toString();
   const url = queryString
-    ? `/api/admin/services/list?${queryString}`
-    : "/api/admin/services/list";
+    ? `/api/admin/services?${queryString}`
+    : "/api/admin/services";
 
   const response = await fetch(url);
 
@@ -85,7 +85,7 @@ export async function getAdminServices(
 export async function createAdminService(
   payload: CreateServicePayload
 ): Promise<CrmServiceRecord> {
-  const response = await fetch("/api/admin/services/create", {
+  const response = await fetch("/api/admin/services?action=create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -114,7 +114,7 @@ export async function createAdminService(
 export async function updateAdminService(
   payload: UpdateServicePayload
 ): Promise<CrmServiceRecord> {
-  const response = await fetch("/api/admin/services/update", {
+  const response = await fetch("/api/admin/services?action=update", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -141,7 +141,7 @@ export async function updateAdminService(
 }
 
 export async function deleteAdminService(id: number): Promise<number> {
-  const response = await fetch("/api/admin/services/delete", {
+  const response = await fetch("/api/admin/services?action=delete", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

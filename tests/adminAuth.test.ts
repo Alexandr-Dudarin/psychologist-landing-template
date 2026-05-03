@@ -14,18 +14,8 @@ vi.mock("../server/db/pool", () => ({
   },
 }));
 
-async function loadLoginHandler() {
-  const module = await import("../api/admin/login");
-  return module.default;
-}
-
-async function loadLogoutHandler() {
-  const module = await import("../api/admin/logout");
-  return module.default;
-}
-
-async function loadMeHandler() {
-  const module = await import("../api/admin/me");
+async function loadAuthHandler() {
+  const module = await import("../api/admin/auth");
   return module.default;
 }
 
@@ -57,9 +47,10 @@ describe("admin auth", () => {
   });
 
   it("logs in with the correct password", async () => {
-    const handler = await loadLoginHandler();
+    const handler = await loadAuthHandler();
     const req = createMockRequest({
       method: "POST",
+      query: { action: "login" },
       body: { password: "top-secret" },
     });
     const res = createMockResponse();
@@ -72,9 +63,10 @@ describe("admin auth", () => {
   });
 
   it("rejects login with the wrong password", async () => {
-    const handler = await loadLoginHandler();
+    const handler = await loadAuthHandler();
     const req = createMockRequest({
       method: "POST",
+      query: { action: "login" },
       body: { password: "wrong-password" },
     });
     const res = createMockResponse();
@@ -84,8 +76,8 @@ describe("admin auth", () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it("returns the correct auth state from /api/admin/me", async () => {
-    const handler = await loadMeHandler();
+  it("returns the correct auth state from /api/admin/auth", async () => {
+    const handler = await loadAuthHandler();
     const validCookie = buildAdminSessionCookie(
       createAdminSessionToken("session-secret")
     );
@@ -115,10 +107,11 @@ describe("admin auth", () => {
   });
 
   it("clears access on logout", async () => {
-    const logoutHandler = await loadLogoutHandler();
-    const meHandler = await loadMeHandler();
+    const logoutHandler = await loadAuthHandler();
+    const meHandler = await loadAuthHandler();
     const req = createMockRequest({
       method: "POST",
+      query: { action: "logout" },
     });
     const res = createMockResponse();
 

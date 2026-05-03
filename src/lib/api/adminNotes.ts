@@ -64,8 +64,8 @@ export async function getAdminNotes(
 
   const queryString = params.toString();
   const url = queryString
-    ? `/api/admin/notes/list?${queryString}`
-    : "/api/admin/notes/list";
+    ? `/api/admin/notes?${queryString}`
+    : "/api/admin/notes";
 
   const response = await fetch(url);
 
@@ -90,7 +90,7 @@ export async function getAdminNotes(
 export async function createAdminNote(
   payload: CreateNotePayload
 ): Promise<CrmNoteRecord> {
-  const response = await fetch("/api/admin/notes/create", {
+  const response = await fetch("/api/admin/notes?action=create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -119,7 +119,7 @@ export async function createAdminNote(
 export async function updateAdminNote(
   payload: UpdateNotePayload
 ): Promise<CrmNoteRecord> {
-  const response = await fetch("/api/admin/notes/update", {
+  const response = await fetch("/api/admin/notes?action=update", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -146,7 +146,7 @@ export async function updateAdminNote(
 }
 
 export async function deleteAdminNote(id: number): Promise<number> {
-  const response = await fetch("/api/admin/notes/delete", {
+  const response = await fetch("/api/admin/notes?action=delete", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

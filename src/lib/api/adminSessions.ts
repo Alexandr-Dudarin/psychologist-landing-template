@@ -65,8 +65,8 @@ export async function getAdminSessions(
 
   const queryString = params.toString();
   const url = queryString
-    ? `/api/admin/sessions/list?${queryString}`
-    : "/api/admin/sessions/list";
+    ? `/api/admin/sessions?${queryString}`
+    : "/api/admin/sessions";
 
   const response = await fetch(url);
 
@@ -91,7 +91,7 @@ export async function getAdminSessions(
 export async function createAdminSession(
   payload: CreateSessionPayload
 ): Promise<CrmSessionRecord> {
-  const response = await fetch("/api/admin/sessions/create", {
+  const response = await fetch("/api/admin/sessions?action=create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -120,7 +120,7 @@ export async function createAdminSession(
 export async function updateAdminSession(
   payload: UpdateSessionPayload
 ): Promise<CrmSessionRecord> {
-  const response = await fetch("/api/admin/sessions/update", {
+  const response = await fetch("/api/admin/sessions?action=update", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -147,7 +147,7 @@ export async function updateAdminSession(
 }
 
 export async function deleteAdminSession(id: number): Promise<number> {
-  const response = await fetch("/api/admin/sessions/delete", {
+  const response = await fetch("/api/admin/sessions?action=delete", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
