@@ -1,10 +1,10 @@
 /// <reference types="node" />
 
-import { pool } from "../../../server/db/pool";
+import { pool } from "../../../server/db/pool.js";
 import type {
   ClientStatus,
   CrmClientRecord,
-} from "../../../src/types/client";
+} from "../../../src/types/client.js";
 
 type ParsedPayload = {
   name: string;

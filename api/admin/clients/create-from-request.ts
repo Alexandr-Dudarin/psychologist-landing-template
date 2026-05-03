@@ -1,7 +1,7 @@
 /// <reference types="node" />
 
-import { pool } from "../../../server/db/pool";
-import type { CrmClientRecord, ClientStatus } from "../../../src/types/client";
+import { pool } from "../../../server/db/pool.js";
+import type { CrmClientRecord, ClientStatus } from "../../../src/types/client.js";
 
 type RequestBody = {
   requestId: number;

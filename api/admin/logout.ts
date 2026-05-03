@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { buildClearedAdminSessionCookie } from "../../server/auth/adminSession";
+import { buildClearedAdminSessionCookie } from "../../server/auth/adminSession.js";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {

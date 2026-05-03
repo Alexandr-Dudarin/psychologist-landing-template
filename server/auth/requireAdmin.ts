@@ -2,7 +2,7 @@ import {
   getAdminSessionFromRequest,
   getAdminSessionSecret,
   verifyAdminSessionToken,
-} from "./adminSession";
+} from "./adminSession.js";
 
 type AdminRequestLike = {
   headers?: {

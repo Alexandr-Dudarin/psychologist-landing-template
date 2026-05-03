@@ -4,7 +4,7 @@ import {
   getAdminSessionFromRequest,
   getAdminSessionSecret,
   verifyAdminSessionToken,
-} from "../../server/auth/adminSession";
+} from "../../server/auth/adminSession.js";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {

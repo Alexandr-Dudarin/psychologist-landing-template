@@ -5,7 +5,7 @@ import {
   createAdminSessionToken,
   getAdminPassword,
   getAdminSessionSecret,
-} from "../../server/auth/adminSession";
+} from "../../server/auth/adminSession.js";
 
 type ParsedBody = {
   password: string;
