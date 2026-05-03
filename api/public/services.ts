@@ -1,7 +1,7 @@
 /// <reference types="node" />
 
-import { pool } from "../../../server/db/pool.js";
-import type { CrmServiceRecord } from "../../../src/types/service.js";
+import { pool } from "../../server/db/pool.js";
+import type { CrmServiceRecord } from "../../src/types/service.js";
 
 type ServiceRow = {
   id: number;

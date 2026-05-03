@@ -9,7 +9,7 @@ type PublicServicesErrorResponse = {
 };
 
 export async function getPublicServices(): Promise<CrmServiceRecord[]> {
-  const response = await fetch("/api/public/services/list");
+  const response = await fetch("/api/public/services");
 
   const data = (await response.json().catch(() => null)) as
     | PublicServicesResponse

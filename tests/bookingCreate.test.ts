@@ -139,7 +139,7 @@ function createPoolClient(options?: {
 }
 
 async function loadHandler() {
-  const module = await import("../api/public/booking/create");
+  const module = await import("../api/public/booking");
   return module.default;
 }
 
@@ -164,6 +164,7 @@ describe("public booking create handler", () => {
 
     const handler = await loadHandler();
     const req = createValidRequest({ message: "Primary consultation" });
+    req.query = { action: "create" };
     const res = createMockResponse();
 
     await handler(req, res);
@@ -251,6 +252,7 @@ describe("public booking create handler", () => {
       phone: "+7 (999) 000-00-00",
       email: "existing@example.com",
     });
+    req.query = { action: "create" };
     const res = createMockResponse();
 
     await handler(req, res);
@@ -309,6 +311,7 @@ describe("public booking create handler", () => {
       phone: "+7 (999) 000-00-00",
       email: "existing@example.com",
     });
+    req.query = { action: "create" };
     const res = createMockResponse();
 
     await handler(req, res);
@@ -330,6 +333,7 @@ describe("public booking create handler", () => {
     const handler = await loadHandler();
     const req = createMockRequest({
       method: "POST",
+      query: { action: "create" },
       body: {
         serviceId: 0,
         consent: false,
@@ -356,6 +360,7 @@ describe("public booking create handler", () => {
 
     const handler = await loadHandler();
     const req = createValidRequest({ serviceId: 999 });
+    req.query = { action: "create" };
     const res = createMockResponse();
 
     await handler(req, res);
@@ -376,6 +381,7 @@ describe("public booking create handler", () => {
 
     const handler = await loadHandler();
     const req = createValidRequest();
+    req.query = { action: "create" };
     const res = createMockResponse();
 
     await handler(req, res);
@@ -403,6 +409,7 @@ describe("public booking create handler", () => {
 
     const handler = await loadHandler();
     const req = createValidRequest();
+    req.query = { action: "create" };
     const res = createMockResponse();
 
     await handler(req, res);
@@ -438,6 +445,7 @@ describe("public booking create handler", () => {
 
     const handler = await loadHandler();
     const req = createValidRequest();
+    req.query = { action: "create" };
     const res = createMockResponse();
 
     await handler(req, res);

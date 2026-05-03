@@ -24,7 +24,7 @@ export type PaymentStatusResponse = {
 export async function createPayment(
   payload: PublicBookingCreatePayload & { requestId: string }
 ): Promise<CreatePaymentResponse> {
-  const response = await fetch("/api/payment/create", {
+  const response = await fetch("/api/payment?action=create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -42,7 +42,7 @@ export async function createPayment(
 }
 
 export async function completeMockPayment(requestId: string) {
-  const response = await fetch("/api/payment/mock-complete", {
+  const response = await fetch("/api/payment?action=mock-complete", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -63,7 +63,7 @@ export async function getPaymentStatus(
   requestId: string
 ): Promise<PaymentStatusResponse> {
   const response = await fetch(
-    `/api/payment/status?requestId=${encodeURIComponent(requestId)}`
+    `/api/payment?action=status&requestId=${encodeURIComponent(requestId)}`
   );
 
   if (!response.ok) {

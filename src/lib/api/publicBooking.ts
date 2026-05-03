@@ -39,8 +39,8 @@ export async function getPublicBookingAvailability(
 
   const queryString = searchParams.toString();
   const url = queryString
-    ? `/api/public/booking/availability?${queryString}`
-    : "/api/public/booking/availability";
+    ? `/api/public/booking?${queryString}`
+    : "/api/public/booking";
 
   const response = await fetch(url);
   const data = (await response.json().catch(() => null)) as
@@ -60,7 +60,7 @@ export async function getPublicBookingAvailability(
 export async function createPublicBooking(
   payload: PublicBookingCreatePayload
 ): Promise<PublicBookingCreateSuccessResponse> {
-  const response = await fetch("/api/public/booking/create", {
+  const response = await fetch("/api/public/booking?action=create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
