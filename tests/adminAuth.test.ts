@@ -20,7 +20,7 @@ async function loadAuthHandler() {
 }
 
 async function loadProtectedScheduleHandler() {
-  const module = await import("../api/admin/schedule/get");
+  const module = await import("../api/admin/schedule");
   return module.default;
 }
 

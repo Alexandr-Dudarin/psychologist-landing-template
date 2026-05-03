@@ -57,7 +57,7 @@ export type UpdateBlockedSlotPayload = {
 };
 
 export async function getAdminSchedule(): Promise<AdminScheduleRecord> {
-  const response = await fetch("/api/admin/schedule/get");
+  const response = await fetch("/api/admin/schedule");
 
   const data = (await response.json().catch(() => null)) as
     | AdminScheduleRecord
@@ -86,7 +86,7 @@ export async function getAdminSchedule(): Promise<AdminScheduleRecord> {
 export async function updateAdminSchedule(
   payload: UpdateAdminSchedulePayload
 ): Promise<AdminScheduleRecord> {
-  const response = await fetch("/api/admin/schedule/update", {
+  const response = await fetch("/api/admin/schedule?action=update", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -126,7 +126,7 @@ export async function updateAdminSchedule(
 export async function createScheduleOverride(
   payload: CreateScheduleOverridePayload
 ): Promise<ScheduleOverrideRecord> {
-  const response = await fetch("/api/admin/schedule/create-override", {
+  const response = await fetch("/api/admin/schedule?action=create-override", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -157,7 +157,7 @@ export async function createScheduleOverride(
 export async function updateScheduleOverride(
   payload: UpdateScheduleOverridePayload
 ): Promise<ScheduleOverrideRecord> {
-  const response = await fetch("/api/admin/schedule/update-override", {
+  const response = await fetch("/api/admin/schedule?action=update-override", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -186,7 +186,7 @@ export async function updateScheduleOverride(
 }
 
 export async function deleteScheduleOverride(date: string): Promise<string> {
-  const response = await fetch("/api/admin/schedule/delete-override", {
+  const response = await fetch("/api/admin/schedule?action=delete-override", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -217,7 +217,7 @@ export async function deleteScheduleOverride(date: string): Promise<string> {
 export async function createBlockedSlot(
   payload: CreateBlockedSlotPayload
 ): Promise<BlockedSlotRecord> {
-  const response = await fetch("/api/admin/schedule/create-blocked-slot", {
+  const response = await fetch("/api/admin/schedule?action=create-blocked-slot", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -248,7 +248,7 @@ export async function createBlockedSlot(
 export async function updateBlockedSlot(
   payload: UpdateBlockedSlotPayload
 ): Promise<BlockedSlotRecord> {
-  const response = await fetch("/api/admin/schedule/update-blocked-slot", {
+  const response = await fetch("/api/admin/schedule?action=update-blocked-slot", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -277,7 +277,7 @@ export async function updateBlockedSlot(
 }
 
 export async function deleteBlockedSlot(id: number): Promise<number> {
-  const response = await fetch("/api/admin/schedule/delete-blocked-slot", {
+  const response = await fetch("/api/admin/schedule?action=delete-blocked-slot", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
