@@ -1,12 +1,12 @@
 /// <reference types="node" />
 
-import { pool } from "../../../server/db/pool";
+import { pool } from "../../../server/db/pool.js";
 import type {
   CrmSessionRecord,
   CreateSessionPayload,
   SessionStatus,
-} from "../../../src/types/session";
-import { sessionStatuses } from "../../../src/types/session";
+} from "../../../src/types/session.js";
+import { sessionStatuses } from "../../../src/types/session.js";
 
 type ParsedPayload = {
   clientId: number;
