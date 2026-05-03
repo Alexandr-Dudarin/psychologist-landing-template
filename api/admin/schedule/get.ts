@@ -1,14 +1,14 @@
 /// <reference types="node" />
 
-import { pool } from "../../../server/db/pool";
-import { requireAdminRequest } from "../../../server/auth/requireAdmin";
+import { pool } from "../../../server/db/pool.js";
+import { requireAdminRequest } from "../../../server/auth/requireAdmin.js";
 import type {
   AdminScheduleRecord,
   BlockedSlotRecord,
   BookingSettingsRecord,
   ScheduleOverrideRecord,
   ScheduleRuleRecord,
-} from "../../../src/types/schedule";
+} from "../../../src/types/schedule.js";
 
 type SettingsRow = {
   min_advance_hours: number | string;

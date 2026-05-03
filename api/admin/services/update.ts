@@ -1,10 +1,10 @@
 /// <reference types="node" />
 
-import { pool } from "../../../server/db/pool";
+import { pool } from "../../../server/db/pool.js";
 import type {
   CrmServiceRecord,
   UpdateServicePayload,
-} from "../../../src/types/service";
+} from "../../../src/types/service.js";
 
 type ParsedPayload = {
   id: number;

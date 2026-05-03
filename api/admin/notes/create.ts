@@ -1,7 +1,7 @@
 /// <reference types="node" />
 
-import { pool } from "../../../server/db/pool";
-import type { CrmNoteRecord } from "../../../src/types/note";
+import { pool } from "../../../server/db/pool.js";
+import type { CrmNoteRecord } from "../../../src/types/note.js";
 
 type ParsedPayload = {
   clientId: number;

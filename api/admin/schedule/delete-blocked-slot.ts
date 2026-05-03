@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { pool } from "../../../server/db/pool";
+import { pool } from "../../../server/db/pool.js";
 
 type ParsedPayload = {
   id: number;

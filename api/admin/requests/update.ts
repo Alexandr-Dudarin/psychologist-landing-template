@@ -1,11 +1,11 @@
 /// <reference types="node" />
 
-import { pool } from "../../../server/db/pool";
+import { pool } from "../../../server/db/pool.js";
 import type {
   RequestStatus,
   UpdateRequestStatusPayload,
-} from "../../../src/types/request";
-import { requestStatuses } from "../../../src/types/request";
+} from "../../../src/types/request.js";
+import { requestStatuses } from "../../../src/types/request.js";
 
 type ParsedPayload = UpdateRequestStatusPayload | null;
 

@@ -1,7 +1,7 @@
 /// <reference types="node" />
 
-import { pool } from "../../../server/db/pool";
-import type { BlockedSlotRecord } from "../../../src/types/schedule";
+import { pool } from "../../../server/db/pool.js";
+import type { BlockedSlotRecord } from "../../../src/types/schedule.js";
 
 type ParsedPayload = {
   id: number;
