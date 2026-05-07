@@ -125,7 +125,7 @@ export function SessionsTable({
                   <Link
                     to={`/admin/notes?sessionId=${encodeURIComponent(String(item.id))}`}
                   >
-                    Заметки сессии
+                    К заметкам
                   </Link>
                 </div>
               </td>

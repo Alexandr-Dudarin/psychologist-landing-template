@@ -25,3 +25,6 @@ dist-ssr
 
 .vercel
 .env*.local
+
+database-full.backup
+database-schema.sql

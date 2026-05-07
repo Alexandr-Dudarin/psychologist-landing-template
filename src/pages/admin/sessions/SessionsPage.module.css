@@ -29,6 +29,13 @@
 
 .actionsRow {
   composes: actionGroup from "../../../components/admin/adminUi.module.css";
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.actionsRow > * {
+  width: 100%;
 }
 
 .editActionButton {
@@ -90,10 +97,19 @@
 
 .actionCell {
   composes: actionCell from "../../../components/admin/adminUi.module.css";
+  text-align: left;
+  width: 148px;
+  min-width: 148px;
 }
 
 .linkStack {
   composes: linkStack from "../../../components/admin/adminUi.module.css";
+  min-width: 0;
+}
+
+.linkStack a {
+  white-space: nowrap;
+  overflow-wrap: normal;
 }
 
 .dateTimeField {
@@ -213,7 +229,7 @@
 
 .notesPreview {
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-height: 1.45;
@@ -229,11 +245,11 @@
 }
 
 .clientCell {
-  width: 16%;
+  width: 17%;
 }
 
 .serviceCell {
-  width: 15%;
+  width: 14%;
 }
 
 .dateCell {
@@ -252,11 +268,25 @@
 }
 
 .notesCell {
-  width: 20%;
+  width: 14%;
 }
 
 .linksCell {
-  width: 11%;
+  width: 92px;
+  min-width: 92px;
+  white-space: nowrap;
+}
+
+@media (max-width: 1360px) {
+  .sourceCell {
+    display: none;
+  }
+}
+
+@media (max-width: 1240px) {
+  .idCell {
+    display: none;
+  }
 }
 
 @media (max-width: 920px) {
