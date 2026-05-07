@@ -85,7 +85,6 @@ export function AdminLoginPage() {
       >
         <div>
           <h1>{t.admin.login.title}</h1>
-          <p>{t.admin.login.description}</p>
         </div>
 
         {isCheckingSession ? <p>Проверка сессии...</p> : null}

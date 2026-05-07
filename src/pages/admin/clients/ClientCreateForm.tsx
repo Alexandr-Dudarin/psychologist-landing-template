@@ -7,11 +7,14 @@ import type { ClientForm } from "./clientForm";
 
 type ClientCreateFormProps = {
   form: ClientForm;
+  lastName: string;
   isCreating: boolean;
   onChange: (field: keyof ClientForm, value: string) => void;
+  onLastNameChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   title: string;
   namePlaceholder: string;
+  lastNamePlaceholder: string;
   phonePlaceholder: string;
   emailPlaceholder: string;
   sourcePlaceholder: string;
@@ -21,11 +24,14 @@ type ClientCreateFormProps = {
 
 export function ClientCreateForm({
   form,
+  lastName,
   isCreating,
   onChange,
+  onLastNameChange,
   onSubmit,
   title,
   namePlaceholder,
+  lastNamePlaceholder,
   phonePlaceholder,
   emailPlaceholder,
   sourcePlaceholder,
@@ -40,6 +46,14 @@ export function ClientCreateForm({
           value={form.name}
           onChange={(event) => onChange("name", event.target.value)}
           placeholder={namePlaceholder}
+          className={styles.input}
+        />
+
+        <input
+          type="text"
+          value={lastName}
+          onChange={(event) => onLastNameChange(event.target.value)}
+          placeholder={lastNamePlaceholder}
           className={styles.input}
         />
 

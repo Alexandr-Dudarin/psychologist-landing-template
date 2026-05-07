@@ -40,6 +40,7 @@ export function ClientsPage() {
     null
   );
   const [form, setForm] = useState<ManualClientForm>(initialForm);
+  const [lastName, setLastName] = useState("");
 
   useEffect(() => {
     const searchFromUrl = searchParams.get("search");
@@ -129,8 +130,10 @@ export function ClientsPage() {
   const handleCreateClient = async (event: FormEvent) => {
     event.preventDefault();
 
+    const fullName = [form.name.trim(), lastName.trim()].filter(Boolean).join(" ");
+
     const payload: CreateManualClientPayload = {
-      name: form.name.trim(),
+      name: fullName,
       phone: form.phone.trim(),
       email: form.email.trim(),
       source: form.source.trim() || "manual",
@@ -154,6 +157,7 @@ export function ClientsPage() {
       await createManualClient(payload);
       await reloadClients();
       setForm(initialForm);
+      setLastName("");
       setSuccessMessage(t.admin.clients.messages.createSuccess);
     } catch (createError) {
       setError(
@@ -182,11 +186,14 @@ export function ClientsPage() {
 
       <ClientCreateForm
         form={form}
+        lastName={lastName}
         isCreating={isCreating}
         onChange={handleFormChange}
+        onLastNameChange={setLastName}
         onSubmit={handleCreateClient}
         title={t.admin.clients.createForm.title}
-        namePlaceholder={t.admin.clients.createForm.namePlaceholder}
+        namePlaceholder="Имя"
+        lastNamePlaceholder="Фамилия"
         phonePlaceholder={t.admin.clients.createForm.phonePlaceholder}
         emailPlaceholder={t.admin.clients.createForm.emailPlaceholder}
         sourcePlaceholder={t.admin.clients.createForm.sourcePlaceholder}

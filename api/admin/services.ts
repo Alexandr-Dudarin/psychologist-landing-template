@@ -219,7 +219,7 @@ async function handleList(req: any, res: any) {
     return res.status(200).json({ items });
   } catch (error) {
     console.error("Services list error:", error);
-    return res.status(500).json({ error: "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СѓСЃР»СѓРіРё" });
+    return res.status(500).json({ error: "Не удалось загрузить услуги" });
   }
 }
 
@@ -229,7 +229,7 @@ async function handleCreate(req: any, res: any) {
   if (!payload) {
     return res.status(400).json({
       error:
-        "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Рµ РґР°РЅРЅС‹Рµ. РЈРєР°Р¶РёС‚Рµ РЅР°Р·РІР°РЅРёРµ, С†РµРЅСѓ Рё РґР»РёС‚РµР»СЊРЅРѕСЃС‚СЊ СѓСЃР»СѓРіРё.",
+        "Некорректные данные. Укажите название, цену и длительность услуги.",
     });
   }
 
@@ -268,7 +268,7 @@ async function handleCreate(req: any, res: any) {
     });
   } catch (error) {
     console.error("Service create error:", error);
-    return res.status(500).json({ error: "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СѓСЃР»СѓРіСѓ" });
+    return res.status(500).json({ error: "Не удалось создать услугу" });
   }
 }
 
@@ -277,7 +277,7 @@ async function handleUpdate(req: any, res: any) {
 
   if (!payload) {
     return res.status(400).json({
-      error: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Рµ РґР°РЅРЅС‹Рµ РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ СѓСЃР»СѓРіРё.",
+      error: "Некорректные данные для обновления услуги.",
     });
   }
 
@@ -314,7 +314,7 @@ async function handleUpdate(req: any, res: any) {
     const updated = result.rows[0];
 
     if (!updated) {
-      return res.status(404).json({ error: "РЈСЃР»СѓРіР° РЅРµ РЅР°Р№РґРµРЅР°" });
+      return res.status(404).json({ error: "Услуга не найдена" });
     }
 
     return res.status(200).json({
@@ -323,7 +323,7 @@ async function handleUpdate(req: any, res: any) {
     });
   } catch (error) {
     console.error("Service update error:", error);
-    return res.status(500).json({ error: "РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ СѓСЃР»СѓРіСѓ" });
+    return res.status(500).json({ error: "Не удалось обновить услугу" });
   }
 }
 
@@ -331,7 +331,7 @@ async function handleDelete(req: any, res: any) {
   const payload = parseDeleteBody(req.body);
 
   if (!payload) {
-    return res.status(400).json({ error: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ id СѓСЃР»СѓРіРё" });
+    return res.status(400).json({ error: "Некорректный id услуги" });
   }
 
   try {
@@ -345,7 +345,7 @@ async function handleDelete(req: any, res: any) {
     );
 
     if (!result.rows[0]) {
-      return res.status(404).json({ error: "РЈСЃР»СѓРіР° РЅРµ РЅР°Р№РґРµРЅР°" });
+      return res.status(404).json({ error: "Услуга не найдена" });
     }
 
     return res.status(200).json({
@@ -354,7 +354,7 @@ async function handleDelete(req: any, res: any) {
     });
   } catch (error) {
     console.error("Service delete error:", error);
-    return res.status(500).json({ error: "РќРµ СѓРґР°Р»РѕСЃСЊ СѓРґР°Р»РёС‚СЊ СѓСЃР»СѓРіСѓ" });
+    return res.status(500).json({ error: "Не удалось удалить услугу" });
   }
 }
 

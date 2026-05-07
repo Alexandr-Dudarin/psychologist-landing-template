@@ -188,7 +188,7 @@ async function handleList(req: any, res: any) {
     const clientId = Number(clientIdRaw);
 
     if (!Number.isInteger(clientId) || clientId <= 0) {
-      return res.status(400).json({ error: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РєР»РёРµРЅС‚" });
+      return res.status(400).json({ error: "Некорректный клиент" });
     }
 
     values.push(clientId);
@@ -199,7 +199,7 @@ async function handleList(req: any, res: any) {
     const sessionId = Number(sessionIdRaw);
 
     if (!Number.isInteger(sessionId) || sessionId <= 0) {
-      return res.status(400).json({ error: "РќРµРєРѕСЂСЂРµРєС‚РЅР°СЏ СЃРµСЃСЃРёСЏ" });
+      return res.status(400).json({ error: "Некорректная сессия" });
     }
 
     values.push(sessionId);
@@ -259,7 +259,7 @@ async function handleList(req: any, res: any) {
     return res.status(200).json({ items });
   } catch (error) {
     console.error("Notes list error:", error);
-    return res.status(500).json({ error: "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ Р·Р°РјРµС‚РєРё" });
+    return res.status(500).json({ error: "Не удалось загрузить заметки" });
   }
 }
 
@@ -268,7 +268,7 @@ async function handleCreate(req: any, res: any) {
 
   if (!payload) {
     return res.status(400).json({
-      error: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Рµ РґР°РЅРЅС‹Рµ РґР»СЏ СЃРѕР·РґР°РЅРёСЏ Р·Р°РјРµС‚РєРё.",
+      error: "Некорректные данные для создания заметки.",
     });
   }
 
@@ -295,7 +295,7 @@ async function handleCreate(req: any, res: any) {
     });
   } catch (error) {
     console.error("Note create error:", error);
-    return res.status(500).json({ error: "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ Р·Р°РјРµС‚РєСѓ" });
+    return res.status(500).json({ error: "Не удалось создать заметку" });
   }
 }
 
@@ -304,7 +304,7 @@ async function handleUpdate(req: any, res: any) {
 
   if (!payload) {
     return res.status(400).json({
-      error: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Рµ РґР°РЅРЅС‹Рµ РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ Р·Р°РјРµС‚РєРё.",
+      error: "Некорректные данные для обновления заметки.",
     });
   }
 
@@ -325,7 +325,7 @@ async function handleUpdate(req: any, res: any) {
     const updated = updatedResult.rows[0];
 
     if (!updated) {
-      return res.status(404).json({ error: "Р—Р°РјРµС‚РєР° РЅРµ РЅР°Р№РґРµРЅР°" });
+      return res.status(404).json({ error: "Заметка не найдена" });
     }
 
     const joined = await selectNote(updated.id);
@@ -336,7 +336,7 @@ async function handleUpdate(req: any, res: any) {
     });
   } catch (error) {
     console.error("Note update error:", error);
-    return res.status(500).json({ error: "РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ Р·Р°РјРµС‚РєСѓ" });
+    return res.status(500).json({ error: "Не удалось обновить заметку" });
   }
 }
 
@@ -344,7 +344,7 @@ async function handleDelete(req: any, res: any) {
   const payload = parseDeleteBody(req.body);
 
   if (!payload) {
-    return res.status(400).json({ error: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ id Р·Р°РјРµС‚РєРё" });
+    return res.status(400).json({ error: "Некорректный id заметки" });
   }
 
   try {
@@ -360,7 +360,7 @@ async function handleDelete(req: any, res: any) {
     const deleted = result.rows[0];
 
     if (!deleted) {
-      return res.status(404).json({ error: "Р—Р°РјРµС‚РєР° РЅРµ РЅР°Р№РґРµРЅР°" });
+      return res.status(404).json({ error: "Заметка не найдена" });
     }
 
     return res.status(200).json({
@@ -369,7 +369,7 @@ async function handleDelete(req: any, res: any) {
     });
   } catch (error) {
     console.error("Note delete error:", error);
-    return res.status(500).json({ error: "РќРµ СѓРґР°Р»РѕСЃСЊ СѓРґР°Р»РёС‚СЊ Р·Р°РјРµС‚РєСѓ" });
+    return res.status(500).json({ error: "Не удалось удалить заметку" });
   }
 }
 

@@ -51,14 +51,14 @@ async function handleLogin(req: any, res: any) {
   const parsedBody = parseLoginBody(req.body);
 
   if (!parsedBody) {
-    return res.status(400).json({ error: "Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ." });
+    return res.status(400).json({ error: "Введите пароль." });
   }
 
   try {
     const adminPassword = getAdminPassword();
 
     if (parsedBody.password !== adminPassword) {
-      return res.status(401).json({ error: "РќРµРІРµСЂРЅС‹Р№ РїР°СЂРѕР»СЊ." });
+      return res.status(401).json({ error: "Неверный пароль." });
     }
 
     const token = createAdminSessionToken(getAdminSessionSecret());
@@ -70,7 +70,7 @@ async function handleLogin(req: any, res: any) {
     console.error("Admin login error:", error);
     return res
       .status(500)
-      .json({ error: "РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РІС…РѕРґ РІ Р°РґРјРёРЅРєСѓ." });
+      .json({ error: "Не удалось выполнить вход в админку." });
   }
 }
 
