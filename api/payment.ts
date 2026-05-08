@@ -39,6 +39,7 @@ type StoredPaymentLookupRow = {
 type YooKassaPaymentObject = {
   id: string;
   status: string;
+  test?: boolean;
   paid?: boolean;
   amount: {
     value: string;
@@ -442,9 +443,9 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const returnUrl = `${getBaseUrl(req)}/payment-success?requestId=${encodeURIComponent(
-      rawRequestId
-    )}`;
+    const returnUrl = `${getBaseUrl(
+      req
+    )}/payment-success?requestId=${encodeURIComponent(rawRequestId)}`;
 
     const payment = await createYooKassaPayment({
       requestId: rawRequestId,
@@ -452,6 +453,22 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
       returnUrl,
       description: `Онлайн-запись #${rawRequestId}`,
     });
+
+    console.log(
+      "YooKassa create payment debug:",
+      JSON.stringify(
+        {
+          requestId: rawRequestId,
+          paymentId: payment.id,
+          status: payment.status,
+          test: payment.test,
+          confirmationUrl: payment.confirmation?.confirmation_url ?? null,
+          metadata: payment.metadata ?? null,
+        },
+        null,
+        2
+      )
+    );
 
     const confirmationUrl = payment.confirmation?.confirmation_url?.trim();
 
@@ -609,6 +626,21 @@ async function handleWebhook(req: VercelRequest, res: VercelResponse) {
   try {
     const actualPayment = await getYooKassaPayment(notification.object.id);
 
+    console.log(
+      "YooKassa webhook debug:",
+      JSON.stringify(
+        {
+          event: notification.event,
+          paymentId: actualPayment.id,
+          status: actualPayment.status,
+          test: actualPayment.test,
+          metadata: actualPayment.metadata ?? null,
+        },
+        null,
+        2
+      )
+    );
+
     const requestIdFromMetadata =
       typeof actualPayment.metadata?.request_id === "string"
         ? actualPayment.metadata.request_id
@@ -666,7 +698,10 @@ async function handleWebhook(req: VercelRequest, res: VercelResponse) {
           updated_at = NOW()
         WHERE request_id = $1
       `,
-      [storedPayment.request_id, mapProviderStatusToDbStatus(actualPayment.status)]
+      [
+        storedPayment.request_id,
+        mapProviderStatusToDbStatus(actualPayment.status),
+      ]
     );
 
     return res.status(200).json({ received: true, ignored: true });
