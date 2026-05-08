@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+
 import { siteSettings } from "../../data/siteSettings";
 import { Container } from "../../components/Container/Container";
 import { Button } from "../../components/Button/Button";
@@ -10,10 +11,12 @@ import {
   formatBookingTime,
 } from "../../lib/booking/formatBookingDateTime";
 import {
-  completeMockPayment,
   getPaymentStatus,
   type PaymentStatusResponse,
 } from "../../lib/api/payment";
+
+const POLL_INTERVAL_MS = 3000;
+const MAX_POLL_ATTEMPTS = 10;
 
 export function PaymentSuccessPage() {
   const [searchParams] = useSearchParams();
@@ -36,35 +39,39 @@ export function PaymentSuccessPage() {
 
   useEffect(() => {
     let isMounted = true;
+    let pollAttempts = 0;
+    let intervalId: number | null = null;
 
-    async function syncPaymentState() {
-      if (!requestId) {
-        if (isMounted) {
-          setErrorMessage("Не удалось найти данные оплаты.");
-          setIsLoading(false);
-        }
-        return;
-      }
-
+    async function loadStatus() {
       try {
-        // ВРЕМЕННЫЙ MOCK-ПРОВАЙДЕР:
-        // позже это место заменится реальным webhook от платёжного сервиса.
-        await completeMockPayment(requestId).catch(() => undefined);
-
         const status = await getPaymentStatus(requestId);
 
-        if (!isMounted) return;
+        if (!isMounted) {
+          return;
+        }
 
         setPayment(status);
         setErrorMessage(status.errorMessage ?? null);
+
+        if (status.status !== "pending" && intervalId !== null) {
+          window.clearInterval(intervalId);
+          intervalId = null;
+        }
       } catch (error) {
-        if (!isMounted) return;
+        if (!isMounted) {
+          return;
+        }
 
         setErrorMessage(
           error instanceof Error
             ? error.message
             : "Не удалось загрузить статус оплаты."
         );
+
+        if (intervalId !== null) {
+          window.clearInterval(intervalId);
+          intervalId = null;
+        }
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -72,10 +79,38 @@ export function PaymentSuccessPage() {
       }
     }
 
-    void syncPaymentState();
+    if (!requestId) {
+      setErrorMessage("Не удалось найти данные оплаты.");
+      setIsLoading(false);
+
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    void loadStatus();
+
+    intervalId = window.setInterval(() => {
+      pollAttempts += 1;
+
+      if (pollAttempts >= MAX_POLL_ATTEMPTS) {
+        if (intervalId !== null) {
+          window.clearInterval(intervalId);
+          intervalId = null;
+        }
+
+        return;
+      }
+
+      void loadStatus();
+    }, POLL_INTERVAL_MS);
 
     return () => {
       isMounted = false;
+
+      if (intervalId !== null) {
+        window.clearInterval(intervalId);
+      }
     };
   }, [requestId]);
 
@@ -101,11 +136,13 @@ export function PaymentSuccessPage() {
 
           <h1 className={styles.title}>
             {isLoading
-              ? "Подтверждаем оплату..."
+              ? "Проверяем оплату..."
               : payment?.status === "paid"
               ? "Запись подтверждена"
               : payment?.status === "pending"
-              ? "Оплата получена"
+              ? "Ожидаем подтверждение оплаты"
+              : payment?.status === "cancelled"
+              ? "Оплата отменена"
               : "Не удалось подтвердить оплату"}
           </h1>
 
@@ -148,7 +185,13 @@ export function PaymentSuccessPage() {
               </div>
             ) : payment?.status === "pending" ? (
               <p className={styles.fallback}>
-                Мы получили информацию об оплате. Пожалуйста, подождите ещё немного.
+                Платёж создан, но подтверждение от платёжной системы ещё не
+                пришло. Обычно это занимает совсем немного времени — обновление
+                произойдёт автоматически.
+              </p>
+            ) : payment?.status === "cancelled" ? (
+              <p className={styles.fallback}>
+                {errorMessage || "Платёж был отменён. Вы можете попробовать ещё раз."}
               </p>
             ) : (
               <p className={styles.fallback}>
