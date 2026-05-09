@@ -138,7 +138,10 @@ export function PaymentSuccessPage() {
   const isPending = payment?.status === "pending";
   const isCancelled = payment?.status === "cancelled";
   const isRetryAvailable =
-    !isLoading && payment !== null && payment.status !== "paid" && payment.status !== "pending";
+    !isLoading &&
+    payment !== null &&
+    payment.status !== "paid" &&
+    (payment.status !== "pending" || didReachPollLimit);
 
   return (
     <section className={styles.section}>
@@ -152,12 +155,12 @@ export function PaymentSuccessPage() {
             {isLoading
               ? "Проверяем статус оплаты..."
               : payment?.status === "paid"
-              ? "Запись подтверждена"
-              : isCancelled
-              ? "Оплата не завершена"
-              : isPending
-              ? "Проверяем статус оплаты"
-              : "Не удалось подтвердить оплату"}
+                ? "Запись подтверждена"
+                : isCancelled
+                  ? "Оплата не завершена"
+                  : isPending
+                    ? "Проверяем статус оплаты"
+                    : "Не удалось подтвердить оплату"}
           </h1>
 
           <div className={styles.contentWrapper}>
