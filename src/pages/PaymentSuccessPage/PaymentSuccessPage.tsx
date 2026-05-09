@@ -140,7 +140,7 @@ export function PaymentSuccessPage() {
               : payment?.status === "paid"
               ? "Запись подтверждена"
               : payment?.status === "pending"
-              ? "Ожидаем подтверждение оплаты"
+              ? "Подтверждаем оплату"
               : payment?.status === "cancelled"
               ? "Оплата отменена"
               : "Не удалось подтвердить оплату"}
@@ -185,13 +185,14 @@ export function PaymentSuccessPage() {
               </div>
             ) : payment?.status === "pending" ? (
               <p className={styles.fallback}>
-                Платёж создан, но подтверждение от платёжной системы ещё не
-                пришло. Обычно это занимает совсем немного времени — обновление
-                произойдёт автоматически.
+                Оплата прошла, но подтверждение записи ещё обрабатывается.
+                Обычно это занимает меньше минуты — обновление произойдёт
+                автоматически.
               </p>
             ) : payment?.status === "cancelled" ? (
               <p className={styles.fallback}>
-                {errorMessage || "Платёж был отменён. Вы можете попробовать ещё раз."}
+                {errorMessage ||
+                  "Платёж был отменён. Вы можете вернуться на сайт и попробовать ещё раз."}
               </p>
             ) : (
               <p className={styles.fallback}>

@@ -41,24 +41,6 @@ export async function createPayment(
   return response.json();
 }
 
-export async function completeMockPayment(requestId: string) {
-  const response = await fetch("/api/payment?action=mock-complete", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ requestId }),
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => null);
-
-    throw new Error(errorBody?.message || "Failed to complete mock payment");
-  }
-
-  return response.json();
-}
-
 export async function getPaymentStatus(
   requestId: string
 ): Promise<PaymentStatusResponse> {
