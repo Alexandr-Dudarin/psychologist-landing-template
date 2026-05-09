@@ -8,9 +8,9 @@ import {
   parsePublicBookingCreatePayload,
 } from "../server/publicBooking/parsePublicBookingCreatePayload.js";
 import {
-  finalizeMockPayment,
+  finalizeSuccessfulPayment,
   isPaymentFlowError,
-} from "../server/payment/finalizeMockPayment.js";
+} from "../server/payment/finalizeSuccessfulPayment.js";
 import { pool } from "../server/db/pool.js";
 import { isCreateBookingServiceError } from "../server/services/createBookingService.js";
 
@@ -633,7 +633,7 @@ async function handleWebhook(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({ received: true, alreadyPaid: true });
       }
 
-      await finalizeMockPayment(storedPayment.request_id);
+      await finalizeSuccessfulPayment(storedPayment.request_id);
 
       return res.status(200).json({ received: true, finalized: true });
     }
@@ -714,7 +714,7 @@ async function handleMockComplete(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const result = await finalizeMockPayment(requestId);
+    const result = await finalizeSuccessfulPayment(requestId);
 
     return res.status(200).json(result);
   } catch (error: unknown) {

@@ -30,7 +30,9 @@ export function isPaymentFlowError(error: unknown): error is PaymentFlowError {
   return error instanceof PaymentFlowError;
 }
 
-function parseStoredBookingPayload(value: unknown): PublicBookingCreatePayload | null {
+function parseStoredBookingPayload(
+  value: unknown
+): PublicBookingCreatePayload | null {
   let rawValue = value;
 
   if (typeof rawValue === "string") {
@@ -78,7 +80,7 @@ function parseStoredBookingPayload(value: unknown): PublicBookingCreatePayload |
   };
 }
 
-export async function finalizeMockPayment(requestId: string): Promise<{
+export async function finalizeSuccessfulPayment(requestId: string): Promise<{
   success: true;
   alreadyPaid?: true;
 }> {
@@ -189,7 +191,7 @@ export async function finalizeMockPayment(requestId: string): Promise<{
       throw error;
     }
 
-    console.error("Mock payment finalize error:", error);
+    console.error("Payment finalize error:", error);
 
     throw new PaymentFlowError(
       500,
