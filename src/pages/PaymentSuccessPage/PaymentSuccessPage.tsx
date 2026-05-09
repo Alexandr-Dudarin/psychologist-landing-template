@@ -16,7 +16,7 @@ import {
 } from "../../lib/api/payment";
 
 const POLL_INTERVAL_MS = 3000;
-const MAX_POLL_ATTEMPTS = 10;
+const MAX_POLL_ATTEMPTS = 7;
 
 export function PaymentSuccessPage() {
   const [searchParams] = useSearchParams();

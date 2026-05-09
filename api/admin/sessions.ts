@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import { pool } from "../../server/db/pool.js";
+import { processSessionReminders } from "../../server/reminders/processSessionReminders.js";
 import type {
   CrmSessionRecord,
   SessionStatus,
@@ -57,6 +58,14 @@ function toSessionStatus(value: string): SessionStatus {
 }
 
 function getSingleQueryValue(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+
+  return value ?? "";
+}
+
+function getSingleHeaderValue(value: string | string[] | undefined): string {
   if (Array.isArray(value)) {
     return value[0] ?? "";
   }
@@ -505,6 +514,38 @@ async function handleDelete(req: any, res: any) {
   }
 }
 
+async function handleProcessReminders(req: any, res: any) {
+  const cronSecret = process.env.CRON_SECRET?.trim();
+
+  if (!cronSecret) {
+    return res.status(500).json({
+      error: "CRON_SECRET is not configured",
+    });
+  }
+
+  const providedSecret = getSingleHeaderValue(
+    req.headers?.["x-cron-secret"]
+  ).trim();
+
+  if (!providedSecret || providedSecret !== cronSecret) {
+    return res.status(401).json({
+      error: "Unauthorized",
+    });
+  }
+
+  try {
+    const result = await processSessionReminders();
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Session reminders process error:", error);
+
+    return res.status(500).json({
+      error: "Failed to process session reminders",
+    });
+  }
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method === "GET") {
     return handleList(req, res);
@@ -526,6 +567,10 @@ export default async function handler(req: any, res: any) {
 
   if (action === "delete") {
     return handleDelete(req, res);
+  }
+
+  if (action === "process-reminders") {
+    return handleProcessReminders(req, res);
   }
 
   return res.status(405).json({ error: "Method not allowed" });
