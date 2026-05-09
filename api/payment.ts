@@ -22,6 +22,7 @@ type SlotValidationErrorResult = Extract<
 type PaymentRow = {
   request_id: string;
   status: string;
+  provider_payment_id: string | null;
   amount: string | number;
   currency: string;
   session_id: string | number | null;
@@ -533,11 +534,12 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const result = await pool.query<PaymentRow>(
+    let result = await pool.query<PaymentRow>(
       `
         SELECT
           request_id,
           status,
+          provider_payment_id,
           amount,
           currency,
           session_id,
@@ -551,13 +553,64 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
       [requestId]
     );
 
-    const payment = result.rows[0];
+    let payment = result.rows[0];
 
     if (!payment) {
       return res.status(404).json({
         message: "Payment not found",
         code: "payment_not_found",
       });
+    }
+
+    if (payment.status === "pending" && payment.provider_payment_id) {
+      try {
+        const providerPayment = await getYooKassaPayment(
+          payment.provider_payment_id
+        );
+
+        if (providerPayment.status === "succeeded") {
+          await finalizeSuccessfulPayment(payment.request_id);
+        } else if (providerPayment.status === "canceled") {
+          const cancellationReason = providerPayment.cancellation_details?.reason
+            ? `Оплата отменена: ${providerPayment.cancellation_details.reason}`
+            : "Оплата отменена.";
+
+          await pool.query(
+            `
+              UPDATE payments
+              SET
+                status = 'cancelled',
+                error_message = $2,
+                updated_at = NOW()
+              WHERE request_id = $1
+            `,
+            [payment.request_id, cancellationReason]
+          );
+        }
+
+        result = await pool.query<PaymentRow>(
+          `
+            SELECT
+              request_id,
+              status,
+              provider_payment_id,
+              amount,
+              currency,
+              session_id,
+              error_message,
+              paid_at,
+              booking_payload
+            FROM payments
+            WHERE request_id = $1
+            LIMIT 1
+          `,
+          [requestId]
+        );
+
+        payment = result.rows[0];
+      } catch (providerStatusError) {
+        console.error("Payment status verification error:", providerStatusError);
+      }
     }
 
     const bookingPayload = parseStoredBookingPayload(payment.booking_payload);

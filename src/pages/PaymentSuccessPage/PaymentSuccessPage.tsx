@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { siteSettings } from "../../data/siteSettings";
 import { Container } from "../../components/Container/Container";
@@ -24,6 +24,7 @@ export function PaymentSuccessPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [didReachPollLimit, setDidReachPollLimit] = useState(false);
 
   const locale = "ru-RU";
 
@@ -53,9 +54,13 @@ export function PaymentSuccessPage() {
         setPayment(status);
         setErrorMessage(status.errorMessage ?? null);
 
-        if (status.status !== "pending" && intervalId !== null) {
-          window.clearInterval(intervalId);
-          intervalId = null;
+        if (status.status !== "pending") {
+          setDidReachPollLimit(false);
+
+          if (intervalId !== null) {
+            window.clearInterval(intervalId);
+            intervalId = null;
+          }
         }
       } catch (error) {
         if (!isMounted) {
@@ -88,6 +93,7 @@ export function PaymentSuccessPage() {
       };
     }
 
+    setDidReachPollLimit(false);
     void loadStatus();
 
     intervalId = window.setInterval(() => {
@@ -97,6 +103,10 @@ export function PaymentSuccessPage() {
         if (intervalId !== null) {
           window.clearInterval(intervalId);
           intervalId = null;
+        }
+
+        if (isMounted) {
+          setDidReachPollLimit(true);
         }
 
         return;
@@ -125,6 +135,10 @@ export function PaymentSuccessPage() {
   }, [payment?.status]);
 
   const bookingStartsAt = payment?.booking.startsAt ?? "";
+  const isPending = payment?.status === "pending";
+  const isCancelled = payment?.status === "cancelled";
+  const isRetryAvailable =
+    !isLoading && payment !== null && payment.status !== "paid" && payment.status !== "pending";
 
   return (
     <section className={styles.section}>
@@ -136,13 +150,13 @@ export function PaymentSuccessPage() {
 
           <h1 className={styles.title}>
             {isLoading
-              ? "Проверяем оплату..."
+              ? "Проверяем статус оплаты..."
               : payment?.status === "paid"
               ? "Запись подтверждена"
-              : payment?.status === "pending"
-              ? "Подтверждаем оплату"
-              : payment?.status === "cancelled"
-              ? "Оплата отменена"
+              : isCancelled
+              ? "Оплата не завершена"
+              : isPending
+              ? "Проверяем статус оплаты"
               : "Не удалось подтвердить оплату"}
           </h1>
 
@@ -183,16 +197,23 @@ export function PaymentSuccessPage() {
                   </p>
                 ) : null}
               </div>
-            ) : payment?.status === "pending" ? (
-              <p className={styles.fallback}>
-                Оплата прошла, но подтверждение записи ещё обрабатывается.
-                Обычно это занимает меньше минуты — обновление произойдёт
-                автоматически.
-              </p>
-            ) : payment?.status === "cancelled" ? (
+            ) : isCancelled ? (
               <p className={styles.fallback}>
                 {errorMessage ||
-                  "Платёж был отменён. Вы можете вернуться на сайт и попробовать ещё раз."}
+                  "Оплата была отменена или не завершилась. Запись не создана. Вы можете вернуться на сайт и попробовать снова."}
+              </p>
+            ) : isPending && didReachPollLimit ? (
+              <p className={styles.fallback}>
+                Мы пока не получили финальный статус оплаты. Если вы отменили
+                оплату или закрыли окно оплаты, запись не будет создана. Если
+                платёж был успешно завершён, обновите страницу через несколько
+                секунд.
+              </p>
+            ) : isPending ? (
+              <p className={styles.fallback}>
+                Мы проверяем статус оплаты. Если вы отменили оплату или закрыли
+                окно оплаты, запись создана не будет. Обычно статус обновляется
+                автоматически меньше чем за минуту.
               </p>
             ) : (
               <p className={styles.fallback}>
@@ -209,9 +230,21 @@ export function PaymentSuccessPage() {
 
           {!isLoading ? (
             <div className={styles.actions}>
-              <Button href="/" variant="premium">
-                На главную
-              </Button>
+              {isRetryAvailable ? (
+                <div className={styles.actionLinks}>
+                  <Link to="/book" className={styles.retryLink}>
+                    Попробовать снова
+                  </Link>
+
+                  <Button href="/" variant="premium">
+                    На главную
+                  </Button>
+                </div>
+              ) : (
+                <Button href="/" variant="premium">
+                  На главную
+                </Button>
+              )}
             </div>
           ) : null}
         </div>

@@ -151,7 +151,23 @@ export function BookingPage() {
   const currentLanguage = language === "en" ? "en" : "ru";
   const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
   const weekStartsOn = currentLanguage === "ru" ? 1 : 0;
-  const copy = copyByLanguage[currentLanguage];
+  const isPaymentEnabled = siteSettings.booking.paymentEnabled;
+
+  const baseCopy = copyByLanguage[currentLanguage];
+  const copy: BookingPageCopy = {
+    ...baseCopy,
+    submitIdle: isPaymentEnabled
+      ? currentLanguage === "ru"
+        ? "Перейти к оплате"
+        : "Proceed to payment"
+      : baseCopy.submitIdle,
+    submitLoading: isPaymentEnabled
+      ? currentLanguage === "ru"
+        ? "Переходим к оплате..."
+        : "Redirecting to payment..."
+      : baseCopy.submitLoading,
+  };
+
   const bookingContent = t.content.booking;
   const privacyLinkText = t.ui.booking.privacyLinkText;
 
@@ -179,7 +195,6 @@ export function BookingPage() {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const isCompleted = Boolean(confirmedBooking);
-  const isPaymentEnabled = siteSettings.booking.paymentEnabled;
 
   useEffect(() => {
     if (isRedirecting) {
