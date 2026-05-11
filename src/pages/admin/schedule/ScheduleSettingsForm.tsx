@@ -4,7 +4,11 @@ import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import styles from "./SchedulePage.module.css";
-import type { FeedbackState, SettingsForm } from "./schedulePage.shared";
+import {
+  bookingTimezoneOptions,
+  type FeedbackState,
+  type SettingsForm,
+} from "./schedulePage.shared";
 
 type ScheduleSettingsFormProps = {
   feedback: FeedbackState;
@@ -13,7 +17,7 @@ type ScheduleSettingsFormProps = {
   onCheckboxChange: (value: boolean) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onTextChange: (
-    field: "minAdvanceHours" | "bufferMinutes" | "maxDaysAhead",
+    field: "minAdvanceHours" | "bufferMinutes" | "maxDaysAhead" | "timezone",
     value: string
   ) => void;
 };
@@ -31,7 +35,7 @@ export function ScheduleSettingsForm({
       <AdminSection title="Общие настройки записи">
         <div className={styles.grid}>
           <label className={styles.field}>
-            <span>{"Минимум часов до записи"}</span>
+            <span className={styles.fieldLabel}>Минимум часов до записи</span>
             <input
               type="number"
               min="0"
@@ -45,7 +49,7 @@ export function ScheduleSettingsForm({
           </label>
 
           <label className={styles.field}>
-            <span>{"Буфер между сессиями, минут"}</span>
+            <span className={styles.fieldLabel}>Буфер между сессиями, минут</span>
             <input
               type="number"
               min="0"
@@ -59,7 +63,9 @@ export function ScheduleSettingsForm({
           </label>
 
           <label className={styles.field}>
-            <span>{"На сколько дней вперёд можно записаться"}</span>
+            <span className={styles.fieldLabel}>
+              На сколько дней вперёд можно записаться
+            </span>
             <input
               type="number"
               min="1"
@@ -72,13 +78,37 @@ export function ScheduleSettingsForm({
             />
           </label>
 
+          <label className={`${styles.field} ${styles.wideField}`}>
+            <span className={styles.fieldLabel}>Часовой пояс записи</span>
+            <select
+              value={settingsForm.timezone}
+              onChange={(event) => onTextChange("timezone", event.target.value)}
+              className={styles.input}
+            >
+              {bookingTimezoneOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+
+            <span className={styles.fieldHint}>
+              Этот часовой пояс используется для онлайн-записи ваших клиентов, и
+              связанных уведомлений. Ваше рабочее расписание строится по выбранному вами часовому поясу.
+            </span>
+          </label>
+
           <label className={`${styles.field} ${styles.checkboxField}`}>
             <span className={styles.checkboxLabelCopy}>
-              <span className={styles.checkboxLabelTitle}>Разрешить запись на текущий день</span>
+              <span className={styles.checkboxLabelTitle}>
+                Разрешить запись на текущий день
+              </span>
               <span className={styles.checkboxLabelHint}>
-                Включите, если запись на сегодня должна оставаться доступной в обычном режиме.
+                Включите, если запись на сегодня должна оставаться доступной в
+                обычном режиме.
               </span>
             </span>
+
             <span className={styles.checkboxControl}>
               <input
                 type="checkbox"
@@ -92,13 +122,14 @@ export function ScheduleSettingsForm({
 
         <div className={styles.actions}>
           <AdminButton type="submit" disabled={isSaving} variant="primary">
-            {isSaving
-              ? "Сохранение..."
-              : "Сохранить настройки"}
+            {isSaving ? "Сохранение..." : "Сохранить настройки"}
           </AdminButton>
         </div>
 
-        <AdminFeedback message={feedback?.message} tone={feedback?.tone ?? "error"} />
+        <AdminFeedback
+          message={feedback?.message}
+          tone={feedback?.tone ?? "error"}
+        />
       </AdminSection>
     </form>
   );

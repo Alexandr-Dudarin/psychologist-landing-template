@@ -2,6 +2,10 @@
 
 import { requireAdminRequest } from "../../server/auth/requireAdmin.js";
 import { pool } from "../../server/db/pool.js";
+import {
+  isBookingTimezone,
+  resolveBookingTimezone,
+} from "../../src/lib/booking/bookingTimezones.js";
 import type {
   AdminScheduleRecord,
   BlockedSlotRecord,
@@ -15,6 +19,7 @@ type SettingsRow = {
   buffer_minutes: number | string;
   allow_same_day_booking: boolean;
   max_days_ahead: number | string;
+  timezone: string | null;
 };
 
 type RuleRow = {
@@ -130,6 +135,7 @@ function mapSettings(row: SettingsRow): BookingSettingsRecord {
     bufferMinutes: Number(row.buffer_minutes),
     allowSameDayBooking: row.allow_same_day_booking,
     maxDaysAhead: Number(row.max_days_ahead),
+    timezone: resolveBookingTimezone(row.timezone),
   };
 }
 
@@ -207,6 +213,8 @@ function parseScheduleBody(body: any): ParsedSchedulePayload | null {
     bufferMinutes: Number(settings.bufferMinutes),
     allowSameDayBooking: Boolean(settings.allowSameDayBooking),
     maxDaysAhead: Number(settings.maxDaysAhead),
+    timezone:
+      typeof settings.timezone === "string" ? settings.timezone.trim() : "",
   };
 
   if (
@@ -227,6 +235,10 @@ function parseScheduleBody(body: any): ParsedSchedulePayload | null {
     !Number.isInteger(parsedSettings.maxDaysAhead) ||
     parsedSettings.maxDaysAhead <= 0
   ) {
+    return null;
+  }
+
+  if (!isBookingTimezone(parsedSettings.timezone)) {
     return null;
   }
 
@@ -528,7 +540,8 @@ async function handleGet(req: any, res: any) {
         min_advance_hours,
         buffer_minutes,
         allow_same_day_booking,
-        max_days_ahead
+        max_days_ahead,
+        timezone
       FROM booking_settings
       WHERE id = 1
       LIMIT 1
@@ -611,15 +624,17 @@ async function handleUpdate(req: any, res: any) {
           buffer_minutes,
           allow_same_day_booking,
           max_days_ahead,
+          timezone,
           updated_at
         )
-        VALUES (1, $1, $2, $3, $4, NOW())
+        VALUES (1, $1, $2, $3, $4, $5, NOW())
         ON CONFLICT (id)
         DO UPDATE SET
           min_advance_hours = EXCLUDED.min_advance_hours,
           buffer_minutes = EXCLUDED.buffer_minutes,
           allow_same_day_booking = EXCLUDED.allow_same_day_booking,
           max_days_ahead = EXCLUDED.max_days_ahead,
+          timezone = EXCLUDED.timezone,
           updated_at = NOW()
       `,
       [
@@ -627,6 +642,7 @@ async function handleUpdate(req: any, res: any) {
         payload.settings.bufferMinutes,
         payload.settings.allowSameDayBooking,
         payload.settings.maxDaysAhead,
+        payload.settings.timezone,
       ]
     );
 
@@ -655,7 +671,8 @@ async function handleUpdate(req: any, res: any) {
         min_advance_hours,
         buffer_minutes,
         allow_same_day_booking,
-        max_days_ahead
+        max_days_ahead,
+        timezone
       FROM booking_settings
       WHERE id = 1
       LIMIT 1

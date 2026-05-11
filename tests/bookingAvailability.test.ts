@@ -19,12 +19,13 @@ type AvailabilityDbData = {
     price: number;
     duration_minutes: number;
   }>;
-  settings?: Array<{
-    min_advance_hours: number;
-    buffer_minutes: number;
-    allow_same_day_booking: boolean;
-    max_days_ahead: number;
-  }>;
+    settings?: Array<{
+      min_advance_hours: number;
+      buffer_minutes: number;
+      allow_same_day_booking: boolean;
+      max_days_ahead: number;
+      timezone?: string | null;
+    }>;
   rules?: Array<{
     weekday: number;
     is_enabled: boolean;
@@ -66,6 +67,7 @@ function createAvailabilityDb(overrides: AvailabilityDbData = {}) {
         buffer_minutes: 0,
         allow_same_day_booking: false,
         max_days_ahead: 30,
+        timezone: "Asia/Tomsk",
       },
     ],
     rules: [
@@ -178,6 +180,7 @@ describe("public booking availability", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.payload.visibleMonth).toBe("2026-04");
+      expect(result.payload.timezone).toBe("Asia/Tomsk");
       expect(result.payload.monthAvailability).toEqual(
         expect.arrayContaining([
           {
@@ -221,8 +224,8 @@ describe("public booking availability", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.payload.slots.map((slot) => slot.startsAt)).toEqual([
-        "2026-04-20T11:30",
-        "2026-04-20T12:00",
+        "2026-04-20T04:30:00.000Z",
+        "2026-04-20T05:00:00.000Z",
       ]);
     }
   });
@@ -235,7 +238,7 @@ describe("public booking availability", () => {
       db: createAvailabilityDb({
         sessions: [
           {
-            scheduled_at: "2026-04-20T10:30:00",
+            scheduled_at: "2026-04-20T03:30:00.000Z",
             duration_minutes: 60,
             status: "scheduled",
           },
@@ -246,8 +249,8 @@ describe("public booking availability", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.payload.slots.map((slot) => slot.startsAt)).toEqual([
-        "2026-04-20T11:30",
-        "2026-04-20T12:00",
+        "2026-04-20T04:30:00.000Z",
+        "2026-04-20T05:00:00.000Z",
       ]);
     }
   });
@@ -268,7 +271,7 @@ describe("public booking availability", () => {
         ],
         sessions: [
           {
-            scheduled_at: "2026-04-20T11:00:00",
+            scheduled_at: "2026-04-20T04:00:00.000Z",
             duration_minutes: 60,
             status: "scheduled",
           },
@@ -310,9 +313,9 @@ describe("public booking availability", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.payload.slots.map((slot) => slot.startsAt)).toEqual([
-        "2026-04-21T12:00",
-        "2026-04-21T12:30",
-        "2026-04-21T13:00",
+        "2026-04-21T05:00:00.000Z",
+        "2026-04-21T05:30:00.000Z",
+        "2026-04-21T06:00:00.000Z",
       ]);
     }
   });
@@ -344,7 +347,7 @@ describe("public booking availability", () => {
   it("rejects booking validation outside the booking window", async () => {
     const result = await validateBookableSlot({
       serviceId: 1,
-      startsAt: "2026-05-25T10:00",
+      startsAt: "2026-05-25T03:00:00.000Z",
       now,
       db: createAvailabilityDb(),
     });
@@ -353,5 +356,92 @@ describe("public booking availability", () => {
       ok: false,
       reason: "outside_booking_window",
     });
+  });
+
+  it("falls back to the default booking timezone when DB timezone is empty", async () => {
+    const result = await getPublicBookingAvailabilityData({
+      serviceId: null,
+      selectedDate: null,
+      now,
+      db: createAvailabilityDb({
+        settings: [
+          {
+            min_advance_hours: 24,
+            buffer_minutes: 0,
+            allow_same_day_booking: false,
+            max_days_ahead: 30,
+            timezone: "",
+          },
+        ],
+      }),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.payload.timezone).toBe("Europe/Moscow");
+    }
+  });
+
+  it("keeps the same local slot hour when booking timezone changes", async () => {
+    const samaraResult = await getPublicBookingAvailabilityData({
+      serviceId: 1,
+      selectedDate: "2026-04-20",
+      now,
+      db: createAvailabilityDb({
+        settings: [
+          {
+            min_advance_hours: 24,
+            buffer_minutes: 0,
+            allow_same_day_booking: false,
+            max_days_ahead: 30,
+            timezone: "Europe/Samara",
+          },
+        ],
+        rules: [
+          {
+            weekday: 1,
+            is_enabled: true,
+            start_time: "13:00",
+            end_time: "15:00",
+          },
+        ],
+      }),
+    });
+
+    const moscowResult = await getPublicBookingAvailabilityData({
+      serviceId: 1,
+      selectedDate: "2026-04-20",
+      now,
+      db: createAvailabilityDb({
+        settings: [
+          {
+            min_advance_hours: 24,
+            buffer_minutes: 0,
+            allow_same_day_booking: false,
+            max_days_ahead: 30,
+            timezone: "Europe/Moscow",
+          },
+        ],
+        rules: [
+          {
+            weekday: 1,
+            is_enabled: true,
+            start_time: "13:00",
+            end_time: "15:00",
+          },
+        ],
+      }),
+    });
+
+    expect(samaraResult.ok).toBe(true);
+    expect(moscowResult.ok).toBe(true);
+
+    if (samaraResult.ok && moscowResult.ok) {
+      expect(samaraResult.payload.slots[0]?.startTime).toBe("13:00");
+      expect(moscowResult.payload.slots[0]?.startTime).toBe("13:00");
+      expect(samaraResult.payload.slots[0]?.startsAt).not.toBe(
+        moscowResult.payload.slots[0]?.startsAt
+      );
+    }
   });
 });

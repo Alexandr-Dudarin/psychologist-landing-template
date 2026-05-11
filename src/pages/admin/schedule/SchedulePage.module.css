@@ -1,13 +1,33 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
+  align-items: start;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: flex-end;
+  min-height: 52px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.wideField {
+  min-width: 0;
+}
+
+.fieldHint {
+  color: #5f6b7a;
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .checkboxField {
@@ -19,6 +39,7 @@
   border: 1px solid #d7dee6;
   border-radius: 14px;
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  min-height: 100%;
 }
 
 .checkboxRow {
@@ -105,6 +126,7 @@
 
 .input {
   width: 100%;
+  min-height: 46px;
   padding: 10px 12px;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -153,6 +175,9 @@
 
 .actions {
   margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .rulesSection {
@@ -202,9 +227,50 @@
   flex-wrap: wrap;
 }
 
+@media (max-width: 1280px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wideField {
+    grid-column: span 2;
+  }
+
+  .checkboxField {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wideField {
+    grid-column: span 2;
+  }
+
+  .checkboxField {
+    grid-column: span 2;
+  }
+
+  .fieldLabel {
+    min-height: auto;
+  }
+}
+
 @media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wideField {
+    grid-column: span 1;
+  }
+
   .checkboxField {
     grid-template-columns: 1fr;
+    grid-column: span 1;
   }
 
   .checkboxControl {

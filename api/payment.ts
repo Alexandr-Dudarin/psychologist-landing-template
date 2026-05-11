@@ -13,6 +13,7 @@ import {
 } from "../server/payment/finalizeSuccessfulPayment.js";
 import { pool } from "../server/db/pool.js";
 import { isCreateBookingServiceError } from "../server/services/createBookingService.js";
+import { getBookingSettingsTimezone } from "../server/utils/getBookingSettingsTimezone.js";
 
 type SlotValidationErrorResult = Extract<
   Awaited<ReturnType<typeof validateBookableSlot>>,
@@ -614,6 +615,7 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
     }
 
     const bookingPayload = parseStoredBookingPayload(payment.booking_payload);
+    const timezone = await getBookingSettingsTimezone(pool);
 
     return res.status(200).json({
       requestId: payment.request_id,
@@ -623,6 +625,7 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
       sessionId: payment.session_id ? Number(payment.session_id) : null,
       errorMessage: payment.error_message,
       paidAt: payment.paid_at,
+      timezone,
       booking: {
         startsAt:
           typeof bookingPayload?.startsAt === "string"

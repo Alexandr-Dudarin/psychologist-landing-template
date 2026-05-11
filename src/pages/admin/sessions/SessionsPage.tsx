@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
+import { getDefaultBookingTimezone } from "../../../lib/booking/bookingTimezones";
+import { getAdminSchedule } from "../../../lib/api/adminSchedule";
 import { getAdminClients } from "../../../lib/api/adminClients";
 import { getAdminServices } from "../../../lib/api/adminServices";
 import {
@@ -40,6 +42,9 @@ export function SessionsPage() {
   const [items, setItems] = useState<CrmSessionRecord[]>([]);
   const [clients, setClients] = useState<CrmClientRecord[]>([]);
   const [services, setServices] = useState<CrmServiceRecord[]>([]);
+  const [scheduleTimezone, setScheduleTimezone] = useState(
+    getDefaultBookingTimezone()
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -103,7 +108,7 @@ export function SessionsPage() {
           setError("");
         }
 
-        const [sessionsData, clientsData, servicesData] = await Promise.all([
+        const [sessionsData, clientsData, servicesData, scheduleData] = await Promise.all([
           getAdminSessions({
             status: statusFilter,
             clientId: clientFilter,
@@ -111,12 +116,14 @@ export function SessionsPage() {
           }),
           getAdminClients(),
           getAdminServices(),
+          getAdminSchedule(),
         ]);
 
         if (isMounted) {
           setItems(sessionsData);
           setClients(clientsData);
           setServices(servicesData);
+          setScheduleTimezone(scheduleData.settings.timezone);
         }
       } catch (loadError) {
         if (isMounted) {
@@ -176,8 +183,8 @@ export function SessionsPage() {
   const handleCreateSession = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload = buildCreateSessionPayload(createForm);
-    const validationError = validateCreateSessionPayload(payload);
+    const payload = buildCreateSessionPayload(createForm, scheduleTimezone);
+    const validationError = validateCreateSessionPayload(payload, scheduleTimezone);
 
     if (validationError) {
       setError(validationError);
@@ -206,7 +213,7 @@ export function SessionsPage() {
 
   const startEditing = (session: CrmSessionRecord) => {
     setEditingSessionId(session.id);
-    setEditForm(buildEditSessionForm(session));
+    setEditForm(buildEditSessionForm(session, scheduleTimezone));
     setError("");
     setSuccessMessage("");
   };
@@ -223,8 +230,15 @@ export function SessionsPage() {
       return;
     }
 
-    const payload = buildUpdateSessionPayload(editingSessionId, editForm);
-    const validationError = validateUpdateSessionPayload(payload);
+    const payload = buildUpdateSessionPayload(
+      editingSessionId,
+      editForm,
+      scheduleTimezone
+    );
+    const validationError = validateUpdateSessionPayload(
+      payload,
+      scheduleTimezone
+    );
 
     if (validationError) {
       setError(validationError);
@@ -314,6 +328,7 @@ export function SessionsPage() {
         clients={clients}
         activeServices={activeServices}
         form={createForm}
+        timezone={scheduleTimezone}
         isCreating={isCreating}
         onFormChange={handleCreateFormChange}
         onSubmit={handleCreateSession}
@@ -324,6 +339,7 @@ export function SessionsPage() {
           clients={clients}
           activeServices={activeServices}
           form={editForm}
+          timezone={scheduleTimezone}
           isUpdating={isUpdating}
           onFormChange={handleEditFormChange}
           onSubmit={handleUpdateSession}
@@ -348,6 +364,7 @@ export function SessionsPage() {
         items={items}
         isLoading={isLoading}
         deletingId={deletingId}
+        timezone={scheduleTimezone}
         highlightedSessionId={highlightedSessionId}
         onEdit={startEditing}
         onDelete={handleDeleteSession}

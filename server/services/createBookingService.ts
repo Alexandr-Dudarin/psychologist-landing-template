@@ -310,6 +310,7 @@ export async function createBookingService(
     serviceTitle: response.booking.serviceTitle,
     startsAt: response.booking.startsAt,
     endsAt: response.booking.endsAt,
+    timezone: slotValidation.timezone,
     comment: normalizedPayload.message ?? "",
     alreadyExistedClient: response.alreadyExistedClient,
   };

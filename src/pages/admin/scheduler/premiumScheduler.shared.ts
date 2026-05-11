@@ -11,6 +11,10 @@ import type {
   ScheduleRuleRecord,
 } from "../../../types/schedule";
 import type { CrmSessionRecord, SessionStatus } from "../../../types/session";
+import {
+  getDateKeyInTimeZone,
+  getMinutesSinceStartOfDayInTimeZone,
+} from "../../../lib/datetime/practiceTimezone";
 
 export type SchedulerViewMode = "week" | "day" | "month";
 
@@ -98,7 +102,7 @@ export type SchedulerMonthCellSummary = {
 };
 
 const SCHEDULER_START_HOUR = 7;
-const SCHEDULER_END_HOUR = 21;
+const SCHEDULER_END_HOUR = 22;
 
 function addDays(date: Date, amount: number): Date {
   return new Date(date.getTime() + amount * 24 * 60 * 60 * 1000);
@@ -158,11 +162,6 @@ function toTimeLabel(value: number): string {
 function getTimeRangeLabel(startMinutes: number, durationMinutes: number): string {
   const endMinutes = startMinutes + durationMinutes;
   return `${toTimeLabel(startMinutes)} - ${toTimeLabel(endMinutes)}`;
-}
-
-function getMinutesSinceStartOfDay(value: string): number {
-  const date = new Date(value);
-  return date.getHours() * 60 + date.getMinutes();
 }
 
 function getDurationMinutes(startTime: string, endTime: string): number {
@@ -502,6 +501,7 @@ export function buildSchedulerOverlayItems(params: {
   anchorDateKey: string;
   sessions: CrmSessionRecord[];
   blockedSlots: BlockedSlotRecord[];
+  timezone: string;
 }): SchedulerOverlayItem[] {
   const visibleDates =
     params.viewMode === "day" ? [params.anchorDateKey] : getWeekDays(params.anchorDateKey);
@@ -510,13 +510,16 @@ export function buildSchedulerOverlayItems(params: {
   const items: SchedulerOverlayItem[] = [];
 
   for (const session of params.sessions) {
-    const dayKey = session.scheduledAt.slice(0, 10);
+    const dayKey = getDateKeyInTimeZone(session.scheduledAt, params.timezone);
 
     if (!visibleDateSet.has(dayKey)) {
       continue;
     }
 
-    const startMinutes = getMinutesSinceStartOfDay(session.scheduledAt);
+    const startMinutes = getMinutesSinceStartOfDayInTimeZone(
+      session.scheduledAt,
+      params.timezone
+    );
     const endMinutes = startMinutes + session.durationMinutes;
     const timeLabel = getTimeRangeLabel(startMinutes, session.durationMinutes);
 
@@ -587,12 +590,14 @@ export function buildMonthSummary(params: {
   blockedSlots: BlockedSlotRecord[];
   overrides: ScheduleOverrideRecord[];
   rules: ScheduleRuleRecord[];
+  timezone: string;
 }): SchedulerMonthCellSummary[] {
   const monthGrid = getMonthGrid(params.anchorDateKey.slice(0, 7), 1);
 
   return monthGrid.map((item) => {
     const sessionsCount = params.sessions.filter(
-      (session) => session.scheduledAt.slice(0, 10) === item.date
+      (session) =>
+        getDateKeyInTimeZone(session.scheduledAt, params.timezone) === item.date
     ).length;
     const blockedCount = params.blockedSlots.filter(
       (slot) => slot.blockedDate.slice(0, 10) === item.date
@@ -631,13 +636,15 @@ export function getSchedulerDaySummaries(params: {
   overrides: ScheduleOverrideRecord[];
   rules: ScheduleRuleRecord[];
   locale: string;
+  timezone: string;
 }): SchedulerDaySummary[] {
   const visibleDates =
     params.viewMode === "day" ? [params.anchorDateKey] : getWeekDays(params.anchorDateKey);
 
   return visibleDates.map((dateKey) => {
     const sessionsCount = params.sessions.filter(
-      (session) => session.scheduledAt.slice(0, 10) === dateKey
+      (session) =>
+        getDateKeyInTimeZone(session.scheduledAt, params.timezone) === dateKey
     ).length;
     const blockedCount = params.blockedSlots.filter(
       (slot) => slot.blockedDate.slice(0, 10) === dateKey

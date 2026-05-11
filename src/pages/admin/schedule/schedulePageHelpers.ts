@@ -50,6 +50,7 @@ export function mapScheduleDataToSettingsForm(
     bufferMinutes: String(data.settings.bufferMinutes),
     allowSameDayBooking: data.settings.allowSameDayBooking,
     maxDaysAhead: String(data.settings.maxDaysAhead),
+    timezone: data.settings.timezone,
   };
 }
 
@@ -63,6 +64,7 @@ export function buildUpdateSchedulePayload(
       bufferMinutes: Number(settingsForm.bufferMinutes),
       allowSameDayBooking: settingsForm.allowSameDayBooking,
       maxDaysAhead: Number(settingsForm.maxDaysAhead),
+      timezone: settingsForm.timezone,
     },
     rules,
   };
@@ -97,7 +99,7 @@ export function buildBlockedSlotPayload(
 
 export function updateSettingsTextField(
   settingsForm: SettingsForm,
-  field: "minAdvanceHours" | "bufferMinutes" | "maxDaysAhead",
+  field: "minAdvanceHours" | "bufferMinutes" | "maxDaysAhead" | "timezone",
   value: string
 ): SettingsForm {
   return {

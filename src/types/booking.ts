@@ -25,6 +25,7 @@ export type PublicBookingMonthDayAvailability = {
 
 export type PublicBookingAvailabilityResponse = {
   services: PublicBookingService[];
+  timezone: string;
   selectedServiceId: number | null;
   selectedDate: string | null;
   visibleMonth: string | null;

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { BaseCalendar } from "../../../components/calendar/BaseCalendar";
-import { getTodayDateKey } from "../../../components/calendar/calendar.utils";
+import { getTodayDateKeyInTimeZone } from "../../../lib/datetime/practiceTimezone";
 import {
   buildDateTimeLocalValue,
   formatDateTimeLocalSummary,
@@ -12,17 +12,18 @@ import styles from "./SessionsPage.module.css";
 
 type SessionDateTimeFieldProps = {
   value: string;
+  timezone: string;
   onChange: (value: string) => void;
   disablePast?: boolean;
   hint?: string;
 };
 
-function getInitialVisibleMonth(dateValue: string): string {
+function getInitialVisibleMonth(dateValue: string, timezone: string): string {
   if (dateValue) {
     return dateValue.slice(0, 7);
   }
 
-  return getTodayDateKey().slice(0, 7);
+  return getTodayDateKeyInTimeZone(timezone).slice(0, 7);
 }
 
 function buildTimeOptions(selectedTime: string): string[] {
@@ -45,14 +46,16 @@ function buildTimeOptions(selectedTime: string): string[] {
 
 export function SessionDateTimeField({
   value,
+  timezone,
   onChange,
   disablePast = false,
   hint = "Сначала выберите дату на календаре, затем точное время сессии.",
 }: SessionDateTimeFieldProps) {
   const selectedDate = getDatePartFromDateTimeLocal(value);
   const selectedTime = getTimePartFromDateTimeLocal(value);
+  const todayDate = getTodayDateKeyInTimeZone(timezone);
   const [visibleMonth, setVisibleMonth] = useState(() =>
-    getInitialVisibleMonth(selectedDate)
+    getInitialVisibleMonth(selectedDate, timezone)
   );
   const timeOptions = useMemo(() => buildTimeOptions(selectedTime), [selectedTime]);
 
@@ -64,6 +67,14 @@ export function SessionDateTimeField({
     setVisibleMonth(selectedDate.slice(0, 7));
   }, [selectedDate]);
 
+  useEffect(() => {
+    if (selectedDate) {
+      return;
+    }
+
+    setVisibleMonth(getInitialVisibleMonth("", timezone));
+  }, [selectedDate, timezone]);
+
   return (
     <div className={styles.dateTimeField}>
       <div className={styles.dateTimeFieldHeader}>
@@ -72,17 +83,21 @@ export function SessionDateTimeField({
           <p className={styles.dateTimeFieldHint}>{hint}</p>
         </div>
         <div className={styles.dateTimeFieldValue}>
-          {formatDateTimeLocalSummary(value)}
+          {formatDateTimeLocalSummary(value, timezone)}
         </div>
       </div>
 
       <div className={styles.dateTimeFieldBody}>
         <BaseCalendar
           value={selectedDate || null}
-          onChange={(date) => onChange(buildDateTimeLocalValue(date, selectedTime || "10:00"))}
+          onChange={(date) =>
+            onChange(buildDateTimeLocalValue(date, selectedTime || "10:00"))
+          }
           visibleMonth={visibleMonth}
           onVisibleMonthChange={setVisibleMonth}
           disablePast={disablePast}
+          minDate={disablePast ? todayDate : undefined}
+          todayDate={todayDate}
           locale="ru-RU"
           weekStartsOn={1}
           className={styles.dateTimeCalendar}

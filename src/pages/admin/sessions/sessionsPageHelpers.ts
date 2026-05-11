@@ -1,11 +1,11 @@
+import { dateTimeLocalInTimeZoneToIso, toDateTimeLocalValueInTimeZone } from "../../../lib/datetime/practiceTimezone";
 import type { CrmServiceRecord } from "../../../types/service";
 import type {
   CrmSessionRecord,
   CreateSessionPayload,
   UpdateSessionPayload,
 } from "../../../types/session";
-
-import { toDateTimeLocalValue, type SessionForm } from "./sessionForm";
+import type { SessionForm } from "./sessionForm";
 
 export function updateSessionFormField(
   form: SessionForm,
@@ -33,12 +33,13 @@ export function updateSessionFormField(
 }
 
 export function buildCreateSessionPayload(
-  form: SessionForm
+  form: SessionForm,
+  timezone: string
 ): CreateSessionPayload {
   return {
     clientId: Number(form.clientId),
     serviceId: Number(form.serviceId),
-    scheduledAt: form.scheduledAt,
+    scheduledAt: dateTimeLocalInTimeZoneToIso(form.scheduledAt, timezone) ?? "",
     durationMinutes: Number(form.durationMinutes),
     price: Number(form.price),
     status: form.status,
@@ -49,13 +50,14 @@ export function buildCreateSessionPayload(
 
 export function buildUpdateSessionPayload(
   sessionId: number,
-  form: SessionForm
+  form: SessionForm,
+  timezone: string
 ): UpdateSessionPayload {
   return {
     id: sessionId,
     clientId: Number(form.clientId),
     serviceId: Number(form.serviceId),
-    scheduledAt: form.scheduledAt,
+    scheduledAt: dateTimeLocalInTimeZoneToIso(form.scheduledAt, timezone) ?? "",
     durationMinutes: Number(form.durationMinutes),
     price: Number(form.price),
     status: form.status,
@@ -63,11 +65,14 @@ export function buildUpdateSessionPayload(
   };
 }
 
-export function buildEditSessionForm(session: CrmSessionRecord): SessionForm {
+export function buildEditSessionForm(
+  session: CrmSessionRecord,
+  timezone: string
+): SessionForm {
   return {
     clientId: String(session.clientId),
     serviceId: String(session.serviceId),
-    scheduledAt: toDateTimeLocalValue(session.scheduledAt),
+    scheduledAt: toDateTimeLocalValueInTimeZone(session.scheduledAt, timezone),
     durationMinutes: String(session.durationMinutes),
     price: String(session.price),
     status: session.status,

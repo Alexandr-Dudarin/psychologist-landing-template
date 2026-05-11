@@ -3,10 +3,9 @@ import type {
   UpdateSessionPayload,
 } from "../../../types/session";
 
-import { isPastDateTimeLocal } from "./sessionForm";
-
 export function validateCreateSessionPayload(
-  payload: CreateSessionPayload
+  payload: CreateSessionPayload,
+  _timezone: string
 ): string | null {
   if (!Number.isInteger(payload.clientId) || payload.clientId <= 0) {
     return "Выберите клиента.";
@@ -16,11 +15,11 @@ export function validateCreateSessionPayload(
     return "Выберите услугу.";
   }
 
-  if (!payload.scheduledAt) {
+  if (!payload.scheduledAt || Number.isNaN(new Date(payload.scheduledAt).getTime())) {
     return "Укажите дату и время сессии.";
   }
 
-  if (isPastDateTimeLocal(payload.scheduledAt)) {
+  if (new Date(payload.scheduledAt).getTime() < Date.now()) {
     return "Нельзя создать сессию в прошлом.";
   }
 
@@ -36,7 +35,8 @@ export function validateCreateSessionPayload(
 }
 
 export function validateUpdateSessionPayload(
-  payload: UpdateSessionPayload
+  payload: UpdateSessionPayload,
+  _timezone: string
 ): string | null {
   if (!Number.isInteger(payload.id) || payload.id <= 0) {
     return "Некорректная сессия.";
@@ -50,11 +50,11 @@ export function validateUpdateSessionPayload(
     return "Выберите услугу.";
   }
 
-  if (!payload.scheduledAt) {
+  if (!payload.scheduledAt || Number.isNaN(new Date(payload.scheduledAt).getTime())) {
     return "Укажите дату и время сессии.";
   }
 
-  if (isPastDateTimeLocal(payload.scheduledAt)) {
+  if (new Date(payload.scheduledAt).getTime() < Date.now()) {
     return "Нельзя перенести сессию в прошлое.";
   }
 

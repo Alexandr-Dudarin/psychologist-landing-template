@@ -3,6 +3,7 @@ export type BookingSettingsRecord = {
   bufferMinutes: number;
   allowSameDayBooking: boolean;
   maxDaysAhead: number;
+  timezone: string;
 };
 
 export type ScheduleRuleRecord = {

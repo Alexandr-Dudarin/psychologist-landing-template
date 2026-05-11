@@ -3,6 +3,7 @@ import type {
   ScheduleOverrideRecord,
   ScheduleRuleRecord,
 } from "../../../types/schedule";
+import { getBookingTimezoneOptions } from "../../../lib/booking/bookingTimezones";
 
 export const weekdayLabels: Record<number, string> = {
   1: "Понедельник",
@@ -19,6 +20,7 @@ export type SettingsForm = {
   bufferMinutes: string;
   allowSameDayBooking: boolean;
   maxDaysAhead: string;
+  timezone: string;
 };
 
 export type OverrideForm = {
@@ -53,7 +55,10 @@ export const defaultSettingsForm: SettingsForm = {
   bufferMinutes: "30",
   allowSameDayBooking: true,
   maxDaysAhead: "30",
+  timezone: "Europe/Moscow",
 };
+
+export const bookingTimezoneOptions = getBookingTimezoneOptions("ru");
 
 export const defaultRules: ScheduleRuleRecord[] = [
   { weekday: 1, isEnabled: true, startTime: "10:00", endTime: "19:00" },

@@ -13,6 +13,15 @@ import type {
   ScheduleOverrideRecord,
   ScheduleRuleRecord,
 } from "../../src/types/schedule.js";
+import {
+  addDaysToDateKey,
+  getDateKeyInTimeZone,
+  getMinutesSinceStartOfDayInTimeZone,
+  getTimeKeyInTimeZone,
+  getTodayDateKeyInTimeZone,
+  zonedDateTimeToUtcDate,
+} from "../../src/lib/datetime/practiceTimezone.js";
+import { resolveBookingTimezone } from "../../src/lib/booking/bookingTimezones.js";
 
 const SLOT_STEP_MINUTES = 30;
 
@@ -31,6 +40,7 @@ type SettingsRow = {
   buffer_minutes: number | string;
   allow_same_day_booking: boolean;
   max_days_ahead: number | string;
+  timezone: string | null;
 };
 
 type RuleRow = {
@@ -99,6 +109,7 @@ export type SlotValidationResult =
       service: PublicBookingService;
       slot: PublicBookingSlot;
       selectedDate: string;
+      timezone: string;
     }
   | {
       ok: false;
@@ -170,33 +181,6 @@ export function parseMonthOnly(value: string): Date | null {
   return date;
 }
 
-function parseDateTimeLocal(value: string): Date | null {
-  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
-
-  if (!match) {
-    return null;
-  }
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const hours = Number(match[4]);
-  const minutes = Number(match[5]);
-  const date = new Date(year, month - 1, day, hours, minutes, 0, 0);
-
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day ||
-    date.getHours() !== hours ||
-    date.getMinutes() !== minutes
-  ) {
-    return null;
-  }
-
-  return date;
-}
-
 function parseTimeParts(value: string): { hours: number; minutes: number } | null {
   const match = /^(\d{2}):(\d{2})$/.exec(value);
 
@@ -229,17 +213,6 @@ export function formatDateOnly(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-function formatTime(date: Date): string {
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${hours}:${minutes}`;
-}
-
-export function formatDateTimeLocal(date: Date): string {
-  return `${formatDateOnly(date)}T${formatTime(date)}`;
-}
-
 function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
@@ -260,28 +233,24 @@ function overlaps(first: TimeRange, second: TimeRange): boolean {
   return first.start < second.end && second.start < first.end;
 }
 
-function toWeekday(date: Date): number {
+function toWeekday(dateKey: string): number {
+  const date = parseDateOnly(dateKey);
+
+  if (!date) {
+    return 1;
+  }
+
   const weekday = date.getDay();
 
   return weekday === 0 ? 7 : weekday;
 }
 
-function combineDateAndTime(date: Date, time: string): Date | null {
-  const timeParts = parseTimeParts(time);
-
-  if (!timeParts) {
-    return null;
-  }
-
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-    timeParts.hours,
-    timeParts.minutes,
-    0,
-    0
-  );
+function combineDateAndTime(
+  dateKey: string,
+  time: string,
+  timezone: string
+): Date | null {
+  return zonedDateTimeToUtcDate(dateKey, time, timezone);
 }
 
 function mapSettings(row: SettingsRow): BookingSettingsRecord {
@@ -290,6 +259,7 @@ function mapSettings(row: SettingsRow): BookingSettingsRecord {
     bufferMinutes: Number(row.buffer_minutes),
     allowSameDayBooking: row.allow_same_day_booking,
     maxDaysAhead: Number(row.max_days_ahead),
+    timezone: resolveBookingTimezone(row.timezone),
   };
 }
 
@@ -324,17 +294,18 @@ function mapService(row: ServiceRow): PublicBookingService {
 
 export function getBookingWindow(settings: BookingSettingsRecord, now: Date) {
   const minStart = addMinutes(now, settings.minAdvanceHours * 60);
-  let minDate = startOfDay(minStart);
+  let minDate = getDateKeyInTimeZone(minStart, settings.timezone);
+  const todayDate = getTodayDateKeyInTimeZone(settings.timezone, now);
 
   if (!settings.allowSameDayBooking) {
-    const tomorrow = addDays(startOfDay(now), 1);
+    const tomorrow = addDaysToDateKey(todayDate, 1);
 
     if (minDate < tomorrow) {
       minDate = tomorrow;
     }
   }
 
-  const maxDate = addDays(startOfDay(now), settings.maxDaysAhead);
+  const maxDate = addDaysToDateKey(todayDate, settings.maxDaysAhead);
 
   return {
     minStart,
@@ -344,11 +315,11 @@ export function getBookingWindow(settings: BookingSettingsRecord, now: Date) {
 }
 
 function getWorkingRange(
-  selectedDate: Date,
+  selectedDateKey: string,
   rules: ScheduleRuleRecord[],
-  overrides: ScheduleOverrideRecord[]
+  overrides: ScheduleOverrideRecord[],
+  timezone: string
 ): TimeRange | null {
-  const selectedDateKey = formatDateOnly(selectedDate);
   const override = overrides.find((item) => item.date.slice(0, 10) === selectedDateKey);
 
   if (override) {
@@ -356,8 +327,8 @@ function getWorkingRange(
       return null;
     }
 
-    const start = combineDateAndTime(selectedDate, override.startTime);
-    const end = combineDateAndTime(selectedDate, override.endTime);
+    const start = combineDateAndTime(selectedDateKey, override.startTime, timezone);
+    const end = combineDateAndTime(selectedDateKey, override.endTime, timezone);
 
     if (!start || !end || start >= end) {
       return null;
@@ -366,14 +337,14 @@ function getWorkingRange(
     return { start, end };
   }
 
-  const rule = rules.find((item) => item.weekday === toWeekday(selectedDate));
+  const rule = rules.find((item) => item.weekday === toWeekday(selectedDateKey));
 
   if (!rule || !rule.isEnabled) {
     return null;
   }
 
-  const start = combineDateAndTime(selectedDate, rule.startTime);
-  const end = combineDateAndTime(selectedDate, rule.endTime);
+  const start = combineDateAndTime(selectedDateKey, rule.startTime, timezone);
+  const end = combineDateAndTime(selectedDateKey, rule.endTime, timezone);
 
   if (!start || !end || start >= end) {
     return null;
@@ -382,14 +353,24 @@ function getWorkingRange(
   return { start, end };
 }
 
-function buildBlockedRanges(rows: BlockedSlotRow[], selectedDate: Date): TimeRange[] {
-  const selectedDateKey = formatDateOnly(selectedDate);
-
+function buildBlockedRanges(
+  rows: BlockedSlotRow[],
+  selectedDateKey: string,
+  timezone: string
+): TimeRange[] {
   return rows
     .filter((row) => row.blocked_date.slice(0, 10) === selectedDateKey)
     .map((row) => {
-      const start = combineDateAndTime(selectedDate, row.start_time.slice(0, 5));
-      const end = combineDateAndTime(selectedDate, row.end_time.slice(0, 5));
+      const start = combineDateAndTime(
+        selectedDateKey,
+        row.start_time.slice(0, 5),
+        timezone
+      );
+      const end = combineDateAndTime(
+        selectedDateKey,
+        row.end_time.slice(0, 5),
+        timezone
+      );
 
       if (!start || !end || start >= end) {
         return null;
@@ -402,11 +383,20 @@ function buildBlockedRanges(rows: BlockedSlotRow[], selectedDate: Date): TimeRan
 
 function buildBusySessionRanges(
   rows: SessionRow[],
-  selectedDate: Date,
-  bufferMinutes: number
+  selectedDateKey: string,
+  bufferMinutes: number,
+  timezone: string
 ): TimeRange[] {
-  const dayStart = startOfDay(selectedDate);
-  const dayEnd = addDays(dayStart, 1);
+  const dayStart = combineDateAndTime(selectedDateKey, "00:00", timezone);
+  const dayEnd = combineDateAndTime(
+    addDaysToDateKey(selectedDateKey, 1),
+    "00:00",
+    timezone
+  );
+
+  if (!dayStart || !dayEnd) {
+    return [];
+  }
 
   return rows
     .filter((row) => row.status !== "cancelled")
@@ -439,7 +429,7 @@ function buildBusySessionRanges(
 }
 
 function buildSlots(params: {
-  selectedDate: Date;
+  selectedDateKey: string;
   serviceDurationMinutes: number;
   settings: BookingSettingsRecord;
   rules: ScheduleRuleRecord[];
@@ -449,7 +439,7 @@ function buildSlots(params: {
   now: Date;
 }): PublicBookingSlot[] {
   const {
-    selectedDate,
+    selectedDateKey,
     serviceDurationMinutes,
     settings,
     rules,
@@ -459,7 +449,12 @@ function buildSlots(params: {
     now,
   } = params;
 
-  const workingRange = getWorkingRange(selectedDate, rules, overrides);
+  const workingRange = getWorkingRange(
+    selectedDateKey,
+    rules,
+    overrides,
+    settings.timezone
+  );
 
   if (!workingRange) {
     return [];
@@ -500,10 +495,10 @@ function buildSlots(params: {
     }
 
     slots.push({
-      startsAt: formatDateTimeLocal(candidate),
-      endsAt: formatDateTimeLocal(slotEnd),
-      startTime: formatTime(candidate),
-      endTime: formatTime(slotEnd),
+      startsAt: candidate.toISOString(),
+      endsAt: slotEnd.toISOString(),
+      startTime: getTimeKeyInTimeZone(candidate, settings.timezone),
+      endTime: getTimeKeyInTimeZone(slotEnd, settings.timezone),
     });
   }
 
@@ -529,7 +524,8 @@ async function loadBaseData(db: Queryable): Promise<PublicBookingBaseData | null
           min_advance_hours,
           buffer_minutes,
           allow_same_day_booking,
-          max_days_ahead
+          max_days_ahead,
+          timezone
         FROM booking_settings
         WHERE id = 1
         LIMIT 1
@@ -599,14 +595,19 @@ function buildMonthAvailability(params: {
   now: Date;
 }): PublicBookingMonthDayAvailability[] {
   const { monthDate, service, baseData, bookingWindow, sessionRows, now } = params;
-  const daysInMonth = endOfMonth(monthDate).getDate();
+  const monthKey = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}`;
+  const daysInMonth = new Date(
+    Date.UTC(monthDate.getFullYear(), monthDate.getMonth() + 1, 0)
+  ).getUTCDate();
   const days: PublicBookingMonthDayAvailability[] = [];
 
   for (let dayOfMonth = 1; dayOfMonth <= daysInMonth; dayOfMonth += 1) {
-    const date = new Date(monthDate.getFullYear(), monthDate.getMonth(), dayOfMonth);
-    const dateKey = formatDateOnly(date);
+    const dateKey = `${monthKey}-${String(dayOfMonth).padStart(2, "0")}`;
     const isWithinBookingWindow =
-      date >= bookingWindow.minDate && date <= bookingWindow.maxDate;
+      dateKey >= bookingWindow.minDate && dateKey <= bookingWindow.maxDate;
 
     if (!isWithinBookingWindow) {
       days.push({
@@ -616,7 +617,12 @@ function buildMonthAvailability(params: {
       continue;
     }
 
-    const workingRange = getWorkingRange(date, baseData.rules, baseData.overrides);
+    const workingRange = getWorkingRange(
+      dateKey,
+      baseData.rules,
+      baseData.overrides,
+      baseData.settings.timezone
+    );
 
     if (!workingRange) {
       days.push({
@@ -626,14 +632,19 @@ function buildMonthAvailability(params: {
       continue;
     }
 
-    const blockedRanges = buildBlockedRanges(baseData.blockedSlotRows, date);
+    const blockedRanges = buildBlockedRanges(
+      baseData.blockedSlotRows,
+      dateKey,
+      baseData.settings.timezone
+    );
     const busySessionRanges = buildBusySessionRanges(
       sessionRows,
-      date,
-      baseData.settings.bufferMinutes
+      dateKey,
+      baseData.settings.bufferMinutes,
+      baseData.settings.timezone
     );
     const slots = buildSlots({
-      selectedDate: date,
+      selectedDateKey: dateKey,
       serviceDurationMinutes: service.durationMinutes,
       settings: baseData.settings,
       rules: baseData.rules,
@@ -704,29 +715,28 @@ export async function getPublicBookingAvailabilityData(params: {
   }
 
   if (selectedService && rawDate) {
-    const selectedDateObject = parseDateOnly(rawDate);
-
-    if (!selectedDateObject) {
+    if (!parseDateOnly(rawDate)) {
       return { ok: false, reason: "invalid_date" };
     }
 
     const isWithinBookingWindow =
-      selectedDateObject >= bookingWindow.minDate &&
-      selectedDateObject <= bookingWindow.maxDate;
+      rawDate >= bookingWindow.minDate && rawDate <= bookingWindow.maxDate;
 
     if (isWithinBookingWindow) {
       const blockedRanges = buildBlockedRanges(
         baseData.blockedSlotRows,
-        selectedDateObject
+        rawDate,
+        baseData.settings.timezone
       );
       const busySessionRanges = buildBusySessionRanges(
         sessionRows ?? [],
-        selectedDateObject,
-        baseData.settings.bufferMinutes
+        rawDate,
+        baseData.settings.bufferMinutes,
+        baseData.settings.timezone
       );
 
       slots = buildSlots({
-        selectedDate: selectedDateObject,
+        selectedDateKey: rawDate,
         serviceDurationMinutes: selectedService.durationMinutes,
         settings: baseData.settings,
         rules: baseData.rules,
@@ -759,12 +769,13 @@ export async function getPublicBookingAvailabilityData(params: {
     ok: true,
     payload: {
       services: baseData.services,
+      timezone: baseData.settings.timezone,
       selectedServiceId: rawServiceId,
       selectedDate: rawDate,
       visibleMonth: rawVisibleMonth,
       dateBounds: {
-        min: formatDateOnly(bookingWindow.minDate),
-        max: formatDateOnly(bookingWindow.maxDate),
+        min: bookingWindow.minDate,
+        max: bookingWindow.maxDate,
       },
       slotStepMinutes: SLOT_STEP_MINUTES,
       slots,
@@ -781,13 +792,19 @@ export async function validateBookableSlot(params: {
 }): Promise<SlotValidationResult> {
   const db = params.db ?? pool;
   const now = params.now ?? new Date();
-  const parsedStart = parseDateTimeLocal(params.startsAt);
+  const parsedStart = ensureValidDate(new Date(params.startsAt));
 
   if (!parsedStart) {
     return { ok: false, reason: "invalid_slot" };
   }
 
-  const selectedDate = formatDateOnly(parsedStart);
+  const baseData = await loadBaseData(db);
+
+  if (!baseData) {
+    return { ok: false, reason: "settings_missing" };
+  }
+
+  const selectedDate = getDateKeyInTimeZone(parsedStart, baseData.settings.timezone);
   const availability = await getPublicBookingAvailabilityData({
     serviceId: params.serviceId,
     selectedDate,
@@ -848,5 +865,6 @@ export async function validateBookableSlot(params: {
     service,
     slot,
     selectedDate,
+    timezone: availability.payload.timezone,
   };
 }

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
-import { siteSettings } from "../../data/siteSettings";
 import { Container } from "../../components/Container/Container";
 import { Button } from "../../components/Button/Button";
 import styles from "./PaymentSuccessPage.module.css";
+import { getDefaultBookingTimezone } from "../../lib/booking/bookingTimezones";
 import { getTimezoneLabel } from "../../lib/booking/getTimezoneLabel";
 import {
   formatBookingDate,
@@ -27,11 +27,8 @@ export function PaymentSuccessPage() {
   const [didReachPollLimit, setDidReachPollLimit] = useState(false);
 
   const locale = "ru-RU";
-
-  const timezoneLabel = getTimezoneLabel(
-    siteSettings.booking.timezone,
-    locale.startsWith("ru") ? "ru" : "en"
-  );
+  const bookingTimezone = payment?.timezone ?? getDefaultBookingTimezone();
+  const timezoneLabel = getTimezoneLabel(bookingTimezone, "ru");
 
   const requestId = useMemo(() => {
     const raw = searchParams.get("requestId");
@@ -143,13 +140,18 @@ export function PaymentSuccessPage() {
     payment.status !== "paid" &&
     (payment.status !== "pending" || didReachPollLimit);
 
+  const icon =
+    isLoading || payment?.status === "paid" || isPending ? "🎉" : "⚠️";
+
   return (
     <section className={styles.section}>
       <Container>
         <div className={`${styles.card} ${styles.visible}`}>
           {showConfetti && <div className={styles.confetti} />}
 
-          <div className={styles.icon}>🎉</div>
+          <div className={styles.icon} aria-hidden="true">
+            {icon}
+          </div>
 
           <h1 className={styles.title}>
             {isLoading
@@ -166,27 +168,19 @@ export function PaymentSuccessPage() {
           <div className={styles.contentWrapper}>
             {isLoading ? (
               <p className={styles.fallback}>
-                Пожалуйста, подождите, мы проверяем статус оплаты и записи...
+                Пожалуйста, подождите: мы проверяем статус оплаты и записи.
               </p>
             ) : payment?.status === "paid" && bookingStartsAt ? (
               <div className={styles.details}>
                 <p>
                   <strong>Дата:</strong>{" "}
-                  {formatBookingDate(
-                    bookingStartsAt,
-                    "ru-RU",
-                    siteSettings.booking.timezone
-                  )}
+                  {formatBookingDate(bookingStartsAt, locale, bookingTimezone)}
                 </p>
 
                 <p>
                   <strong>Время:</strong>{" "}
-                  {formatBookingTime(
-                    bookingStartsAt,
-                    "ru-RU",
-                    siteSettings.booking.timezone
-                  )}{" "}
-                  ({timezoneLabel})
+                  {formatBookingTime(bookingStartsAt, locale, bookingTimezone)} (
+                  {timezoneLabel})
                 </p>
 
                 <p>
@@ -220,7 +214,8 @@ export function PaymentSuccessPage() {
               </p>
             ) : (
               <p className={styles.fallback}>
-                {errorMessage || "Не удалось подтвердить оплату или создать запись."}
+                {errorMessage ||
+                  "Не удалось подтвердить оплату или создать запись."}
               </p>
             )}
           </div>

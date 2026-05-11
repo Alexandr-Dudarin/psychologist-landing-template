@@ -1,4 +1,5 @@
 import type { SchedulerDaySummary, SchedulerOverlayItem } from "./premiumScheduler.shared";
+import { getTodayDateKeyInTimeZone } from "../../../lib/datetime/practiceTimezone";
 
 const MINUTES_IN_HOUR = 60;
 const GRID_START_HOUR = 7;
@@ -20,12 +21,8 @@ export type SchedulerDetail = {
   tertiaryLabel: string;
 };
 
-export function getTodayDateKey(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+export function getTodayDateKey(timezone = "Europe/Moscow"): string {
+  return getTodayDateKeyInTimeZone(timezone);
 }
 
 export function formatOverlayPosition(

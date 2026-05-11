@@ -19,7 +19,8 @@ function getClassName(parts: Array<string | false | null | undefined>): string {
 
 function getDefaultVisibleMonth(
   value: string | null | undefined,
-  minDate: string | undefined
+  minDate: string | undefined,
+  todayDate: string | undefined
 ): string {
   if (value) {
     return value.slice(0, 7);
@@ -29,7 +30,7 @@ function getDefaultVisibleMonth(
     return minDate.slice(0, 7);
   }
 
-  return getTodayDateKey().slice(0, 7);
+  return (todayDate ?? getTodayDateKey()).slice(0, 7);
 }
 
 function buildMetaMap(datesMeta: CalendarDateMeta[] | undefined): Map<string, CalendarDateMeta> {
@@ -41,6 +42,7 @@ export function BaseCalendar({
   onChange,
   visibleMonth,
   onVisibleMonthChange,
+  todayDate,
   minDate,
   maxDate,
   disablePast = false,
@@ -53,10 +55,11 @@ export function BaseCalendar({
   className,
   variant = "admin" as const,
 }: BaseCalendarProps) {
-  const resolvedVisibleMonth = visibleMonth ?? getDefaultVisibleMonth(value, minDate);
+  const resolvedVisibleMonth =
+    visibleMonth ?? getDefaultVisibleMonth(value, minDate, todayDate);
   const monthGrid = getMonthGrid(resolvedVisibleMonth, weekStartsOn);
   const weekdayLabels = getWeekdayLabels(locale, weekStartsOn);
-  const todayDateKey = getTodayDateKey();
+  const todayDateKey = todayDate ?? getTodayDateKey();
   const readOnly = mode === "readonly";
   const minAllowedDate = disablePast
     ? minDate && minDate > todayDateKey

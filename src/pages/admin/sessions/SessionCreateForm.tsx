@@ -2,14 +2,13 @@ import type { FormEvent } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
+import { getTimezoneLabel } from "../../../lib/booking/getTimezoneLabel";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmServiceRecord } from "../../../types/service";
 import type { SessionStatus } from "../../../types/session";
 import { sessionStatuses } from "../../../types/session";
 import type { SessionForm } from "./sessionForm";
-import {
-  sessionStatusLabels,
-} from "./sessionForm";
+import { sessionStatusLabels } from "./sessionForm";
 import { SessionDateTimeField } from "./SessionDateTimeField";
 import styles from "./SessionsPage.module.css";
 
@@ -17,6 +16,7 @@ type SessionCreateFormProps = {
   clients: CrmClientRecord[];
   activeServices: CrmServiceRecord[];
   form: SessionForm;
+  timezone: string;
   isCreating: boolean;
   onFormChange: (field: keyof SessionForm, value: string) => void;
   onSubmit: (e: FormEvent) => void;
@@ -26,10 +26,13 @@ export function SessionCreateForm({
   clients,
   activeServices,
   form,
+  timezone,
   isCreating,
   onFormChange,
   onSubmit,
 }: SessionCreateFormProps) {
+  const timezoneLabel = getTimezoneLabel(timezone, "ru");
+
   return (
     <AdminSection title="Создать сессию">
       <form onSubmit={onSubmit} className={styles.form}>
@@ -61,8 +64,10 @@ export function SessionCreateForm({
 
         <SessionDateTimeField
           value={form.scheduledAt}
+          timezone={timezone}
           onChange={(value) => onFormChange("scheduledAt", value)}
           disablePast
+          hint={`Время выбирается в часовом поясе практики: ${timezoneLabel}.`}
         />
 
         <input
@@ -87,9 +92,7 @@ export function SessionCreateForm({
 
         <select
           value={form.status}
-          onChange={(e) =>
-            onFormChange("status", e.target.value as SessionStatus)
-          }
+          onChange={(e) => onFormChange("status", e.target.value as SessionStatus)}
           className={styles.input}
         >
           {sessionStatuses.map((status) => (

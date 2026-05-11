@@ -2,6 +2,7 @@
 .dayFrame {
   --scheduler-row-height: 96px;
   --scheduler-header-height: 88px;
+  --scheduler-hours-count: 15;
 }
 
 .weekFrame {
@@ -22,7 +23,7 @@
 
 .timeColumn {
   display: grid;
-  grid-template-rows: var(--scheduler-header-height) repeat(15, var(--scheduler-row-height));
+  grid-template-rows: var(--scheduler-header-height) repeat(var(--scheduler-hours-count), var(--scheduler-row-height));
   border-right: 1px solid var(--admin-border);
   background: linear-gradient(180deg, #fbfcfd 0%, #f7fafc 100%);
 }
@@ -234,7 +235,7 @@
 
 .gridBody {
   position: relative;
-  min-height: calc(var(--scheduler-row-height) * 15);
+  min-height: calc(var(--scheduler-row-height) * var(--scheduler-hours-count));
   background:
     linear-gradient(90deg, rgba(47, 93, 120, 0.05), rgba(47, 93, 120, 0) 42px),
     repeating-linear-gradient(

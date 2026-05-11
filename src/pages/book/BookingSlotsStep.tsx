@@ -1,9 +1,5 @@
 import type { PublicBookingSlot } from "../../types/booking";
 import type { BookingPageCopy } from "./bookingPage.types";
-import {
-  formatBookingTime,
-} from "../../lib/booking/formatBookingDateTime";
-import { siteSettings } from "../../data/siteSettings";
 import styles from "./BookingPage.module.css";
 
 type BookingSlotsStepProps = {
@@ -54,11 +50,7 @@ export function BookingSlotsStep({
                 className={`${styles.slotButton} ${isActive ? styles.slotButtonActive : ""}`}
                 onClick={() => onSelect(slot)}
               >
-                {formatBookingTime(
-                  slot.startsAt,
-                  "ru-RU",
-                  siteSettings.booking.timezone
-                )}
+                {slot.startTime}
               </button>
             );
           })}

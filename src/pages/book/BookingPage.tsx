@@ -21,6 +21,7 @@ import {
   getSelectedService,
   validateForm,
 } from "./bookingPage.helpers";
+import { getDefaultBookingTimezone } from "../../lib/booking/bookingTimezones";
 import { getTimezoneLabel } from "../../lib/booking/getTimezoneLabel";
 import { BookingPageSkeleton } from "./BookingPageSkeleton";
 import { BookingServiceStep } from "./BookingServiceStep";
@@ -299,8 +300,9 @@ export function BookingPage() {
   const monthAvailability = data?.monthAvailability ?? [];
   const isFormEnabled = Boolean(selectedService && selectedDate && selectedSlot);
   const datesMeta = buildCalendarDatesMeta({ monthAvailability, copy });
+  const bookingTimezone = data?.timezone ?? getDefaultBookingTimezone();
   const timezoneLabel = getTimezoneLabel(
-    siteSettings.booking.timezone,
+    bookingTimezone,
     currentLanguage
   );
 
@@ -518,10 +520,14 @@ export function BookingPage() {
               >
                 {selectedService && selectedDate && (
                   <div className={styles.timezoneNotice}>
-                    <span className={styles.timezoneIcon}>🕒</span>
-                    <span>
-                      Время указано {timezoneLabel}. Пожалуйста, учитывайте это при
-                      выборе слота.
+                    <span className={styles.timezoneIcon} aria-hidden="true">
+                      🕒
+                    </span>
+
+                    <span className={styles.timezoneNoticeText}>
+                      {currentLanguage === "ru"
+                        ? `Время указано по часовому поясу записи: ${timezoneLabel}. Пожалуйста, учитывайте это при выборе слота.`
+                        : `Times are shown in the booking timezone: ${timezoneLabel}. Please keep this in mind when choosing a slot.`}
                     </span>
                   </div>
                 )}
@@ -580,6 +586,7 @@ export function BookingPage() {
                 selectedDate={selectedDate}
                 selectedSlot={selectedSlot}
                 confirmedBooking={confirmedBooking}
+                timezone={bookingTimezone}
               />
             </div>
           </div>

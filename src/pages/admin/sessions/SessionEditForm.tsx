@@ -2,6 +2,7 @@ import type { FormEvent } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
+import { getTimezoneLabel } from "../../../lib/booking/getTimezoneLabel";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmServiceRecord } from "../../../types/service";
 import type { SessionStatus } from "../../../types/session";
@@ -15,6 +16,7 @@ type SessionEditFormProps = {
   clients: CrmClientRecord[];
   activeServices: CrmServiceRecord[];
   form: SessionForm;
+  timezone: string;
   isUpdating: boolean;
   onFormChange: (field: keyof SessionForm, value: string) => void;
   onSubmit: (e: FormEvent) => void;
@@ -25,11 +27,14 @@ export function SessionEditForm({
   clients,
   activeServices,
   form,
+  timezone,
   isUpdating,
   onFormChange,
   onSubmit,
   onCancel,
 }: SessionEditFormProps) {
+  const timezoneLabel = getTimezoneLabel(timezone, "ru");
+
   return (
     <AdminSection title="Редактировать сессию">
       <form onSubmit={onSubmit} className={styles.form}>
@@ -61,7 +66,9 @@ export function SessionEditForm({
 
         <SessionDateTimeField
           value={form.scheduledAt}
+          timezone={timezone}
           onChange={(value) => onFormChange("scheduledAt", value)}
+          hint={`Время редактируется в часовом поясе практики: ${timezoneLabel}.`}
         />
 
         <input
@@ -86,9 +93,7 @@ export function SessionEditForm({
 
         <select
           value={form.status}
-          onChange={(e) =>
-            onFormChange("status", e.target.value as SessionStatus)
-          }
+          onChange={(e) => onFormChange("status", e.target.value as SessionStatus)}
           className={styles.input}
         >
           {sessionStatuses.map((status) => (

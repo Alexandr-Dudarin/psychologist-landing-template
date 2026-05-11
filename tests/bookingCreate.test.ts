@@ -33,6 +33,7 @@ function mockValidSlot() {
       endsAt: "2026-04-20T13:00",
     },
     selectedDate: "2026-04-20",
+    timezone: "Asia/Tomsk",
   });
 }
 
@@ -191,6 +192,7 @@ describe("public booking create handler", () => {
       serviceTitle: "Consultation",
       startsAt: "2026-04-20T12:00",
       endsAt: "2026-04-20T13:00",
+      timezone: "Asia/Tomsk",
       comment: "Primary consultation",
       alreadyExistedClient: false,
     });

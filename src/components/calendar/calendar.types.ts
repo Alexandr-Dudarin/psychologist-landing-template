@@ -25,6 +25,7 @@ export type BaseCalendarProps = {
   onChange?: (date: string) => void;
   visibleMonth?: string;
   onVisibleMonthChange?: (month: string) => void;
+  todayDate?: string;
   minDate?: string;
   maxDate?: string;
   disablePast?: boolean;

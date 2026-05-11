@@ -13,6 +13,7 @@ export type PaymentStatusResponse = {
   sessionId: number | null;
   errorMessage: string | null;
   paidAt: string | null;
+  timezone: string;
   booking: {
     startsAt: string;
     firstName: string;

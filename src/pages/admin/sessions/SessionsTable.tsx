@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import { formatBookingDate, formatBookingTime } from "../../../lib/booking/formatBookingDateTime";
+import { getTimezoneLabel } from "../../../lib/booking/getTimezoneLabel";
 import type { CrmSessionRecord } from "../../../types/session";
 import { getSessionSourceLabel, sessionStatusLabels } from "./sessionForm";
 import styles from "./SessionsPage.module.css";
@@ -11,6 +13,7 @@ type SessionsTableProps = {
   items: CrmSessionRecord[];
   isLoading: boolean;
   deletingId: number | null;
+  timezone: string;
   highlightedSessionId?: number | null;
   onEdit: (session: CrmSessionRecord) => void;
   onDelete: (id: number) => void;
@@ -20,18 +23,16 @@ export function SessionsTable({
   items,
   isLoading,
   deletingId,
+  timezone,
   highlightedSessionId = null,
   onEdit,
   onDelete,
 }: SessionsTableProps) {
   const highlightedRowRef = useRef<HTMLTableRowElement | null>(null);
+  const timezoneLabel = getTimezoneLabel(timezone, "ru");
 
   useEffect(() => {
-    if (!highlightedSessionId) {
-      return;
-    }
-
-    if (!highlightedRowRef.current) {
+    if (!highlightedSessionId || !highlightedRowRef.current) {
       return;
     }
 
@@ -98,8 +99,10 @@ export function SessionsTable({
               </td>
               <td className={styles.dateCell} data-label="Дата и время">
                 <div className={styles.dateValue}>
-                  {new Date(item.scheduledAt).toLocaleString("ru-RU")}
+                  {formatBookingDate(item.scheduledAt, "ru-RU", timezone)},{" "}
+                  {formatBookingTime(item.scheduledAt, "ru-RU", timezone)}
                 </div>
+                <div className={styles.notesPreview}>{timezoneLabel}</div>
               </td>
               <td className={styles.compactCell} data-label="Длительность">
                 {item.durationMinutes} мин

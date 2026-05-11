@@ -168,7 +168,7 @@ export function SchedulePage() {
   };
 
   const handleSettingsTextChange = (
-    field: "minAdvanceHours" | "bufferMinutes" | "maxDaysAhead",
+    field: "minAdvanceHours" | "bufferMinutes" | "maxDaysAhead" | "timezone",
     value: string
   ) => {
     setSettingsForm((prev) => updateSettingsTextField(prev, field, value));

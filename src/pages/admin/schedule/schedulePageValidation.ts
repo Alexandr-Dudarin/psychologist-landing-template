@@ -4,6 +4,7 @@ import type {
   UpdateAdminSchedulePayload,
 } from "../../../types/schedule";
 
+import { isBookingTimezone } from "../../../lib/booking/bookingTimezones";
 import { weekdayLabels } from "./schedulePage.shared";
 import { isPastOverrideDate } from "./schedulePageHelpers";
 
@@ -31,6 +32,10 @@ export function validateScheduleSettingsPayload(
     return "Глубина записи вперёд должна быть больше 0.";
   }
 
+  if (!isBookingTimezone(payload.settings.timezone)) {
+    return "Выберите корректный часовой пояс для онлайн-записи.";
+  }
+
   for (const rule of payload.rules) {
     if (rule.isEnabled && rule.startTime >= rule.endTime) {
       return `Для "${weekdayLabels[rule.weekday]}" время начала должно быть раньше времени окончания.`;
@@ -45,6 +50,7 @@ export function validateSettingsFormRequiredFields(
     minAdvanceHours: string;
     bufferMinutes: string;
     maxDaysAhead: string;
+    timezone: string;
   }
 ): string | null {
   if (settingsForm.minAdvanceHours.trim() === "") {
@@ -57,6 +63,10 @@ export function validateSettingsFormRequiredFields(
 
   if (settingsForm.maxDaysAhead.trim() === "") {
     return "Укажите глубину записи вперёд.";
+  }
+
+  if (settingsForm.timezone.trim() === "") {
+    return "Выберите часовой пояс записи.";
   }
 
   return null;

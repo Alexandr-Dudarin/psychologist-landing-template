@@ -1,13 +1,11 @@
-export function getTimezoneLabel(timezone: string, language: "ru" | "en") {
-  if (language === "ru") {
-    if (timezone === "Europe/Moscow") return "по московскому времени";
-    if (timezone === "Asia/Tomsk") return "по томскому времени";
+import { getBookingTimezoneMeta } from "./bookingTimezones";
 
-    return `по времени ${timezone}`;
+export function getTimezoneLabel(timezone: string, language: "ru" | "en") {
+  const meta = getBookingTimezoneMeta(timezone);
+
+  if (language === "ru") {
+    return `${meta.labelRu} (${meta.offset})`;
   }
 
-  if (timezone === "Europe/Moscow") return "Moscow time";
-  if (timezone === "Asia/Tomsk") return "Tomsk time";
-
-  return timezone;
+  return `${meta.labelEn} (${meta.offset})`;
 }

@@ -44,6 +44,7 @@ export function SchedulerTimelineView({
       style={{
         ["--scheduler-row-height" as string]: `${rowHeight}px`,
         ["--scheduler-header-height" as string]: `${headerHeight}px`,
+        ["--scheduler-hours-count" as string]: String(hours.length),
       }}
     >
       <div className={styles.timeColumn}>
@@ -56,9 +57,8 @@ export function SchedulerTimelineView({
       </div>
 
       <div
-        className={`${styles.columns} ${
-          viewMode === "week" ? styles.columnsWeek : styles.columnsDay
-        }`}
+        className={`${styles.columns} ${viewMode === "week" ? styles.columnsWeek : styles.columnsDay
+          }`}
       >
         {daySummaries.map((day) => {
           const dayItems = overlayItems.filter((item) => item.dayKey === day.dateKey);
@@ -66,20 +66,18 @@ export function SchedulerTimelineView({
           return (
             <section
               key={day.dateKey}
-              className={`${styles.dayColumn} ${
-                day.workingStateTone === "override-working"
+              className={`${styles.dayColumn} ${day.workingStateTone === "override-working"
                   ? styles.dayColumnOverride
                   : day.workingStateTone === "override-day-off"
                     ? styles.dayColumnOverrideOff
                     : day.workingStateTone === "day-off"
                       ? styles.dayColumnDayOff
                       : ""
-              } ${viewMode === "day" ? styles.dayColumnExpanded : ""}`}
+                } ${viewMode === "day" ? styles.dayColumnExpanded : ""}`}
             >
               <header
-                className={`${styles.dayHeader} ${
-                  viewMode === "week" ? styles.dayHeaderWeek : styles.dayHeaderDay
-                }`}
+                className={`${styles.dayHeader} ${viewMode === "week" ? styles.dayHeaderWeek : styles.dayHeaderDay
+                  }`}
               >
                 <div className={styles.dayHeaderTop}>
                   <div className={styles.dayTitleGroup}>

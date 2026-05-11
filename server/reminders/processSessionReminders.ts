@@ -8,6 +8,7 @@ import {
   type SessionReminderNotificationsResult,
   type SessionReminderType,
 } from "./sendSessionReminderNotifications.js";
+import { getBookingSettingsTimezone } from "../utils/getBookingSettingsTimezone.js";
 
 type ReminderChannel = "telegram" | "owner_email" | "client_email";
 type ReminderDeliveryStatus = "sent" | "failed" | "skipped";
@@ -97,7 +98,8 @@ function addMinutesToIso(isoString: string, minutes: number): string {
 }
 
 function buildReminderPayload(
-  row: ReminderCandidateRow
+  row: ReminderCandidateRow,
+  timezone: string
 ): SendSessionReminderNotificationsPayload {
   const durationMinutes = Number(row.duration_minutes);
 
@@ -109,6 +111,7 @@ function buildReminderPayload(
     serviceTitle: row.service_title,
     startsAt: row.scheduled_at,
     endsAt: addMinutesToIso(row.scheduled_at, durationMinutes),
+    timezone,
     notes: row.notes ?? "",
   };
 }
@@ -272,6 +275,7 @@ async function processReminderForCandidate(
   client: Pick<PoolClient, "query">,
   row: ReminderCandidateRow,
   reminderType: SessionReminderType,
+  timezone: string,
   stats: ReminderBatchStats
 ): Promise<void> {
   const sessionId = Number(row.session_id);
@@ -289,7 +293,7 @@ async function processReminderForCandidate(
     return;
   }
 
-  const payload = buildReminderPayload(row);
+  const payload = buildReminderPayload(row, timezone);
 
   try {
     const notifications = await sendSessionReminderNotifications(
@@ -335,6 +339,7 @@ export async function processSessionReminders(): Promise<ProcessSessionReminders
     }
 
     const batches: ReminderBatchStats[] = [];
+    const timezone = await getBookingSettingsTimezone(client);
 
     for (const batchConfig of REMINDER_BATCHES) {
       const candidates = await selectReminderCandidates(client, batchConfig);
@@ -355,6 +360,7 @@ export async function processSessionReminders(): Promise<ProcessSessionReminders
             client,
             candidate,
             reminderType,
+            timezone,
             stats
           );
         }

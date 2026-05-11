@@ -1,13 +1,11 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
-import { siteSettings } from "../../src/data/siteSettings.js";
+import { getTimezoneLabel } from "../../src/lib/booking/getTimezoneLabel.js";
 import {
   formatBookingDate,
   formatBookingTimeRange,
 } from "../utils/formatBookingDateTime.js";
-
-const timezone = siteSettings.booking.timezone;
 
 export const sessionReminderTypes = [
   "specialist_1h",
@@ -39,6 +37,7 @@ export type SendSessionReminderNotificationsPayload = {
   serviceTitle: string;
   startsAt: string;
   endsAt: string;
+  timezone: string;
   notes: string;
 };
 
@@ -62,22 +61,26 @@ function isClientReminderType(reminderType: SessionReminderType): boolean {
 }
 
 function getReminderPrefix(reminderType: SessionReminderType): string {
-  if (
-    reminderType === "specialist_1h" ||
-    reminderType === "client_1h"
-  ) {
+  if (reminderType === "specialist_1h" || reminderType === "client_1h") {
     return "Напоминание о сессии";
   }
 
   return "Напоминание о завтрашней сессии";
 }
 
-function getDateLabel(startsAt: string): string {
+function getDateLabel(startsAt: string, timezone: string): string {
   return formatBookingDate(startsAt, timezone);
 }
 
-function getTimeRangeLabel(startsAt: string, endsAt: string): string {
-  return `${formatBookingTimeRange(startsAt, endsAt, timezone)} (${timezone})`;
+function getTimeRangeLabel(
+  startsAt: string,
+  endsAt: string,
+  timezone: string
+): string {
+  return `${formatBookingTimeRange(startsAt, endsAt, timezone)} (${getTimezoneLabel(
+    timezone,
+    "ru"
+  )})`;
 }
 
 function getSubject(
@@ -85,8 +88,13 @@ function getSubject(
   payload: SendSessionReminderNotificationsPayload
 ): string {
   return `${getReminderPrefix(reminderType)} — ${getDateLabel(
-    payload.startsAt
-  )}, ${getTimeRangeLabel(payload.startsAt, payload.endsAt)}`;
+    payload.startsAt,
+    payload.timezone
+  )}, ${getTimeRangeLabel(
+    payload.startsAt,
+    payload.endsAt,
+    payload.timezone
+  )}`;
 }
 
 function getSpecialistTelegramText(
@@ -101,8 +109,12 @@ function getSpecialistTelegramText(
     `Телефон: ${payload.clientPhone || "-"}`,
     `Email: ${payload.clientEmail || "-"}`,
     `Услуга: ${payload.serviceTitle}`,
-    `Дата: ${getDateLabel(payload.startsAt)}`,
-    `Время: ${getTimeRangeLabel(payload.startsAt, payload.endsAt)}`,
+    `Дата: ${getDateLabel(payload.startsAt, payload.timezone)}`,
+    `Время: ${getTimeRangeLabel(
+      payload.startsAt,
+      payload.endsAt,
+      payload.timezone
+    )}`,
     `Заметка: ${payload.notes || "-"}`,
   ].join("\n");
 }
@@ -118,9 +130,11 @@ function getSpecialistEmailHtml(
     <p><strong>Телефон:</strong> ${escapeHtml(payload.clientPhone || "-")}</p>
     <p><strong>Email:</strong> ${escapeHtml(payload.clientEmail || "-")}</p>
     <p><strong>Услуга:</strong> ${escapeHtml(payload.serviceTitle)}</p>
-    <p><strong>Дата:</strong> ${escapeHtml(getDateLabel(payload.startsAt))}</p>
+    <p><strong>Дата:</strong> ${escapeHtml(
+      getDateLabel(payload.startsAt, payload.timezone)
+    )}</p>
     <p><strong>Время:</strong> ${escapeHtml(
-      getTimeRangeLabel(payload.startsAt, payload.endsAt)
+      getTimeRangeLabel(payload.startsAt, payload.endsAt, payload.timezone)
     )}</p>
     <p><strong>Заметка:</strong> ${escapeHtml(payload.notes || "-")}</p>
   `;
@@ -140,9 +154,11 @@ function getClientEmailHtml(
     <p>Здравствуйте, ${escapeHtml(payload.clientName)}.</p>
     <p>${escapeHtml(intro)}</p>
     <p><strong>Услуга:</strong> ${escapeHtml(payload.serviceTitle)}</p>
-    <p><strong>Дата:</strong> ${escapeHtml(getDateLabel(payload.startsAt))}</p>
+    <p><strong>Дата:</strong> ${escapeHtml(
+      getDateLabel(payload.startsAt, payload.timezone)
+    )}</p>
     <p><strong>Время:</strong> ${escapeHtml(
-      getTimeRangeLabel(payload.startsAt, payload.endsAt)
+      getTimeRangeLabel(payload.startsAt, payload.endsAt, payload.timezone)
     )}</p>
     <p>Если планы изменились, пожалуйста, свяжитесь заранее.</p>
   `;

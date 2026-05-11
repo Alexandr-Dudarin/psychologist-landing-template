@@ -4,10 +4,7 @@ import { formatDateLabel } from "./bookingPage.helpers";
 import type { BookingPageCopy, ConfirmedBooking } from "./bookingPage.types";
 import styles from "./BookingPage.module.css";
 
-import {
-  formatBookingTime,
-} from "../../lib/booking/formatBookingDateTime";
-import { siteSettings } from "../../data/siteSettings";
+import { formatBookingTime } from "../../lib/booking/formatBookingDateTime";
 import { getTimezoneLabel } from "../../lib/booking/getTimezoneLabel";
 
 type BookingSummaryProps = {
@@ -18,6 +15,7 @@ type BookingSummaryProps = {
   selectedDate: string;
   selectedSlot: PublicBookingSlot | null;
   confirmedBooking: ConfirmedBooking | null;
+  timezone: string;
 };
 
 export function BookingSummary({
@@ -28,6 +26,7 @@ export function BookingSummary({
   selectedDate,
   selectedSlot,
   confirmedBooking,
+  timezone,
 }: BookingSummaryProps) {
   const [animateField, setAnimateField] = useState<
     "service" | "date" | "slot" | null
@@ -35,7 +34,6 @@ export function BookingSummary({
 
   const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
 
-  const timezone = siteSettings.booking.timezone;
   const timezoneLabel = getTimezoneLabel(timezone, currentLanguage);
 
   useEffect(() => {
@@ -61,11 +59,7 @@ export function BookingSummary({
     : copy.summaryWaiting;
 
   const selectedSlotLabel = selectedSlot
-    ? `${formatBookingTime(selectedSlot.startsAt, locale, timezone)} - ${formatBookingTime(
-        selectedSlot.endsAt,
-        locale,
-        timezone
-      )}`
+    ? `${selectedSlot.startTime} - ${selectedSlot.endTime}`
     : copy.summaryWaiting;
 
   const confirmedDateLabel = confirmedBooking

@@ -33,9 +33,12 @@ export function PremiumSchedulerPage() {
   const [viewMode, setViewMode] = useState<SchedulerViewMode>(
     siteSettings.premiumModules.scheduler.defaultView
   );
-  const [anchorDate, setAnchorDate] = useState(getTodayDateKey);
   const [sessions, setSessions] = useState<CrmSessionRecord[]>([]);
   const [scheduleData, setScheduleData] = useState<AdminScheduleRecord | null>(null);
+  const scheduleTimezone = scheduleData?.settings.timezone ?? "Europe/Moscow";
+  const [anchorDate, setAnchorDate] = useState(() =>
+    getTodayDateKey(scheduleTimezone)
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<SchedulerDetail | null>(null);
@@ -92,6 +95,7 @@ export function PremiumSchedulerPage() {
       bufferMinutes: 0,
       allowSameDayBooking: true,
       maxDaysAhead: 30,
+      timezone: "Europe/Moscow",
     },
     rules: [],
     overrides: [],
@@ -109,6 +113,7 @@ export function PremiumSchedulerPage() {
         overrides: safeScheduleData.overrides,
         rules: safeScheduleData.rules,
         locale,
+        timezone: safeScheduleData.settings.timezone,
       }),
     [
       anchorDate,
@@ -116,6 +121,7 @@ export function PremiumSchedulerPage() {
       safeScheduleData.blockedSlots,
       safeScheduleData.overrides,
       safeScheduleData.rules,
+      safeScheduleData.settings.timezone,
       sessions,
       viewMode,
     ]
@@ -128,8 +134,15 @@ export function PremiumSchedulerPage() {
         anchorDateKey: anchorDate,
         sessions,
         blockedSlots: safeScheduleData.blockedSlots,
+        timezone: safeScheduleData.settings.timezone,
       }),
-    [anchorDate, safeScheduleData.blockedSlots, sessions, viewMode]
+    [
+      anchorDate,
+      safeScheduleData.blockedSlots,
+      safeScheduleData.settings.timezone,
+      sessions,
+      viewMode,
+    ]
   );
 
   const monthSummary = useMemo(
@@ -140,12 +153,14 @@ export function PremiumSchedulerPage() {
         blockedSlots: safeScheduleData.blockedSlots,
         overrides: safeScheduleData.overrides,
         rules: safeScheduleData.rules,
+        timezone: safeScheduleData.settings.timezone,
       }),
     [
       anchorDate,
       safeScheduleData.blockedSlots,
       safeScheduleData.overrides,
       safeScheduleData.rules,
+      safeScheduleData.settings.timezone,
       sessions,
     ]
   );
@@ -165,6 +180,7 @@ export function PremiumSchedulerPage() {
       overrides: safeScheduleData.overrides,
       rules: safeScheduleData.rules,
       locale,
+      timezone: safeScheduleData.settings.timezone,
     })[0];
 
     if (!detailSummary) {
@@ -177,6 +193,16 @@ export function PremiumSchedulerPage() {
   useEffect(() => {
     setSelectedDetail(null);
   }, [anchorDate, viewMode]);
+
+  useEffect(() => {
+    setAnchorDate((currentAnchorDate) => {
+      if (currentAnchorDate) {
+        return currentAnchorDate;
+      }
+
+      return getTodayDateKey(scheduleTimezone);
+    });
+  }, [scheduleTimezone]);
 
   return (
     <main className={pageStyles.page}>
@@ -223,7 +249,7 @@ export function PremiumSchedulerPage() {
               rangeLabel={rangeLabel}
               viewMode={viewMode}
               onPrev={() => setAnchorDate(getNextAnchorDate(viewMode, anchorDate, -1))}
-              onToday={() => setAnchorDate(getTodayDateKey())}
+              onToday={() => setAnchorDate(getTodayDateKey(scheduleTimezone))}
               onNext={() => setAnchorDate(getNextAnchorDate(viewMode, anchorDate, 1))}
               onViewModeChange={setViewMode}
             />
