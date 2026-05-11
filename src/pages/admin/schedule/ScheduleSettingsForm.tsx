@@ -5,7 +5,7 @@ import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import styles from "./SchedulePage.module.css";
 import {
-  bookingTimezoneOptions,
+  bookingTimezoneOptionGroups,
   type FeedbackState,
   type SettingsForm,
 } from "./schedulePage.shared";
@@ -85,10 +85,14 @@ export function ScheduleSettingsForm({
               onChange={(event) => onTextChange("timezone", event.target.value)}
               className={styles.input}
             >
-              {bookingTimezoneOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
+              {bookingTimezoneOptionGroups.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
 
