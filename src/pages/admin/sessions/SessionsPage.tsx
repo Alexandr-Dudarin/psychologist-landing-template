@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
-import { getDefaultBookingTimezone } from "../../../lib/booking/bookingTimezones";
+import {
+  getDefaultBookingTimezone,
+  resolveBookingTimezone,
+} from "../../../lib/booking/bookingTimezones";
 import { getAdminSchedule } from "../../../lib/api/adminSchedule";
 import { getAdminClients } from "../../../lib/api/adminClients";
 import { getAdminServices } from "../../../lib/api/adminServices";
@@ -123,7 +126,7 @@ export function SessionsPage() {
           setItems(sessionsData);
           setClients(clientsData);
           setServices(servicesData);
-          setScheduleTimezone(scheduleData.settings.timezone);
+          setScheduleTimezone(resolveBookingTimezone(scheduleData.settings.timezone));
         }
       } catch (loadError) {
         if (isMounted) {
