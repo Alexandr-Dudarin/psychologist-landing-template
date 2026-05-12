@@ -1,4 +1,4 @@
-import { getBookingTimezoneMeta } from "./bookingTimezones";
+import { getBookingTimezoneMeta } from "./bookingTimezones.js";
 
 export function getTimezoneLabel(timezone: string, language: "ru" | "en") {
   const meta = getBookingTimezoneMeta(timezone);

@@ -1,4 +1,4 @@
-import type { CrmServiceRecord } from "./service";
+import type { CrmServiceRecord } from "./service.js";
 
 export type PublicBookingService = Pick<
   CrmServiceRecord,

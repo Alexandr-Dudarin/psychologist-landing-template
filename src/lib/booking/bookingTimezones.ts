@@ -1,4 +1,4 @@
-import { siteSettings } from "../../data/siteSettings";
+import { siteSettings } from "../../data/siteSettings.js";
 
 type BookingTimezoneGroup =
   | "europe"
