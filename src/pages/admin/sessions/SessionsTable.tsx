@@ -60,7 +60,7 @@ export function SessionsTable({
           <th className={styles.serviceCell}>Услуга</th>
           <th className={styles.dateCell}>Дата и время</th>
           <th className={styles.compactCell}>Длительность</th>
-          <th className={styles.compactCell}>Цена</th>
+          <th className={`${styles.compactCell} ${styles.priceCell}`}>Цена</th>
           <th className={styles.statusCell}>Статус</th>
           <th className={styles.sourceCell}>Источник</th>
           <th className={styles.notesCell}>Заметки</th>
@@ -78,9 +78,8 @@ export function SessionsTable({
             <tr
               key={item.id}
               ref={isHighlighted ? highlightedRowRef : null}
-              className={`${styles.sessionRow} ${
-                isHighlighted ? styles.highlightedRow : ""
-              }`}
+              className={`${styles.sessionRow} ${isHighlighted ? styles.highlightedRow : ""
+                }`}
             >
               <td className={styles.idCell} data-label="ID">
                 <span className={styles.idBadge}>{item.id}</span>
@@ -111,8 +110,8 @@ export function SessionsTable({
               <td className={styles.compactCell} data-label="Длительность">
                 {item.durationMinutes} мин
               </td>
-
-              <td className={styles.compactCell} data-label="Цена">
+              
+              <td className={`${styles.compactCell} ${styles.priceCell}`} data-label="Цена">
                 {item.price} ₽
               </td>
 

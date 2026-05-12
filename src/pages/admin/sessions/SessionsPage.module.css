@@ -286,14 +286,42 @@
   white-space: nowrap;
 }
 
-@media (max-width: 1520px) {
+@media (max-width: 1600px) {
   .sourceCell {
     display: none;
   }
 }
 
-@media (max-width: 1420px) {
+@media (max-width: 1540px) {
   .idCell {
+    display: none;
+  }
+}
+
+@media (max-width: 1360px) {
+  .notesCell {
+    display: none;
+  }
+
+  .actionCell {
+    width: 132px;
+    min-width: 132px;
+  }
+
+  .linksCell {
+    width: 96px;
+    min-width: 96px;
+  }
+
+  .tableHead th,
+  .sessionRow td {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .priceCell {
     display: none;
   }
 }
