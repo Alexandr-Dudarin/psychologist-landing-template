@@ -1,0 +1,163 @@
+.summary {
+  position: relative;
+  align-self: start;
+  padding: 20px;
+  overflow: visible !important;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(18px);
+  transition: box-shadow 0.3s ease;
+}
+
+.summary:hover {
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.08),
+    0 0 0 1px color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+
+.summary::-webkit-scrollbar {
+  width: 8px;
+}
+
+.summary::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-accent) 24%, transparent);
+  border-radius: 999px;
+}
+
+.summaryTitle {
+  margin: 0 0 16px;
+  font-size: 22px;
+}
+
+.summaryList {
+  display: grid;
+  gap: 14px;
+}
+
+.summaryItem {
+  display: grid;
+  gap: 4px;
+}
+
+.summaryLabel {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.summaryValue {
+  font-size: 18px;
+  font-weight: 600;
+
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.summaryValueAnimate {
+  animation: summaryFadeIn 0.3s ease;
+}
+
+@keyframes summaryFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.summaryFootnote {
+  margin: 18px 0 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.confirmationCard {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 18px;
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.confirmationTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.confirmationText {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.confirmationMeta {
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+@media (max-width: 1199px) {
+  .summary {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 960px) {
+  .summary {
+    position: static;
+    max-width: 760px;
+  }
+}
+
+@media (max-width: 640px) {
+  .summary {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .summaryLabel,
+  .confirmationMeta {
+    font-size: 13px;
+  }
+
+  .summaryTitle {
+    margin-bottom: 14px;
+    font-size: 20px;
+  }
+
+  .summaryList {
+    gap: 12px;
+  }
+
+  .summaryValue {
+    font-size: 16px;
+  }
+
+  .summaryFootnote {
+    margin-top: 16px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .confirmationCard {
+    margin-top: 20px;
+    padding: 16px;
+  }
+
+  .confirmationTitle {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 420px) {
+  .summary {
+    padding: 16px;
+  }
+}

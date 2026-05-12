@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { PublicBookingService, PublicBookingSlot } from "../../types/booking";
 import { formatDateLabel } from "./bookingPage.helpers";
 import type { BookingPageCopy, ConfirmedBooking } from "./bookingPage.types";
-import styles from "./BookingPage.module.css";
+import styles from "./BookingSummary.module.css";
 
 import { formatBookingTime } from "../../lib/booking/formatBookingDateTime";
 import { getTimezoneLabel } from "../../lib/booking/getTimezoneLabel";

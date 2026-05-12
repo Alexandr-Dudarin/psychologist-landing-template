@@ -1,17 +1,20 @@
-import styles from "./BookingPage.module.css";
 import type { BookingPageCopy } from "./bookingPage.types";
+import pageStyles from "./BookingPage.module.css";
+import serviceStyles from "./BookingServiceStep.module.css";
+import summaryStyles from "./BookingSummary.module.css";
+import styles from "./BookingPageSkeleton.module.css";
 
 export function BookingPageSkeleton({ copy }: { copy: BookingPageCopy }) {
   return (
-    <div className={styles.layout}>
-      <section className={styles.panel}>
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
+    <div className={pageStyles.layout}>
+      <section className={pageStyles.panel}>
+        <div className={pageStyles.section}>
+          <div className={pageStyles.sectionHeader}>
             <div className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
             <div className={`${styles.skeletonLine} ${styles.skeletonHint}`} />
           </div>
 
-          <div className={styles.servicesGrid}>
+          <div className={serviceStyles.servicesGrid}>
             {Array.from({ length: 3 }).map((_, index) => (
               <div key={index} className={styles.skeletonServiceCard}>
                 <div className={`${styles.skeletonLine} ${styles.skeletonCardTitle}`} />
@@ -23,8 +26,8 @@ export function BookingPageSkeleton({ copy }: { copy: BookingPageCopy }) {
           </div>
         </div>
 
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
+        <div className={pageStyles.section}>
+          <div className={pageStyles.sectionHeader}>
             <div className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
             <div className={`${styles.skeletonLine} ${styles.skeletonHint}`} />
           </div>
@@ -53,8 +56,8 @@ export function BookingPageSkeleton({ copy }: { copy: BookingPageCopy }) {
           </div>
         </div>
 
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
+        <div className={pageStyles.section}>
+          <div className={pageStyles.sectionHeader}>
             <div className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
             <div className={`${styles.skeletonLine} ${styles.skeletonHint}`} />
           </div>
@@ -66,8 +69,8 @@ export function BookingPageSkeleton({ copy }: { copy: BookingPageCopy }) {
           </div>
         </div>
 
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
+        <div className={pageStyles.section}>
+          <div className={pageStyles.sectionHeader}>
             <div className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
             <div className={`${styles.skeletonLine} ${styles.skeletonHint}`} />
           </div>
@@ -104,22 +107,22 @@ export function BookingPageSkeleton({ copy }: { copy: BookingPageCopy }) {
         </div>
       </section>
 
-      <aside className={styles.summary}>
-        <h2 className={styles.summaryTitle}>{copy.summaryTitle}</h2>
+      <aside className={summaryStyles.summary}>
+        <h2 className={summaryStyles.summaryTitle}>{copy.summaryTitle}</h2>
 
-        <div className={styles.summaryList}>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>{copy.summaryService}</span>
+        <div className={summaryStyles.summaryList}>
+          <div className={summaryStyles.summaryItem}>
+            <span className={summaryStyles.summaryLabel}>{copy.summaryService}</span>
             <div className={`${styles.skeletonLine} ${styles.skeletonSummaryValue}`} />
           </div>
 
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>{copy.summaryDate}</span>
+          <div className={summaryStyles.summaryItem}>
+            <span className={summaryStyles.summaryLabel}>{copy.summaryDate}</span>
             <div className={`${styles.skeletonLine} ${styles.skeletonSummaryValue}`} />
           </div>
 
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>{copy.summarySlot}</span>
+          <div className={summaryStyles.summaryItem}>
+            <span className={summaryStyles.summaryLabel}>{copy.summarySlot}</span>
             <div className={`${styles.skeletonLine} ${styles.skeletonSummaryValue}`} />
           </div>
         </div>

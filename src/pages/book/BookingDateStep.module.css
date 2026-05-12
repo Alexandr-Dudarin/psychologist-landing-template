@@ -1,0 +1,58 @@
+.dateControl {
+  display: grid;
+  gap: 10px;
+  max-width: 320px;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.calendarBlock {
+  display: grid;
+  gap: 12px;
+  align-items: start;
+}
+
+.calendarSurface {
+  width: min(100%, 760px);
+  max-width: 100%;
+}
+
+.calendarNote {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.dateInput {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-s);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--color-text);
+}
+
+.dateInput:focus-visible {
+  outline: 2px solid rgba(141, 110, 99, 0.22);
+  outline-offset: 2px;
+}
+
+@media (max-width: 960px) {
+  .calendarSurface {
+    width: min(100%, 720px);
+  }
+}
+
+@media (max-width: 640px) {
+  .calendarBlock {
+    gap: 10px;
+  }
+
+  .calendarNote {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+}

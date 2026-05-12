@@ -1,0 +1,91 @@
+.slotsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.slotButton {
+  position: relative;
+
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+
+  background: color-mix(in srgb, var(--color-surface-strong) 80%, transparent);
+  color: var(--color-text);
+
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    all 0.25s ease,
+    transform 0.18s ease;
+}
+
+.slotButton:hover,
+.slotButton:focus-visible {
+  border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.slotButtonActive {
+  border-color: var(--color-accent);
+
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+
+  transform: scale(1.05);
+
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.08),
+    0 0 0 2px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+.slotButton:active {
+  transform: scale(0.97);
+}
+
+@media (min-width: 641px) and (max-width: 960px) {
+  .slotsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .slotButton {
+    min-height: 48px;
+    padding: 12px 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .slotButton {
+    min-height: 46px;
+    padding: 12px 10px;
+    font-size: 14px;
+  }
+
+  .slotsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (max-width: 420px) {
+  .slotsGrid {
+    gap: 8px;
+  }
+
+  .slotButton {
+    min-height: 44px;
+    padding: 11px 8px;
+    font-size: 13px;
+  }
+}

@@ -1,7 +1,8 @@
 import { BaseCalendar } from "../../components/calendar/BaseCalendar";
 import type { CalendarDateMeta } from "../../components/calendar/calendar.types";
 import type { BookingPageCopy } from "./bookingPage.types";
-import styles from "./BookingPage.module.css";
+import pageStyles from "./BookingPage.module.css";
+import styles from "./BookingDateStep.module.css";
 
 type BookingDateStepProps = {
   copy: BookingPageCopy;
@@ -35,14 +36,14 @@ export function BookingDateStep({
   onVisibleMonthChange,
 }: BookingDateStepProps) {
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>{copy.dateTitle}</h2>
-        <p className={styles.sectionHint}>{copy.dateHint}</p>
+    <div className={pageStyles.section}>
+      <div className={pageStyles.sectionHeader}>
+        <h2 className={pageStyles.sectionTitle}>{copy.dateTitle}</h2>
+        <p className={pageStyles.sectionHint}>{copy.dateHint}</p>
       </div>
 
       {!selectedService ? (
-        <div className={styles.stateBox}>{copy.dateEmpty}</div>
+        <div className={pageStyles.stateBox}>{copy.dateEmpty}</div>
       ) : (
         <div className={styles.calendarBlock}>
           <label className={styles.label}>{copy.dateLabel}</label>

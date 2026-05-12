@@ -6,7 +6,8 @@ import type {
   BookingFormState,
   BookingPageCopy,
 } from "./bookingPage.types";
-import styles from "./BookingPage.module.css";
+import pageStyles from "./BookingPage.module.css";
+import styles from "./BookingFormStep.module.css";
 
 type BookingFormStepProps = {
   copy: BookingPageCopy;
@@ -43,21 +44,21 @@ export function BookingFormStep({
   const isLocked = isCompleted || isSubmitting;
 
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>{copy.formTitle}</h2>
-        <p className={styles.sectionHint}>{copy.formHint}</p>
+    <div className={pageStyles.section}>
+      <div className={pageStyles.sectionHeader}>
+        <h2 className={pageStyles.sectionTitle}>{copy.formTitle}</h2>
+        <p className={pageStyles.sectionHint}>{copy.formHint}</p>
       </div>
 
       {submitSuccess ? (
-        <div className={`${styles.stateBox} ${styles.successBox}`}>
+        <div className={`${pageStyles.stateBox} ${pageStyles.successBox}`}>
           {submitSuccess}
         </div>
       ) : null}
 
       {!isFormEnabled ? (
         submitSuccess ? null : (
-          <div className={styles.stateBox}>{copy.formDisabled}</div>
+          <div className={pageStyles.stateBox}>{copy.formDisabled}</div>
         )
       ) : (
         <form className={styles.form} onSubmit={onSubmit}>
@@ -174,7 +175,7 @@ export function BookingFormStep({
           </div>
 
           {submitError ? (
-            <div className={`${styles.stateBox} ${styles.errorBox}`}>
+            <div className={`${pageStyles.stateBox} ${pageStyles.errorBox}`}>
               {submitError}
             </div>
           ) : null}

@@ -1,6 +1,7 @@
 import type { PublicBookingSlot } from "../../types/booking";
 import type { BookingPageCopy } from "./bookingPage.types";
-import styles from "./BookingPage.module.css";
+import pageStyles from "./BookingPage.module.css";
+import styles from "./BookingSlotsStep.module.css";
 
 type BookingSlotsStepProps = {
   copy: BookingPageCopy;
@@ -24,20 +25,20 @@ export function BookingSlotsStep({
   onSelect,
 }: BookingSlotsStepProps) {
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>{copy.slotsTitle}</h2>
-        <p className={styles.sectionHint}>{copy.slotsHint}</p>
+    <div className={pageStyles.section}>
+      <div className={pageStyles.sectionHeader}>
+        <h2 className={pageStyles.sectionTitle}>{copy.slotsTitle}</h2>
+        <p className={pageStyles.sectionHint}>{copy.slotsHint}</p>
       </div>
 
       {error ? (
-        <div className={`${styles.stateBox} ${styles.errorBox}`}>{error}</div>
+        <div className={`${pageStyles.stateBox} ${pageStyles.errorBox}`}>{error}</div>
       ) : !selectedService || !selectedDate ? (
-        <div className={styles.stateBox}>{copy.slotsEmptySelection}</div>
+        <div className={pageStyles.stateBox}>{copy.slotsEmptySelection}</div>
       ) : isRefreshingSlots ? (
-        <div className={styles.stateBox}>{copy.loading}</div>
+        <div className={pageStyles.stateBox}>{copy.loading}</div>
       ) : slots.length === 0 ? (
-        <div className={styles.stateBox}>{copy.slotsEmpty}</div>
+        <div className={pageStyles.stateBox}>{copy.slotsEmpty}</div>
       ) : (
         <div className={styles.slotsGrid}>
           {slots.map((slot) => {

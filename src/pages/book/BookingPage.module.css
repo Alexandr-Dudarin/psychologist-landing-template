@@ -1,7 +1,6 @@
 .page,
 .layout,
-.panel,
-.summary {
+.panel {
   overflow: visible !important;
 }
 
@@ -12,64 +11,6 @@
 
 .topbar {
   margin-bottom: 20px;
-}
-
-.stepDisabled {
-  opacity: 0.45;
-  pointer-events: none;
-  filter: grayscale(0.1);
-  transition: opacity 0.25s ease;
-}
-
-.stepActive {
-  opacity: 1;
-  pointer-events: auto;
-  position: relative;
-}
-
-.stepActive::before {
-  content: "";
-  position: absolute;
-  left: -12px;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-  border-radius: 999px;
-
-  background: color-mix(in srgb, var(--color-accent) 60%, transparent);
-}
-
-.sectionTitle {
-  transition: color 0.25s ease;
-}
-
-.stepActive .sectionTitle {
-  color: var(--color-accent);
-}
-
-.stepActive:first-child::before {
-  opacity: 0.9;
-}
-
-.summaryPulse {
-  animation: summaryPulse 0.45s ease;
-}
-
-@keyframes summaryPulse {
-  0% {
-    transform: scale(1);
-    box-shadow: var(--shadow-soft);
-  }
-
-  50% {
-    transform: scale(1.02);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  }
-
-  100% {
-    transform: scale(1);
-    box-shadow: var(--shadow-soft);
-  }
 }
 
 .backLink {
@@ -99,256 +40,8 @@
   box-shadow: var(--shadow-soft);
 }
 
-.skeletonLine,
-.skeletonInput,
-.skeletonTextarea,
-.skeletonDay,
-.skeletonSlot,
-.skeletonSubmit,
-.skeletonCircle,
-.skeletonServiceCard {
-  position: relative;
-  overflow: hidden;
-  background:
-    linear-gradient(
-      90deg,
-    color-mix(in srgb, var(--color-white) 42%, transparent) 0%,
-    color-mix(in srgb, var(--color-white) 90%, transparent) 50%,
-    color-mix(in srgb, var(--color-white) 42%, transparent) 100%
-  ),
-  color-mix(in srgb, var(--color-surface-strong) 88%, var(--color-white) 12%);
-  background-size: 220% 100%;
-  animation: bookingSkeletonShimmer 1.6s linear infinite;
-}
-
-@keyframes bookingSkeletonShimmer {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -20% 0;
-  }
-}
-
-.skeletonTitle {
-  width: 180px;
-  height: 28px;
-  border-radius: 10px;
-}
-
-.skeletonHint {
-  width: min(100%, 420px);
-  height: 14px;
-  margin-top: 10px;
-  border-radius: 8px;
-}
-
-.skeletonCardTitle {
-  width: 62%;
-  height: 20px;
-  border-radius: 8px;
-}
-
-.skeletonCardMeta {
-  width: 74%;
-  height: 14px;
-  margin-top: 14px;
-  border-radius: 8px;
-}
-
-.skeletonCardText {
-  width: 100%;
-  height: 13px;
-  margin-top: 16px;
-  border-radius: 8px;
-}
-
-.skeletonCardTextShort {
-  width: 78%;
-  height: 13px;
-  margin-top: 10px;
-  border-radius: 8px;
-}
-
-.skeletonServiceCard {
-  min-height: 168px;
-  padding: 22px;
-  border-radius: 28px;
-  border: 1px solid var(--color-border);
-}
-
-.skeletonCalendar {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.skeletonLabel {
-  width: 120px;
-  height: 14px;
-  border-radius: 8px;
-}
-
-.skeletonCalendarSurface {
-  padding: 20px;
-  border-radius: 28px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-}
-
-.skeletonCalendarHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.skeletonCalendarMonth {
-  width: 160px;
-  height: 18px;
-  border-radius: 8px;
-}
-
-.skeletonCalendarArrow,
-.skeletonCircle {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-}
-
-.skeletonWeekdays {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.skeletonWeekday {
-  width: 100%;
-  height: 10px;
-  border-radius: 6px;
-}
-
-.skeletonDaysGrid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.skeletonDay {
-  aspect-ratio: 1;
-  border-radius: 14px;
-}
-
-.skeletonSlotsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 12px;
-}
-
-.skeletonSlot {
-  height: 48px;
-  border-radius: 999px;
-}
-
-.skeletonForm {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.skeletonField {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.skeletonFieldFull {
-  grid-column: 1 / -1;
-}
-
-.skeletonInput {
-  height: 52px;
-  border-radius: 16px;
-}
-
-.skeletonTextarea {
-  height: 138px;
-  border-radius: 20px;
-}
-
-.skeletonCheckbox {
-  grid-column: 1 / -1;
-  width: min(100%, 360px);
-  height: 16px;
-  border-radius: 8px;
-}
-
-.skeletonSubmit {
-  grid-column: 1 / -1;
-  height: 54px;
-  border-radius: 999px;
-}
-
-.skeletonSummaryValue {
-  width: 72%;
-  height: 16px;
-  margin-top: 8px;
-  border-radius: 8px;
-}
-
-.skeletonSummaryFootnote {
-  width: 100%;
-  height: 14px;
-  margin-top: 22px;
-  border-radius: 8px;
-}
-
-.skeletonSummaryFootnoteShort {
-  width: 82%;
-  height: 14px;
-  margin-top: 10px;
-  border-radius: 8px;
-}
-
-@media (max-width: 900px) {
-  .topbar {
-    margin-bottom: 16px;
-  }
-
-  .skeletonForm {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .backLink {
-    width: 100%;
-    justify-content: center;
-    min-height: 48px;
-  }
-
-  .skeletonServiceCard {
-    min-height: 152px;
-    padding: 18px;
-    border-radius: 22px;
-  }
-
-  .skeletonCalendarSurface {
-    padding: 16px;
-    border-radius: 22px;
-  }
-
-  .skeletonDaysGrid,
-  .skeletonWeekdays {
-    gap: 8px;
-  }
-
-  .skeletonDay {
-    border-radius: 12px;
-  }
+.backLink:active {
+  transform: scale(0.97);
 }
 
 .hero {
@@ -389,18 +82,14 @@
   overflow: visible !important;
 }
 
-.panel,
-.summary {
+.panel {
+  padding: 28px;
+  overflow: visible !important;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-l);
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(18px);
-}
-
-.panel {
-  padding: 28px;
-  overflow: visible !important;
 }
 
 .summaryWrapper {
@@ -409,26 +98,38 @@
   align-self: start;
 }
 
-.summary {
+.stepDisabled {
+  opacity: 0.45;
+  pointer-events: none;
+  filter: grayscale(0.1);
+  transition: opacity 0.25s ease;
+}
+
+.stepActive {
+  opacity: 1;
+  pointer-events: auto;
   position: relative;
-  align-self: start;
-  padding: 20px;
-  transition: box-shadow 0.3s ease;
 }
 
-.summary:hover {
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.08),
-    0 0 0 1px color-mix(in srgb, var(--color-accent) 10%, transparent);
-}
-
-.summary::-webkit-scrollbar {
-  width: 8px;
-}
-
-.summary::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--color-accent) 24%, transparent);
+.stepActive::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
   border-radius: 999px;
+
+  background: color-mix(in srgb, var(--color-accent) 60%, transparent);
+}
+
+.stepActive:first-child::before {
+  opacity: 0.9;
+}
+
+.stepCompleted {
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 .section {
@@ -448,6 +149,11 @@
 .sectionTitle {
   margin: 0;
   font-size: 24px;
+  transition: color 0.25s ease;
+}
+
+.stepActive .sectionTitle {
+  color: var(--color-accent);
 }
 
 .sectionHint {
@@ -455,205 +161,6 @@
   color: var(--color-text-muted);
   line-height: 1.6;
   max-width: 68ch;
-}
-
-.servicesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-}
-
-.serviceCard {
-  width: 100%;
-  padding: 18px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-m);
-  background: var(--color-surface-muted);
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color var(--transition-base),
-    transform var(--transition-base),
-    box-shadow var(--transition-base),
-    background var(--transition-base);
-}
-
-.serviceCard:hover,
-.serviceCard:focus-visible {
-  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
-
-  transform: translateY(-3px);
-
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.06),
-    0 0 0 1px color-mix(in srgb, var(--color-accent) 12%, transparent);
-
-  outline: none;
-}
-
-.serviceCardActive {
-  position: relative;
-
-  border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-
-  box-shadow:
-    0 8px 22px rgba(0, 0, 0, 0.05),
-    0 0 0 2px color-mix(in srgb, var(--color-accent) 18%, transparent);
-
-  transform: translateY(-1px);
-}
-
-.serviceCardActive::before {
-  content: "";
-  position: absolute;
-
-  left: 0;
-  top: 10px;
-  bottom: 10px;
-
-  width: 3px;
-  border-radius: 999px;
-
-  background: var(--color-accent);
-}
-
-.serviceCard:active {
-  transform: scale(0.97);
-}
-
-.serviceCardTitle {
-  margin: 0 0 8px;
-  font-size: 18px;
-}
-
-.serviceCardMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  margin-bottom: 10px;
-  color: var(--color-text-muted);
-  font-size: 14px;
-}
-
-.serviceCardDescription {
-  margin: 0;
-  color: var(--color-text-muted);
-  line-height: 1.6;
-}
-
-.stepCompleted {
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-.form input:disabled,
-.form textarea:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.checkboxLabel input:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.dateControl {
-  display: grid;
-  gap: 10px;
-  max-width: 320px;
-}
-
-.label {
-  font-weight: 600;
-}
-
-.calendarBlock {
-  display: grid;
-  gap: 12px;
-  align-items: start;
-}
-
-.calendarSurface {
-  width: min(100%, 760px);
-  max-width: 100%;
-}
-
-.calendarNote {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.dateInput {
-  width: 100%;
-  padding: 14px 16px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-s);
-  background: rgba(255, 255, 255, 0.78);
-  color: var(--color-text);
-}
-
-.dateInput:focus-visible {
-  outline: 2px solid rgba(141, 110, 99, 0.22);
-  outline-offset: 2px;
-}
-
-.slotsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 10px;
-}
-
-.slotButton {
-  position: relative;
-
-  width: 100%;
-  min-height: 48px;
-  padding: 12px 14px;
-
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-
-  background: color-mix(in srgb, var(--color-surface-strong) 80%, transparent);
-  color: var(--color-text);
-
-  font-size: 14px;
-  font-weight: 500;
-
-  cursor: pointer;
-
-  transition:
-    all 0.25s ease,
-    transform 0.18s ease;
-}
-
-.slotButton:hover,
-.slotButton:focus-visible {
-  border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-
-  transform: translateY(-1px);
-  outline: none;
-}
-
-.slotButtonActive {
-  border-color: var(--color-accent);
-
-  background: var(--color-accent);
-  color: var(--color-accent-contrast);
-
-  transform: scale(1.05);
-
-  box-shadow:
-    0 6px 18px rgba(0, 0, 0, 0.08),
-    0 0 0 2px color-mix(in srgb, var(--color-accent) 20%, transparent);
-}
-
-.slotButton:active {
-  transform: scale(0.97);
 }
 
 .stateBox {
@@ -691,149 +198,25 @@
   }
 }
 
-.form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+.summaryPulse {
+  animation: summaryPulse 0.45s ease;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.field label {
-  font-size: 14px;
-  color: var(--color-text-muted);
-}
-
-.field input,
-.field textarea {
-  width: 100%;
-  padding: 16px 18px;
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
-  background-color: var(--color-surface-strong);
-  color: var(--color-text);
-  outline: none;
-  transition:
-    border-color var(--transition-base),
-    box-shadow var(--transition-base),
-    background-color var(--transition-base);
-}
-
-.field input::placeholder,
-.field textarea::placeholder {
-  color: var(--color-text-muted);
-  opacity: 0.75;
-}
-
-.field input:focus,
-.field textarea:focus {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 12%, transparent);
-  background-color: var(--color-surface-strong);
-}
-
-.field textarea {
-  resize: vertical;
-  min-height: 132px;
-}
-
-.fieldError {
-  font-size: 13px;
-  color: var(--color-danger);
-}
-
-.fullWidth {
-  grid-column: 1 / -1;
-}
-
-.checkboxField {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.checkboxLabel {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--color-text-muted);
-}
-
-.checkboxLabel input {
-  margin-top: 3px;
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.policyLink {
-  color: var(--color-text);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.policyLink:hover {
-  color: var(--color-accent);
-}
-
-.formActions {
-  grid-column: 1 / -1;
-  margin-top: 4px;
-}
-
-.summaryTitle {
-  margin: 0 0 16px;
-  font-size: 22px;
-}
-
-.summaryList {
-  display: grid;
-  gap: 14px;
-}
-
-.summaryItem {
-  display: grid;
-  gap: 4px;
-}
-
-.summaryLabel {
-  color: var(--color-text-muted);
-  font-size: 14px;
-}
-
-.summaryValue {
-  font-size: 18px;
-  font-weight: 600;
-
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.summaryValueAnimate {
-  animation: summaryFadeIn 0.3s ease;
-}
-
-@keyframes summaryFadeIn {
+@keyframes summaryPulse {
   0% {
-    opacity: 0;
-    transform: translateY(6px);
+    transform: scale(1);
+    box-shadow: var(--shadow-soft);
   }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-.summaryFootnote {
-  margin: 18px 0 0;
-  color: var(--color-text-muted);
-  font-size: 14px;
-  line-height: 1.6;
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: var(--shadow-soft);
+  }
 }
 
 .redirectOverlay {
@@ -868,38 +251,6 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-.confirmationCard {
-  display: grid;
-  gap: 10px;
-  margin-top: 24px;
-  padding: 18px;
-  border-radius: var(--radius-m);
-  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 18%, transparent);
-}
-
-.confirmationTitle {
-  margin: 0;
-  font-size: 18px;
-}
-
-.confirmationText {
-  margin: 0;
-  color: var(--color-text-muted);
-  line-height: 1.6;
-}
-
-.confirmationMeta {
-  display: grid;
-  gap: 4px;
-  font-size: 14px;
-  color: var(--color-text);
-}
-
-.backLink:active {
-  transform: scale(0.97);
 }
 
 .timezoneNotice {
@@ -967,25 +318,12 @@
   .panel {
     padding: 24px;
   }
-
-  .summary {
-    padding: 22px;
-  }
 }
 
 @media (max-width: 960px) {
   .layout {
     grid-template-columns: 1fr;
     gap: 18px;
-  }
-
-  .summary {
-    position: static;
-    max-width: 760px;
-  }
-
-  .calendarSurface {
-    width: min(100%, 720px);
   }
 }
 
@@ -1015,33 +353,21 @@
   .sectionTitle {
     font-size: 22px;
   }
-
-  .servicesGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .slotsGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
-  }
-
-  .slotButton {
-    min-height: 48px;
-    padding: 12px 10px;
-  }
-
-  .form {
-    gap: 14px;
-  }
 }
 
-@media (max-width: 720px) {
-  .form {
-    grid-template-columns: 1fr;
+@media (max-width: 900px) {
+  .topbar {
+    margin-bottom: 16px;
   }
 }
 
 @media (max-width: 640px) {
+  .backLink {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
+
   .page {
     padding: 40px 0 64px;
   }
@@ -1066,8 +392,7 @@
     line-height: 1.55;
   }
 
-  .panel,
-  .summary {
+  .panel {
     padding: 18px;
     border-radius: 22px;
   }
@@ -1093,127 +418,15 @@
     line-height: 1.5;
   }
 
-  .calendarBlock {
-    gap: 10px;
-  }
-
-  .calendarNote {
-    font-size: 13px;
-    line-height: 1.5;
-  }
-
-  .servicesGrid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .serviceCard {
-    padding: 16px;
-  }
-
-  .serviceCardTitle {
-    font-size: 17px;
-  }
-
-  .serviceCardMeta {
-    gap: 6px 10px;
-    font-size: 13px;
-  }
-
-  .slotButton {
-    min-height: 46px;
-    padding: 12px 10px;
-    font-size: 14px;
-  }
-
-  .slotsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-
   .stateBox {
     padding: 16px;
     font-size: 14px;
     line-height: 1.55;
   }
-
-  .field {
-    gap: 6px;
-  }
-
-  .field label,
-  .summaryLabel,
-  .checkboxLabel,
-  .confirmationMeta {
-    font-size: 13px;
-  }
-
-  .field input,
-  .field textarea {
-    padding: 14px 16px;
-    border-radius: 16px;
-    font-size: 16px;
-  }
-
-  .field textarea {
-    min-height: 120px;
-  }
-
-  .summaryTitle {
-    margin-bottom: 14px;
-    font-size: 20px;
-  }
-
-  .summaryList {
-    gap: 12px;
-  }
-
-  .summaryValue {
-    font-size: 16px;
-  }
-
-  .summaryFootnote {
-    margin-top: 16px;
-    font-size: 13px;
-    line-height: 1.55;
-  }
-
-  .confirmationCard {
-    margin-top: 20px;
-    padding: 16px;
-  }
-
-  .confirmationTitle {
-    font-size: 17px;
-  }
 }
 
 @media (max-width: 420px) {
-  .panel,
-  .summary {
+  .panel {
     padding: 16px;
-  }
-
-  .slotsGrid {
-    gap: 8px;
-  }
-
-  .slotButton {
-    min-height: 44px;
-    padding: 11px 8px;
-    font-size: 13px;
-  }
-
-  .serviceCard {
-    padding: 14px;
-  }
-
-  .field input,
-  .field textarea {
-    padding: 13px 14px;
-  }
-
-  .checkboxLabel {
-    gap: 10px;
   }
 }

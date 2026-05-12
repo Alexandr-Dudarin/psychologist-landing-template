@@ -1,7 +1,8 @@
 import type { PublicBookingService } from "../../types/booking";
 import { formatPrice } from "./bookingPage.helpers";
 import type { BookingPageCopy } from "./bookingPage.types";
-import styles from "./BookingPage.module.css";
+import pageStyles from "./BookingPage.module.css";
+import styles from "./BookingServiceStep.module.css";
 
 type BookingServiceStepProps = {
   copy: BookingPageCopy;
@@ -19,14 +20,14 @@ export function BookingServiceStep({
   onSelect,
 }: BookingServiceStepProps) {
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>{copy.serviceTitle}</h2>
-        <p className={styles.sectionHint}>{copy.serviceHint}</p>
+    <div className={pageStyles.section}>
+      <div className={pageStyles.sectionHeader}>
+        <h2 className={pageStyles.sectionTitle}>{copy.serviceTitle}</h2>
+        <p className={pageStyles.sectionHint}>{copy.serviceHint}</p>
       </div>
 
       {services.length === 0 ? (
-        <div className={styles.stateBox}>{copy.serviceEmpty}</div>
+        <div className={pageStyles.stateBox}>{copy.serviceEmpty}</div>
       ) : (
         <div className={styles.servicesGrid}>
           {services.map((service) => {
