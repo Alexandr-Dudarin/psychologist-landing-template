@@ -7,7 +7,11 @@ import { siteSettings } from "../../data/siteSettings";
 import type { ReviewItem } from "../../types/reviews";
 import styles from "./Reviews.module.css";
 
-function getVisibleCount(width: number) {
+function getVisibleCount(width: number, height: number) {
+  if (width >= 980 && height <= 720) {
+    return 3;
+  }
+
   if (width >= 1100) {
     return 3;
   }
@@ -35,7 +39,9 @@ export function Reviews() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(() =>
-    typeof window === "undefined" ? 1 : getVisibleCount(window.innerWidth)
+    typeof window === "undefined"
+      ? 1
+      : getVisibleCount(window.innerWidth, window.innerHeight)
   );
 
   const touchStartXRef = useRef<number | null>(null);
@@ -46,7 +52,7 @@ export function Reviews() {
 
   useEffect(() => {
     const handleResize = () => {
-      setVisibleCount(getVisibleCount(window.innerWidth));
+      setVisibleCount(getVisibleCount(window.innerWidth, window.innerHeight));
     };
 
     handleResize();
@@ -161,12 +167,16 @@ export function Reviews() {
     touchDeltaXRef.current = 0;
   };
 
-  const handleLightboxTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+  const handleLightboxTouchStart = (
+    event: React.TouchEvent<HTMLDivElement>
+  ) => {
     lightboxTouchStartXRef.current = event.touches[0]?.clientX ?? null;
     lightboxTouchDeltaXRef.current = 0;
   };
 
-  const handleLightboxTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+  const handleLightboxTouchMove = (
+    event: React.TouchEvent<HTMLDivElement>
+  ) => {
     if (lightboxTouchStartXRef.current === null) {
       return;
     }
@@ -251,7 +261,10 @@ export function Reviews() {
                     type="button"
                     className={styles.card}
                     onClick={() => {
-                      if (typeof window !== "undefined" && window.innerWidth <= 560) {
+                      if (
+                        typeof window !== "undefined" &&
+                        window.innerWidth <= 560
+                      ) {
                         return;
                       }
 
@@ -289,7 +302,9 @@ export function Reviews() {
               <button
                 key={index}
                 type="button"
-                className={`${styles.dot} ${index === activeIndex ? styles.dotActive : ""}`}
+                className={`${styles.dot} ${
+                  index === activeIndex ? styles.dotActive : ""
+                }`}
                 onClick={() => setActiveIndex(index)}
                 aria-label={`${dotLabelPrefix} ${index + 1}`}
               />

@@ -55,3 +55,14 @@ a {
     padding: 72px 0;
   }
 }
+@media (max-width: 1200px) {
+  .section {
+    padding: 84px 0;
+  }
+}
+
+@media (max-height: 720px) and (min-width: 769px) {
+  .section {
+    padding: 72px 0;
+  }
+}
