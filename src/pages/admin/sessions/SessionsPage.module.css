@@ -30,8 +30,15 @@
 .actionsRow {
   composes: actionGroup from "../../../components/admin/adminUi.module.css";
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: flex-start;
+}
+
+.editActionButton,
+.deleteActionButton {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
 }
 
 .editActionButton {
