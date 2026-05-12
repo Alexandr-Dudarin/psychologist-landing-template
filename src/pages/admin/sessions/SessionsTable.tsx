@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
-import { formatBookingDate, formatBookingTime } from "../../../lib/booking/formatBookingDateTime";
-import { getTimezoneLabel } from "../../../lib/booking/getTimezoneLabel";
+import {
+  formatBookingDate,
+  formatBookingTime,
+} from "../../../lib/booking/formatBookingDateTime";
 import type { CrmSessionRecord } from "../../../types/session";
 import { getSessionSourceLabel, sessionStatusLabels } from "./sessionForm";
 import styles from "./SessionsPage.module.css";
@@ -29,7 +31,6 @@ export function SessionsTable({
   onDelete,
 }: SessionsTableProps) {
   const highlightedRowRef = useRef<HTMLTableRowElement | null>(null);
-  const timezoneLabel = getTimezoneLabel(timezone, "ru");
 
   useEffect(() => {
     if (!highlightedSessionId || !highlightedRowRef.current) {
@@ -84,6 +85,7 @@ export function SessionsTable({
               <td className={styles.idCell} data-label="ID">
                 <span className={styles.idBadge}>{item.id}</span>
               </td>
+
               <td className={styles.clientCell} data-label="Клиент">
                 <Link
                   to={`/admin/clients?search=${encodeURIComponent(
@@ -94,44 +96,54 @@ export function SessionsTable({
                   {item.clientName}
                 </Link>
               </td>
+
               <td className={styles.serviceCell} data-label="Услуга">
                 <span className={styles.wrapValue}>{item.serviceTitle}</span>
               </td>
+
               <td className={styles.dateCell} data-label="Дата и время">
                 <div className={styles.dateValue}>
                   {formatBookingDate(item.scheduledAt, "ru-RU", timezone)},{" "}
                   {formatBookingTime(item.scheduledAt, "ru-RU", timezone)}
                 </div>
-                <div className={styles.notesPreview}>{timezoneLabel}</div>
               </td>
+
               <td className={styles.compactCell} data-label="Длительность">
                 {item.durationMinutes} мин
               </td>
+
               <td className={styles.compactCell} data-label="Цена">
                 {item.price} ₽
               </td>
+
               <td className={styles.statusCell} data-label="Статус">
                 <span className={styles.statusBadge}>
                   {sessionStatusLabels[item.status]}
                 </span>
               </td>
+
               <td className={styles.sourceCell} data-label="Источник">
                 <span className={styles.sourceBadge}>
                   {getSessionSourceLabel(item.source)}
                 </span>
               </td>
+
               <td className={styles.notesCell} data-label="Заметки">
                 <span className={styles.notesPreview}>{item.notes || "—"}</span>
               </td>
+
               <td className={styles.linksCell} data-label="Связи">
                 <div className={styles.linkStack}>
                   <Link
-                    to={`/admin/notes?sessionId=${encodeURIComponent(String(item.id))}`}
+                    to={`/admin/notes?sessionId=${encodeURIComponent(
+                      String(item.id)
+                    )}`}
                   >
                     К заметкам
                   </Link>
                 </div>
               </td>
+
               <td className={styles.actionCell} data-label="Действия">
                 <div className={styles.actionsRow}>
                   <AdminButton

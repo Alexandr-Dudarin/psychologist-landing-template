@@ -30,12 +30,8 @@
 .actionsRow {
   composes: actionGroup from "../../../components/admin/adminUi.module.css";
   flex-direction: column;
-  align-items: stretch;
+  align-items: flex-start;
   justify-content: flex-start;
-}
-
-.actionsRow > * {
-  width: 100%;
 }
 
 .editActionButton {
@@ -98,8 +94,8 @@
 .actionCell {
   composes: actionCell from "../../../components/admin/adminUi.module.css";
   text-align: left;
-  width: 148px;
-  min-width: 148px;
+  width: 132px;
+  min-width: 132px;
 }
 
 .linkStack {
@@ -109,6 +105,7 @@
 
 .linkStack a {
   white-space: nowrap;
+  word-break: normal;
   overflow-wrap: normal;
 }
 
@@ -191,20 +188,29 @@
 
 .tableHead th {
   vertical-align: bottom;
+  white-space: normal;
+  line-height: 1.3;
 }
 
 .primaryLink {
+  display: inline-block;
   font-weight: 600;
-  overflow-wrap: anywhere;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .wrapValue {
-  overflow-wrap: anywhere;
+  display: inline-block;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .dateValue {
   white-space: normal;
-  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .statusBadge,
@@ -229,9 +235,12 @@
 
 .notesPreview {
   display: -webkit-box;
+  max-width: 260px;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: normal;
+  overflow-wrap: break-word;
   line-height: 1.45;
   color: var(--admin-text-muted);
 }
@@ -245,15 +254,15 @@
 }
 
 .clientCell {
-  width: 17%;
+  width: 15%;
 }
 
 .serviceCell {
-  width: 14%;
+  width: 12%;
 }
 
 .dateCell {
-  width: 13%;
+  width: 15%;
 }
 
 .compactCell {
@@ -268,16 +277,16 @@
 }
 
 .notesCell {
-  width: 14%;
+  width: 12%;
 }
 
 .linksCell {
-  width: 92px;
-  min-width: 92px;
+  width: 108px;
+  min-width: 108px;
   white-space: nowrap;
 }
 
-@media (max-width: 1360px) {
+@media (max-width: 1520px) {
   .sourceCell {
     display: none;
   }
@@ -335,6 +344,8 @@
   }
 
   .actionCell {
+    width: auto;
+    min-width: 0;
     text-align: left;
   }
 
@@ -344,5 +355,9 @@
 
   .dateTimeFieldValue {
     white-space: normal;
+  }
+
+  .notesPreview {
+    max-width: none;
   }
 }
