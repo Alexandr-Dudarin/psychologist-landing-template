@@ -1,10 +1,11 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../../../app/providers/LanguageProvider";
 import {
   createManualClient,
   getAdminClients,
+  updateClient,
 } from "../../../lib/api/adminClients";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
@@ -15,9 +16,15 @@ import type {
 } from "../../../types/client";
 import { clientStatuses } from "../../../types/client";
 import { ClientCreateForm } from "./ClientCreateForm";
+import { ClientEditForm } from "./ClientEditForm";
 import { ClientsFilters } from "./ClientsFilters";
 import { ClientsTable } from "./ClientsTable";
-import { initialForm, type ManualClientForm } from "./clientForm";
+import {
+  initialForm,
+  mapClientToForm,
+  type ClientForm,
+  type ManualClientForm,
+} from "./clientForm";
 import styles from "./ClientsPage.module.css";
 
 const clientSourceLabels: Record<string, string> = {
@@ -32,6 +39,7 @@ export function ClientsPage() {
   const [items, setItems] = useState<CrmClientRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [statusFilter, setStatusFilter] = useState<ClientStatus | "all">("all");
@@ -41,6 +49,17 @@ export function ClientsPage() {
   );
   const [form, setForm] = useState<ManualClientForm>(initialForm);
   const [lastName, setLastName] = useState("");
+  const [editingClientId, setEditingClientId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<ClientForm>(initialForm);
+
+  const statusOptions = useMemo(
+    () =>
+      clientStatuses.map((status) => ({
+        value: status,
+        label: t.admin.clients.statusLabels[status],
+      })),
+    [t.admin.clients.statusLabels]
+  );
 
   useEffect(() => {
     const searchFromUrl = searchParams.get("search");
@@ -118,6 +137,14 @@ export function ClientsPage() {
     resetMessages();
   };
 
+  const handleEditFormChange = (field: keyof ClientForm, value: string) => {
+    setEditForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    resetMessages();
+  };
+
   const reloadClients = async () => {
     const clients = await getAdminClients({
       status: statusFilter,
@@ -179,6 +206,63 @@ export function ClientsPage() {
     }
   };
 
+  const startEditing = (client: CrmClientRecord) => {
+    setEditingClientId(client.id);
+    setEditForm(mapClientToForm(client));
+    resetMessages();
+  };
+
+  const cancelEditing = () => {
+    setEditingClientId(null);
+    setEditForm(initialForm);
+  };
+
+  const handleUpdateClient = async (event: FormEvent) => {
+    event.preventDefault();
+
+    if (editingClientId === null) {
+      return;
+    }
+
+    const payload = {
+      id: editingClientId,
+      name: editForm.name.trim(),
+      phone: editForm.phone.trim(),
+      email: editForm.email.trim(),
+      source: editForm.source.trim() || "manual",
+      status: editForm.status,
+    };
+
+    if (!payload.name) {
+      setError(t.admin.clients.messages.nameRequired);
+      return;
+    }
+
+    if (!payload.phone && !payload.email) {
+      setError(t.admin.clients.messages.phoneOrEmailRequired);
+      return;
+    }
+
+    setIsUpdating(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await updateClient(payload);
+      await reloadClients();
+      cancelEditing();
+      setSuccessMessage("Клиент обновлён.");
+    } catch (updateError) {
+      setError(
+        updateError instanceof Error
+          ? updateError.message
+          : "Не удалось обновить клиента"
+      );
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const handleResetView = () => {
     setSearchQuery("");
     setStatusFilter("all");
@@ -210,15 +294,23 @@ export function ClientsPage() {
         submittingLabel={t.admin.clients.createForm.submitting}
       />
 
+      {editingClientId !== null ? (
+        <ClientEditForm
+          form={editForm}
+          isUpdating={isUpdating}
+          onChange={handleEditFormChange}
+          onSubmit={handleUpdateClient}
+          onCancel={cancelEditing}
+          statusOptions={statusOptions}
+        />
+      ) : null}
+
       <ClientsFilters
         allStatusesLabel={t.admin.clients.filters.allStatuses}
         searchPlaceholder={t.admin.clients.filters.searchPlaceholder}
         searchQuery={searchQuery}
         statusFilter={statusFilter}
-        statusOptions={clientStatuses.map((status) => ({
-          value: status,
-          label: t.admin.clients.statusLabels[status],
-        }))}
+        statusOptions={statusOptions}
         onSearchChange={setSearchQuery}
         onStatusChange={setStatusFilter}
       />
@@ -273,6 +365,7 @@ export function ClientsPage() {
           statusLabels={t.admin.clients.statusLabels}
           sourceLabels={clientSourceLabels}
           highlightedClientId={highlightedClientId}
+          onEdit={startEditing}
         />
       )}
     </main>

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import type { ClientStatus, CrmClientRecord } from "../../../types/client";
 import styles from "./ClientsPage.module.css";
@@ -17,6 +18,7 @@ type ClientsTableProps = {
   statusLabels: Record<ClientStatus, string>;
   sourceLabels: Record<string, string>;
   highlightedClientId?: number | null;
+  onEdit: (client: CrmClientRecord) => void;
 };
 
 export function ClientsTable({
@@ -31,6 +33,7 @@ export function ClientsTable({
   statusLabels,
   sourceLabels,
   highlightedClientId = null,
+  onEdit,
 }: ClientsTableProps) {
   const highlightedRowRef = useRef<HTMLTableRowElement | null>(null);
 
@@ -61,6 +64,7 @@ export function ClientsTable({
           <th>{statusLabel}</th>
           <th>{firstRequestLabel}</th>
           <th>Связи</th>
+          <th className={styles.actionCell}>Действия</th>
         </tr>
       </thead>
       <tbody>
@@ -108,6 +112,18 @@ export function ClientsTable({
                   >
                     Заметки
                   </Link>
+                </div>
+              </td>
+              <td className={styles.actionCell}>
+                <div className={styles.actionsRow}>
+                  <AdminButton
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onEdit(item)}
+                  >
+                    Редактировать
+                  </AdminButton>
                 </div>
               </td>
             </tr>

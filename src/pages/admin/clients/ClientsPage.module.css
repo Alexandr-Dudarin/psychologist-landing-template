@@ -26,6 +26,10 @@
   composes: controlSelect from "../../../components/admin/adminUi.module.css";
 }
 
+.formSelect {
+  composes: controlFormSelect from "../../../components/admin/adminUi.module.css";
+}
+
 .searchInput {
   composes: controlSearch from "../../../components/admin/adminUi.module.css";
 }
@@ -81,4 +85,20 @@
 
 .linkStack {
   composes: linkStack from "../../../components/admin/adminUi.module.css";
+}
+
+.actionCell {
+  composes: actionCell from "../../../components/admin/adminUi.module.css";
+  text-align: left;
+  width: 148px;
+  min-width: 148px;
+}
+
+.actionsRow {
+  composes: actionGroup from "../../../components/admin/adminUi.module.css";
+  justify-content: flex-start;
+}
+
+.actionsRow > * {
+  width: 100%;
 }
