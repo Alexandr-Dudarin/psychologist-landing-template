@@ -98,7 +98,7 @@ export function ClientsPage() {
     return () => {
       isMounted = false;
     };
-  }, [statusFilter, searchQuery]);
+  }, [statusFilter, searchQuery, t.admin.clients.messages.loadError]);
 
   const resetMessages = () => {
     if (error) {
@@ -154,11 +154,20 @@ export function ClientsPage() {
     setSuccessMessage("");
 
     try {
-      await createManualClient(payload);
-      await reloadClients();
+      const result = await createManualClient(payload);
+
       setForm(initialForm);
       setLastName("");
-      setSuccessMessage(t.admin.clients.messages.createSuccess);
+
+      if (result.alreadyExisted) {
+        setStatusFilter("all");
+        setSearchQuery("");
+        setSuccessMessage(t.admin.clients.messages.alreadyExists);
+        navigate(`/admin/clients?highlightClientId=${result.item.id}`);
+      } else {
+        await reloadClients();
+        setSuccessMessage(t.admin.clients.messages.createSuccess);
+      }
     } catch (createError) {
       setError(
         createError instanceof Error

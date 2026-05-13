@@ -108,6 +108,7 @@ export type LocaleData = {
         nameRequired: string;
         phoneOrEmailRequired: string;
         createSuccess: string;
+        alreadyExists: string;
         createError: string;
       };
       statusLabels: {
@@ -235,6 +236,8 @@ export const locales: Record<Language, LocaleData> = {
           nameRequired: "Имя клиента обязательно.",
           phoneOrEmailRequired: "Нужно указать телефон или email.",
           createSuccess: "Клиент успешно создан.",
+          alreadyExists:
+            "Клиент с таким телефоном или email уже существует. Открыт существующий клиент.",
           createError: "Не удалось создать клиента",
         },
         statusLabels: {
@@ -369,6 +372,8 @@ export const locales: Record<Language, LocaleData> = {
           nameRequired: "Client name is required.",
           phoneOrEmailRequired: "At least phone or email is required.",
           createSuccess: "Client created successfully.",
+          alreadyExists:
+            "A client with this phone or email already exists. The existing client has been opened.",
           createError: "Failed to create client",
         },
         statusLabels: {
