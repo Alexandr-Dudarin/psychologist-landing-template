@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../../../app/providers/LanguageProvider";
+import { siteSettings } from "../../../data/siteSettings";
 import {
   createManualClient,
   getAdminClients,
   updateClient,
 } from "../../../lib/api/adminClients";
+import { validatePreferredContactFields } from "../../../lib/preferredContact";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import type {
@@ -35,6 +37,7 @@ const clientSourceLabels: Record<string, string> = {
 export function ClientsPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const preferredContactSettings = siteSettings.preferredContactMethod;
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmClientRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -164,6 +167,12 @@ export function ClientsPage() {
       phone: form.phone.trim(),
       email: form.email.trim(),
       source: form.source.trim() || "manual",
+      preferredContactMethod: preferredContactSettings.enabled
+        ? form.preferredContactMethod
+        : "",
+      preferredContactValue: preferredContactSettings.enabled
+        ? form.preferredContactValue.trim()
+        : "",
     };
 
     if (!payload.name) {
@@ -173,6 +182,26 @@ export function ClientsPage() {
 
     if (!payload.phone && !payload.email) {
       setError(t.admin.clients.messages.phoneOrEmailRequired);
+      return;
+    }
+
+    const preferredContactErrors = validatePreferredContactFields(
+      {
+        preferredContactMethod: payload.preferredContactMethod ?? "",
+        preferredContactValue: payload.preferredContactValue ?? "",
+      },
+      preferredContactSettings
+    );
+
+    if (
+      preferredContactErrors.preferredContactMethod ||
+      preferredContactErrors.preferredContactValue
+    ) {
+      setError(
+        preferredContactErrors.preferredContactMethod ??
+          preferredContactErrors.preferredContactValue ??
+          ""
+      );
       return;
     }
 
@@ -231,6 +260,12 @@ export function ClientsPage() {
       email: editForm.email.trim(),
       source: editForm.source.trim() || "manual",
       status: editForm.status,
+      preferredContactMethod: preferredContactSettings.enabled
+        ? editForm.preferredContactMethod
+        : "",
+      preferredContactValue: preferredContactSettings.enabled
+        ? editForm.preferredContactValue.trim()
+        : "",
     };
 
     if (!payload.name) {
@@ -240,6 +275,26 @@ export function ClientsPage() {
 
     if (!payload.phone && !payload.email) {
       setError(t.admin.clients.messages.phoneOrEmailRequired);
+      return;
+    }
+
+    const preferredContactErrors = validatePreferredContactFields(
+      {
+        preferredContactMethod: payload.preferredContactMethod ?? "",
+        preferredContactValue: payload.preferredContactValue ?? "",
+      },
+      preferredContactSettings
+    );
+
+    if (
+      preferredContactErrors.preferredContactMethod ||
+      preferredContactErrors.preferredContactValue
+    ) {
+      setError(
+        preferredContactErrors.preferredContactMethod ??
+          preferredContactErrors.preferredContactValue ??
+          ""
+      );
       return;
     }
 
@@ -281,6 +336,7 @@ export function ClientsPage() {
         form={form}
         lastName={lastName}
         isCreating={isCreating}
+        showPreferredContact={preferredContactSettings.enabled}
         onChange={handleFormChange}
         onLastNameChange={setLastName}
         onSubmit={handleCreateClient}
@@ -298,6 +354,7 @@ export function ClientsPage() {
         <ClientEditForm
           form={editForm}
           isUpdating={isUpdating}
+          showPreferredContact={preferredContactSettings.enabled}
           onChange={handleEditFormChange}
           onSubmit={handleUpdateClient}
           onCancel={cancelEditing}

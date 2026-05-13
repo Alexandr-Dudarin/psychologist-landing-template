@@ -2,6 +2,11 @@ import type { FormEvent } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
+import {
+  preferredContactMethodLabels,
+  preferredContactPlaceholders,
+} from "../../../lib/preferredContact";
+import { preferredContactMethods } from "../../../types/preferredContact";
 import styles from "./ClientsPage.module.css";
 import type { ClientForm } from "./clientForm";
 
@@ -9,6 +14,7 @@ type ClientCreateFormProps = {
   form: ClientForm;
   lastName: string;
   isCreating: boolean;
+  showPreferredContact: boolean;
   onChange: (field: keyof ClientForm, value: string) => void;
   onLastNameChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -26,6 +32,7 @@ export function ClientCreateForm({
   form,
   lastName,
   isCreating,
+  showPreferredContact,
   onChange,
   onLastNameChange,
   onSubmit,
@@ -72,6 +79,44 @@ export function ClientCreateForm({
           placeholder={emailPlaceholder}
           className={styles.input}
         />
+
+        {showPreferredContact ? (
+          <>
+            <label className={styles.field}>
+              <span>Предпочтительный способ связи</span>
+              <select
+                value={form.preferredContactMethod}
+                onChange={(event) =>
+                  onChange("preferredContactMethod", event.target.value)
+                }
+                className={styles.formSelect}
+              >
+                <option value="">Не указано</option>
+                {preferredContactMethods.map((method) => (
+                  <option key={method} value={method}>
+                    {preferredContactMethodLabels[method]}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            {form.preferredContactMethod ? (
+              <input
+                type={
+                  form.preferredContactMethod === "email" ? "email" : "text"
+                }
+                value={form.preferredContactValue}
+                onChange={(event) =>
+                  onChange("preferredContactValue", event.target.value)
+                }
+                placeholder={
+                  preferredContactPlaceholders[form.preferredContactMethod]
+                }
+                className={styles.input}
+              />
+            ) : null}
+          </>
+        ) : null}
 
         <input
           type="text"

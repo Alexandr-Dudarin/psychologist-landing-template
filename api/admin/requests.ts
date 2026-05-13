@@ -7,6 +7,7 @@ import type {
   UpdateRequestStatusPayload,
 } from "../../src/types/request.js";
 import { requestStatuses } from "../../src/types/request.js";
+import type { PreferredContactMethod } from "../../src/types/preferredContact.js";
 
 type ParsedUpdatePayload = UpdateRequestStatusPayload | null;
 
@@ -18,6 +19,8 @@ type RequestRow = {
   message: string;
   status: string;
   source: string;
+  preferred_contact_method: string | null;
+  preferred_contact_value: string | null;
   created_at: string;
   client_id: string | number | null;
 };
@@ -96,6 +99,7 @@ async function handleList(req: any, res: any) {
         OR r.name ILIKE $${searchParamIndex}
         OR r.phone ILIKE $${searchParamIndex}
         OR r.email ILIKE $${searchParamIndex}
+        OR r.preferred_contact_value ILIKE $${searchParamIndex}
         OR r.message ILIKE $${searchParamIndex}
       )
     `);
@@ -115,6 +119,8 @@ async function handleList(req: any, res: any) {
           r.message,
           r.status,
           r.source,
+          r.preferred_contact_method,
+          r.preferred_contact_value,
           r.created_at,
           r.client_id
         FROM requests r
@@ -132,6 +138,8 @@ async function handleList(req: any, res: any) {
       message: row.message,
       status: toRequestStatus(row.status),
       source: row.source,
+      preferredContactMethod: row.preferred_contact_method as PreferredContactMethod | null,
+      preferredContactValue: row.preferred_contact_value,
       createdAt: row.created_at,
       clientId: row.client_id === null ? null : Number(row.client_id),
     }));

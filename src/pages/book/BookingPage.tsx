@@ -153,6 +153,7 @@ export function BookingPage() {
   const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
   const weekStartsOn = currentLanguage === "ru" ? 1 : 0;
   const isPaymentEnabled = siteSettings.booking.paymentEnabled;
+  const preferredContactSettings = siteSettings.preferredContactMethod;
 
   const baseCopy = copyByLanguage[currentLanguage];
   const copy: BookingPageCopy = {
@@ -352,7 +353,11 @@ export function BookingPage() {
       return;
     }
 
-    const validationErrors = validateForm(form, bookingContent);
+    const validationErrors = validateForm(
+      form,
+      bookingContent,
+      preferredContactSettings
+    );
     setFormErrors(validationErrors);
     setSubmitError(null);
     setSubmitSuccess(null);
@@ -373,6 +378,12 @@ export function BookingPage() {
         lastName: form.lastName.trim(),
         phone: form.phone.trim(),
         email: form.email.trim(),
+        preferredContactMethod: preferredContactSettings.enabled
+          ? form.preferredContactMethod
+          : "",
+        preferredContactValue: preferredContactSettings.enabled
+          ? form.preferredContactValue.trim()
+          : "",
         message: form.message.trim(),
         consent: form.consent,
       };
@@ -565,6 +576,7 @@ export function BookingPage() {
                   bookingContent={bookingContent}
                   privacyLinkText={privacyLinkText}
                   isFormEnabled={isFormEnabled}
+                  showPreferredContact={preferredContactSettings.enabled}
                   form={form}
                   isCompleted={isCompleted}
                   formErrors={formErrors}

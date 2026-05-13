@@ -2,15 +2,23 @@ import { useRef, useState } from "react";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { Button } from "../../components/Button/Button";
+import { siteSettings } from "../../data/siteSettings";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { createPublicRequest } from "../../lib/api/requests";
+import {
+  preferredContactMethodLabels,
+  preferredContactPlaceholders,
+  validatePreferredContactFields,
+} from "../../lib/preferredContact";
+import { preferredContactMethods } from "../../types/preferredContact";
+import type { PreferredContactFields } from "../../types/preferredContact";
 import {
   trackFormStart,
   trackFormSubmit,
 } from "../../lib/analytics/trackers";
 import styles from "./Booking.module.css";
 
-type FormData = {
+type FormData = PreferredContactFields & {
   firstName: string;
   lastName: string;
   phone: string;
@@ -24,6 +32,8 @@ type Errors = {
   lastName?: string;
   phone?: string;
   email?: string;
+  preferredContactMethod?: string;
+  preferredContactValue?: string;
   consent?: string;
 };
 
@@ -31,12 +41,15 @@ export function Booking() {
   const { t } = useLanguage();
   const { content, ui } = t;
   const booking = content.booking;
+  const preferredContactSettings = siteSettings.preferredContactMethod;
 
   const [form, setForm] = useState<FormData>({
     firstName: "",
     lastName: "",
     phone: "",
     email: "",
+    preferredContactMethod: "",
+    preferredContactValue: "",
     message: "",
     consent: false,
   });
@@ -74,6 +87,11 @@ export function Booking() {
     if (!form.consent) {
       newErrors.consent = booking.messages.consentError;
     }
+
+    Object.assign(
+      newErrors,
+      validatePreferredContactFields(form, preferredContactSettings)
+    );
 
     return newErrors;
   };
@@ -118,6 +136,12 @@ export function Booking() {
         lastName: form.lastName.trim(),
         phone: form.phone,
         email: form.email,
+        preferredContactMethod: preferredContactSettings.enabled
+          ? form.preferredContactMethod
+          : "",
+        preferredContactValue: preferredContactSettings.enabled
+          ? form.preferredContactValue.trim()
+          : "",
         message: form.message,
       });
 
@@ -127,6 +151,8 @@ export function Booking() {
         lastName: "",
         phone: "",
         email: "",
+        preferredContactMethod: "",
+        preferredContactValue: "",
         message: "",
         consent: false,
       });
@@ -206,6 +232,72 @@ export function Booking() {
               />
               {errors.email && <span className={styles.error}>{errors.email}</span>}
             </div>
+
+            {preferredContactSettings.enabled ? (
+              <>
+                <div className={styles.field}>
+                  <label htmlFor="preferredContactMethod">
+                    Предпочтительный способ связи
+                  </label>
+                  <select
+                    id="preferredContactMethod"
+                    value={form.preferredContactMethod}
+                    onChange={(e) =>
+                      handleChange(
+                        "preferredContactMethod",
+                        e.target.value as FormData["preferredContactMethod"]
+                      )
+                    }
+                  >
+                    <option value="">Не указано</option>
+                    {preferredContactMethods.map((method) => (
+                      <option key={method} value={method}>
+                        {preferredContactMethodLabels[method]}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.preferredContactMethod && (
+                    <span className={styles.error}>
+                      {errors.preferredContactMethod}
+                    </span>
+                  )}
+                </div>
+
+                {form.preferredContactMethod ? (
+                  <div className={styles.field}>
+                    <label htmlFor="preferredContactValue">
+                      Контакт для связи
+                    </label>
+                    <input
+                      id="preferredContactValue"
+                      type={
+                        form.preferredContactMethod === "email"
+                          ? "email"
+                          : "text"
+                      }
+                      inputMode={
+                        form.preferredContactMethod === "whatsapp" ||
+                        form.preferredContactMethod === "sms"
+                          ? "tel"
+                          : undefined
+                      }
+                      value={form.preferredContactValue}
+                      onChange={(e) =>
+                        handleChange("preferredContactValue", e.target.value)
+                      }
+                      placeholder={
+                        preferredContactPlaceholders[form.preferredContactMethod]
+                      }
+                    />
+                    {errors.preferredContactValue && (
+                      <span className={styles.error}>
+                        {errors.preferredContactValue}
+                      </span>
+                    )}
+                  </div>
+                ) : null}
+              </>
+            ) : null}
 
             <div className={`${styles.field} ${styles.fullWidth}`}>
               <label htmlFor="message">{booking.fields.message}</label>

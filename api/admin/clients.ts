@@ -7,12 +7,21 @@ import type {
   UpdateClientPayload,
 } from "../../src/types/client.js";
 import { clientStatuses } from "../../src/types/client.js";
+import { siteSettings } from "../../src/data/siteSettings.js";
+import {
+  normalizePreferredContactFields,
+  normalizePreferredContactForStorage,
+  validatePreferredContactFields,
+} from "../../src/lib/preferredContact.js";
+import type { PreferredContactMethod } from "../../src/types/preferredContact.js";
 
 type ParsedCreatePayload = {
   name: string;
   phone: string;
   email: string;
   source: string;
+  preferredContactMethod: PreferredContactMethod | "";
+  preferredContactValue: string;
 };
 
 type ParsedCreateFromRequestPayload = {
@@ -27,6 +36,8 @@ type RequestRow = {
   phone: string;
   email: string;
   source: string;
+  preferred_contact_method: string | null;
+  preferred_contact_value: string | null;
 };
 
 type ClientRow = {
@@ -36,6 +47,8 @@ type ClientRow = {
   email: string;
   source: string;
   status: string;
+  preferred_contact_method: string | null;
+  preferred_contact_value: string | null;
   first_request_id: number | string | null;
   created_at: string;
 };
@@ -64,6 +77,8 @@ function mapClient(row: ClientRow): CrmClientRecord {
     email: row.email,
     source: row.source,
     status: toClientStatus(row.status),
+    preferredContactMethod: row.preferred_contact_method as PreferredContactMethod | null,
+    preferredContactValue: row.preferred_contact_value,
     firstRequestId:
       row.first_request_id === null ? null : Number(row.first_request_id),
     createdAt: row.created_at,
@@ -91,6 +106,10 @@ function parseCreateBody(body: any): ParsedCreatePayload | null {
     typeof rawBody?.source === "string" && rawBody.source.trim()
       ? rawBody.source.trim()
       : "manual";
+  const preferredContact = normalizePreferredContactFields(
+    rawBody?.preferredContactMethod,
+    rawBody?.preferredContactValue
+  );
 
   if (!name) {
     return null;
@@ -100,11 +119,29 @@ function parseCreateBody(body: any): ParsedCreatePayload | null {
     return null;
   }
 
+  const preferredContactErrors = validatePreferredContactFields(
+    preferredContact,
+    siteSettings.preferredContactMethod
+  );
+
+  if (
+    preferredContactErrors.preferredContactMethod ||
+    preferredContactErrors.preferredContactValue
+  ) {
+    return null;
+  }
+
   return {
     name,
     phone,
     email,
     source,
+    preferredContactMethod: siteSettings.preferredContactMethod.enabled
+      ? preferredContact.preferredContactMethod
+      : "",
+    preferredContactValue: siteSettings.preferredContactMethod.enabled
+      ? preferredContact.preferredContactValue
+      : "",
   };
 }
 
@@ -151,6 +188,10 @@ function parseUpdateBody(body: any): ParsedUpdatePayload | null {
       : "manual";
   const status =
     typeof rawBody?.status === "string" ? rawBody.status.trim() : "";
+  const preferredContact = normalizePreferredContactFields(
+    rawBody?.preferredContactMethod,
+    rawBody?.preferredContactValue
+  );
 
   if (!Number.isInteger(id) || id <= 0) {
     return null;
@@ -168,6 +209,18 @@ function parseUpdateBody(body: any): ParsedUpdatePayload | null {
     return null;
   }
 
+  const preferredContactErrors = validatePreferredContactFields(
+    preferredContact,
+    siteSettings.preferredContactMethod
+  );
+
+  if (
+    preferredContactErrors.preferredContactMethod ||
+    preferredContactErrors.preferredContactValue
+  ) {
+    return null;
+  }
+
   return {
     id,
     name,
@@ -175,6 +228,12 @@ function parseUpdateBody(body: any): ParsedUpdatePayload | null {
     email,
     source,
     status: status as ClientStatus,
+    preferredContactMethod: siteSettings.preferredContactMethod.enabled
+      ? preferredContact.preferredContactMethod
+      : "",
+    preferredContactValue: siteSettings.preferredContactMethod.enabled
+      ? preferredContact.preferredContactValue
+      : "",
   };
 }
 
@@ -217,6 +276,8 @@ async function findExistingClientByContacts(
         email,
         source,
         status,
+        preferred_contact_method,
+        preferred_contact_value,
         first_request_id,
         created_at
       FROM clients
@@ -266,6 +327,8 @@ async function findDuplicateClientByContacts(
         email,
         source,
         status,
+        preferred_contact_method,
+        preferred_contact_value,
         first_request_id,
         created_at
       FROM clients
@@ -320,6 +383,7 @@ async function handleList(req: any, res: any) {
         OR name ILIKE $${searchParamIndex}
         OR phone ILIKE $${searchParamIndex}
         OR email ILIKE $${searchParamIndex}
+        OR preferred_contact_value ILIKE $${searchParamIndex}
       )
     `);
   }
@@ -337,6 +401,8 @@ async function handleList(req: any, res: any) {
           email,
           source,
           status,
+          preferred_contact_method,
+          preferred_contact_value,
           first_request_id,
           created_at
         FROM clients
@@ -346,17 +412,7 @@ async function handleList(req: any, res: any) {
       values
     );
 
-    const items: CrmClientRecord[] = result.rows.map((row) => ({
-      id: Number(row.id),
-      name: row.name,
-      phone: row.phone,
-      email: row.email,
-      source: row.source,
-      status: toClientStatus(row.status),
-      firstRequestId:
-        row.first_request_id === null ? null : Number(row.first_request_id),
-      createdAt: row.created_at,
-    }));
+    const items: CrmClientRecord[] = result.rows.map(mapClient);
 
     return res.status(200).json({ items });
   } catch (error) {
@@ -375,6 +431,11 @@ async function handleCreate(req: any, res: any) {
   }
 
   try {
+    const preferredContact = normalizePreferredContactForStorage({
+      preferredContactMethod: payload.preferredContactMethod,
+      preferredContactValue: payload.preferredContactValue,
+    });
+
     const existingClient = await findExistingClientByContacts(
       payload.phone,
       payload.email
@@ -394,11 +455,13 @@ async function handleCreate(req: any, res: any) {
           name,
           phone,
           email,
+          preferred_contact_method,
+          preferred_contact_value,
           source,
           status,
           first_request_id
         )
-        VALUES ($1, $2, $3, $4, 'active', NULL)
+        VALUES ($1, $2, $3, $4, $5, $6, 'active', NULL)
         RETURNING
           id,
           name,
@@ -406,10 +469,19 @@ async function handleCreate(req: any, res: any) {
           email,
           source,
           status,
+          preferred_contact_method,
+          preferred_contact_value,
           first_request_id,
           created_at
       `,
-      [payload.name, payload.phone, payload.email, payload.source]
+      [
+        payload.name,
+        payload.phone,
+        payload.email,
+        preferredContact.preferredContactMethod,
+        preferredContact.preferredContactValue,
+        payload.source,
+      ]
     );
 
     const createdClient = result.rows[0];
@@ -442,6 +514,8 @@ async function handleCreateFromRequest(req: any, res: any) {
           email,
           source,
           status,
+          preferred_contact_method,
+          preferred_contact_value,
           first_request_id,
           created_at
         FROM clients
@@ -470,6 +544,8 @@ async function handleCreateFromRequest(req: any, res: any) {
           name,
           phone,
           email,
+          preferred_contact_method,
+          preferred_contact_value,
           source
         FROM requests
         WHERE id = $1
@@ -490,6 +566,26 @@ async function handleCreateFromRequest(req: any, res: any) {
     );
 
     if (duplicateByContacts) {
+      if (
+        requestRow.preferred_contact_method &&
+        requestRow.preferred_contact_value
+      ) {
+        await pool.query(
+          `
+            UPDATE clients
+            SET
+              preferred_contact_method = $2,
+              preferred_contact_value = $3
+            WHERE id = $1
+          `,
+          [
+            duplicateByContacts.id,
+            requestRow.preferred_contact_method,
+            requestRow.preferred_contact_value,
+          ]
+        );
+      }
+
       await linkRequestToClient(requestRow.id, Number(duplicateByContacts.id));
 
       return res.status(200).json({
@@ -505,11 +601,13 @@ async function handleCreateFromRequest(req: any, res: any) {
           name,
           phone,
           email,
+          preferred_contact_method,
+          preferred_contact_value,
           source,
           status,
           first_request_id
         )
-        VALUES ($1, $2, $3, $4, 'active', $5)
+        VALUES ($1, $2, $3, $4, $5, $6, 'active', $7)
         RETURNING
           id,
           name,
@@ -517,6 +615,8 @@ async function handleCreateFromRequest(req: any, res: any) {
           email,
           source,
           status,
+          preferred_contact_method,
+          preferred_contact_value,
           first_request_id,
           created_at
       `,
@@ -524,6 +624,8 @@ async function handleCreateFromRequest(req: any, res: any) {
         requestRow.name,
         requestRow.phone,
         requestRow.email,
+        requestRow.preferred_contact_method,
+        requestRow.preferred_contact_value,
         requestRow.source,
         requestRow.id,
       ]
@@ -554,6 +656,11 @@ async function handleUpdate(req: any, res: any) {
   }
 
   try {
+    const preferredContact = normalizePreferredContactForStorage({
+      preferredContactMethod: payload.preferredContactMethod ?? "",
+      preferredContactValue: payload.preferredContactValue ?? "",
+    });
+
     const duplicateClient = await findDuplicateClientByContacts(
       payload.id,
       payload.phone,
@@ -566,35 +673,73 @@ async function handleUpdate(req: any, res: any) {
       });
     }
 
-    const result = await pool.query<ClientRow>(
-      `
-        UPDATE clients
-        SET
-          name = $2,
-          phone = $3,
-          email = $4,
-          source = $5,
-          status = $6
-        WHERE id = $1
-        RETURNING
-          id,
-          name,
-          phone,
-          email,
-          source,
-          status,
-          first_request_id,
-          created_at
-      `,
-      [
-        payload.id,
-        payload.name,
-        payload.phone,
-        payload.email,
-        payload.source,
-        payload.status,
-      ]
-    );
+    const result = siteSettings.preferredContactMethod.enabled
+      ? await pool.query<ClientRow>(
+          `
+            UPDATE clients
+            SET
+              name = $2,
+              phone = $3,
+              email = $4,
+              source = $5,
+              status = $6,
+              preferred_contact_method = $7,
+              preferred_contact_value = $8
+            WHERE id = $1
+            RETURNING
+              id,
+              name,
+              phone,
+              email,
+              source,
+              status,
+              preferred_contact_method,
+              preferred_contact_value,
+              first_request_id,
+              created_at
+          `,
+          [
+            payload.id,
+            payload.name,
+            payload.phone,
+            payload.email,
+            payload.source,
+            payload.status,
+            preferredContact.preferredContactMethod,
+            preferredContact.preferredContactValue,
+          ]
+        )
+      : await pool.query<ClientRow>(
+          `
+            UPDATE clients
+            SET
+              name = $2,
+              phone = $3,
+              email = $4,
+              source = $5,
+              status = $6
+            WHERE id = $1
+            RETURNING
+              id,
+              name,
+              phone,
+              email,
+              source,
+              status,
+              preferred_contact_method,
+              preferred_contact_value,
+              first_request_id,
+              created_at
+          `,
+          [
+            payload.id,
+            payload.name,
+            payload.phone,
+            payload.email,
+            payload.source,
+            payload.status,
+          ]
+        );
 
     const updatedClient = result.rows[0];
 

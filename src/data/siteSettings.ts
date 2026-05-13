@@ -13,6 +13,11 @@ export const siteSettings = {
     enabled: true,
   },
 
+  preferredContactMethod: {
+    enabled: true,
+    required: true,
+  },
+
   premiumModules: {
     scheduler: {
       enabled: true,

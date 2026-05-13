@@ -1,5 +1,10 @@
 import type { FormEvent } from "react";
 import { Button } from "../../components/Button/Button";
+import {
+  preferredContactMethodLabels,
+  preferredContactPlaceholders,
+} from "../../lib/preferredContact";
+import { preferredContactMethods } from "../../types/preferredContact";
 import type {
   BookingContent,
   BookingFormErrors,
@@ -15,6 +20,7 @@ type BookingFormStepProps = {
   privacyLinkText: string;
   isFormEnabled: boolean;
   isCompleted?: boolean;
+  showPreferredContact: boolean;
   form: BookingFormState;
   formErrors: BookingFormErrors;
   isSubmitting: boolean;
@@ -33,6 +39,7 @@ export function BookingFormStep({
   privacyLinkText,
   isFormEnabled,
   isCompleted = false,
+  showPreferredContact,
   form,
   formErrors,
   isSubmitting,
@@ -127,6 +134,72 @@ export function BookingFormStep({
               <span className={styles.fieldError}>{formErrors.email}</span>
             ) : null}
           </div>
+
+          {showPreferredContact ? (
+            <>
+              <div className={styles.field}>
+                <label htmlFor="booking-preferred-contact-method">
+                  Предпочтительный способ связи
+                </label>
+                <select
+                  id="booking-preferred-contact-method"
+                  value={form.preferredContactMethod}
+                  disabled={isLocked}
+                  onChange={(event) =>
+                    onFieldChange(
+                      "preferredContactMethod",
+                      event.target.value as BookingFormState["preferredContactMethod"]
+                    )
+                  }
+                >
+                  <option value="">Не указано</option>
+                  {preferredContactMethods.map((method) => (
+                    <option key={method} value={method}>
+                      {preferredContactMethodLabels[method]}
+                    </option>
+                  ))}
+                </select>
+                {formErrors.preferredContactMethod ? (
+                  <span className={styles.fieldError}>
+                    {formErrors.preferredContactMethod}
+                  </span>
+                ) : null}
+              </div>
+
+              {form.preferredContactMethod ? (
+                <div className={styles.field}>
+                  <label htmlFor="booking-preferred-contact-value">
+                    Контакт для связи
+                  </label>
+                  <input
+                    id="booking-preferred-contact-value"
+                    type={
+                      form.preferredContactMethod === "email" ? "email" : "text"
+                    }
+                    inputMode={
+                      form.preferredContactMethod === "whatsapp" ||
+                      form.preferredContactMethod === "sms"
+                        ? "tel"
+                        : undefined
+                    }
+                    value={form.preferredContactValue}
+                    disabled={isLocked}
+                    onChange={(event) =>
+                      onFieldChange("preferredContactValue", event.target.value)
+                    }
+                    placeholder={
+                      preferredContactPlaceholders[form.preferredContactMethod]
+                    }
+                  />
+                  {formErrors.preferredContactValue ? (
+                    <span className={styles.fieldError}>
+                      {formErrors.preferredContactValue}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+            </>
+          ) : null}
 
           <div className={`${styles.field} ${styles.fullWidth}`}>
             <label htmlFor="booking-message">

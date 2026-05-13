@@ -45,6 +45,8 @@ describe("public request create flow", () => {
       lastName: "  Petrova  ",
       phone: "+7 (999) 123-45-67",
       email: "irina@example.com",
+      preferredContactMethod: "telegram",
+      preferredContactValue: "@irina_test",
       message: "Need a consultation",
     });
 
@@ -60,6 +62,8 @@ describe("public request create flow", () => {
       "+7 (999) 123-45-67",
       "irina@example.com",
       "Need a consultation",
+      "telegram",
+      "@irina_test",
       null,
     ]);
     expect(resendSendMock.mock.calls[0][0].html).toContain(
@@ -77,6 +81,8 @@ describe("public request create flow", () => {
       lastName: " ",
       phone: "+7 (999) 123-45-67",
       email: "irina@example.com",
+      preferredContactMethod: "telegram",
+      preferredContactValue: "@irina_test",
     });
 
     expect(result.status).toBe(400);

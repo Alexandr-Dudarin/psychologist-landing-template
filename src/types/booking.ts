@@ -1,4 +1,5 @@
 import type { CrmServiceRecord } from "./service.js";
+import type { PreferredContactMethod } from "./preferredContact.js";
 
 export type PublicBookingService = Pick<
   CrmServiceRecord,
@@ -46,6 +47,8 @@ export type PublicBookingCreatePayload = {
   phone: string;
   email: string;
   message?: string;
+  preferredContactMethod?: PreferredContactMethod | "";
+  preferredContactValue?: string;
   consent: boolean;
 };
 

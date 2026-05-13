@@ -1,6 +1,11 @@
 /// <reference types="node" />
 
 import type { PublicBookingCreatePayload } from "../../src/types/booking.js";
+import { siteSettings } from "../../src/data/siteSettings.js";
+import {
+  normalizePreferredContactFields,
+  validatePreferredContactFields,
+} from "../../src/lib/preferredContact.js";
 
 function normalizePhoneDigits(value: string): string {
   return value.replace(/\D/g, "");
@@ -34,6 +39,10 @@ export function parsePublicBookingCreatePayload(
   const email = typeof rawBody?.email === "string" ? rawBody.email.trim() : "";
   const message =
     typeof rawBody?.message === "string" ? rawBody.message.trim() : "";
+  const preferredContact = normalizePreferredContactFields(
+    rawBody?.preferredContactMethod,
+    rawBody?.preferredContactValue
+  );
   const consent = rawBody?.consent === true;
 
   if (!Number.isInteger(serviceId) || serviceId <= 0) {
@@ -52,6 +61,12 @@ export function parsePublicBookingCreatePayload(
     phone,
     email,
     message,
+    preferredContactMethod: siteSettings.preferredContactMethod.enabled
+      ? preferredContact.preferredContactMethod
+      : "",
+    preferredContactValue: siteSettings.preferredContactMethod.enabled
+      ? preferredContact.preferredContactValue
+      : "",
     consent,
   };
 }
@@ -73,6 +88,25 @@ export function getPublicBookingValidationError(
 
   if (!isValidEmail(payload.email)) {
     return "Введите корректный email.";
+  }
+
+  const preferredContactErrors = validatePreferredContactFields(
+    {
+      preferredContactMethod: payload.preferredContactMethod ?? "",
+      preferredContactValue: payload.preferredContactValue ?? "",
+    },
+    siteSettings.preferredContactMethod
+  );
+
+  if (
+    preferredContactErrors.preferredContactMethod ||
+    preferredContactErrors.preferredContactValue
+  ) {
+    return (
+      preferredContactErrors.preferredContactMethod ??
+      preferredContactErrors.preferredContactValue ??
+      null
+    );
   }
 
   return null;

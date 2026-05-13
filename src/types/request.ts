@@ -1,9 +1,13 @@
+import type { PreferredContactMethod } from "./preferredContact.js";
+
 export type PublicRequestPayload = {
   firstName: string;
   lastName: string;
   phone: string;
   email: string;
   message?: string;
+  preferredContactMethod?: PreferredContactMethod | "";
+  preferredContactValue?: string;
 };
 
 export type PublicRequestSuccessResponse = {
@@ -34,6 +38,8 @@ export type CrmRequestRecord = {
   message: string;
   status: RequestStatus;
   source: string;
+  preferredContactMethod: PreferredContactMethod | null;
+  preferredContactValue: string | null;
   createdAt: string;
   clientId: number | null;
 };

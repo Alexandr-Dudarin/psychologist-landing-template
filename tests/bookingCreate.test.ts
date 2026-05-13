@@ -47,6 +47,8 @@ function createValidRequest(overrides: Record<string, unknown> = {}) {
       lastName: "  Petrova  ",
       phone: "+7 (999) 123-45-67",
       email: "irina@example.com",
+      preferredContactMethod: "telegram",
+      preferredContactValue: "@irina_test",
       message: "",
       consent: true,
       ...overrides,
@@ -112,6 +114,10 @@ function createPoolClient(options?: {
           },
         ],
       };
+    }
+
+    if (sql.includes("UPDATE clients") && sql.includes("preferred_contact_method")) {
+      return { rows: [] };
     }
 
     if (sql.includes("UPDATE clients") && sql.includes("first_request_id IS NULL")) {
@@ -189,6 +195,7 @@ describe("public booking create handler", () => {
       clientName: "Irina Maria Petrova",
       clientPhone: "+7 (999) 123-45-67",
       clientEmail: "irina@example.com",
+      preferredContact: "Telegram: @irina_test",
       serviceTitle: "Consultation",
       startsAt: "2026-04-20T12:00",
       endsAt: "2026-04-20T13:00",
@@ -203,8 +210,10 @@ describe("public booking create handler", () => {
     const requestInsert = poolClient.queryLog.find((entry) =>
       entry.sql.includes("INSERT INTO requests")
     );
-    const firstRequestUpdate = poolClient.queryLog.find((entry) =>
-      entry.sql.includes("UPDATE clients")
+    const firstRequestUpdate = poolClient.queryLog.find(
+      (entry) =>
+        entry.sql.includes("UPDATE clients") &&
+        entry.sql.includes("first_request_id IS NULL")
     );
     const sessionInsert = poolClient.queryLog.find((entry) =>
       entry.sql.includes("INSERT INTO sessions")
@@ -216,6 +225,8 @@ describe("public booking create handler", () => {
       "+7 (999) 123-45-67",
       "irina@example.com",
       "Primary consultation",
+      "telegram",
+      "@irina_test",
       501,
     ]);
     expect(requestInsert?.sql).toContain("'booked'");
@@ -284,6 +295,8 @@ describe("public booking create handler", () => {
       "+7 (999) 000-00-00",
       "existing@example.com",
       "",
+      "telegram",
+      "@irina_test",
       77,
     ]);
     expect(
@@ -320,13 +333,17 @@ describe("public booking create handler", () => {
 
     expect(res.statusCode).toBe(200);
     expect(
-      poolClient.queryLog.find((entry) =>
-        entry.sql.includes("UPDATE clients")
+      poolClient.queryLog.find(
+        (entry) =>
+          entry.sql.includes("UPDATE clients") &&
+          entry.sql.includes("first_request_id IS NULL")
       )?.sql
     ).toContain("first_request_id IS NULL");
     expect(
-      poolClient.queryLog.find((entry) =>
-        entry.sql.includes("UPDATE clients")
+      poolClient.queryLog.find(
+        (entry) =>
+          entry.sql.includes("UPDATE clients") &&
+          entry.sql.includes("first_request_id IS NULL")
       )?.values
     ).toEqual([77, 703]);
   });

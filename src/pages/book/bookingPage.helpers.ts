@@ -10,6 +10,7 @@ import type {
   BookingFormState,
   BookingPageCopy,
 } from "./bookingPage.types";
+import { validatePreferredContactFields } from "../../lib/preferredContact";
 
 export function formatDateLabel(value: string, language: "ru" | "en") {
   const [year, month, day] = value.split("-").map(Number);
@@ -67,7 +68,11 @@ function getRussianBookingPhoneError(rawPhone: string) {
 
 export function validateForm(
   form: BookingFormState,
-  bookingContent: BookingContent
+  bookingContent: BookingContent,
+  preferredContactOptions: {
+    enabled: boolean;
+    required: boolean;
+  }
 ): BookingFormErrors {
   const errors: BookingFormErrors = {};
 
@@ -98,6 +103,11 @@ export function validateForm(
   if (!form.consent) {
     errors.consent = bookingContent.messages.consentError;
   }
+
+  Object.assign(
+    errors,
+    validatePreferredContactFields(form, preferredContactOptions)
+  );
 
   return errors;
 }

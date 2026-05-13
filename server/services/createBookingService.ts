@@ -5,6 +5,10 @@ import type {
   PublicBookingCreatePayload,
   PublicBookingCreateSuccessResponse,
 } from "../../src/types/booking.js";
+import {
+  formatPreferredContactDisplay,
+  normalizePreferredContactForStorage,
+} from "../../src/lib/preferredContact.js";
 
 type NormalizedPayload = PublicBookingCreatePayload & {
   name: string;
@@ -140,6 +144,10 @@ async function ensureClient(
   db: Pick<PoolClient, "query">,
   payload: NormalizedPayload
 ) {
+  const preferredContact = normalizePreferredContactForStorage({
+    preferredContactMethod: payload.preferredContactMethod ?? "",
+    preferredContactValue: payload.preferredContactValue ?? "",
+  });
   const existingClient = await findExistingClientByContacts(
     db,
     payload.phone,
@@ -147,6 +155,26 @@ async function ensureClient(
   );
 
   if (existingClient) {
+    if (
+      preferredContact.preferredContactMethod &&
+      preferredContact.preferredContactValue
+    ) {
+      await db.query(
+        `
+          UPDATE clients
+          SET
+            preferred_contact_method = $2,
+            preferred_contact_value = $3
+          WHERE id = $1
+        `,
+        [
+          existingClient.id,
+          preferredContact.preferredContactMethod,
+          preferredContact.preferredContactValue,
+        ]
+      );
+    }
+
     return {
       clientId: Number(existingClient.id),
       alreadyExisted: true,
@@ -159,14 +187,22 @@ async function ensureClient(
         name,
         phone,
         email,
+        preferred_contact_method,
+        preferred_contact_value,
         source,
         status,
         first_request_id
       )
-      VALUES ($1, $2, $3, 'website', 'active', NULL)
+      VALUES ($1, $2, $3, $4, $5, 'website', 'active', NULL)
       RETURNING id
     `,
-    [payload.name, payload.phone, payload.email]
+    [
+      payload.name,
+      payload.phone,
+      payload.email,
+      preferredContact.preferredContactMethod,
+      preferredContact.preferredContactValue,
+    ]
   );
 
   return {
@@ -180,6 +216,11 @@ async function createBookedRequest(
   payload: NormalizedPayload,
   clientId: number
 ) {
+  const preferredContact = normalizePreferredContactForStorage({
+    preferredContactMethod: payload.preferredContactMethod ?? "",
+    preferredContactValue: payload.preferredContactValue ?? "",
+  });
+
   const created = await db.query<RequestRow>(
     `
       INSERT INTO requests (
@@ -187,14 +228,24 @@ async function createBookedRequest(
         phone,
         email,
         message,
+        preferred_contact_method,
+        preferred_contact_value,
         status,
         source,
         client_id
       )
-      VALUES ($1, $2, $3, $4, 'booked', 'website', $5)
+      VALUES ($1, $2, $3, $4, $5, $6, 'booked', 'website', $7)
       RETURNING id
     `,
-    [payload.name, payload.phone, payload.email, payload.message, clientId]
+    [
+      payload.name,
+      payload.phone,
+      payload.email,
+      payload.message,
+      preferredContact.preferredContactMethod,
+      preferredContact.preferredContactValue,
+      clientId,
+    ]
   );
 
   return Number(created.rows[0].id);
@@ -307,6 +358,11 @@ export async function createBookingService(
     clientName: normalizedPayload.name,
     clientPhone: normalizedPayload.phone,
     clientEmail: normalizedPayload.email,
+    preferredContact: formatPreferredContactDisplay(
+      normalizedPayload.preferredContactMethod,
+      normalizedPayload.preferredContactValue,
+      "-"
+    ),
     serviceTitle: response.booking.serviceTitle,
     startsAt: response.booking.startsAt,
     endsAt: response.booking.endsAt,

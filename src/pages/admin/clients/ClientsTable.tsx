@@ -3,6 +3,11 @@ import { Link } from "react-router-dom";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import { siteSettings } from "../../../data/siteSettings";
+import {
+  getPreferredContactValuePreview,
+  preferredContactMethodLabels,
+} from "../../../lib/preferredContact";
 import type { ClientStatus, CrmClientRecord } from "../../../types/client";
 import styles from "./ClientsPage.module.css";
 
@@ -36,6 +41,7 @@ export function ClientsTable({
   onEdit,
 }: ClientsTableProps) {
   const highlightedRowRef = useRef<HTMLTableRowElement | null>(null);
+  const showPreferredContact = siteSettings.preferredContactMethod.enabled;
 
   useEffect(() => {
     if (!highlightedClientId) {
@@ -60,6 +66,7 @@ export function ClientsTable({
           <th>{nameLabel}</th>
           <th>{phoneLabel}</th>
           <th>{emailLabel}</th>
+          {showPreferredContact ? <th>Предпочтительный контакт</th> : null}
           <th>{sourceLabel}</th>
           <th>{statusLabel}</th>
           <th>{firstRequestLabel}</th>
@@ -83,6 +90,15 @@ export function ClientsTable({
               <td>{item.name}</td>
               <td>{item.phone || "-"}</td>
               <td>{item.email || "-"}</td>
+              {showPreferredContact ? (
+                <td>
+                  {item.preferredContactMethod && item.preferredContactValue
+                    ? `${preferredContactMethodLabels[item.preferredContactMethod]}: ${getPreferredContactValuePreview(
+                        item.preferredContactValue
+                      )}`
+                    : "—"}
+                </td>
+              ) : null}
               <td>{sourceLabels[item.source] ?? item.source}</td>
               <td>{statusLabels[item.status]}</td>
               <td>

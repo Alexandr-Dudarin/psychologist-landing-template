@@ -5,6 +5,8 @@ import {
   isCreateBookingServiceError,
 } from "../services/createBookingService.js";
 import type { PublicBookingCreatePayload } from "../../src/types/booking.js";
+import { siteSettings } from "../../src/data/siteSettings.js";
+import { normalizePreferredContactFields } from "../../src/lib/preferredContact.js";
 
 type PaymentRow = {
   id: number | string;
@@ -58,6 +60,10 @@ function parseStoredBookingPayload(
   const phone = typeof raw.phone === "string" ? raw.phone.trim() : "";
   const email = typeof raw.email === "string" ? raw.email.trim() : "";
   const message = typeof raw.message === "string" ? raw.message.trim() : "";
+  const preferredContact = normalizePreferredContactFields(
+    raw.preferredContactMethod,
+    raw.preferredContactValue
+  );
   const consent = raw.consent === true;
 
   if (!Number.isInteger(serviceId) || serviceId <= 0) {
@@ -76,6 +82,12 @@ function parseStoredBookingPayload(
     phone,
     email,
     message,
+    preferredContactMethod: siteSettings.preferredContactMethod.enabled
+      ? preferredContact.preferredContactMethod
+      : "",
+    preferredContactValue: siteSettings.preferredContactMethod.enabled
+      ? preferredContact.preferredContactValue
+      : "",
     consent,
   };
 }

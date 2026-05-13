@@ -43,6 +43,7 @@
 }
 
 .field input,
+.field select,
 .field textarea {
   width: 100%;
   padding: 16px 18px;
@@ -64,6 +65,7 @@
 }
 
 .field input:focus,
+.field select:focus,
 .field textarea:focus {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 12%, transparent);

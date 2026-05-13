@@ -7,6 +7,13 @@ import type {
   PublicRequestSuccessResponse,
   PublicRequestErrorResponse,
 } from "../../src/types/request.js";
+import { siteSettings } from "../../src/data/siteSettings.js";
+import {
+  formatPreferredContactDisplay,
+  normalizePreferredContactFields,
+  normalizePreferredContactForStorage,
+  validatePreferredContactFields,
+} from "../../src/lib/preferredContact.js";
 
 type ProcessPublicRequestResult = {
   status: number;
@@ -114,6 +121,23 @@ export async function processPublicRequest(
   const phone = body.phone.trim();
   const email = body.email.trim();
   const message = body.message?.trim() ?? "";
+  const preferredContact = normalizePreferredContactFields(
+    body.preferredContactMethod,
+    body.preferredContactValue
+  );
+  const storedPreferredContact = normalizePreferredContactForStorage(
+    siteSettings.preferredContactMethod.enabled
+      ? preferredContact
+      : {
+          preferredContactMethod: "",
+          preferredContactValue: "",
+        }
+  );
+  const preferredContactText = formatPreferredContactDisplay(
+    storedPreferredContact.preferredContactMethod,
+    storedPreferredContact.preferredContactValue,
+    "-"
+  );
 
   if (!firstName || !lastName || !name || !phone || !email) {
     return {
@@ -124,10 +148,51 @@ export async function processPublicRequest(
     };
   }
 
+  const preferredContactErrors = validatePreferredContactFields(
+    preferredContact,
+    siteSettings.preferredContactMethod
+  );
+
+  if (
+    preferredContactErrors.preferredContactMethod ||
+    preferredContactErrors.preferredContactValue
+  ) {
+    return {
+      status: 400,
+      body: {
+        error:
+          preferredContactErrors.preferredContactMethod ??
+          preferredContactErrors.preferredContactValue ??
+          "Invalid preferred contact",
+      },
+    };
+  }
+
   let createdRequestId: number | null = null;
 
   try {
     const existingClientId = await findExistingClientIdByContacts(phone, email);
+
+    if (
+      existingClientId &&
+      storedPreferredContact.preferredContactMethod &&
+      storedPreferredContact.preferredContactValue
+    ) {
+      await pool.query(
+        `
+          UPDATE clients
+          SET
+            preferred_contact_method = $2,
+            preferred_contact_value = $3
+          WHERE id = $1
+        `,
+        [
+          existingClientId,
+          storedPreferredContact.preferredContactMethod,
+          storedPreferredContact.preferredContactValue,
+        ]
+      );
+    }
 
     const insertResult = await pool.query<{ id: number }>(
       `
@@ -136,14 +201,24 @@ export async function processPublicRequest(
           phone,
           email,
           message,
+          preferred_contact_method,
+          preferred_contact_value,
           status,
           source,
           client_id
         )
-        VALUES ($1, $2, $3, $4, 'new', 'website', $5)
+        VALUES ($1, $2, $3, $4, $5, $6, 'new', 'website', $7)
         RETURNING id
       `,
-      [name, phone, email, message, existingClientId]
+      [
+        name,
+        phone,
+        email,
+        message,
+        storedPreferredContact.preferredContactMethod,
+        storedPreferredContact.preferredContactValue,
+        existingClientId,
+      ]
     );
 
     createdRequestId = insertResult.rows[0]?.id ?? null;
@@ -171,6 +246,7 @@ export async function processPublicRequest(
         `Имя: ${name}\n` +
         `Телефон: ${phone}\n` +
         `Email: ${email}\n` +
+        `Предпочтительный контакт: ${preferredContactText}\n` +
         `Сообщение: ${message || "-"}`;
 
       const telegramResponse = await fetch(
@@ -213,6 +289,7 @@ export async function processPublicRequest(
         <p><strong>Имя:</strong> ${name}</p>
         <p><strong>Телефон:</strong> ${phone}</p>
         <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Предпочтительный контакт:</strong> ${preferredContactText}</p>
         <p><strong>Сообщение:</strong> ${message || "-"}</p>
         <p><strong>Telegram:</strong> ${telegramOk ? "отправлено" : "не отправлено"}</p>
         ${

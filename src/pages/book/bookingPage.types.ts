@@ -1,5 +1,9 @@
 import type { LocaleData } from "../../data/i18n";
 import type { PublicBookingCreateSuccessResponse } from "../../types/booking";
+import type {
+  PreferredContactFields,
+  PreferredContactMethod,
+} from "../../types/preferredContact";
 
 export type BookingPageCopy = {
   eyebrow: string;
@@ -46,7 +50,7 @@ export type BookingPageCopy = {
   calendarDisabledHint: string;
 };
 
-export type BookingFormState = {
+export type BookingFormState = PreferredContactFields & {
   firstName: string;
   lastName: string;
   phone: string;
@@ -60,6 +64,8 @@ export type BookingFormErrors = {
   lastName?: string;
   phone?: string;
   email?: string;
+  preferredContactMethod?: string;
+  preferredContactValue?: string;
   consent?: string;
 };
 
@@ -70,6 +76,8 @@ export const initialFormState: BookingFormState = {
   lastName: "",
   phone: "",
   email: "",
+  preferredContactMethod: "" as PreferredContactMethod | "",
+  preferredContactValue: "",
   message: "",
   consent: false,
 };
