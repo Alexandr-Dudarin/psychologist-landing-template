@@ -53,7 +53,6 @@ export function ClientsTable({
     <AdminTable>
       <thead>
         <tr>
-          <th className={styles.idCell}>ID</th>
           <th>{createdLabel}</th>
           <th>{nameLabel}</th>
           <th>{phoneLabel}</th>
@@ -61,7 +60,7 @@ export function ClientsTable({
           <th>{sourceLabel}</th>
           <th>{statusLabel}</th>
           <th>{firstRequestLabel}</th>
-          <th>{"\u0421\u0432\u044f\u0437\u0438"}</th>
+          <th>Связи</th>
         </tr>
       </thead>
       <tbody>
@@ -76,9 +75,6 @@ export function ClientsTable({
               ref={isHighlighted ? highlightedRowRef : null}
               className={isHighlighted ? styles.highlightedRow : undefined}
             >
-              <td className={styles.idCell}>
-                <span className={styles.idBadge}>{item.id}</span>
-              </td>
               <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
               <td>{item.name}</td>
               <td>{item.phone || "-"}</td>
@@ -88,11 +84,9 @@ export function ClientsTable({
               <td>
                 {item.firstRequestId ? (
                   <Link
-                    to={`/admin/requests?search=${encodeURIComponent(
-                      String(item.firstRequestId)
-                    )}&highlightRequestId=${item.firstRequestId}`}
+                    to={`/admin/requests?highlightRequestId=${item.firstRequestId}`}
                   >
-                    {"\u0417\u0430\u044f\u0432\u043a\u0430"} #{item.firstRequestId}
+                    К заявке
                   </Link>
                 ) : (
                   "-"
@@ -105,14 +99,14 @@ export function ClientsTable({
                       String(item.id)
                     )}`}
                   >
-                    {"\u0421\u0435\u0441\u0441\u0438\u0438"}
+                    Сессии
                   </Link>
                   <Link
                     to={`/admin/notes?clientId=${encodeURIComponent(
                       String(item.id)
                     )}`}
                   >
-                    {"\u0417\u0430\u043c\u0435\u0442\u043a\u0438"}
+                    Заметки
                   </Link>
                 </div>
               </td>

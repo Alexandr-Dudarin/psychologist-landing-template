@@ -75,14 +75,6 @@
   composes: quickViewActions from "../../../components/admin/adminUi.module.css";
 }
 
-.idCell {
-  composes: idCell from "../../../components/admin/adminUi.module.css";
-}
-
-.idBadge {
-  composes: idBadge from "../../../components/admin/adminUi.module.css";
-}
-
 .secondaryText {
   composes: secondaryText from "../../../components/admin/adminUi.module.css";
 }

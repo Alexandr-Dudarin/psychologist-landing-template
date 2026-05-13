@@ -22,7 +22,6 @@ export function NotesTable({
     <AdminTable>
       <thead>
         <tr>
-          <th className={styles.idCell}>ID</th>
           <th>Клиент</th>
           <th>Сессия</th>
           <th>Услуга</th>
@@ -34,25 +33,14 @@ export function NotesTable({
       <tbody>
         {items.map((item) => (
           <tr key={item.id}>
-            <td className={styles.idCell}>
-              <span className={styles.idBadge}>{item.id}</span>
-            </td>
             <td>
-              <Link
-                to={`/admin/clients?search=${encodeURIComponent(
-                  String(item.clientId)
-                )}&highlightClientId=${item.clientId}`}
-              >
+              <Link to={`/admin/clients?highlightClientId=${item.clientId}`}>
                 {item.clientName}
               </Link>
             </td>
             <td>
               {item.sessionId && item.sessionScheduledAt ? (
-                <Link
-                  to={`/admin/sessions?search=${encodeURIComponent(
-                    String(item.sessionId)
-                  )}&highlightSessionId=${item.sessionId}`}
-                >
+                <Link to={`/admin/sessions?highlightSessionId=${item.sessionId}`}>
                   {new Date(item.sessionScheduledAt).toLocaleString("ru-RU")}
                 </Link>
               ) : (

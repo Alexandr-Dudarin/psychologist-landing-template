@@ -104,7 +104,6 @@ function getSpecialistTelegramText(
   return [
     getReminderPrefix(reminderType),
     "",
-    `ID session: ${payload.sessionId}`,
     `Клиент: ${payload.clientName}`,
     `Телефон: ${payload.clientPhone || "-"}`,
     `Email: ${payload.clientEmail || "-"}`,
@@ -125,7 +124,6 @@ function getSpecialistEmailHtml(
 ): string {
   return `
     <h2>${escapeHtml(getReminderPrefix(reminderType))}</h2>
-    <p><strong>ID session:</strong> ${payload.sessionId}</p>
     <p><strong>Клиент:</strong> ${escapeHtml(payload.clientName)}</p>
     <p><strong>Телефон:</strong> ${escapeHtml(payload.clientPhone || "-")}</p>
     <p><strong>Email:</strong> ${escapeHtml(payload.clientEmail || "-")}</p>

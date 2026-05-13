@@ -73,7 +73,6 @@ export function RequestsTable({
     <AdminTable>
       <thead>
         <tr>
-          <th className={styles.idCell}>ID</th>
           <th>{createdLabel}</th>
           <th>{nameLabel}</th>
           <th>{phoneLabel}</th>
@@ -96,9 +95,6 @@ export function RequestsTable({
               ref={isHighlighted ? highlightedRowRef : null}
               className={isHighlighted ? styles.highlightedRow : undefined}
             >
-              <td className={styles.idCell}>
-                <span className={styles.idBadge}>{item.id}</span>
-              </td>
               <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
               <td>{item.name}</td>
               <td>{item.phone}</td>
@@ -126,12 +122,8 @@ export function RequestsTable({
               <td>
                 {clientAlreadyCreated ? (
                   <div className={styles.linkedClientText}>
-                    <Link
-                      to={`/admin/clients?search=${encodeURIComponent(
-                        String(item.clientId)
-                      )}&highlightClientId=${item.clientId}`}
-                    >
-                      {"\u041a\u043b\u0438\u0435\u043d\u0442"} #{item.clientId}
+                    <Link to={`/admin/clients?highlightClientId=${item.clientId}`}>
+                      К клиенту
                     </Link>
                   </div>
                 ) : null}

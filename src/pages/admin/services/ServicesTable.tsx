@@ -21,24 +21,22 @@ export function ServicesTable({
     <AdminTable>
       <thead>
         <tr>
-          <th>ID</th>
-          <th>{"Создана"}</th>
-          <th>{"Название"}</th>
-          <th>{"Цена"}</th>
-          <th>{"Длительность"}</th>
-          <th>{"Активна"}</th>
-          <th>{"Описание"}</th>
-          <th>{"Действия"}</th>
+          <th>Создана</th>
+          <th>Название</th>
+          <th>Цена</th>
+          <th>Длительность</th>
+          <th>Активна</th>
+          <th>Описание</th>
+          <th>Действия</th>
         </tr>
       </thead>
       <tbody>
         {items.map((item) => (
           <tr key={item.id}>
-            <td>{item.id}</td>
             <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
             <td>{item.title}</td>
             <td>{item.price}</td>
-            <td>{item.durationMinutes} {"мин"}</td>
+            <td>{item.durationMinutes} мин</td>
             <td>{item.isActive ? "Да" : "Нет"}</td>
             <td>{item.description || "-"}</td>
             <td>
@@ -49,7 +47,7 @@ export function ServicesTable({
                   size="sm"
                   variant="secondary"
                 >
-                  {"Редактировать"}
+                  Редактировать
                 </AdminButton>
 
                 <AdminButton
@@ -59,9 +57,7 @@ export function ServicesTable({
                   size="sm"
                   variant="danger"
                 >
-                  {deletingId === item.id
-                    ? "Удаление..."
-                    : "Удалить"}
+                  {deletingId === item.id ? "Удаление..." : "Удалить"}
                 </AdminButton>
               </div>
             </td>

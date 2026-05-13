@@ -23,12 +23,10 @@ export function SessionsQuickViewBanner({
         <div className={styles.quickViewTitle}>Режим быстрого перехода</div>
         <div className={styles.quickViewList}>
           {clientFilter !== "all" ? (
-            <span className={styles.quickViewChip}>Клиент #{clientFilter}</span>
+            <span className={styles.quickViewChip}>Клиент</span>
           ) : null}
           {highlightedSessionId !== null ? (
-            <span className={styles.quickViewChip}>
-              Сессия #{highlightedSessionId}
-            </span>
+            <span className={styles.quickViewChip}>Сессия</span>
           ) : null}
           {trimmedSearchQuery ? (
             <span className={styles.quickViewChip}>

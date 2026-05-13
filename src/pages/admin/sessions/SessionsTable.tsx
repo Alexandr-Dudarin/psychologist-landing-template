@@ -55,7 +55,6 @@ export function SessionsTable({
     <AdminTable>
       <thead className={styles.tableHead}>
         <tr>
-          <th className={styles.idCell}>ID</th>
           <th className={styles.clientCell}>Клиент</th>
           <th className={styles.serviceCell}>Услуга</th>
           <th className={styles.dateCell}>Дата и время</th>
@@ -78,18 +77,11 @@ export function SessionsTable({
             <tr
               key={item.id}
               ref={isHighlighted ? highlightedRowRef : null}
-              className={`${styles.sessionRow} ${isHighlighted ? styles.highlightedRow : ""
-                }`}
+              className={`${styles.sessionRow} ${isHighlighted ? styles.highlightedRow : ""}`}
             >
-              <td className={styles.idCell} data-label="ID">
-                <span className={styles.idBadge}>{item.id}</span>
-              </td>
-
               <td className={styles.clientCell} data-label="Клиент">
                 <Link
-                  to={`/admin/clients?search=${encodeURIComponent(
-                    String(item.clientId)
-                  )}&highlightClientId=${item.clientId}`}
+                  to={`/admin/clients?highlightClientId=${item.clientId}`}
                   className={styles.primaryLink}
                 >
                   {item.clientName}
@@ -110,8 +102,11 @@ export function SessionsTable({
               <td className={styles.compactCell} data-label="Длительность">
                 {item.durationMinutes} мин
               </td>
-              
-              <td className={`${styles.compactCell} ${styles.priceCell}`} data-label="Цена">
+
+              <td
+                className={`${styles.compactCell} ${styles.priceCell}`}
+                data-label="Цена"
+              >
                 {item.price} ₽
               </td>
 

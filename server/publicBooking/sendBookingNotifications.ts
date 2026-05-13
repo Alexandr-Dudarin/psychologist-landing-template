@@ -80,7 +80,6 @@ function getOwnerTelegramText(payload: SendBookingNotificationsPayload): string 
   return [
     "Новая online booking запись",
     "",
-    `ID session: ${payload.sessionId}`,
     `Клиент: ${payload.clientName}`,
     `Телефон: ${payload.clientPhone}`,
     `Email: ${payload.clientEmail}`,
@@ -97,7 +96,6 @@ function getOwnerEmailHtml(payload: SendBookingNotificationsPayload): string {
 
   return `
     <h2>Новая online booking запись</h2>
-    <p><strong>ID session:</strong> ${payload.sessionId}</p>
     <p><strong>Клиент:</strong> ${escapeHtml(payload.clientName)}</p>
     <p><strong>Телефон:</strong> ${escapeHtml(payload.clientPhone)}</p>
     <p><strong>Email:</strong> ${escapeHtml(payload.clientEmail)}</p>

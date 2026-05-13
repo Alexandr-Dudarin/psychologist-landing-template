@@ -90,14 +90,6 @@
   composes: rowHighlighted from "../../../components/admin/adminUi.module.css";
 }
 
-.idCell {
-  composes: idCell from "../../../components/admin/adminUi.module.css";
-}
-
-.idBadge {
-  composes: idBadge from "../../../components/admin/adminUi.module.css";
-}
-
 .actionCell {
   composes: actionCell from "../../../components/admin/adminUi.module.css";
   text-align: left;
@@ -299,12 +291,6 @@
   }
 }
 
-@media (max-width: 1540px) {
-  .idCell {
-    display: none;
-  }
-}
-
 @media (max-width: 1360px) {
   .notesCell {
     display: none;
@@ -372,10 +358,6 @@
     color: var(--admin-text-muted);
     font-size: 0.85rem;
     font-weight: 600;
-  }
-
-  .idCell {
-    width: auto;
   }
 
   .actionCell {

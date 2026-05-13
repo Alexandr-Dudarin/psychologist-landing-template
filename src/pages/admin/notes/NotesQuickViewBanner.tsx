@@ -23,10 +23,10 @@ export function NotesQuickViewBanner({
         <div className={styles.quickViewTitle}>Режим быстрого перехода</div>
         <div className={styles.quickViewList}>
           {clientFilter !== "all" ? (
-            <span className={styles.quickViewChip}>Клиент #{clientFilter}</span>
+            <span className={styles.quickViewChip}>Клиент</span>
           ) : null}
           {sessionFilter !== "all" ? (
-            <span className={styles.quickViewChip}>Сессия #{sessionFilter}</span>
+            <span className={styles.quickViewChip}>Сессия</span>
           ) : null}
           {trimmedSearchQuery ? (
             <span className={styles.quickViewChip}>

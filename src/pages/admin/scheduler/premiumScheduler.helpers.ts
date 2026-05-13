@@ -1,4 +1,7 @@
-import type { SchedulerDaySummary, SchedulerOverlayItem } from "./premiumScheduler.shared";
+import type {
+  SchedulerDaySummary,
+  SchedulerOverlayItem,
+} from "./premiumScheduler.shared";
 import { getTodayDateKeyInTimeZone } from "../../../lib/datetime/practiceTimezone";
 
 const MINUTES_IN_HOUR = 60;
@@ -31,7 +34,8 @@ export function formatOverlayPosition(
   rowHeight: number
 ) {
   const top =
-    ((startMinutes - GRID_START_HOUR * MINUTES_IN_HOUR) / MINUTES_IN_HOUR) * rowHeight;
+    ((startMinutes - GRID_START_HOUR * MINUTES_IN_HOUR) / MINUTES_IN_HOUR) *
+    rowHeight;
   const height = Math.max((durationMinutes / MINUTES_IN_HOUR) * rowHeight, 72);
 
   return {
@@ -51,14 +55,22 @@ export function truncateText(value: string, maxLength: number): string {
 }
 
 export function getDayWorkingHours(summary: SchedulerDaySummary): string {
-  if (!summary.isWorking || summary.workStartMinutes === null || summary.workEndMinutes === null) {
+  if (
+    !summary.isWorking ||
+    summary.workStartMinutes === null ||
+    summary.workEndMinutes === null
+  ) {
     return "Вне рабочих часов";
   }
 
   const toLabel = (value: number) =>
-    `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`;
+    `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(
+      value % 60
+    ).padStart(2, "0")}`;
 
-  return `${toLabel(summary.workStartMinutes)} - ${toLabel(summary.workEndMinutes)}`;
+  return `${toLabel(summary.workStartMinutes)} - ${toLabel(
+    summary.workEndMinutes
+  )}`;
 }
 
 export function getDayDetail(summary: SchedulerDaySummary): SchedulerDetail {
@@ -97,7 +109,7 @@ export function getOverlayDetail(item: SchedulerOverlayItem): SchedulerDetail {
       kind: "session",
       title: item.clientName,
       subtitle: `${item.serviceTitle}. ${item.timeLabel}`,
-      chips: [item.statusLabel, item.timeLabel, `Сессия #${item.sessionId}`],
+      chips: [item.statusLabel, item.timeLabel, item.serviceTitle],
       note: item.notePreview,
       primaryHref: `/admin/clients?highlightClientId=${item.clientId}`,
       secondaryHref: `/admin/sessions?highlightSessionId=${item.sessionId}&clientId=${item.clientId}`,
@@ -112,7 +124,7 @@ export function getOverlayDetail(item: SchedulerOverlayItem): SchedulerDetail {
     kind: "blocked",
     title: "Заблокированный слот",
     subtitle: item.timeLabel,
-    chips: ["Блокировка", item.timeLabel, `Слот #${item.blockedSlotId}`],
+    chips: ["Блокировка", item.timeLabel],
     note: item.reasonPreview,
     primaryHref: "/admin/schedule",
     secondaryHref: "/admin/sessions",
