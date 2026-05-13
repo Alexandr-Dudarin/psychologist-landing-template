@@ -137,36 +137,6 @@
   resize: vertical;
 }
 
-.button {
-  padding: 10px 14px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  cursor: pointer;
-  background: #fff;
-}
-
-.actionButtonSecondary {
-  border-color: #cfd7e1;
-  background: #f8fafc;
-  color: #233044;
-}
-
-.actionButtonSecondary:hover {
-  background: #eef4f8;
-  border-color: #b9c8d5;
-}
-
-.actionButtonDanger {
-  border-color: #e7c9c9;
-  background: #fff1f1;
-  color: #9a4b4b;
-}
-
-.actionButtonDanger:hover {
-  background: #fde7e7;
-  border-color: #dcb0b0;
-}
-
 .buttonRow {
   display: flex;
   gap: 12px;
@@ -198,6 +168,11 @@
   justify-content: flex-start;
 }
 
+.rulesSectionFooterButton,
+.rulesSectionFootnote {
+  display: none;
+}
+
 .rulesSectionHint,
 .rulesSectionFootnote {
   margin: 0;
@@ -215,16 +190,25 @@
 }
 
 .actionsCell {
-  text-align: right;
+  text-align: left;
   white-space: nowrap;
   vertical-align: middle;
+  width: 148px;
+  min-width: 148px;
 }
 
 .actionsCellInner {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
   gap: 8px;
-  flex-wrap: wrap;
+  width: 148px;
+  margin-left: auto;
+}
+
+.actionsCellInner > * {
+  width: 100%;
 }
 
 @media (max-width: 1280px) {
@@ -238,6 +222,17 @@
 
   .checkboxField {
     grid-column: span 1;
+  }
+}
+
+@media (max-width: 640px), (max-height: 720px) {
+  .rulesSectionFooterButton,
+  .rulesSectionFootnote {
+    display: inline-flex;
+  }
+
+  .rulesSectionFootnote {
+    display: inline;
   }
 }
 
@@ -275,5 +270,15 @@
 
   .checkboxControl {
     justify-content: flex-start;
+  }
+
+  .actionsCell {
+    width: auto;
+    min-width: 0;
+  }
+
+  .actionsCellInner {
+    width: 100%;
+    margin-left: 0;
   }
 }

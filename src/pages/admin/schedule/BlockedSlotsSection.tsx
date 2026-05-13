@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 
 import type { CalendarDateMeta } from "../../../components/calendar/calendar.types";
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
@@ -112,28 +113,24 @@ export function BlockedSlotsSection({
         />
 
         <div className={styles.buttonRow}>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={styles.button}
-          >
+          <AdminButton type="submit" disabled={isSubmitting} variant="primary">
             {isSubmitting
               ? isEditing
                 ? "Сохранение..."
                 : "Создание..."
               : isEditing
-              ? "Сохранить изменения"
-              : "Создать блокировку"}
-          </button>
+                ? "Сохранить изменения"
+                : "Создать блокировку"}
+          </AdminButton>
 
           {isEditing ? (
-            <button
+            <AdminButton
               type="button"
               onClick={onCancelEdit}
-              className={styles.button}
+              variant="secondary"
             >
               Отменить
-            </button>
+            </AdminButton>
           ) : null}
         </div>
 
@@ -165,24 +162,26 @@ export function BlockedSlotsSection({
                 <td>{item.reason || "-"}</td>
                 <td className={styles.actionsCell}>
                   <div className={styles.actionsCellInner}>
-                    <button
+                    <AdminButton
                       type="button"
                       onClick={() => onEdit(item.id)}
-                      className={`${styles.button} ${styles.actionButtonSecondary}`}
+                      variant="secondary"
+                      size="sm"
                     >
                       Редактировать
-                    </button>
+                    </AdminButton>
 
-                    <button
+                    <AdminButton
                       type="button"
                       onClick={() => onDelete(item.id)}
                       disabled={deletingBlockedSlotId === item.id}
-                      className={`${styles.button} ${styles.actionButtonDanger}`}
+                      variant="danger"
+                      size="sm"
                     >
                       {deletingBlockedSlotId === item.id
                         ? "Удаление..."
                         : "Удалить"}
-                    </button>
+                    </AdminButton>
                   </div>
                 </td>
               </tr>

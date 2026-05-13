@@ -64,10 +64,22 @@
   flex: 1 1 320px;
 }
 
+.actionCell {
+  width: 148px;
+  min-width: 148px;
+  text-align: left;
+}
+
 .actionsRow {
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
   gap: 8px;
-  flex-wrap: wrap;
+}
+
+.actionsRow > * {
+  width: 100%;
 }
 
 .success {

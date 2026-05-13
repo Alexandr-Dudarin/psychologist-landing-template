@@ -90,7 +90,12 @@ export function ScheduleRulesTable({
           <span className={styles.rulesSectionFootnote}>
             Если вы изменили расписание выше, нажмите кнопку сохранения в этом блоке.
           </span>
-          <AdminButton type="submit" disabled={isSaving} variant="secondary">
+          <AdminButton
+            type="submit"
+            disabled={isSaving}
+            variant="primary"
+            className={styles.rulesSectionFooterButton}
+          >
             {isSaving ? "Сохранение..." : "Сохранить изменения блока"}
           </AdminButton>
         </div>

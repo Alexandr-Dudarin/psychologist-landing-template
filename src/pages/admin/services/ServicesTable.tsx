@@ -27,7 +27,7 @@ export function ServicesTable({
           <th>Длительность</th>
           <th>Активна</th>
           <th>Описание</th>
-          <th>Действия</th>
+          <th className={styles.actionCell}>Действия</th>
         </tr>
       </thead>
       <tbody>
@@ -39,7 +39,7 @@ export function ServicesTable({
             <td>{item.durationMinutes} мин</td>
             <td>{item.isActive ? "Да" : "Нет"}</td>
             <td>{item.description || "-"}</td>
-            <td>
+            <td className={styles.actionCell}>
               <div className={styles.actionsRow}>
                 <AdminButton
                   type="button"

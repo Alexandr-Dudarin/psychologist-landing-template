@@ -80,8 +80,18 @@
 
 .actionCell {
   composes: actionCell from "../../../components/admin/adminUi.module.css";
+  text-align: left;
+  width: 148px;
+  min-width: 148px;
 }
 
 .actionsRow {
   composes: actionGroup from "../../../components/admin/adminUi.module.css";
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.actionsRow > * {
+  width: 100%;
 }

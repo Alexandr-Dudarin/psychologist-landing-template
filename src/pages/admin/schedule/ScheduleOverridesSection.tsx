@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 
 import type { CalendarDateMeta } from "../../../components/calendar/calendar.types";
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
@@ -113,28 +114,24 @@ export function ScheduleOverridesSection({
         />
 
         <div className={styles.buttonRow}>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={styles.button}
-          >
+          <AdminButton type="submit" disabled={isSubmitting} variant="primary">
             {isSubmitting
               ? isEditing
                 ? "Сохранение..."
                 : "Создание..."
               : isEditing
-              ? "Сохранить изменения"
-              : "Сохранить исключение"}
-          </button>
+                ? "Сохранить изменения"
+                : "Сохранить исключение"}
+          </AdminButton>
 
           {isEditing ? (
-            <button
+            <AdminButton
               type="button"
               onClick={onCancelEdit}
-              className={styles.button}
+              variant="secondary"
             >
               Отменить
-            </button>
+            </AdminButton>
           ) : null}
         </div>
 
@@ -170,24 +167,26 @@ export function ScheduleOverridesSection({
                 <td>{item.note || "-"}</td>
                 <td className={styles.actionsCell}>
                   <div className={styles.actionsCellInner}>
-                    <button
+                    <AdminButton
                       type="button"
                       onClick={() => onEdit(item.date)}
-                      className={`${styles.button} ${styles.actionButtonSecondary}`}
+                      variant="secondary"
+                      size="sm"
                     >
                       Редактировать
-                    </button>
+                    </AdminButton>
 
-                    <button
+                    <AdminButton
                       type="button"
                       onClick={() => onDelete(item.date)}
                       disabled={deletingOverrideDate === item.date}
-                      className={`${styles.button} ${styles.actionButtonDanger}`}
+                      variant="danger"
+                      size="sm"
                     >
                       {deletingOverrideDate === item.date
                         ? "Удаление..."
                         : "Удалить"}
-                    </button>
+                    </AdminButton>
                   </div>
                 </td>
               </tr>
