@@ -29,12 +29,13 @@ export function ScheduleRulesTable({
     <AdminSection title="Рабочие дни и часы">
       <form onSubmit={onSave} className={styles.rulesSection}>
         <div className={styles.rulesSectionHeader}>
-          <p className={styles.rulesSectionHint}>
-            Изменения рабочих дней и часов сохраняются этой кнопкой и общей логикой настроек.
-          </p>
           <AdminButton type="submit" disabled={isSaving} variant="primary">
             {isSaving ? "Сохранение..." : "Сохранить рабочие дни и часы"}
           </AdminButton>
+
+          <p className={styles.rulesSectionHint}>
+            Изменения рабочих дней и часов сохраняются этой кнопкой и общей логикой настроек.
+          </p>
         </div>
 
         <AdminTable withTopMargin={false}>

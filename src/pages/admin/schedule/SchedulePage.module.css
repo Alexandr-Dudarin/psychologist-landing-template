@@ -164,6 +164,11 @@
   flex-wrap: wrap;
 }
 
+.rulesSectionHeader {
+  justify-content: flex-start;
+  align-items: center;
+}
+
 .rulesSectionFooter {
   justify-content: flex-start;
 }
@@ -225,17 +230,6 @@
   }
 }
 
-@media (max-width: 640px), (max-height: 720px) {
-  .rulesSectionFooterButton,
-  .rulesSectionFootnote {
-    display: inline-flex;
-  }
-
-  .rulesSectionFootnote {
-    display: inline;
-  }
-}
-
 @media (max-width: 900px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -251,6 +245,21 @@
 
   .fieldLabel {
     min-height: auto;
+  }
+
+  .rulesSectionHeader {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px), (max-height: 720px) {
+  .rulesSectionFooterButton,
+  .rulesSectionFootnote {
+    display: inline-flex;
+  }
+
+  .rulesSectionFootnote {
+    display: inline;
   }
 }
 
@@ -280,5 +289,10 @@
   .actionsCellInner {
     width: 100%;
     margin-left: 0;
+  }
+
+  .rulesSectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
