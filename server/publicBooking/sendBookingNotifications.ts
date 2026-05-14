@@ -84,7 +84,7 @@ function getOwnerTelegramText(payload: SendBookingNotificationsPayload): string 
     `Клиент: ${payload.clientName}`,
     `Телефон: ${payload.clientPhone}`,
     `Email: ${payload.clientEmail}`,
-    `Предпочтительный контакт: ${payload.preferredContact}`,
+    `Предпочтительный способ связи: ${payload.preferredContact}`,
     `Услуга: ${payload.serviceTitle}`,
     `Дата: ${formatBookingDate(payload.startsAt, payload.timezone)}`,
     `Время: ${formatBookingTimeRange(payload.startsAt, payload.endsAt, payload.timezone)} (${timezoneText})`,
@@ -101,7 +101,7 @@ function getOwnerEmailHtml(payload: SendBookingNotificationsPayload): string {
     <p><strong>Клиент:</strong> ${escapeHtml(payload.clientName)}</p>
     <p><strong>Телефон:</strong> ${escapeHtml(payload.clientPhone)}</p>
     <p><strong>Email:</strong> ${escapeHtml(payload.clientEmail)}</p>
-    <p><strong>Предпочтительный контакт:</strong> ${escapeHtml(payload.preferredContact)}</p>
+    <p><strong>Предпочтительный способ связи:</strong> ${escapeHtml(payload.preferredContact)}</p>
     <p><strong>Услуга:</strong> ${escapeHtml(payload.serviceTitle)}</p>
     <p><strong>Дата:</strong> ${escapeHtml(formatBookingDate(payload.startsAt, payload.timezone))}</p>
     <p>

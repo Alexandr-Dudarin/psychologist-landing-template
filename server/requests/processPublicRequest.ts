@@ -241,7 +241,7 @@ export async function processPublicRequest(
         `Имя: ${name}\n` +
         `Телефон: ${phone}\n` +
         `Email: ${email}\n` +
-        `Предпочтительный контакт: ${preferredContactText}\n` +
+        `Предпочтительный способ связи: ${preferredContactText}\n` +
         `Сообщение: ${message || "-"}`;
 
       const telegramResponse = await fetch(
@@ -283,7 +283,7 @@ export async function processPublicRequest(
         <p><strong>Имя:</strong> ${name}</p>
         <p><strong>Телефон:</strong> ${phone}</p>
         <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Предпочтительный контакт:</strong> ${preferredContactText}</p>
+        <p><strong>Предпочтительный способ связи:</strong> ${preferredContactText}</p>
         <p><strong>Сообщение:</strong> ${message || "-"}</p>
         <p><strong>Telegram:</strong> ${telegramOk ? "отправлено" : "не отправлено"}</p>
         ${
