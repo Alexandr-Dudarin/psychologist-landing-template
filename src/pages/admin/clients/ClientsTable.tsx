@@ -25,6 +25,7 @@ type ClientsTableProps = {
   sourceLabels: Record<string, string>;
   highlightedClientId?: number | null;
   onEdit: (client: CrmClientRecord) => void;
+  onViewDetails: (client: CrmClientRecord) => void;
 };
 
 function getCreatedAtParts(value: string) {
@@ -51,6 +52,7 @@ export function ClientsTable({
   sourceLabels,
   highlightedClientId = null,
   onEdit,
+  onViewDetails,
 }: ClientsTableProps) {
   const highlightedRowRef = useRef<HTMLTableRowElement | null>(null);
   const showPreferredContact = siteSettings.preferredContactMethod.enabled;
@@ -207,6 +209,16 @@ export function ClientsTable({
                       Редактировать
                     </span>
                     <span className={styles.actionLabelShort}>Ред.</span>
+                  </AdminButton>
+                  <AdminButton
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className={styles.detailsButton}
+                    onClick={() => onViewDetails(item)}
+                  >
+                    <span className={styles.detailsLabelFull}>Подробнее</span>
+                    <span className={styles.detailsLabelShort}>Данные</span>
                   </AdminButton>
                 </div>
               </td>

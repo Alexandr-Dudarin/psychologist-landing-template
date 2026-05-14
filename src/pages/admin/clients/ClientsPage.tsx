@@ -18,6 +18,7 @@ import type {
 } from "../../../types/client";
 import { clientStatuses } from "../../../types/client";
 import { ClientCreateForm } from "./ClientCreateForm";
+import { ClientDetailsModal } from "./ClientDetailsModal";
 import { ClientEditForm } from "./ClientEditForm";
 import { ClientsFilters } from "./ClientsFilters";
 import { ClientsTable } from "./ClientsTable";
@@ -56,6 +57,7 @@ export function ClientsPage() {
   const [form, setForm] = useState<ManualClientForm>(initialForm);
   const [lastName, setLastName] = useState("");
   const [editingClientId, setEditingClientId] = useState<number | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<ClientForm>(initialForm);
   const editFormRef = useRef<HTMLDivElement | null>(null);
 
@@ -66,6 +68,11 @@ export function ClientsPage() {
         label: t.admin.clients.statusLabels[status],
       })),
     [t.admin.clients.statusLabels]
+  );
+
+  const selectedClient = useMemo(
+    () => items.find((item) => item.id === selectedClientId) ?? null,
+    [items, selectedClientId]
   );
 
   useEffect(() => {
@@ -265,6 +272,14 @@ export function ClientsPage() {
     resetMessages();
   };
 
+  const openClientDetails = (client: CrmClientRecord) => {
+    setSelectedClientId(client.id);
+  };
+
+  const closeClientDetails = () => {
+    setSelectedClientId(null);
+  };
+
   const cancelEditing = () => {
     setEditingClientId(null);
     setEditForm(initialForm);
@@ -460,8 +475,18 @@ export function ClientsPage() {
           sourceLabels={clientSourceLabels}
           highlightedClientId={highlightedClientId}
           onEdit={startEditing}
+          onViewDetails={openClientDetails}
         />
       )}
+
+      {selectedClient ? (
+        <ClientDetailsModal
+          client={selectedClient}
+          sourceLabels={clientSourceLabels}
+          statusLabels={t.admin.clients.statusLabels}
+          onClose={closeClientDetails}
+        />
+      ) : null}
     </main>
   );
 }

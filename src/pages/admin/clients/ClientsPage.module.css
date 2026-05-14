@@ -124,7 +124,7 @@
   display: inline;
 }
 
-.clientNamePart+.clientNamePart::before {
+.clientNamePart + .clientNamePart::before {
   content: " ";
 }
 
@@ -218,19 +218,177 @@
 
 .actionsRow {
   composes: actionGroup from "../../../components/admin/adminUi.module.css";
+  flex-direction: column;
   justify-content: flex-start;
+  align-items: stretch;
 }
 
-.actionsRow>* {
+.actionsRow > * {
   width: 100%;
+}
+
+.detailsButton.detailsButton {
+  border-color: color-mix(in srgb, var(--admin-accent) 28%, white);
+  background: var(--admin-accent-soft);
+  color: var(--admin-accent);
+}
+
+.detailsButton.detailsButton:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--admin-accent) 42%, white);
+  background: color-mix(
+    in srgb,
+    var(--admin-accent-soft) 78%,
+    var(--admin-accent) 8%
+  );
+  color: var(--admin-accent);
+}
+
+.detailsButton.detailsButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(47, 93, 120, 0.18);
 }
 
 .actionLabelShort {
   display: none;
 }
 
+.detailsLabelShort {
+  display: none;
+}
+
 .actionHeaderShort {
   display: none;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(24, 34, 44, 0.52);
+}
+
+.modalDialog {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-surface);
+  box-shadow: 0 24px 60px rgba(20, 30, 40, 0.28);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.modalTitle {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.modalSubtitle {
+  margin: 6px 0 0;
+  color: var(--admin-text);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.modalCloseButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border: 1px solid color-mix(in srgb, var(--admin-danger) 28%, white);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-danger-soft);
+  color: var(--admin-danger);
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
+}
+
+.modalCloseButton:hover {
+  border-color: color-mix(in srgb, var(--admin-danger) 42%, white);
+  background: #fceeee;
+  color: #7f3d3d;
+}
+
+.modalCloseButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(154, 75, 75, 0.18);
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 20px;
+}
+
+.detailsField {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-muted);
+}
+
+.detailsLabel {
+  color: var(--admin-text-muted);
+  font-size: 0.88rem;
+}
+
+.detailsValue {
+  min-width: 0;
+  color: var(--admin-text);
+  overflow-wrap: anywhere;
+}
+
+.detailsActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 0 20px 20px;
+}
+
+.detailsActionLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text);
+  background: var(--admin-surface);
+  text-decoration: none;
+}
+
+.detailsActionLink:hover {
+  background: var(--admin-surface-muted);
 }
 
 @media (max-width: 1600px) {
@@ -332,7 +490,6 @@
 }
 
 @media (max-width: 640px) {
-
   .phoneCell,
   .statusCell {
     display: none;
@@ -359,7 +516,7 @@
     text-overflow: ellipsis;
   }
 
-  .clientNamePart+.clientNamePart::before {
+  .clientNamePart + .clientNamePart::before {
     content: none;
   }
 
@@ -415,12 +572,73 @@
     display: inline;
   }
 
-  .actionsRow>* {
+  .detailsLabelFull {
+    display: none;
+  }
+
+  .detailsLabelShort {
+    display: inline;
+  }
+
+  .actionsRow > * {
     min-width: 0;
     min-height: 34px;
     padding-left: 6px;
     padding-right: 6px;
     font-size: 0.88rem;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 560px) {
+  .modalOverlay {
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .modalDialog {
+    max-height: calc(100vh - 20px);
+  }
+
+  .modalHeader {
+    padding: 14px 16px 12px;
+  }
+
+  .modalTitle {
+    font-size: 0.96rem;
+  }
+
+  .modalSubtitle {
+    margin-top: 4px;
+    font-size: 1.22rem;
+  }
+
+  .modalCloseButton {
+    width: 34px;
+    height: 34px;
+    font-size: 1.28rem;
+  }
+
+  .detailsGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .detailsField {
+    gap: 5px;
+    padding: 10px 12px;
+  }
+
+  .detailsActions {
+    gap: 10px;
+    padding: 0 16px 14px;
+  }
+
+  .detailsActionLink {
+    flex: 1 1 120px;
+    min-height: 38px;
+    padding: 8px 12px;
   }
 }
 
@@ -454,9 +672,46 @@
     font-size: 0.88rem;
   }
 
-  .actionsRow>* {
+  .actionsRow > * {
     padding-left: 5px;
     padding-right: 5px;
-    font-size: 0.86rem;
+    font-size: 0.78rem;
+  }
+
+  .modalOverlay {
+    padding: 8px;
+  }
+
+  .modalDialog {
+    max-height: calc(100vh - 16px);
+  }
+
+  .modalHeader {
+    padding: 12px 14px 10px;
+  }
+
+  .modalTitle {
+    font-size: 0.92rem;
+  }
+
+  .modalSubtitle {
+    font-size: 1.14rem;
+  }
+
+  .detailsGrid {
+    gap: 8px;
+    padding: 12px 14px;
+  }
+
+  .detailsField {
+    padding: 9px 10px;
+  }
+
+  .detailsLabel {
+    font-size: 0.84rem;
+  }
+
+  .detailsActions {
+    padding: 0 14px 12px;
   }
 }
