@@ -87,36 +87,66 @@
   composes: linkStack from "../../../components/admin/adminUi.module.css";
 }
 
+.editFormAnchor {
+  scroll-margin-top: 16px;
+}
+
 .createdCell {
-  width: 150px;
-  min-width: 132px;
-  white-space: nowrap;
+  width: 96px;
+  min-width: 88px;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.createdDate,
+.createdTime {
+  display: block;
+}
+
+.createdTime {
+  color: var(--admin-text-muted);
+  font-size: 0.94rem;
 }
 
 .nameCell {
-  min-width: 136px;
-  max-width: 220px;
-  overflow-wrap: anywhere;
+  min-width: 138px;
+  max-width: 260px;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.clientNamePreview {
+  display: block;
+  max-width: 100%;
+}
+
+.clientNamePart {
+  display: inline;
+}
+
+.clientNamePart+.clientNamePart::before {
+  content: " ";
 }
 
 .phoneCell {
-  width: 142px;
-  min-width: 132px;
+  width: 132px;
+  min-width: 124px;
   white-space: nowrap;
 }
 
 .emailCell {
-  width: 190px;
-  max-width: 190px;
+  width: 240px;
+  min-width: 200px;
+  max-width: 300px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .preferredContactCell {
-  width: 216px;
-  min-width: 196px;
-  max-width: 240px;
+  width: 220px;
+  min-width: 198px;
+  max-width: 250px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -128,31 +158,62 @@
   color: var(--admin-text-muted);
 }
 
+.preferredContactFullLabel {
+  display: inline;
+}
+
+.preferredContactShortLabel {
+  display: none;
+}
+
+.preferredContactValueGroup {
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+  gap: 4px;
+  vertical-align: top;
+}
+
+.preferredContactMethod,
+.preferredContactValue {
+  min-width: 0;
+}
+
+.preferredContactMethod {
+  flex: 0 0 auto;
+}
+
+.preferredContactValue {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .sourceCell {
-  width: 118px;
+  width: 104px;
   white-space: nowrap;
 }
 
 .statusCell {
-  width: 112px;
+  width: 104px;
   white-space: nowrap;
 }
 
 .firstRequestCell {
-  width: 120px;
+  width: 108px;
   white-space: nowrap;
 }
 
 .linksCell {
-  width: 88px;
+  width: 84px;
   white-space: nowrap;
 }
 
 .actionCell {
   composes: actionCell from "../../../components/admin/adminUi.module.css";
   text-align: left;
-  width: 148px;
-  min-width: 148px;
+  width: 132px;
+  min-width: 132px;
 }
 
 .actionsRow {
@@ -160,30 +221,242 @@
   justify-content: flex-start;
 }
 
-.actionsRow > * {
+.actionsRow>* {
   width: 100%;
 }
 
-@media (max-width: 1180px) {
+.actionLabelShort {
+  display: none;
+}
+
+.actionHeaderShort {
+  display: none;
+}
+
+@media (max-width: 1600px) {
   .sourceCell {
     display: none;
   }
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1360px) {
   .firstRequestCell {
     display: none;
   }
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1280px) {
   .createdCell {
     display: none;
   }
 }
 
-@media (max-width: 880px) {
+@media (max-width: 980px) {
   .emailCell {
     display: none;
+  }
+}
+
+@media (max-width: 880px) {
+  .linksCell {
+    display: none;
+  }
+
+  .nameCell {
+    width: 118px;
+    min-width: 104px;
+    max-width: 132px;
+  }
+
+  .phoneCell {
+    width: 116px;
+    min-width: 108px;
+  }
+
+  .preferredContactCell {
+    width: 142px;
+    min-width: 132px;
+    max-width: 154px;
+    white-space: normal;
+    overflow: visible;
+    text-align: center;
+    text-overflow: clip;
+  }
+
+  .statusCell {
+    width: 86px;
+    min-width: 78px;
+    text-align: center;
+  }
+
+  .actionCell {
+    width: 112px;
+    min-width: 106px;
+  }
+
+  .nameCell.nameCell,
+  .phoneCell.phoneCell,
+  .preferredContactCell.preferredContactCell,
+  .statusCell.statusCell,
+  .actionCell.actionCell {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .preferredContactFullLabel {
+    display: none;
+  }
+
+  .preferredContactShortLabel {
+    display: inline;
+  }
+
+  .preferredContactEmpty {
+    text-align: center;
+  }
+
+  .preferredContactValueGroup {
+    display: grid;
+    gap: 2px;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .preferredContactValue {
+    display: block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 640px) {
+
+  .phoneCell,
+  .statusCell {
+    display: none;
+  }
+
+  .nameCell {
+    width: 31%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .clientNamePreview {
+    display: grid;
+    min-width: 0;
+    max-width: 100%;
+    gap: 2px;
+  }
+
+  .clientNamePart {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .clientNamePart+.clientNamePart::before {
+    content: none;
+  }
+
+  .actionHeaderFull {
+    display: none;
+  }
+
+  .actionHeaderShort {
+    display: inline;
+  }
+
+  .preferredContactCell {
+    width: 50%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .actionCell {
+    width: 52px;
+    min-width: 52px;
+    max-width: 52px;
+  }
+
+  .nameCell.nameCell,
+  .preferredContactCell.preferredContactCell {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .actionCell.actionCell {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .preferredContactValueGroup {
+    width: 100%;
+    font-size: 0.9rem;
+  }
+
+  .preferredContactValue {
+    width: 100%;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .actionLabelFull {
+    display: none;
+  }
+
+  .actionLabelShort {
+    display: inline;
+  }
+
+  .actionsRow>* {
+    min-width: 0;
+    min-height: 34px;
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 0.88rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .nameCell {
+    width: 29%;
+  }
+
+  .preferredContactCell {
+    width: 53%;
+  }
+
+  .actionCell {
+    width: 48px;
+    min-width: 48px;
+    max-width: 48px;
+  }
+
+  .nameCell.nameCell,
+  .preferredContactCell.preferredContactCell {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  .actionCell.actionCell {
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+
+  .preferredContactValueGroup {
+    font-size: 0.88rem;
+  }
+
+  .actionsRow>* {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 0.86rem;
   }
 }

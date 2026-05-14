@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../../../app/providers/LanguageProvider";
@@ -22,8 +22,11 @@ import { ClientEditForm } from "./ClientEditForm";
 import { ClientsFilters } from "./ClientsFilters";
 import { ClientsTable } from "./ClientsTable";
 import {
+  buildClientName,
   initialForm,
   mapClientToForm,
+  splitClientName,
+  validateClientNameParts,
   type ClientForm,
   type ManualClientForm,
 } from "./clientForm";
@@ -54,6 +57,7 @@ export function ClientsPage() {
   const [lastName, setLastName] = useState("");
   const [editingClientId, setEditingClientId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<ClientForm>(initialForm);
+  const editFormRef = useRef<HTMLDivElement | null>(null);
 
   const statusOptions = useMemo(
     () =>
@@ -122,6 +126,19 @@ export function ClientsPage() {
     };
   }, [statusFilter, searchQuery, t.admin.clients.messages.loadError]);
 
+  useEffect(() => {
+    if (editingClientId === null) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      editFormRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 0);
+  }, [editingClientId]);
+
   const resetMessages = () => {
     if (error) {
       setError("");
@@ -160,7 +177,14 @@ export function ClientsPage() {
   const handleCreateClient = async (event: FormEvent) => {
     event.preventDefault();
 
-    const fullName = [form.name.trim(), lastName.trim()].filter(Boolean).join(" ");
+    const nameErrors = validateClientNameParts(form.name, lastName);
+
+    if (nameErrors.firstName || nameErrors.lastName) {
+      setError(nameErrors.firstName ?? nameErrors.lastName ?? "");
+      return;
+    }
+
+    const fullName = buildClientName(form.name, lastName);
 
     const payload: CreateManualClientPayload = {
       name: fullName,
@@ -253,9 +277,20 @@ export function ClientsPage() {
       return;
     }
 
+    const editNameParts = splitClientName(editForm.name);
+    const nameErrors = validateClientNameParts(
+      editNameParts.firstName,
+      editNameParts.lastName
+    );
+
+    if (nameErrors.firstName || nameErrors.lastName) {
+      setError(nameErrors.firstName ?? nameErrors.lastName ?? "");
+      return;
+    }
+
     const payload = {
       id: editingClientId,
-      name: editForm.name.trim(),
+      name: buildClientName(editNameParts.firstName, editNameParts.lastName),
       phone: editForm.phone.trim(),
       email: editForm.email.trim(),
       source: editForm.source.trim() || "manual",
@@ -351,15 +386,17 @@ export function ClientsPage() {
       />
 
       {editingClientId !== null ? (
-        <ClientEditForm
-          form={editForm}
-          isUpdating={isUpdating}
-          showPreferredContact={preferredContactSettings.enabled}
-          onChange={handleEditFormChange}
-          onSubmit={handleUpdateClient}
-          onCancel={cancelEditing}
-          statusOptions={statusOptions}
-        />
+        <div ref={editFormRef} className={styles.editFormAnchor}>
+          <ClientEditForm
+            form={editForm}
+            isUpdating={isUpdating}
+            showPreferredContact={preferredContactSettings.enabled}
+            onChange={handleEditFormChange}
+            onSubmit={handleUpdateClient}
+            onCancel={cancelEditing}
+            statusOptions={statusOptions}
+          />
+        </div>
       ) : null}
 
       <ClientsFilters

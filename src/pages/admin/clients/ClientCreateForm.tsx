@@ -8,7 +8,11 @@ import {
 } from "../../../lib/preferredContact";
 import { preferredContactMethods } from "../../../types/preferredContact";
 import styles from "./ClientsPage.module.css";
-import type { ClientForm } from "./clientForm";
+import {
+  CLIENT_NAME_PART_MAX_LENGTH,
+  sanitizeClientNamePartInput,
+  type ClientForm,
+} from "./clientForm";
 
 type ClientCreateFormProps = {
   form: ClientForm;
@@ -51,7 +55,10 @@ export function ClientCreateForm({
         <input
           type="text"
           value={form.name}
-          onChange={(event) => onChange("name", event.target.value)}
+          maxLength={CLIENT_NAME_PART_MAX_LENGTH}
+          onChange={(event) =>
+            onChange("name", sanitizeClientNamePartInput(event.target.value))
+          }
           placeholder={namePlaceholder}
           className={styles.input}
         />
@@ -59,7 +66,14 @@ export function ClientCreateForm({
         <input
           type="text"
           value={lastName}
-          onChange={(event) => onLastNameChange(event.target.value)}
+          maxLength={CLIENT_NAME_PART_MAX_LENGTH}
+          onChange={(event) =>
+            onLastNameChange(
+              sanitizeClientNamePartInput(event.target.value, {
+                allowSpaces: true,
+              })
+            )
+          }
           placeholder={lastNamePlaceholder}
           className={styles.input}
         />

@@ -9,6 +9,7 @@ import {
   preferredContactMethodLabels,
 } from "../../../lib/preferredContact";
 import type { ClientStatus, CrmClientRecord } from "../../../types/client";
+import { splitClientName } from "./clientForm";
 import styles from "./ClientsPage.module.css";
 
 type ClientsTableProps = {
@@ -25,6 +26,17 @@ type ClientsTableProps = {
   highlightedClientId?: number | null;
   onEdit: (client: CrmClientRecord) => void;
 };
+
+function getCreatedAtParts(value: string) {
+  const [date = value, time = ""] = new Date(value)
+    .toLocaleString("ru-RU")
+    .split(", ");
+
+  return {
+    date,
+    time,
+  };
+}
 
 export function ClientsTable({
   items,
@@ -62,20 +74,28 @@ export function ClientsTable({
     <AdminTable>
       <thead>
         <tr>
-          <th className={styles.createdCell}>{createdLabel}</th>
           <th className={styles.nameCell}>{nameLabel}</th>
           <th className={styles.phoneCell}>{phoneLabel}</th>
           <th className={styles.emailCell}>{emailLabel}</th>
           {showPreferredContact ? (
             <th className={styles.preferredContactCell}>
-              Предпочтительный контакт
+              <span className={styles.preferredContactFullLabel}>
+                Предпочтительный контакт
+              </span>
+              <span className={styles.preferredContactShortLabel}>
+                Способ связи
+              </span>
             </th>
           ) : null}
+          <th className={styles.createdCell}>{createdLabel}</th>
           <th className={styles.sourceCell}>{sourceLabel}</th>
           <th className={styles.statusCell}>{statusLabel}</th>
           <th className={styles.firstRequestCell}>{firstRequestLabel}</th>
           <th className={styles.linksCell}>Связи</th>
-          <th className={styles.actionCell}>Действия</th>
+          <th className={styles.actionCell}>
+            <span className={styles.actionHeaderFull}>Действия</span>
+            <span className={styles.actionHeaderShort}>Ред.</span>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -83,6 +103,10 @@ export function ClientsTable({
           const isHighlighted =
             highlightedClientId !== null &&
             Number(highlightedClientId) === Number(item.id);
+          const preferredContactMethod = item.preferredContactMethod;
+          const preferredContactValue = item.preferredContactValue;
+          const createdAt = getCreatedAtParts(item.createdAt);
+          const nameParts = splitClientName(item.name);
 
           return (
             <tr
@@ -90,29 +114,56 @@ export function ClientsTable({
               ref={isHighlighted ? highlightedRowRef : null}
               className={isHighlighted ? styles.highlightedRow : undefined}
             >
-              <td className={styles.createdCell}>
-                {new Date(item.createdAt).toLocaleString("ru-RU")}
+              <td className={styles.nameCell}>
+                <span className={styles.clientNamePreview} title={item.name}>
+                  <span className={styles.clientNamePart}>
+                    {nameParts.firstName || item.name}
+                  </span>
+
+                  {nameParts.lastName ? (
+                    <span className={styles.clientNamePart}>
+                      {nameParts.lastName}
+                    </span>
+                  ) : null}
+                </span>
               </td>
-              <td className={styles.nameCell}>{item.name}</td>
+
               <td className={styles.phoneCell}>{item.phone || "-"}</td>
               <td className={styles.emailCell}>{item.email || "-"}</td>
+
               {showPreferredContact ? (
-                <td className={styles.preferredContactCell}>
-                  {item.preferredContactMethod && item.preferredContactValue
-                    ? `${preferredContactMethodLabels[item.preferredContactMethod]}: ${getPreferredContactValuePreview(
-                        item.preferredContactValue
-                      )}`
-                    : (
-                        <span className={styles.preferredContactEmpty}>
-                          —
-                        </span>
-                      )}
+                <td
+                  className={styles.preferredContactCell}
+                  data-label="Способ связи"
+                >
+                  {preferredContactMethod && preferredContactValue ? (
+                    <span className={styles.preferredContactValueGroup}>
+                      <span className={styles.preferredContactMethod}>
+                        {preferredContactMethodLabels[preferredContactMethod]}:
+                      </span>
+                      <span className={styles.preferredContactValue}>
+                        {getPreferredContactValuePreview(preferredContactValue)}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className={styles.preferredContactEmpty}>—</span>
+                  )}
                 </td>
               ) : null}
+
+              <td className={styles.createdCell}>
+                <span className={styles.createdDate}>{createdAt.date}</span>
+                {createdAt.time ? (
+                  <span className={styles.createdTime}>{createdAt.time}</span>
+                ) : null}
+              </td>
+
               <td className={styles.sourceCell}>
                 {sourceLabels[item.source] ?? item.source}
               </td>
+
               <td className={styles.statusCell}>{statusLabels[item.status]}</td>
+
               <td className={styles.firstRequestCell}>
                 {item.firstRequestId ? (
                   <Link
@@ -124,6 +175,7 @@ export function ClientsTable({
                   "-"
                 )}
               </td>
+
               <td className={styles.linksCell}>
                 <div className={styles.linkStack}>
                   <Link
@@ -142,6 +194,7 @@ export function ClientsTable({
                   </Link>
                 </div>
               </td>
+
               <td className={styles.actionCell}>
                 <div className={styles.actionsRow}>
                   <AdminButton
@@ -150,7 +203,10 @@ export function ClientsTable({
                     size="sm"
                     onClick={() => onEdit(item)}
                   >
-                    Редактировать
+                    <span className={styles.actionLabelFull}>
+                      Редактировать
+                    </span>
+                    <span className={styles.actionLabelShort}>Ред.</span>
                   </AdminButton>
                 </div>
               </td>

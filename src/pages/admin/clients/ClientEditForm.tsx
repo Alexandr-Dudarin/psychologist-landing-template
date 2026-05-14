@@ -9,7 +9,13 @@ import {
 } from "../../../lib/preferredContact";
 import { preferredContactMethods } from "../../../types/preferredContact";
 import styles from "./ClientsPage.module.css";
-import type { ClientForm } from "./clientForm";
+import {
+  buildClientName,
+  CLIENT_NAME_PART_MAX_LENGTH,
+  sanitizeClientNamePartInput,
+  splitClientName,
+  type ClientForm,
+} from "./clientForm";
 
 type ClientEditFormProps = {
   form: ClientForm;
@@ -30,14 +36,44 @@ export function ClientEditForm({
   onCancel,
   statusOptions,
 }: ClientEditFormProps) {
+  const { firstName, lastName } = splitClientName(form.name);
+
   return (
     <AdminSection title="Редактирование клиента">
       <form onSubmit={onSubmit} className={styles.form}>
         <input
           type="text"
-          value={form.name}
-          onChange={(event) => onChange("name", event.target.value)}
-          placeholder="Имя клиента"
+          value={firstName}
+          maxLength={CLIENT_NAME_PART_MAX_LENGTH}
+          onChange={(event) =>
+            onChange(
+              "name",
+              buildClientName(
+                sanitizeClientNamePartInput(event.target.value),
+                lastName
+              )
+            )
+          }
+          placeholder="Имя"
+          className={styles.input}
+        />
+
+        <input
+          type="text"
+          value={lastName}
+          maxLength={CLIENT_NAME_PART_MAX_LENGTH}
+          onChange={(event) =>
+            onChange(
+              "name",
+              buildClientName(
+                firstName,
+                sanitizeClientNamePartInput(event.target.value, {
+                  allowSpaces: true,
+                })
+              )
+            )
+          }
+          placeholder="Фамилия"
           className={styles.input}
         />
 
