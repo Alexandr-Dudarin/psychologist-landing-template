@@ -168,8 +168,6 @@ export async function processPublicRequest(
     };
   }
 
-  let createdRequestId: number | null = null;
-
   try {
     const existingClientId = await findExistingClientIdByContacts(phone, email);
 
@@ -194,7 +192,7 @@ export async function processPublicRequest(
       );
     }
 
-    const insertResult = await pool.query<{ id: number }>(
+    await pool.query(
       `
         INSERT INTO requests (
           name,
@@ -208,7 +206,6 @@ export async function processPublicRequest(
           client_id
         )
         VALUES ($1, $2, $3, $4, $5, $6, 'new', 'website', $7)
-        RETURNING id
       `,
       [
         name,
@@ -221,7 +218,6 @@ export async function processPublicRequest(
       ]
     );
 
-    createdRequestId = insertResult.rows[0]?.id ?? null;
   } catch (dbError) {
     console.error("Request insert error:", dbError);
 
@@ -242,7 +238,6 @@ export async function processPublicRequest(
     try {
       const telegramText =
         `Новая заявка с сайта\n\n` +
-        `ID: ${createdRequestId ?? "-"}\n` +
         `Имя: ${name}\n` +
         `Телефон: ${phone}\n` +
         `Email: ${email}\n` +
@@ -285,7 +280,6 @@ export async function processPublicRequest(
       subject: "Новая заявка с сайта",
       html: `
         <h2>Новая заявка</h2>
-        <p><strong>ID заявки:</strong> ${createdRequestId ?? "-"}</p>
         <p><strong>Имя:</strong> ${name}</p>
         <p><strong>Телефон:</strong> ${phone}</p>
         <p><strong>Email:</strong> ${email}</p>

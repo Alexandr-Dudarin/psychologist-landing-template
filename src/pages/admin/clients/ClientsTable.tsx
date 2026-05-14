@@ -62,15 +62,19 @@ export function ClientsTable({
     <AdminTable>
       <thead>
         <tr>
-          <th>{createdLabel}</th>
-          <th>{nameLabel}</th>
-          <th>{phoneLabel}</th>
-          <th>{emailLabel}</th>
-          {showPreferredContact ? <th>Предпочтительный контакт</th> : null}
-          <th>{sourceLabel}</th>
-          <th>{statusLabel}</th>
-          <th>{firstRequestLabel}</th>
-          <th>Связи</th>
+          <th className={styles.createdCell}>{createdLabel}</th>
+          <th className={styles.nameCell}>{nameLabel}</th>
+          <th className={styles.phoneCell}>{phoneLabel}</th>
+          <th className={styles.emailCell}>{emailLabel}</th>
+          {showPreferredContact ? (
+            <th className={styles.preferredContactCell}>
+              Предпочтительный контакт
+            </th>
+          ) : null}
+          <th className={styles.sourceCell}>{sourceLabel}</th>
+          <th className={styles.statusCell}>{statusLabel}</th>
+          <th className={styles.firstRequestCell}>{firstRequestLabel}</th>
+          <th className={styles.linksCell}>Связи</th>
           <th className={styles.actionCell}>Действия</th>
         </tr>
       </thead>
@@ -86,22 +90,30 @@ export function ClientsTable({
               ref={isHighlighted ? highlightedRowRef : null}
               className={isHighlighted ? styles.highlightedRow : undefined}
             >
-              <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
-              <td>{item.name}</td>
-              <td>{item.phone || "-"}</td>
-              <td>{item.email || "-"}</td>
+              <td className={styles.createdCell}>
+                {new Date(item.createdAt).toLocaleString("ru-RU")}
+              </td>
+              <td className={styles.nameCell}>{item.name}</td>
+              <td className={styles.phoneCell}>{item.phone || "-"}</td>
+              <td className={styles.emailCell}>{item.email || "-"}</td>
               {showPreferredContact ? (
-                <td>
+                <td className={styles.preferredContactCell}>
                   {item.preferredContactMethod && item.preferredContactValue
                     ? `${preferredContactMethodLabels[item.preferredContactMethod]}: ${getPreferredContactValuePreview(
                         item.preferredContactValue
                       )}`
-                    : "—"}
+                    : (
+                        <span className={styles.preferredContactEmpty}>
+                          —
+                        </span>
+                      )}
                 </td>
               ) : null}
-              <td>{sourceLabels[item.source] ?? item.source}</td>
-              <td>{statusLabels[item.status]}</td>
-              <td>
+              <td className={styles.sourceCell}>
+                {sourceLabels[item.source] ?? item.source}
+              </td>
+              <td className={styles.statusCell}>{statusLabels[item.status]}</td>
+              <td className={styles.firstRequestCell}>
                 {item.firstRequestId ? (
                   <Link
                     to={`/admin/requests?highlightRequestId=${item.firstRequestId}`}
@@ -112,7 +124,7 @@ export function ClientsTable({
                   "-"
                 )}
               </td>
-              <td>
+              <td className={styles.linksCell}>
                 <div className={styles.linkStack}>
                   <Link
                     to={`/admin/sessions?clientId=${encodeURIComponent(
