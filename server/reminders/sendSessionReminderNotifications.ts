@@ -34,6 +34,7 @@ export type SendSessionReminderNotificationsPayload = {
   clientName: string;
   clientPhone: string;
   clientEmail: string;
+  preferredContact: string;
   serviceTitle: string;
   startsAt: string;
   endsAt: string;
@@ -107,6 +108,7 @@ function getSpecialistTelegramText(
     `Клиент: ${payload.clientName}`,
     `Телефон: ${payload.clientPhone || "-"}`,
     `Email: ${payload.clientEmail || "-"}`,
+    `Предпочтительный контакт: ${payload.preferredContact || "-"}`,
     `Услуга: ${payload.serviceTitle}`,
     `Дата: ${getDateLabel(payload.startsAt, payload.timezone)}`,
     `Время: ${getTimeRangeLabel(
@@ -127,6 +129,7 @@ function getSpecialistEmailHtml(
     <p><strong>Клиент:</strong> ${escapeHtml(payload.clientName)}</p>
     <p><strong>Телефон:</strong> ${escapeHtml(payload.clientPhone || "-")}</p>
     <p><strong>Email:</strong> ${escapeHtml(payload.clientEmail || "-")}</p>
+    <p><strong>Предпочтительный контакт:</strong> ${escapeHtml(payload.preferredContact || "-")}</p>
     <p><strong>Услуга:</strong> ${escapeHtml(payload.serviceTitle)}</p>
     <p><strong>Дата:</strong> ${escapeHtml(
       getDateLabel(payload.startsAt, payload.timezone)

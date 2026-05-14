@@ -8,6 +8,8 @@ import {
   type SessionReminderNotificationsResult,
   type SessionReminderType,
 } from "./sendSessionReminderNotifications.js";
+import { formatPreferredContactDisplay } from "../../src/lib/preferredContact.js";
+import type { PreferredContactMethod } from "../../src/types/preferredContact.js";
 import { getBookingSettingsTimezone } from "../utils/getBookingSettingsTimezone.js";
 
 type ReminderChannel = "telegram" | "owner_email" | "client_email";
@@ -18,6 +20,8 @@ type ReminderCandidateRow = {
   client_name: string;
   client_phone: string;
   client_email: string;
+  preferred_contact_method: PreferredContactMethod | "";
+  preferred_contact_value: string;
   service_title: string;
   scheduled_at: string;
   duration_minutes: string | number;
@@ -108,6 +112,11 @@ function buildReminderPayload(
     clientName: row.client_name,
     clientPhone: row.client_phone ?? "",
     clientEmail: row.client_email ?? "",
+    preferredContact: formatPreferredContactDisplay(
+      row.preferred_contact_method,
+      row.preferred_contact_value,
+      "-"
+    ),
     serviceTitle: row.service_title,
     startsAt: row.scheduled_at,
     endsAt: addMinutesToIso(row.scheduled_at, durationMinutes),
@@ -155,6 +164,8 @@ async function selectReminderCandidates(
         c.name AS client_name,
         COALESCE(c.phone, '') AS client_phone,
         COALESCE(c.email, '') AS client_email,
+        COALESCE(c.preferred_contact_method, '') AS preferred_contact_method,
+        COALESCE(c.preferred_contact_value, '') AS preferred_contact_value,
         sv.title AS service_title,
         s.scheduled_at,
         s.duration_minutes,
