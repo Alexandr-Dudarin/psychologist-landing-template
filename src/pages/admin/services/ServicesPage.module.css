@@ -115,3 +115,45 @@
 .table th {
   font-weight: 700;
 }
+
+.inactiveRow td {
+  color: var(--admin-text-muted);
+  background: color-mix(in srgb, var(--admin-surface-muted) 72%, white);
+}
+
+.hideButton {
+  border-color: color-mix(in srgb, var(--admin-danger) 30%, white);
+  background: color-mix(in srgb, var(--admin-danger) 10%, white);
+  color: var(--admin-danger);
+}
+
+.hideButton:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--admin-danger) 46%, white);
+  background: color-mix(in srgb, var(--admin-danger) 16%, white);
+  color: var(--admin-danger);
+}
+
+.hiddenButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--admin-border) 55%, #9aa4af);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--admin-surface-muted) 18%, #c4ccd5);
+  color: color-mix(in srgb, var(--admin-text-muted) 70%, #4b5563);
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  text-align: center;
+  cursor: not-allowed;
+  user-select: none;
+  box-shadow: none;
+}
+
+.hiddenButton:hover {
+  background: color-mix(in srgb, var(--admin-surface-muted) 8%, #b8c1cc);
+  border-color: color-mix(in srgb, var(--admin-border) 42%, #8b96a3);
+}

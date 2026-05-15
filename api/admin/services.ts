@@ -26,6 +26,7 @@ type ServiceRow = {
   price: string | number;
   duration_minutes: number;
   is_active: boolean;
+  sessions_count: string | number;
   created_at: string;
 };
 
@@ -45,6 +46,7 @@ function mapService(row: ServiceRow): CrmServiceRecord {
     price: Number(row.price),
     durationMinutes: row.duration_minutes,
     isActive: row.is_active,
+    sessionsCount: Number(row.sessions_count),
     createdAt: row.created_at,
   };
 }
@@ -157,6 +159,19 @@ function parseDeleteBody(body: any): ParsedDeletePayload | null {
   return { id };
 }
 
+async function getServiceSessionsCount(serviceId: number): Promise<number> {
+  const result = await pool.query<{ count: string }>(
+    `
+      SELECT COUNT(*) AS count
+      FROM sessions
+      WHERE service_id = $1
+    `,
+    [serviceId]
+  );
+
+  return Number(result.rows[0]?.count ?? 0);
+}
+
 async function handleList(req: any, res: any) {
   const activity = getSingleQueryValue(req.query?.activity).trim();
   const search = getSingleQueryValue(req.query?.search).trim();
@@ -198,23 +213,20 @@ async function handleList(req: any, res: any) {
           price,
           duration_minutes,
           is_active,
+          (
+            SELECT COUNT(*)
+            FROM sessions
+            WHERE sessions.service_id = services.id
+          ) AS sessions_count,
           created_at
         FROM services
         ${whereClause}
-        ORDER BY created_at DESC
+        ORDER BY is_active DESC, created_at DESC
       `,
       values
     );
 
-    const items: CrmServiceRecord[] = result.rows.map((row) => ({
-      id: row.id,
-      title: row.title,
-      description: row.description,
-      price: Number(row.price),
-      durationMinutes: row.duration_minutes,
-      isActive: row.is_active,
-      createdAt: row.created_at,
-    }));
+    const items: CrmServiceRecord[] = result.rows.map(mapService);
 
     return res.status(200).json({ items });
   } catch (error) {
@@ -251,6 +263,7 @@ async function handleCreate(req: any, res: any) {
           price,
           duration_minutes,
           is_active,
+          0 AS sessions_count,
           created_at
       `,
       [
@@ -299,6 +312,11 @@ async function handleUpdate(req: any, res: any) {
           price,
           duration_minutes,
           is_active,
+          (
+            SELECT COUNT(*)
+            FROM sessions
+            WHERE sessions.service_id = services.id
+          ) AS sessions_count,
           created_at
       `,
       [
@@ -335,6 +353,15 @@ async function handleDelete(req: any, res: any) {
   }
 
   try {
+    const sessionsCount = await getServiceSessionsCount(payload.id);
+
+    if (sessionsCount > 0) {
+      return res.status(409).json({
+        error:
+          "Эту услугу нельзя удалить, потому что по ней уже есть записи. Вы можете скрыть её из онлайн-записи.",
+      });
+    }
+
     const result = await pool.query<{ id: number }>(
       `
         DELETE FROM services

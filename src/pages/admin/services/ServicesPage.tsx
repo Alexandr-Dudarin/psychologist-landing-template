@@ -29,6 +29,7 @@ export function ServicesPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [hidingId, setHidingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [activityFilter, setActivityFilter] = useState<
@@ -241,6 +242,54 @@ export function ServicesPage() {
     }
   };
 
+  const handleHideService = async (service: CrmServiceRecord) => {
+    if (!service.isActive) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Скрыть услугу из онлайн-записи? Старые записи и история по этой услуге сохранятся."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setHidingId(service.id);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await updateAdminService({
+        id: service.id,
+        title: service.title,
+        description: service.description,
+        price: service.price,
+        durationMinutes: service.durationMinutes,
+        isActive: false,
+      });
+
+      await reloadServices();
+
+      if (editingServiceId === service.id) {
+        setEditForm((prev) => ({
+          ...prev,
+          isActive: false,
+        }));
+      }
+
+      setSuccessMessage("Услуга скрыта из онлайн-записи.");
+    } catch (hideError) {
+      setError(
+        hideError instanceof Error
+          ? hideError.message
+          : "Не удалось скрыть услугу из записи"
+      );
+    } finally {
+      setHidingId(null);
+    }
+  };
+
   const handleDeleteService = async (id: number) => {
     const confirmed = window.confirm(
       "Удалить услугу? Это действие нельзя отменить."
@@ -328,8 +377,10 @@ export function ServicesPage() {
         <ServicesTable
           items={items}
           deletingId={deletingId}
+          hidingId={hidingId}
           onEdit={startEditing}
           onDelete={handleDeleteService}
+          onHide={handleHideService}
         />
       )}
     </main>

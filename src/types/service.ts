@@ -5,6 +5,7 @@ export type CrmServiceRecord = {
   price: number;
   durationMinutes: number;
   isActive: boolean;
+  sessionsCount: number;
   createdAt: string;
 };
 
