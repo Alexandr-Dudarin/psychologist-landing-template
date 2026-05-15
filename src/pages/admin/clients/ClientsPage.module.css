@@ -55,6 +55,26 @@
   composes: rowHighlighted from "../../../components/admin/adminUi.module.css";
 }
 
+.inactiveClientRow td {
+  color: color-mix(in srgb, var(--admin-text) 62%, var(--admin-text-muted));
+  background: color-mix(in srgb, var(--admin-surface-muted) 82%, white);
+}
+
+.inactiveClientRow td:first-child {
+  box-shadow: inset 4px 0 0 color-mix(in srgb, var(--admin-text-muted) 34%, white);
+}
+
+.inactiveClientRow:hover td {
+  background: color-mix(in srgb, var(--admin-surface-muted) 92%, white);
+}
+
+.inactiveClientRow .clientNamePreview,
+.inactiveClientRow .preferredContactValueGroup,
+.inactiveClientRow .createdDate,
+.inactiveClientRow .createdTime {
+  opacity: 0.78;
+}
+
 .quickViewBanner {
   composes: quickViewBanner from "../../../components/admin/adminUi.module.css";
 }
@@ -91,6 +111,12 @@
   scroll-margin-top: 16px;
 }
 
+.statusHelpText {
+  color: var(--admin-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
 .createdCell {
   width: 96px;
   min-width: 88px;
@@ -124,7 +150,7 @@
   display: inline;
 }
 
-.clientNamePart+.clientNamePart::before {
+.clientNamePart + .clientNamePart::before {
   content: " ";
 }
 
@@ -199,6 +225,31 @@
   white-space: nowrap;
 }
 
+.clientStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.clientStatusBadgeActive {
+  border-color: color-mix(in srgb, var(--admin-success) 26%, white);
+  background: var(--admin-success-soft);
+  color: var(--admin-success);
+}
+
+.clientStatusBadgeInactive {
+  border-color: color-mix(in srgb, var(--admin-text-muted) 22%, white);
+  background: color-mix(in srgb, var(--admin-surface-muted) 82%, white);
+  color: var(--admin-text-muted);
+}
+
 .firstRequestCell {
   width: 108px;
   white-space: nowrap;
@@ -223,7 +274,7 @@
   align-items: stretch;
 }
 
-.actionsRow>* {
+.actionsRow > * {
   width: 100%;
 }
 
@@ -235,9 +286,11 @@
 
 .detailsButton.detailsButton:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--admin-accent) 42%, white);
-  background: color-mix(in srgb,
-      var(--admin-accent-soft) 78%,
-      var(--admin-accent) 8%);
+  background: color-mix(
+    in srgb,
+    var(--admin-accent-soft) 78%,
+    var(--admin-accent) 8%
+  );
   color: var(--admin-accent);
 }
 
@@ -455,6 +508,12 @@
     text-align: center;
   }
 
+  .clientStatusBadge {
+    min-height: 26px;
+    padding: 3px 8px;
+    font-size: 0.86rem;
+  }
+
   .actionCell {
     width: 112px;
     min-width: 106px;
@@ -494,7 +553,6 @@
 }
 
 @media (max-width: 640px) {
-
   .phoneCell,
   .statusCell {
     display: none;
@@ -521,7 +579,7 @@
     text-overflow: ellipsis;
   }
 
-  .clientNamePart+.clientNamePart::before {
+  .clientNamePart + .clientNamePart::before {
     content: none;
   }
 
@@ -585,7 +643,7 @@
     display: inline;
   }
 
-  .actionsRow>* {
+  .actionsRow > * {
     min-width: 0;
     min-height: 34px;
     padding-left: 6px;
@@ -677,7 +735,7 @@
     font-size: 0.88rem;
   }
 
-  .actionsRow>* {
+  .actionsRow > * {
     padding-left: 5px;
     padding-right: 5px;
     font-size: 0.78rem;

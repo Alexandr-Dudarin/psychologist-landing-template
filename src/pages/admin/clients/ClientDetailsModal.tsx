@@ -24,6 +24,15 @@ function getPreferredContactLabel(client: CrmClientRecord): string {
   return `${preferredContactMethodLabels[client.preferredContactMethod]}: ${client.preferredContactValue}`;
 }
 
+function getClientStatusBadgeClass(status: ClientStatus): string {
+  return [
+    styles.clientStatusBadge,
+    status === "inactive"
+      ? styles.clientStatusBadgeInactive
+      : styles.clientStatusBadgeActive,
+  ].join(" ");
+}
+
 export function ClientDetailsModal({
   client,
   sourceLabels,
@@ -114,7 +123,9 @@ export function ClientDetailsModal({
           <div className={styles.detailsField}>
             <span className={styles.detailsLabel}>Статус</span>
             <span className={styles.detailsValue}>
-              {statusLabels[client.status]}
+              <span className={getClientStatusBadgeClass(client.status)}>
+                {statusLabels[client.status]}
+              </span>
             </span>
           </div>
 

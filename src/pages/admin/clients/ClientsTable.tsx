@@ -39,6 +39,15 @@ function getCreatedAtParts(value: string) {
   };
 }
 
+function getClientStatusBadgeClass(status: ClientStatus): string {
+  return [
+    styles.clientStatusBadge,
+    status === "inactive"
+      ? styles.clientStatusBadgeInactive
+      : styles.clientStatusBadgeActive,
+  ].join(" ");
+}
+
 export function ClientsTable({
   items,
   createdLabel,
@@ -109,12 +118,18 @@ export function ClientsTable({
           const preferredContactValue = item.preferredContactValue;
           const createdAt = getCreatedAtParts(item.createdAt);
           const nameParts = splitClientName(item.name);
+          const rowClassName = [
+            isHighlighted ? styles.highlightedRow : "",
+            item.status === "inactive" ? styles.inactiveClientRow : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
 
           return (
             <tr
               key={item.id}
               ref={isHighlighted ? highlightedRowRef : null}
-              className={isHighlighted ? styles.highlightedRow : undefined}
+              className={rowClassName || undefined}
             >
               <td className={styles.nameCell}>
                 <span className={styles.clientNamePreview} title={item.name}>
@@ -164,7 +179,11 @@ export function ClientsTable({
                 {sourceLabels[item.source] ?? item.source}
               </td>
 
-              <td className={styles.statusCell}>{statusLabels[item.status]}</td>
+              <td className={styles.statusCell}>
+                <span className={getClientStatusBadgeClass(item.status)}>
+                  {statusLabels[item.status]}
+                </span>
+              </td>
 
               <td className={styles.firstRequestCell}>
                 {item.firstRequestId ? (

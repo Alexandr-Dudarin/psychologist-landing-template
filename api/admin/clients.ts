@@ -407,7 +407,9 @@ async function handleList(req: any, res: any) {
           created_at
         FROM clients
         ${whereClause}
-        ORDER BY created_at DESC
+          ORDER BY
+          CASE WHEN status = 'active' THEN 0 ELSE 1 END,
+          created_at DESC
       `,
       values
     );

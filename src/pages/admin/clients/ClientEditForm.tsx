@@ -152,6 +152,10 @@ export function ClientEditForm({
               </option>
             ))}
           </select>
+          <span className={styles.statusHelpText}>
+            Неактивный клиент остаётся в CRM и истории записей, но помещается вниз списка клиентов 
+            и визуально отделяется от активных клиентов.
+          </span>
         </label>
 
         <div className={styles.buttonRow}>
