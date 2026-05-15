@@ -124,7 +124,7 @@
   display: inline;
 }
 
-.clientNamePart + .clientNamePart::before {
+.clientNamePart+.clientNamePart::before {
   content: " ";
 }
 
@@ -223,7 +223,7 @@
   align-items: stretch;
 }
 
-.actionsRow > * {
+.actionsRow>* {
   width: 100%;
 }
 
@@ -235,11 +235,9 @@
 
 .detailsButton.detailsButton:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--admin-accent) 42%, white);
-  background: color-mix(
-    in srgb,
-    var(--admin-accent-soft) 78%,
-    var(--admin-accent) 8%
-  );
+  background: color-mix(in srgb,
+      var(--admin-accent-soft) 78%,
+      var(--admin-accent) 8%);
   color: var(--admin-accent);
 }
 
@@ -441,6 +439,16 @@
     text-overflow: clip;
   }
 
+  .preferredContactCell.preferredContactCell {
+    text-align: center;
+  }
+
+  .preferredContactShortLabel {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+  }
+
   .statusCell {
     width: 86px;
     min-width: 78px;
@@ -465,10 +473,6 @@
     display: none;
   }
 
-  .preferredContactShortLabel {
-    display: inline;
-  }
-
   .preferredContactEmpty {
     text-align: center;
   }
@@ -490,6 +494,7 @@
 }
 
 @media (max-width: 640px) {
+
   .phoneCell,
   .statusCell {
     display: none;
@@ -516,7 +521,7 @@
     text-overflow: ellipsis;
   }
 
-  .clientNamePart + .clientNamePart::before {
+  .clientNamePart+.clientNamePart::before {
     content: none;
   }
 
@@ -580,7 +585,7 @@
     display: inline;
   }
 
-  .actionsRow > * {
+  .actionsRow>* {
     min-width: 0;
     min-height: 34px;
     padding-left: 6px;
@@ -672,7 +677,7 @@
     font-size: 0.88rem;
   }
 
-  .actionsRow > * {
+  .actionsRow>* {
     padding-left: 5px;
     padding-right: 5px;
     font-size: 0.78rem;

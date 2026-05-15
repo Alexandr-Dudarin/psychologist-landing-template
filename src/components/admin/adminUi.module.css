@@ -4,6 +4,12 @@
   --admin-surface-soft: #faf7ef;
   --admin-border: #d7dee6;
   --admin-border-strong: #c5ced8;
+  --admin-table-frame: #b8c4cf;
+  --admin-table-header-divider: #b7c3cf;
+  --admin-table-row-divider: #b8c6d3;
+  --admin-table-header-bg: #f0f4f8;
+  --admin-table-hover: #f8fafc;
+  --admin-table-frame-shadow: 0 10px 28px rgba(32, 48, 60, 0.08);
   --admin-text: #20303c;
   --admin-text-muted: #5d6b78;
   --admin-accent: #2f5d78;
@@ -217,9 +223,10 @@
 
 .tableWrapper {
   overflow-x: auto;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-lg);
+  border: 2px solid var(--admin-table-frame);
+  border-radius: calc(var(--admin-radius-lg) + 2px);
   background: var(--admin-surface);
+  box-shadow: var(--admin-table-frame-shadow);
 }
 
 .tableWrapperSpaced {
@@ -233,18 +240,18 @@
 
 .table th {
   padding: 12px 14px;
-  border-bottom: 1px solid var(--admin-border);
+  border-bottom: 2px solid var(--admin-table-header-divider);
   font-weight: 600;
   font-size: 0.9rem;
   text-align: left;
   color: var(--admin-text-muted);
-  background: var(--admin-surface-muted);
+  background: var(--admin-table-header-bg);
   white-space: nowrap;
 }
 
 .table td {
   padding: 14px;
-  border-bottom: 1px solid var(--admin-border);
+  border-bottom: 2px solid var(--admin-table-row-divider);
   vertical-align: top;
   color: var(--admin-text);
 }
@@ -254,7 +261,7 @@
 }
 
 .table tbody tr:hover td {
-  background: #fbfcfd;
+  background: var(--admin-table-hover);
 }
 
 .quickViewBanner {
