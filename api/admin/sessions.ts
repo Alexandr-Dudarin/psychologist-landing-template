@@ -358,7 +358,17 @@ async function handleList(req: any, res: any) {
         INNER JOIN clients c ON c.id = s.client_id
         INNER JOIN services sv ON sv.id = s.service_id
         ${whereClause}
-        ORDER BY s.scheduled_at DESC
+                ORDER BY
+          CASE
+            WHEN s.status = 'scheduled' AND s.scheduled_at >= NOW() THEN 0
+            WHEN s.status = 'scheduled' AND s.scheduled_at < NOW() THEN 1
+            ELSE 2
+          END ASC,
+          CASE
+            WHEN s.status = 'scheduled' AND s.scheduled_at >= NOW()
+            THEN s.scheduled_at
+          END ASC NULLS LAST,
+          s.scheduled_at DESC
       `,
       values
     );

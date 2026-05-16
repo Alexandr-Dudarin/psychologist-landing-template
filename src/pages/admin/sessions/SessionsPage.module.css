@@ -212,19 +212,79 @@
   overflow-wrap: break-word;
 }
 
+.pastScheduledRow td {
+  background: color-mix(in srgb, var(--admin-highlight) 18%, var(--admin-surface));
+}
+
+.pastScheduledRow:hover td {
+  background: color-mix(in srgb, var(--admin-highlight) 26%, var(--admin-surface));
+}
+
+.finalSessionRow td {
+  color: color-mix(in srgb, var(--admin-text) 72%, var(--admin-text-muted));
+  background: color-mix(in srgb, var(--admin-surface-muted) 34%, var(--admin-surface));
+}
+
+.finalSessionRow:hover td {
+  background: color-mix(in srgb, var(--admin-surface-muted) 52%, var(--admin-surface));
+}
+
+.statusCellContent {
+  display: grid;
+  gap: 6px;
+  align-items: start;
+}
+
+.statusHint {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  color: color-mix(in srgb, var(--admin-highlight-border) 72%, var(--admin-text));
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
 .statusBadge,
 .sourceBadge {
   display: inline-flex;
   align-items: center;
+  width: max-content;
+  max-width: 100%;
   padding: 6px 10px;
+  border: 1px solid transparent;
   border-radius: 999px;
   font-size: 0.85rem;
   line-height: 1.2;
 }
 
-.statusBadge {
+.statusBadgeScheduled {
   background: var(--admin-accent-soft);
   color: var(--admin-accent);
+  border-color: color-mix(in srgb, var(--admin-accent) 18%, white);
+}
+
+.statusBadgePastScheduled {
+  background: var(--admin-highlight);
+  color: color-mix(in srgb, var(--admin-highlight-border) 74%, var(--admin-text));
+  border-color: color-mix(in srgb, var(--admin-highlight-border) 36%, white);
+}
+
+.statusBadgeCompleted {
+  background: var(--admin-success-soft);
+  color: var(--admin-success);
+  border-color: color-mix(in srgb, var(--admin-success) 22%, white);
+}
+
+.statusBadgeCancelled {
+  background: var(--admin-surface-muted);
+  color: var(--admin-text-muted);
+  border-color: var(--admin-border);
+}
+
+.statusBadgeNoShow {
+  background: var(--admin-danger-soft);
+  color: var(--admin-danger);
+  border-color: color-mix(in srgb, var(--admin-danger) 22%, white);
 }
 
 .sourceBadge {

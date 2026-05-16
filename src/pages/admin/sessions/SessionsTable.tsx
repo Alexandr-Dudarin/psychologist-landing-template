@@ -21,6 +21,60 @@ type SessionsTableProps = {
   onDelete: (id: number) => void;
 };
 
+function isPastScheduledSession(item: CrmSessionRecord): boolean {
+  if (item.status !== "scheduled") {
+    return false;
+  }
+
+  const startsAt = new Date(item.scheduledAt).getTime();
+
+  if (Number.isNaN(startsAt)) {
+    return false;
+  }
+
+  const endsAt = startsAt + item.durationMinutes * 60_000;
+
+  return endsAt < Date.now();
+}
+
+function getRowClassName(
+  item: CrmSessionRecord,
+  isHighlighted: boolean,
+  isPastScheduled: boolean
+): string {
+  return [
+    styles.sessionRow,
+    isHighlighted ? styles.highlightedRow : "",
+    isPastScheduled ? styles.pastScheduledRow : "",
+    item.status !== "scheduled" ? styles.finalSessionRow : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function getStatusBadgeClassName(
+  item: CrmSessionRecord,
+  isPastScheduled: boolean
+): string {
+  if (isPastScheduled) {
+    return `${styles.statusBadge} ${styles.statusBadgePastScheduled}`;
+  }
+
+  if (item.status === "completed") {
+    return `${styles.statusBadge} ${styles.statusBadgeCompleted}`;
+  }
+
+  if (item.status === "cancelled") {
+    return `${styles.statusBadge} ${styles.statusBadgeCancelled}`;
+  }
+
+  if (item.status === "no_show") {
+    return `${styles.statusBadge} ${styles.statusBadgeNoShow}`;
+  }
+
+  return `${styles.statusBadge} ${styles.statusBadgeScheduled}`;
+}
+
 export function SessionsTable({
   items,
   isLoading,
@@ -72,12 +126,13 @@ export function SessionsTable({
           const isHighlighted =
             highlightedSessionId !== null &&
             Number(highlightedSessionId) === Number(item.id);
+          const isPastScheduled = isPastScheduledSession(item);
 
           return (
             <tr
               key={item.id}
               ref={isHighlighted ? highlightedRowRef : null}
-              className={`${styles.sessionRow} ${isHighlighted ? styles.highlightedRow : ""}`}
+              className={getRowClassName(item, isHighlighted, isPastScheduled)}
             >
               <td className={styles.clientCell} data-label="Клиент">
                 <Link
@@ -111,8 +166,16 @@ export function SessionsTable({
               </td>
 
               <td className={styles.statusCell} data-label="Статус">
-                <span className={styles.statusBadge}>
-                  {sessionStatusLabels[item.status]}
+                <span className={styles.statusCellContent}>
+                  <span className={getStatusBadgeClassName(item, isPastScheduled)}>
+                    {sessionStatusLabels[item.status]}
+                  </span>
+
+                  {isPastScheduled ? (
+                    <span className={styles.statusHint}>
+                      Прошла по времени
+                    </span>
+                  ) : null}
                 </span>
               </td>
 
