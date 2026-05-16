@@ -169,6 +169,21 @@ export function ClientsPage() {
     }
   };
 
+  const handleStatusFilterChange = (value: ClientStatus | "all") => {
+    setStatusFilter(value);
+    resetMessages();
+  };
+
+  const handleFavoriteFilterChange = (value: ClientFavoriteFilter) => {
+    setFavoriteFilter(value);
+    resetMessages();
+  };
+
+  const handleSearchQueryChange = (value: string) => {
+    setSearchQuery(value);
+    resetMessages();
+  };
+
   const handleFormChange = (field: keyof ManualClientForm, value: string) => {
     setForm((prev) => ({
       ...prev,
@@ -289,6 +304,7 @@ export function ClientsPage() {
 
   const openClientDetails = (client: CrmClientRecord) => {
     setSelectedClientId(client.id);
+    resetMessages();
   };
 
   const closeClientDetails = () => {
@@ -298,6 +314,7 @@ export function ClientsPage() {
   const cancelEditing = () => {
     setEditingClientId(null);
     setEditForm(initialForm);
+    resetMessages();
   };
 
   const handleToggleFavorite = async (client: CrmClientRecord) => {
@@ -420,6 +437,7 @@ export function ClientsPage() {
     setStatusFilter("all");
     setFavoriteFilter("all");
     setHighlightedClientId(null);
+    resetMessages();
     navigate("/admin/clients");
   };
 
@@ -469,9 +487,9 @@ export function ClientsPage() {
         statusFilter={statusFilter}
         favoriteFilter={favoriteFilter}
         statusOptions={statusOptions}
-        onSearchChange={setSearchQuery}
-        onStatusChange={setStatusFilter}
-        onFavoriteChange={setFavoriteFilter}
+        onSearchChange={handleSearchQueryChange}
+        onStatusChange={handleStatusFilterChange}
+        onFavoriteChange={handleFavoriteFilterChange}
       />
 
       {hasQuickViewState ? (

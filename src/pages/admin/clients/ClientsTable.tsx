@@ -275,7 +275,7 @@ export function ClientsTable({
                     onClick={() => onViewDetails(item)}
                   >
                     <span className={styles.detailsLabelFull}>Подробнее</span>
-                    <span className={styles.detailsLabelShort}>Данные</span>
+                    <span className={styles.detailsLabelShort}>Инфо</span>
                   </AdminButton>
                 </div>
               </td>

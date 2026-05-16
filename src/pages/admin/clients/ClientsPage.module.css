@@ -78,6 +78,7 @@
 
 .quickViewBanner {
   composes: quickViewBanner from "../../../components/admin/adminUi.module.css";
+  align-items: flex-start;
 }
 
 .quickViewText {
@@ -98,6 +99,8 @@
 
 .quickViewActions {
   composes: quickViewActions from "../../../components/admin/adminUi.module.css";
+  align-self: flex-start;
+  padding-top: 0;
 }
 
 .secondaryText {
