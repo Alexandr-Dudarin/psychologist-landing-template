@@ -17,6 +17,7 @@ type SessionsTableProps = {
   deletingId: number | null;
   timezone: string;
   highlightedSessionId?: number | null;
+  emptyMessage?: string;
   onEdit: (session: CrmSessionRecord) => void;
   onDelete: (id: number) => void;
 };
@@ -81,6 +82,7 @@ export function SessionsTable({
   deletingId,
   timezone,
   highlightedSessionId = null,
+  emptyMessage = "Сессий пока нет.",
   onEdit,
   onDelete,
 }: SessionsTableProps) {
@@ -102,7 +104,7 @@ export function SessionsTable({
   }
 
   if (items.length === 0) {
-    return <p>Сессий пока нет.</p>;
+    return <p>{emptyMessage}</p>;
   }
 
   return (
@@ -167,7 +169,9 @@ export function SessionsTable({
 
               <td className={styles.statusCell} data-label="Статус">
                 <span className={styles.statusCellContent}>
-                  <span className={getStatusBadgeClassName(item, isPastScheduled)}>
+                  <span
+                    className={getStatusBadgeClassName(item, isPastScheduled)}
+                  >
                     {sessionStatusLabels[item.status]}
                   </span>
 

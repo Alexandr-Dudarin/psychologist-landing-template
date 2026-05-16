@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import {
   getDefaultBookingTimezone,
@@ -38,17 +39,25 @@ import {
 } from "./sessionsPageValidation";
 import { SessionsQuickViewBanner } from "./SessionsQuickViewBanner";
 import { SessionsTable } from "./SessionsTable";
+import styles from "./SessionsPage.module.css";
+
+function isArchivedStatus(status: SessionStatus | "all") {
+  return status === "completed" || status === "cancelled" || status === "no_show";
+}
 
 export function SessionsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmSessionRecord[]>([]);
+  const [archivedItems, setArchivedItems] = useState<CrmSessionRecord[]>([]);
   const [clients, setClients] = useState<CrmClientRecord[]>([]);
   const [services, setServices] = useState<CrmServiceRecord[]>([]);
   const [scheduleTimezone, setScheduleTimezone] = useState(
     getDefaultBookingTimezone()
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [isArchivedLoading, setIsArchivedLoading] = useState(false);
+  const [showArchivedSessions, setShowArchivedSessions] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -72,6 +81,13 @@ export function SessionsPage() {
     () => services.filter((service) => service.isActive),
     [services]
   );
+
+  const isArchivedFilterActive = isArchivedStatus(statusFilter);
+  const shouldLoadActiveSessions =
+    statusFilter === "all" || statusFilter === "scheduled";
+  const shouldShowArchivedPanel =
+    statusFilter === "all" || isArchivedFilterActive;
+  const canToggleArchivedSessions = statusFilter === "all";
 
   useEffect(() => {
     const clientIdFromUrl = searchParams.get("clientId");
@@ -106,6 +122,18 @@ export function SessionsPage() {
   }, [searchParams]);
 
   useEffect(() => {
+    if (isArchivedFilterActive) {
+      setShowArchivedSessions(true);
+      return;
+    }
+
+    if (statusFilter === "scheduled") {
+      setShowArchivedSessions(false);
+      setArchivedItems([]);
+    }
+  }, [isArchivedFilterActive, statusFilter]);
+
+  useEffect(() => {
     let isMounted = true;
 
     async function load() {
@@ -115,13 +143,18 @@ export function SessionsPage() {
           setError("");
         }
 
-        const [sessionsData, clientsData, servicesData, scheduleData] =
-          await Promise.all([
-            getAdminSessions({
+        const activeSessionsPromise = shouldLoadActiveSessions
+          ? getAdminSessions({
+              scope: "active",
               status: statusFilter,
               clientId: clientFilter,
               search: searchQuery,
-            }),
+            })
+          : Promise.resolve([]);
+
+        const [sessionsData, clientsData, servicesData, scheduleData] =
+          await Promise.all([
+            activeSessionsPromise,
             getAdminClients(),
             getAdminServices(),
             getAdminSchedule(),
@@ -155,7 +188,53 @@ export function SessionsPage() {
     return () => {
       isMounted = false;
     };
-  }, [statusFilter, clientFilter, searchQuery]);
+  }, [statusFilter, clientFilter, searchQuery, shouldLoadActiveSessions]);
+
+  useEffect(() => {
+    if (!showArchivedSessions) {
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadArchivedSessions() {
+      try {
+        if (isMounted) {
+          setIsArchivedLoading(true);
+          setError("");
+        }
+
+        const archivedSessionsData = await getAdminSessions({
+          scope: "archived",
+          status: statusFilter,
+          clientId: clientFilter,
+          search: searchQuery,
+        });
+
+        if (isMounted) {
+          setArchivedItems(archivedSessionsData);
+        }
+      } catch (loadError) {
+        if (isMounted) {
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Не удалось загрузить завершённые сессии"
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsArchivedLoading(false);
+        }
+      }
+    }
+
+    loadArchivedSessions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [showArchivedSessions, statusFilter, clientFilter, searchQuery]);
 
   useEffect(() => {
     if (editingSessionId === null) {
@@ -171,13 +250,30 @@ export function SessionsPage() {
   }, [editingSessionId]);
 
   const reloadSessions = async () => {
-    const sessionsData = await getAdminSessions({
-      status: statusFilter,
-      clientId: clientFilter,
-      search: searchQuery,
-    });
+    const [sessionsData, archivedSessionsData] = await Promise.all([
+      shouldLoadActiveSessions
+        ? getAdminSessions({
+            scope: "active",
+            status: statusFilter,
+            clientId: clientFilter,
+            search: searchQuery,
+          })
+        : Promise.resolve([]),
+      showArchivedSessions
+        ? getAdminSessions({
+            scope: "archived",
+            status: statusFilter,
+            clientId: clientFilter,
+            search: searchQuery,
+          })
+        : Promise.resolve(null),
+    ]);
 
     setItems(sessionsData);
+
+    if (archivedSessionsData !== null) {
+      setArchivedItems(archivedSessionsData);
+    }
   };
 
   const resetFeedback = () => {
@@ -190,10 +286,7 @@ export function SessionsPage() {
     }
   };
 
-  const handleCreateFormChange = (
-    field: keyof SessionForm,
-    value: string
-  ) => {
+  const handleCreateFormChange = (field: keyof SessionForm, value: string) => {
     setCreateForm((prev) =>
       updateSessionFormField(prev, field, value, services)
     );
@@ -334,7 +427,18 @@ export function SessionsPage() {
     setClientFilter("all");
     setSearchQuery("");
     setHighlightedSessionId(null);
+    setShowArchivedSessions(false);
+    setArchivedItems([]);
     navigate("/admin/sessions");
+  };
+
+  const handleShowArchivedSessions = () => {
+    setShowArchivedSessions(true);
+  };
+
+  const handleHideArchivedSessions = () => {
+    setShowArchivedSessions(false);
+    setArchivedItems([]);
   };
 
   const hasQuickViewState =
@@ -366,7 +470,7 @@ export function SessionsPage() {
       />
 
       {editingSessionId !== null ? (
-        <div ref={editFormRef} style={{ scrollMarginTop: 16 }}>
+        <div ref={editFormRef} className={styles.editFormAnchor}>
           <SessionEditForm
             clients={clients}
             activeServices={activeServices}
@@ -393,15 +497,61 @@ export function SessionsPage() {
       <AdminFeedback message={error} tone="error" />
       <AdminFeedback message={successMessage} tone="success" />
 
-      <SessionsTable
-        items={items}
-        isLoading={isLoading}
-        deletingId={deletingId}
-        timezone={scheduleTimezone}
-        highlightedSessionId={highlightedSessionId}
-        onEdit={startEditing}
-        onDelete={handleDeleteSession}
-      />
+      {shouldLoadActiveSessions ? (
+        <SessionsTable
+          items={items}
+          isLoading={isLoading}
+          deletingId={deletingId}
+          timezone={scheduleTimezone}
+          highlightedSessionId={highlightedSessionId}
+          emptyMessage="Запланированных сессий пока нет."
+          onEdit={startEditing}
+          onDelete={handleDeleteSession}
+        />
+      ) : null}
+
+      {shouldShowArchivedPanel ? (
+        <section className={styles.archivedSessionsPanel}>
+          <div className={styles.archivedSessionsText}>
+            <h2 className={styles.archivedSessionsTitle}>
+              Завершённые сессии
+            </h2>
+            <p className={styles.archivedSessionsHint}>
+              Проведённые, отменённые сессии и неявки загружаются отдельно.
+              Фильтр по клиенту и поиск применяются и к этому списку тоже.
+            </p>
+          </div>
+
+          {canToggleArchivedSessions ? (
+            <AdminButton
+              type="button"
+              variant="secondary"
+              onClick={
+                showArchivedSessions
+                  ? handleHideArchivedSessions
+                  : handleShowArchivedSessions
+              }
+            >
+              {showArchivedSessions
+                ? "Скрыть завершённые"
+                : "Показать завершённые"}
+            </AdminButton>
+          ) : null}
+        </section>
+      ) : null}
+
+      {showArchivedSessions ? (
+        <SessionsTable
+          items={archivedItems}
+          isLoading={isArchivedLoading}
+          deletingId={deletingId}
+          timezone={scheduleTimezone}
+          highlightedSessionId={highlightedSessionId}
+          emptyMessage="Завершённых сессий пока нет."
+          onEdit={startEditing}
+          onDelete={handleDeleteSession}
+        />
+      ) : null}
     </main>
   );
 }

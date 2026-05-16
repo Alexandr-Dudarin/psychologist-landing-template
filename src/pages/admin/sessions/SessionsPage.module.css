@@ -7,7 +7,7 @@
   width: 100%;
 }
 
-.form>* {
+.form > * {
   min-width: 0;
 }
 
@@ -17,6 +17,10 @@
 
 .buttonRow {
   composes: buttonRow from "../../../components/admin/adminUi.module.css";
+}
+
+.editFormAnchor {
+  scroll-margin-top: 16px;
 }
 
 .filterSelect {
@@ -84,6 +88,39 @@
 
 .quickViewActions {
   composes: quickViewActions from "../../../components/admin/adminUi.module.css";
+}
+
+.archivedSessionsPanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--admin-gap-lg);
+  flex-wrap: wrap;
+  margin-top: var(--admin-gap-lg);
+  padding: 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  background: color-mix(in srgb, var(--admin-surface-muted) 72%, white);
+}
+
+.archivedSessionsText {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.archivedSessionsTitle {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.archivedSessionsHint {
+  margin: 0;
+  max-width: 760px;
+  color: var(--admin-text-muted);
+  line-height: 1.45;
 }
 
 .highlightedRow {
@@ -213,11 +250,19 @@
 }
 
 .pastScheduledRow td {
-  background: color-mix(in srgb, var(--admin-highlight) 18%, var(--admin-surface));
+  background: color-mix(
+    in srgb,
+    var(--admin-highlight) 18%,
+    var(--admin-surface)
+  );
 }
 
 .pastScheduledRow:hover td {
-  background: color-mix(in srgb, var(--admin-highlight) 26%, var(--admin-surface));
+  background: color-mix(
+    in srgb,
+    var(--admin-highlight) 26%,
+    var(--admin-surface)
+  );
 }
 
 .finalSessionRow td {
@@ -226,7 +271,8 @@
 }
 
 .finalSessionRow td:first-child {
-  box-shadow: inset 4px 0 0 color-mix(in srgb, var(--admin-text-muted) 34%, white);
+  box-shadow: inset 4px 0 0
+    color-mix(in srgb, var(--admin-text-muted) 34%, white);
 }
 
 .finalSessionRow:hover td {
@@ -428,12 +474,13 @@
   }
 
   .finalSessionRow {
-  box-shadow: inset 4px 0 0 color-mix(in srgb, var(--admin-text-muted) 34%, white);
-}
+    box-shadow: inset 4px 0 0
+      color-mix(in srgb, var(--admin-text-muted) 34%, white);
+  }
 
-.finalSessionRow td:first-child {
-  box-shadow: none;
-}
+  .finalSessionRow td:first-child {
+    box-shadow: none;
+  }
 
   .sessionRow {
     display: grid;

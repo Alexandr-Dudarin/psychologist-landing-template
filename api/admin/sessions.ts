@@ -4,9 +4,13 @@ import { pool } from "../../server/db/pool.js";
 import { processSessionReminders } from "../../server/reminders/processSessionReminders.js";
 import type {
   CrmSessionRecord,
+  SessionListScope,
   SessionStatus,
 } from "../../src/types/session.js";
-import { sessionStatuses } from "../../src/types/session.js";
+import {
+  sessionListScopes,
+  sessionStatuses,
+} from "../../src/types/session.js";
 
 type ParsedCreatePayload = {
   clientId: number;
@@ -139,7 +143,7 @@ function parseCreateBody(body: any): ParsedCreatePayload | null {
   const price = Number(rawBody?.price);
   const status =
     typeof rawBody?.status === "string" &&
-    sessionStatuses.includes(rawBody.status as SessionStatus)
+      sessionStatuses.includes(rawBody.status as SessionStatus)
       ? (rawBody.status as SessionStatus)
       : "scheduled";
   const notes =
@@ -201,7 +205,7 @@ function parseUpdateBody(body: any): ParsedUpdatePayload | null {
   const price = Number(rawBody?.price);
   const status =
     typeof rawBody?.status === "string" &&
-    sessionStatuses.includes(rawBody.status as SessionStatus)
+      sessionStatuses.includes(rawBody.status as SessionStatus)
       ? (rawBody.status as SessionStatus)
       : null;
   const notes =
@@ -295,11 +299,24 @@ async function selectSession(id: string | number) {
 
 async function handleList(req: any, res: any) {
   const status = getSingleQueryValue(req.query?.status).trim();
+  const scope = getSingleQueryValue(req.query?.scope).trim();
   const clientIdRaw = getSingleQueryValue(req.query?.clientId).trim();
   const search = getSingleQueryValue(req.query?.search).trim();
 
   const conditions: string[] = [];
   const values: Array<string | number> = [];
+
+  if (scope && !sessionListScopes.includes(scope as SessionListScope)) {
+    return res.status(400).json({ error: "Некорректный режим списка" });
+  }
+
+  if (scope === "active") {
+    conditions.push(`s.status = 'scheduled'`);
+  }
+
+  if (scope === "archived") {
+    conditions.push(`s.status IN ('completed', 'cancelled', 'no_show')`);
+  }
 
   if (status && status !== "all") {
     if (!sessionStatuses.includes(status as SessionStatus)) {

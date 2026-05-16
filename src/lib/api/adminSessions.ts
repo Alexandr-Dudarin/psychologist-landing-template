@@ -1,6 +1,7 @@
 import type {
   CrmSessionRecord,
   CreateSessionPayload,
+  SessionListScope,
   SessionStatus,
   UpdateSessionPayload,
 } from "../../types/session";
@@ -44,6 +45,7 @@ export type AdminSessionsFilters = {
   status?: SessionStatus | "all";
   clientId?: number | "all";
   search?: string;
+  scope?: SessionListScope;
 };
 
 export async function getAdminSessions(
@@ -53,6 +55,10 @@ export async function getAdminSessions(
 
   if (filters.status) {
     params.set("status", filters.status);
+  }
+
+  if (filters.scope) {
+    params.set("scope", filters.scope);
   }
 
   if (filters.clientId !== undefined) {

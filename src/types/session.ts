@@ -7,6 +7,10 @@ export const sessionStatuses = [
 
 export type SessionStatus = (typeof sessionStatuses)[number];
 
+export const sessionListScopes = ["active", "archived", "all"] as const;
+
+export type SessionListScope = (typeof sessionListScopes)[number];
+
 export type CrmSessionRecord = {
   id: number;
   clientId: number;
