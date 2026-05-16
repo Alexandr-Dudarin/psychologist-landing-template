@@ -1,8 +1,21 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
+import {
+  assignClientServicePackage,
+  getClientServicePackages,
+} from "../../../lib/api/adminClients";
+import { getAdminServicePackagePlans } from "../../../lib/api/adminServices";
+import { formatAdminPriceInput } from "../../../lib/format/adminPriceInput";
 import { preferredContactMethodLabels } from "../../../lib/preferredContact";
-import type { ClientStatus, CrmClientRecord } from "../../../types/client";
+import type {
+  ClientServicePackageStatus,
+  ClientStatus,
+  CrmClientRecord,
+  CrmClientServicePackageRecord,
+} from "../../../types/client";
+import type { CrmServicePackagePlanRecord } from "../../../types/service";
 import styles from "./ClientsPage.module.css";
 
 type ClientDetailsModalProps = {
@@ -10,6 +23,12 @@ type ClientDetailsModalProps = {
   sourceLabels: Record<string, string>;
   statusLabels: Record<ClientStatus, string>;
   onClose: () => void;
+};
+
+const clientPackageStatusLabels: Record<ClientServicePackageStatus, string> = {
+  active: "Активен",
+  used: "Израсходован",
+  cancelled: "Отменён",
 };
 
 function formatDateTime(value: string): string {
@@ -33,12 +52,35 @@ function getClientStatusBadgeClass(status: ClientStatus): string {
   ].join(" ");
 }
 
+function getPackageStatusClass(status: ClientServicePackageStatus): string {
+  return [
+    styles.packageStatusBadge,
+    status === "active" ? styles.packageStatusActive : "",
+    status === "used" ? styles.packageStatusUsed : "",
+    status === "cancelled" ? styles.packageStatusCancelled : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 export function ClientDetailsModal({
   client,
   sourceLabels,
   statusLabels,
   onClose,
 }: ClientDetailsModalProps) {
+  const [packagePlans, setPackagePlans] = useState<
+    CrmServicePackagePlanRecord[]
+  >([]);
+  const [clientPackages, setClientPackages] = useState<
+    CrmClientServicePackageRecord[]
+  >([]);
+  const [selectedPackagePlanId, setSelectedPackagePlanId] = useState("");
+  const [isPackagesLoading, setIsPackagesLoading] = useState(true);
+  const [isAssigningPackage, setIsAssigningPackage] = useState(false);
+  const [packageError, setPackageError] = useState("");
+  const [packageSuccess, setPackageSuccess] = useState("");
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -60,7 +102,118 @@ export function ClientDetailsModal({
     };
   }, [onClose]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadPackages() {
+      try {
+        setIsPackagesLoading(true);
+        setPackageError("");
+        setPackageSuccess("");
+
+        const [plans, packages] = await Promise.all([
+          getAdminServicePackagePlans(),
+          getClientServicePackages(client.id),
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setPackagePlans(plans);
+        setClientPackages(packages);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        setPackageError(
+          error instanceof Error
+            ? error.message
+            : "Не удалось загрузить пакеты клиента"
+        );
+      } finally {
+        if (isMounted) {
+          setIsPackagesLoading(false);
+        }
+      }
+    }
+
+    loadPackages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [client.id]);
+
+  const activePackagePlans = useMemo(
+    () =>
+      packagePlans.filter(
+        (packagePlan) => packagePlan.isActive && packagePlan.serviceIsActive
+      ),
+    [packagePlans]
+  );
+
   const sourceLabel = sourceLabels[client.source] ?? client.source;
+
+  const reloadClientPackages = async () => {
+    const packages = await getClientServicePackages(client.id);
+
+    setClientPackages(packages);
+  };
+
+  const handleAssignPackage = async (event: FormEvent) => {
+    event.preventDefault();
+
+    const packagePlanId = Number(selectedPackagePlanId);
+
+    if (!Number.isInteger(packagePlanId) || packagePlanId <= 0) {
+      setPackageError("Выберите пакет услуг.");
+      setPackageSuccess("");
+      return;
+    }
+
+    if (client.status !== "active") {
+      setPackageError("Пакет можно добавить только активному клиенту.");
+      setPackageSuccess("");
+      return;
+    }
+
+    setIsAssigningPackage(true);
+    setPackageError("");
+    setPackageSuccess("");
+
+    try {
+      const assignedPackage = await assignClientServicePackage({
+        clientId: client.id,
+        packagePlanId,
+      });
+
+      await reloadClientPackages();
+
+      setSelectedPackagePlanId("");
+      setPackageSuccess(`Пакет добавлен. Код: ${assignedPackage.code}`);
+    } catch (error) {
+      setPackageError(
+        error instanceof Error
+          ? error.message
+          : "Не удалось добавить пакет клиенту"
+      );
+    } finally {
+      setIsAssigningPackage(false);
+    }
+  };
+
+  const handleCopyPackageCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setPackageError("");
+      setPackageSuccess("Код пакета скопирован.");
+    } catch {
+      setPackageError("Не удалось скопировать код автоматически.");
+      setPackageSuccess("");
+    }
+  };
 
   return (
     <div
@@ -156,6 +309,132 @@ export function ClientDetailsModal({
             </span>
           </div>
         </div>
+
+        <section className={styles.packageSection}>
+          <div className={styles.packageSectionHeader}>
+            <div>
+              <h3 className={styles.packageSectionTitle}>Пакеты услуг</h3>
+              <p className={styles.packageSectionText}>
+                Здесь можно вручную добавить клиенту пакет и посмотреть код,
+                остаток сессий и историю выданных пакетов.
+              </p>
+            </div>
+          </div>
+
+          <form className={styles.packageAssignForm} onSubmit={handleAssignPackage}>
+            <select
+              className={`${styles.input} ${styles.select}`}
+              value={selectedPackagePlanId}
+              onChange={(event) => {
+                setSelectedPackagePlanId(event.target.value);
+                setPackageError("");
+                setPackageSuccess("");
+              }}
+              disabled={
+                isAssigningPackage ||
+                isPackagesLoading ||
+                activePackagePlans.length === 0 ||
+                client.status !== "active"
+              }
+            >
+              <option value="">Выберите пакет</option>
+              {activePackagePlans.map((packagePlan) => (
+                <option key={packagePlan.id} value={packagePlan.id}>
+                  {packagePlan.title} — {packagePlan.sessionsCount} сесс. /{" "}
+                  {formatAdminPriceInput(packagePlan.price)} ₽
+                </option>
+              ))}
+            </select>
+
+            <AdminButton
+              type="submit"
+              variant="primary"
+              disabled={
+                isAssigningPackage ||
+                isPackagesLoading ||
+                activePackagePlans.length === 0 ||
+                client.status !== "active"
+              }
+            >
+              {isAssigningPackage ? "Добавляем..." : "Добавить пакет"}
+            </AdminButton>
+          </form>
+
+          {client.status !== "active" ? (
+            <p className={styles.packageHint}>
+              Пакет можно добавить только активному клиенту.
+            </p>
+          ) : null}
+
+          {!isPackagesLoading && activePackagePlans.length === 0 ? (
+            <p className={styles.packageHint}>
+              Активных пакетов услуг пока нет. Создайте пакет в разделе
+              «Услуги».
+            </p>
+          ) : null}
+
+          {packageError ? (
+            <p className={styles.packageError}>{packageError}</p>
+          ) : null}
+
+          {packageSuccess ? (
+            <p className={styles.packageSuccess}>{packageSuccess}</p>
+          ) : null}
+
+          {isPackagesLoading ? (
+            <p className={styles.packageHint}>Загрузка пакетов...</p>
+          ) : clientPackages.length === 0 ? (
+            <p className={styles.packageHint}>
+              У клиента пока нет выданных пакетов.
+            </p>
+          ) : (
+            <div className={styles.packageList}>
+              {clientPackages.map((clientPackage) => (
+                <article key={clientPackage.id} className={styles.packageCard}>
+                  <div className={styles.packageCardHeader}>
+                    <div>
+                      <h4 className={styles.packageCardTitle}>
+                        {clientPackage.packageTitle}
+                      </h4>
+                      <p className={styles.packageCardMeta}>
+                        {clientPackage.serviceTitle} ·{" "}
+                        {clientPackage.serviceDurationMinutes} мин ·{" "}
+                        {formatAdminPriceInput(clientPackage.price)} ₽
+                      </p>
+                    </div>
+
+                    <span className={getPackageStatusClass(clientPackage.status)}>
+                      {clientPackageStatusLabels[clientPackage.status]}
+                    </span>
+                  </div>
+
+                  <div className={styles.packageProgress}>
+                    Осталось {clientPackage.remainingSessions} из{" "}
+                    {clientPackage.totalSessions} сессий
+                  </div>
+
+                  <div className={styles.packageCodeRow}>
+                    <span className={styles.packageCodeLabel}>Код</span>
+                    <span className={styles.packageCodeValue}>
+                      {clientPackage.code}
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.packageCodeButton}
+                      onClick={() => handleCopyPackageCode(clientPackage.code)}
+                    >
+                      Скопировать
+                    </button>
+                  </div>
+
+                  <p className={styles.packageCardMeta}>
+                    Выдан: {formatDateTime(clientPackage.createdAt)}
+                  </p>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
 
         <div className={styles.detailsActions}>
           <Link

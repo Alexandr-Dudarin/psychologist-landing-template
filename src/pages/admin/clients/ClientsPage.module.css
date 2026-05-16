@@ -510,6 +510,193 @@
   background: var(--admin-surface-muted);
 }
 
+
+.packageSection {
+  display: grid;
+  gap: 14px;
+  padding: 0 20px 20px;
+}
+
+.packageSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.packageSectionTitle {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 1.08rem;
+  line-height: 1.3;
+}
+
+.packageSectionText {
+  margin: 6px 0 0;
+  color: var(--admin-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.packageAssignForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.packageHint {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.packageError,
+.packageSuccess {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--admin-radius-md);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.packageError {
+  border: 1px solid color-mix(in srgb, var(--admin-danger) 26%, white);
+  background: var(--admin-danger-soft);
+  color: var(--admin-danger);
+}
+
+.packageSuccess {
+  border: 1px solid color-mix(in srgb, var(--admin-success) 24%, white);
+  background: var(--admin-success-soft);
+  color: var(--admin-success);
+}
+
+.packageList {
+  display: grid;
+  gap: 10px;
+}
+
+.packageCard {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-muted);
+}
+
+.packageCardHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.packageCardTitle {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.packageCardMeta {
+  margin: 3px 0 0;
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.packageStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.packageStatusActive {
+  border-color: color-mix(in srgb, var(--admin-success) 24%, white);
+  background: var(--admin-success-soft);
+  color: var(--admin-success);
+}
+
+.packageStatusUsed {
+  border-color: color-mix(in srgb, var(--admin-text-muted) 22%, white);
+  background: color-mix(in srgb, var(--admin-surface-muted) 82%, white);
+  color: var(--admin-text-muted);
+}
+
+.packageStatusCancelled {
+  border-color: color-mix(in srgb, var(--admin-danger) 22%, white);
+  background: var(--admin-danger-soft);
+  color: var(--admin-danger);
+}
+
+.packageProgress {
+  color: var(--admin-text);
+  font-size: 0.94rem;
+  line-height: 1.4;
+}
+
+.packageCodeRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface);
+}
+
+.packageCodeLabel {
+  color: var(--admin-text-muted);
+  font-size: 0.88rem;
+}
+
+.packageCodeValue {
+  min-width: 0;
+  color: var(--admin-text);
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+.packageCodeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.packageCodeButton:hover {
+  border-color: color-mix(in srgb, var(--admin-accent) 28%, white);
+  background: var(--admin-accent-soft);
+  color: var(--admin-accent);
+}
+
 @media (max-width: 1600px) {
   .sourceCell {
     display: none;
@@ -770,6 +957,31 @@
     width: 34px;
     height: 34px;
     font-size: 1.28rem;
+  }
+
+   .packageSection {
+    padding: 0 16px 14px;
+  }
+
+  .packageAssignForm {
+    grid-template-columns: 1fr;
+  }
+
+  .packageCardHeader {
+    display: grid;
+  }
+
+  .packageStatusBadge {
+    width: max-content;
+  }
+
+  .packageCodeRow {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .packageCodeButton {
+    width: 100%;
   }
 
   .detailsGrid {

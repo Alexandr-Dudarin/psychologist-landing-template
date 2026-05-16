@@ -1,10 +1,15 @@
 /// <reference types="node" />
 
+import { randomInt } from "node:crypto";
+
 import { pool } from "../../server/db/pool.js";
 import type {
+  AssignClientServicePackagePayload,
   ClientFavoriteFilter,
+  ClientServicePackageStatus,
   ClientStatus,
   CrmClientRecord,
+  CrmClientServicePackageRecord,
   UpdateClientPayload,
 } from "../../src/types/client.js";
 import {
@@ -18,6 +23,10 @@ import {
   validatePreferredContactFields,
 } from "../../src/lib/preferredContact.js";
 import type { PreferredContactMethod } from "../../src/types/preferredContact.js";
+
+const PACKAGE_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const PACKAGE_CODE_LENGTH = 10;
+const PACKAGE_CODE_MAX_ATTEMPTS = 8;
 
 type ParsedCreatePayload = {
   name: string;
@@ -37,6 +46,8 @@ type ParsedUpdatePayload = UpdateClientPayload;
 type ParsedToggleFavoritePayload = {
   id: number;
 };
+
+type ParsedAssignPackagePayload = AssignClientServicePackagePayload;
 
 type RequestRow = {
   id: number;
@@ -59,6 +70,23 @@ type ClientRow = {
   preferred_contact_method: string | null;
   preferred_contact_value: string | null;
   first_request_id: number | string | null;
+  created_at: string;
+};
+
+type ClientServicePackageRow = {
+  id: number | string;
+  client_id: number | string;
+  client_name: string;
+  package_plan_id: number | string;
+  package_title: string;
+  service_id: number | string;
+  service_title: string;
+  service_duration_minutes: number | string;
+  sessions_count: number | string;
+  price: number | string;
+  code: string;
+  status: string;
+  used_sessions_count: number | string;
   created_at: string;
 };
 
@@ -92,6 +120,38 @@ function mapClient(row: ClientRow): CrmClientRecord {
     preferredContactValue: row.preferred_contact_value,
     firstRequestId:
       row.first_request_id === null ? null : Number(row.first_request_id),
+    createdAt: row.created_at,
+  };
+}
+
+function mapClientServicePackage(
+  row: ClientServicePackageRow
+): CrmClientServicePackageRecord {
+  const totalSessions = Number(row.sessions_count);
+  const usedSessions = Number(row.used_sessions_count);
+  const remainingSessions = Math.max(totalSessions - usedSessions, 0);
+  const storedStatus = row.status === "cancelled" ? "cancelled" : "active";
+
+  const status: ClientServicePackageStatus =
+    storedStatus === "active" && remainingSessions <= 0
+      ? "used"
+      : storedStatus;
+
+  return {
+    id: Number(row.id),
+    clientId: Number(row.client_id),
+    clientName: row.client_name,
+    packagePlanId: Number(row.package_plan_id),
+    packageTitle: row.package_title,
+    serviceId: Number(row.service_id),
+    serviceTitle: row.service_title,
+    serviceDurationMinutes: Number(row.service_duration_minutes),
+    totalSessions,
+    usedSessions,
+    remainingSessions,
+    price: Number(row.price),
+    code: row.code,
+    status,
     createdAt: row.created_at,
   };
 }
@@ -265,8 +325,57 @@ function parseToggleFavoriteBody(body: any): ParsedToggleFavoritePayload | null 
   return { id };
 }
 
+function parseAssignPackageBody(
+  body: any
+): ParsedAssignPackagePayload | null {
+  let rawBody = body;
+
+  if (typeof rawBody === "string") {
+    try {
+      rawBody = JSON.parse(rawBody);
+    } catch {
+      return null;
+    }
+  }
+
+  const clientId = Number(rawBody?.clientId);
+  const packagePlanId = Number(rawBody?.packagePlanId);
+
+  if (!Number.isInteger(clientId) || clientId <= 0) {
+    return null;
+  }
+
+  if (!Number.isInteger(packagePlanId) || packagePlanId <= 0) {
+    return null;
+  }
+
+  return {
+    clientId,
+    packagePlanId,
+  };
+}
+
 function normalizePhoneDigits(value: string): string {
   return value.replace(/\D/g, "");
+}
+
+function generatePackageCode(): string {
+  let code = "";
+
+  for (let index = 0; index < PACKAGE_CODE_LENGTH; index += 1) {
+    code += PACKAGE_CODE_ALPHABET[randomInt(0, PACKAGE_CODE_ALPHABET.length)];
+  }
+
+  return code;
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "23505"
+  );
 }
 
 async function findExistingClientByContacts(
@@ -398,6 +507,44 @@ async function selectClient(id: number): Promise<ClientRow | null> {
   return result.rows[0] ?? null;
 }
 
+async function selectClientServicePackage(
+  id: number | string
+): Promise<ClientServicePackageRow | null> {
+  const result = await pool.query<ClientServicePackageRow>(
+    `
+      SELECT
+        csp.id,
+        csp.client_id,
+        c.name AS client_name,
+        csp.package_plan_id,
+        spp.title AS package_title,
+        spp.service_id,
+        sv.title AS service_title,
+        sv.duration_minutes AS service_duration_minutes,
+        spp.sessions_count,
+        spp.price,
+        csp.code,
+        csp.status,
+        (
+          SELECT COUNT(*)
+          FROM sessions s
+          WHERE s.client_package_id = csp.id
+            AND s.status IN ('scheduled', 'completed', 'no_show')
+        ) AS used_sessions_count,
+        csp.created_at
+      FROM client_service_packages csp
+      INNER JOIN clients c ON c.id = csp.client_id
+      INNER JOIN service_package_plans spp ON spp.id = csp.package_plan_id
+      INNER JOIN services sv ON sv.id = spp.service_id
+      WHERE csp.id = $1
+      LIMIT 1
+    `,
+    [id]
+  );
+
+  return result.rows[0] ?? null;
+}
+
 async function linkRequestToClient(
   requestId: number,
   clientId: number
@@ -490,6 +637,68 @@ async function handleList(req: any, res: any) {
   } catch (error) {
     console.error("Clients list error:", error);
     return res.status(500).json({ error: "Failed to load clients" });
+  }
+}
+
+async function handleListPackages(req: any, res: any) {
+  const clientIdRaw = getSingleQueryValue(req.query?.clientId).trim();
+  const clientId = Number(clientIdRaw);
+
+  if (!Number.isInteger(clientId) || clientId <= 0) {
+    return res.status(400).json({ error: "Некорректный клиент" });
+  }
+
+  try {
+    const client = await selectClient(clientId);
+
+    if (!client) {
+      return res.status(404).json({ error: "Клиент не найден." });
+    }
+
+    const result = await pool.query<ClientServicePackageRow>(
+      `
+        SELECT
+          csp.id,
+          csp.client_id,
+          c.name AS client_name,
+          csp.package_plan_id,
+          spp.title AS package_title,
+          spp.service_id,
+          sv.title AS service_title,
+          sv.duration_minutes AS service_duration_minutes,
+          spp.sessions_count,
+          spp.price,
+          csp.code,
+          csp.status,
+          (
+            SELECT COUNT(*)
+            FROM sessions s
+            WHERE s.client_package_id = csp.id
+              AND s.status IN ('scheduled', 'completed', 'no_show')
+          ) AS used_sessions_count,
+          csp.created_at
+        FROM client_service_packages csp
+        INNER JOIN clients c ON c.id = csp.client_id
+        INNER JOIN service_package_plans spp ON spp.id = csp.package_plan_id
+        INNER JOIN services sv ON sv.id = spp.service_id
+        WHERE csp.client_id = $1
+        ORDER BY
+          CASE WHEN csp.status = 'active' THEN 0 ELSE 1 END,
+          csp.created_at DESC
+      `,
+      [clientId]
+    );
+
+    const items: CrmClientServicePackageRecord[] = result.rows.map(
+      mapClientServicePackage
+    );
+
+    return res.status(200).json({ items });
+  } catch (error) {
+    console.error("Client packages list error:", error);
+    return res
+      .status(500)
+      .json({ error: "Не удалось загрузить пакеты клиента" });
   }
 }
 
@@ -899,16 +1108,114 @@ async function handleToggleFavorite(req: any, res: any) {
   }
 }
 
+async function handleAssignPackage(req: any, res: any) {
+  const payload = parseAssignPackageBody(req.body);
+
+  if (!payload) {
+    return res.status(400).json({
+      error: "Некорректные данные для добавления пакета клиенту.",
+    });
+  }
+
+  try {
+    const client = await selectClient(payload.clientId);
+
+    if (!client) {
+      return res.status(404).json({ error: "Клиент не найден." });
+    }
+
+    if (toClientStatus(client.status) !== "active") {
+      return res.status(400).json({
+        error: "Пакет можно добавить только активному клиенту.",
+      });
+    }
+
+    const packagePlanResult = await pool.query<{ id: number | string }>(
+      `
+        SELECT spp.id
+        FROM service_package_plans spp
+        INNER JOIN services sv ON sv.id = spp.service_id
+        WHERE spp.id = $1
+          AND spp.is_active = TRUE
+          AND sv.is_active = TRUE
+        LIMIT 1
+      `,
+      [payload.packagePlanId]
+    );
+
+    const packagePlan = packagePlanResult.rows[0];
+
+    if (!packagePlan) {
+      return res.status(404).json({
+        error: "Активный пакет услуг не найден.",
+      });
+    }
+
+    for (let attempt = 0; attempt < PACKAGE_CODE_MAX_ATTEMPTS; attempt += 1) {
+      const code = generatePackageCode();
+
+      try {
+        const insertResult = await pool.query<{ id: number | string }>(
+          `
+            INSERT INTO client_service_packages (
+              client_id,
+              package_plan_id,
+              code,
+              status
+            )
+            VALUES ($1, $2, $3, 'active')
+            RETURNING id
+          `,
+          [payload.clientId, payload.packagePlanId, code]
+        );
+
+        const created = insertResult.rows[0];
+        const selectedPackage = await selectClientServicePackage(created.id);
+
+        if (!selectedPackage) {
+          return res.status(500).json({
+            error: "Пакет был создан, но не удалось загрузить его данные.",
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          item: mapClientServicePackage(selectedPackage),
+        });
+      } catch (error) {
+        if (isUniqueViolation(error)) {
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    return res.status(500).json({
+      error: "Не удалось сформировать уникальный код пакета. Попробуйте ещё раз.",
+    });
+  } catch (error) {
+    console.error("Client package assign error:", error);
+    return res.status(500).json({
+      error: "Не удалось добавить пакет клиенту",
+    });
+  }
+}
+
 export default async function handler(req: any, res: any) {
+  const action = getSingleQueryValue(req.query?.action).trim();
+
   if (req.method === "GET") {
+    if (action === "list-packages") {
+      return handleListPackages(req, res);
+    }
+
     return handleList(req, res);
   }
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
-
-  const action = getSingleQueryValue(req.query?.action).trim();
 
   if (action === "create") {
     return handleCreate(req, res);
@@ -924,6 +1231,10 @@ export default async function handler(req: any, res: any) {
 
   if (action === "toggle-favorite") {
     return handleToggleFavorite(req, res);
+  }
+
+  if (action === "assign-package") {
+    return handleAssignPackage(req, res);
   }
 
   return res.status(405).json({ error: "Method not allowed" });

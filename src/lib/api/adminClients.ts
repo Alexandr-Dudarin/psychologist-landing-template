@@ -1,8 +1,10 @@
 import type {
+  AssignClientServicePackagePayload,
   ClientFavoriteFilter,
   ClientStatus,
   CreateManualClientPayload,
   CrmClientRecord,
+  CrmClientServicePackageRecord,
   UpdateClientPayload,
 } from "../../types/client";
 
@@ -49,6 +51,23 @@ type ToggleClientFavoriteResponse = {
 };
 
 type ToggleClientFavoriteErrorResponse = {
+  error: string;
+};
+
+type ListClientServicePackagesResponse = {
+  items: CrmClientServicePackageRecord[];
+};
+
+type ListClientServicePackagesErrorResponse = {
+  error: string;
+};
+
+type AssignClientServicePackageResponse = {
+  success: true;
+  item: CrmClientServicePackageRecord;
+};
+
+type AssignClientServicePackageErrorResponse = {
   error: string;
 };
 
@@ -222,4 +241,65 @@ export async function toggleClientFavorite(
   }
 
   throw new Error("Не удалось изменить избранное");
+}
+
+export async function getClientServicePackages(
+  clientId: number
+): Promise<CrmClientServicePackageRecord[]> {
+  const params = new URLSearchParams({
+    action: "list-packages",
+    clientId: String(clientId),
+  });
+
+  const response = await fetch(`/api/admin/clients?${params.toString()}`);
+
+  const data = (await response.json().catch(() => null)) as
+    | ListClientServicePackagesResponse
+    | ListClientServicePackagesErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data
+        ? data.error
+        : "Не удалось загрузить пакеты клиента"
+    );
+  }
+
+  if (data && "items" in data) {
+    return data.items;
+  }
+
+  return [];
+}
+
+export async function assignClientServicePackage(
+  payload: AssignClientServicePackagePayload
+): Promise<CrmClientServicePackageRecord> {
+  const response = await fetch("/api/admin/clients?action=assign-package", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | AssignClientServicePackageResponse
+    | AssignClientServicePackageErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data
+        ? data.error
+        : "Не удалось добавить пакет клиенту"
+    );
+  }
+
+  if (data && "item" in data) {
+    return data.item;
+  }
+
+  throw new Error("Не удалось добавить пакет клиенту");
 }

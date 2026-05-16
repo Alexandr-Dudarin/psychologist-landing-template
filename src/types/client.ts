@@ -8,6 +8,15 @@ export const clientFavoriteFilters = ["all", "favorites"] as const;
 
 export type ClientFavoriteFilter = (typeof clientFavoriteFilters)[number];
 
+export const clientServicePackageStatuses = [
+  "active",
+  "used",
+  "cancelled",
+] as const;
+
+export type ClientServicePackageStatus =
+  (typeof clientServicePackageStatuses)[number];
+
 export type CrmClientRecord = {
   id: number;
   name: string;
@@ -40,4 +49,27 @@ export type UpdateClientPayload = {
   status: ClientStatus;
   preferredContactMethod?: PreferredContactMethod | "";
   preferredContactValue?: string;
+};
+
+export type CrmClientServicePackageRecord = {
+  id: number;
+  clientId: number;
+  clientName: string;
+  packagePlanId: number;
+  packageTitle: string;
+  serviceId: number;
+  serviceTitle: string;
+  serviceDurationMinutes: number;
+  totalSessions: number;
+  usedSessions: number;
+  remainingSessions: number;
+  price: number;
+  code: string;
+  status: ClientServicePackageStatus;
+  createdAt: string;
+};
+
+export type AssignClientServicePackagePayload = {
+  clientId: number;
+  packagePlanId: number;
 };
