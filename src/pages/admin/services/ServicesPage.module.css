@@ -7,9 +7,12 @@
 }
 
 .form {
-  display: grid;
-  gap: 12px;
+  composes: sectionForm from "../../../components/admin/adminUi.module.css";
   max-width: 720px;
+}
+
+.form > * {
+  min-width: 0;
 }
 
 .field {
@@ -18,50 +21,60 @@
   gap: 8px;
 }
 
-.input,
-.textarea {
+.input {
+  composes: controlBase from "../../../components/admin/adminUi.module.css";
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font: inherit;
-  background: #fff;
 }
 
 .textarea {
-  min-height: 120px;
-  resize: vertical;
+  composes: controlTextArea from "../../../components/admin/adminUi.module.css";
 }
 
 .checkboxRow {
   display: flex;
   align-items: center;
   gap: 10px;
+  color: var(--admin-text);
 }
 
 .buttonRow {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  composes: buttonRow from "../../../components/admin/adminUi.module.css";
 }
 
 .filterSelect {
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font: inherit;
-  background: #fff;
-  width: auto;
-  min-width: 220px;
-  max-width: 260px;
-  flex: 0 0 220px;
+  composes: controlSelect from "../../../components/admin/adminUi.module.css";
 }
 
 .searchInput {
-  width: auto;
-  min-width: 320px;
-  max-width: 420px;
-  flex: 1 1 320px;
+  composes: controlSearch from "../../../components/admin/adminUi.module.css";
+}
+
+.sectionHint {
+  max-width: 760px;
+  margin: -4px 0 16px;
+  color: var(--admin-text-muted);
+  line-height: 1.45;
+}
+
+.packagePlansHeader {
+  display: grid;
+  gap: 8px;
+  margin-top: 28px;
+  margin-bottom: 16px;
+}
+
+.packagePlansTitle {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.packagePlansDescription {
+  margin: 0;
+  max-width: 780px;
+  color: var(--admin-text-muted);
+  line-height: 1.45;
 }
 
 .actionCell {
@@ -71,11 +84,10 @@
 }
 
 .actionsRow {
-  display: flex;
+  composes: actionGroup from "../../../components/admin/adminUi.module.css";
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  gap: 8px;
 }
 
 .actionsRow > * {
@@ -83,16 +95,16 @@
 }
 
 .success {
-  color: #2e8b57;
+  color: var(--admin-success);
 }
 
 .error {
-  color: #d96b6b;
+  color: var(--admin-danger);
 }
 
 .empty {
   margin-top: 16px;
-  color: #666;
+  color: var(--admin-text-muted);
 }
 
 .tableWrap {
@@ -104,21 +116,123 @@
   border-collapse: collapse;
 }
 
-.table th,
-.table td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #eee;
-  vertical-align: top;
+.tableHead th {
+  text-align: center;
+  vertical-align: middle;
+  white-space: normal;
+  line-height: 1.3;
 }
 
-.table th {
-  font-weight: 700;
+.createdCell {
+  width: 150px;
+  min-width: 140px;
+  white-space: normal;
+}
+
+.titleCell {
+  min-width: 160px;
+  max-width: 280px;
+}
+
+.primaryValue {
+  display: inline-block;
+  max-width: 100%;
+  color: var(--admin-text);
+  font-weight: 600;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.mutedLine {
+  display: block;
+  margin-top: 4px;
+  color: var(--admin-text-muted);
+  font-size: 0.86rem;
+  line-height: 1.3;
+}
+
+.compactCell {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.statusCell {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.statusBadgeActive {
+  border-color: color-mix(in srgb, var(--admin-success) 26%, white);
+  background: var(--admin-success-soft);
+  color: var(--admin-success);
+}
+
+.statusBadgeInactive {
+  border-color: color-mix(in srgb, var(--admin-text-muted) 22%, white);
+  background: color-mix(in srgb, var(--admin-surface-muted) 82%, white);
+  color: var(--admin-text-muted);
+}
+
+.descriptionCell {
+  min-width: 180px;
+  max-width: 320px;
+}
+
+.descriptionPreview {
+  display: -webkit-box;
+  max-width: 320px;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--admin-text-muted);
+  line-height: 1.45;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.emptyValue {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  color: var(--admin-text-muted);
+  text-align: center;
 }
 
 .inactiveRow td {
-  color: var(--admin-text-muted);
-  background: color-mix(in srgb, var(--admin-surface-muted) 72%, white);
+  color: color-mix(in srgb, var(--admin-text) 62%, var(--admin-text-muted));
+  background: color-mix(in srgb, var(--admin-surface-muted) 82%, white);
+}
+
+.inactiveRow td:first-child {
+  box-shadow: inset 4px 0 0 color-mix(in srgb, var(--admin-text-muted) 34%, white);
+}
+
+.inactiveRow:hover td {
+  background: color-mix(in srgb, var(--admin-surface-muted) 92%, white);
+}
+
+.inactiveRow .primaryValue,
+.inactiveRow .descriptionPreview,
+.inactiveRow .emptyValue,
+.inactiveRow .mutedLine {
+  opacity: 0.78;
 }
 
 .hideButton {
@@ -141,7 +255,7 @@
   min-height: 38px;
   padding: 8px 12px;
   border: 1px solid color-mix(in srgb, var(--admin-border) 55%, #9aa4af);
-  border-radius: 8px;
+  border-radius: var(--admin-radius-md);
   background: color-mix(in srgb, var(--admin-surface-muted) 18%, #c4ccd5);
   color: color-mix(in srgb, var(--admin-text-muted) 70%, #4b5563);
   font: inherit;
@@ -156,4 +270,68 @@
 .hiddenButton:hover {
   background: color-mix(in srgb, var(--admin-surface-muted) 8%, #b8c1cc);
   border-color: color-mix(in srgb, var(--admin-border) 42%, #8b96a3);
+}
+
+@media (max-width: 1360px) {
+  .descriptionCell {
+    display: none;
+  }
+
+  .actionCell {
+    width: 140px;
+    min-width: 140px;
+  }
+}
+
+@media (max-width: 980px) {
+  .createdCell {
+    display: none;
+  }
+
+  .titleCell {
+    min-width: 140px;
+  }
+}
+
+@media (max-width: 760px) {
+  .compactCell {
+    white-space: normal;
+  }
+
+  .statusBadge {
+    min-width: 76px;
+    font-size: 0.84rem;
+  }
+
+  .actionCell {
+    width: 124px;
+    min-width: 124px;
+  }
+}
+
+@media (max-width: 640px) {
+  .filterSelect,
+  .searchInput {
+    width: 100%;
+    max-width: none;
+    flex-basis: 100%;
+  }
+
+  .tableHead th {
+    font-size: 0.84rem;
+  }
+
+  .titleCell {
+    min-width: 118px;
+  }
+
+  .actionCell {
+    width: 112px;
+    min-width: 112px;
+  }
+
+  .actionsRow > * {
+    min-width: 0;
+    white-space: normal;
+  }
 }

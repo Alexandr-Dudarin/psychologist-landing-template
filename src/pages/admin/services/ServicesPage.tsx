@@ -1,34 +1,102 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
+import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import {
   createAdminService,
+  createAdminServicePackagePlan,
   deleteAdminService,
+  deleteAdminServicePackagePlan,
+  getAdminServicePackagePlans,
   getAdminServices,
   updateAdminService,
+  updateAdminServicePackagePlan,
 } from "../../../lib/api/adminServices";
 import type {
-  CrmServiceRecord,
+  CreateServicePackagePlanPayload,
   CreateServicePayload,
+  CrmServicePackagePlanRecord,
+  CrmServiceRecord,
+  UpdateServicePackagePlanPayload,
   UpdateServicePayload,
 } from "../../../types/service";
-import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { ServiceCreateForm } from "./ServiceCreateForm";
 import { ServiceEditForm } from "./ServiceEditForm";
-import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
-import styles from "./ServicesPage.module.css";
-import { ServicesTable } from "./ServicesTable";
+import { ServicePackagePlanCreateForm } from "./ServicePackagePlanCreateForm";
+import { ServicePackagePlanEditForm } from "./ServicePackagePlanEditForm";
+import { ServicePackagePlansTable } from "./ServicePackagePlansTable";
 import {
   initialCreateForm,
   initialEditForm,
   type ServiceForm,
 } from "./serviceForm";
+import {
+  initialPackagePlanCreateForm,
+  initialPackagePlanEditForm,
+  mapPackagePlanToForm,
+  type ServicePackagePlanForm,
+} from "./servicePackagePlanForm";
+import styles from "./ServicesPage.module.css";
+import { ServicesTable } from "./ServicesTable";
+
+function validateServicePayload(
+  payload: CreateServicePayload | UpdateServicePayload
+): string | null {
+  if (!payload.title) {
+    return "Название услуги обязательно.";
+  }
+
+  if (!Number.isFinite(payload.price) || payload.price < 0) {
+    return "Укажите корректную цену.";
+  }
+
+  if (
+    !Number.isInteger(payload.durationMinutes) ||
+    payload.durationMinutes <= 0
+  ) {
+    return "Укажите корректную длительность в минутах.";
+  }
+
+  return null;
+}
+
+function validatePackagePlanPayload(
+  payload: CreateServicePackagePlanPayload | UpdateServicePackagePlanPayload
+): string | null {
+  if (!Number.isInteger(payload.serviceId) || payload.serviceId <= 0) {
+    return "Выберите базовую услугу для пакета.";
+  }
+
+  if (!payload.title) {
+    return "Название пакета обязательно.";
+  }
+
+  if (!Number.isInteger(payload.sessionsCount) || payload.sessionsCount <= 0) {
+    return "Укажите корректное количество сессий в пакете.";
+  }
+
+  if (!Number.isFinite(payload.price) || payload.price < 0) {
+    return "Укажите корректную цену пакета.";
+  }
+
+  return null;
+}
 
 export function ServicesPage() {
   const [items, setItems] = useState<CrmServiceRecord[]>([]);
+  const [packagePlans, setPackagePlans] = useState<
+    CrmServicePackagePlanRecord[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPackagePlansLoading, setIsPackagePlansLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isPackagePlanCreating, setIsPackagePlanCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isPackagePlanUpdating, setIsPackagePlanUpdating] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingPackagePlanId, setDeletingPackagePlanId] = useState<
+    number | null
+  >(null);
   const [hidingId, setHidingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -37,8 +105,20 @@ export function ServicesPage() {
   >("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [createForm, setCreateForm] = useState<ServiceForm>(initialCreateForm);
+  const [packagePlanCreateForm, setPackagePlanCreateForm] =
+    useState<ServicePackagePlanForm>(initialPackagePlanCreateForm);
   const [editingServiceId, setEditingServiceId] = useState<number | null>(null);
+  const [editingPackagePlanId, setEditingPackagePlanId] = useState<
+    number | null
+  >(null);
   const [editForm, setEditForm] = useState<ServiceForm>(initialEditForm);
+  const [packagePlanEditForm, setPackagePlanEditForm] =
+    useState<ServicePackagePlanForm>(initialPackagePlanEditForm);
+
+  const activeServices = useMemo(
+    () => items.filter((service) => service.isActive),
+    [items]
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -47,16 +127,21 @@ export function ServicesPage() {
       try {
         if (isMounted) {
           setIsLoading(true);
+          setIsPackagePlansLoading(true);
           setError("");
         }
 
-        const services = await getAdminServices({
-          activity: activityFilter,
-          search: searchQuery,
-        });
+        const [services, servicePackagePlans] = await Promise.all([
+          getAdminServices({
+            activity: activityFilter,
+            search: searchQuery,
+          }),
+          getAdminServicePackagePlans(),
+        ]);
 
         if (isMounted) {
           setItems(services);
+          setPackagePlans(servicePackagePlans);
         }
       } catch (loadError) {
         if (isMounted) {
@@ -69,6 +154,7 @@ export function ServicesPage() {
       } finally {
         if (isMounted) {
           setIsLoading(false);
+          setIsPackagePlansLoading(false);
         }
       }
     }
@@ -112,6 +198,28 @@ export function ServicesPage() {
     resetMessages();
   };
 
+  const handlePackagePlanCreateFormChange = (
+    field: keyof ServicePackagePlanForm,
+    value: string | boolean
+  ) => {
+    setPackagePlanCreateForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    resetMessages();
+  };
+
+  const handlePackagePlanEditFormChange = (
+    field: keyof ServicePackagePlanForm,
+    value: string | boolean
+  ) => {
+    setPackagePlanEditForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    resetMessages();
+  };
+
   const reloadServices = async () => {
     const services = await getAdminServices({
       activity: activityFilter,
@@ -119,6 +227,25 @@ export function ServicesPage() {
     });
 
     setItems(services);
+  };
+
+  const reloadPackagePlans = async () => {
+    const servicePackagePlans = await getAdminServicePackagePlans();
+
+    setPackagePlans(servicePackagePlans);
+  };
+
+  const reloadAllServiceData = async () => {
+    const [services, servicePackagePlans] = await Promise.all([
+      getAdminServices({
+        activity: activityFilter,
+        search: searchQuery,
+      }),
+      getAdminServicePackagePlans(),
+    ]);
+
+    setItems(services);
+    setPackagePlans(servicePackagePlans);
   };
 
   const handleCreateService = async (event: FormEvent) => {
@@ -132,21 +259,10 @@ export function ServicesPage() {
       isActive: createForm.isActive,
     };
 
-    if (!payload.title) {
-      setError("Название услуги обязательно.");
-      return;
-    }
+    const validationError = validateServicePayload(payload);
 
-    if (!Number.isFinite(payload.price) || payload.price < 0) {
-      setError("Укажите корректную цену.");
-      return;
-    }
-
-    if (
-      !Number.isInteger(payload.durationMinutes) ||
-      payload.durationMinutes <= 0
-    ) {
-      setError("Укажите корректную длительность в минутах.");
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -170,6 +286,45 @@ export function ServicesPage() {
     }
   };
 
+  const handleCreatePackagePlan = async (event: FormEvent) => {
+    event.preventDefault();
+
+    const payload: CreateServicePackagePlanPayload = {
+      serviceId: Number(packagePlanCreateForm.serviceId),
+      title: packagePlanCreateForm.title.trim(),
+      description: packagePlanCreateForm.description.trim(),
+      sessionsCount: Number(packagePlanCreateForm.sessionsCount),
+      price: Number(packagePlanCreateForm.price),
+      isActive: packagePlanCreateForm.isActive,
+    };
+
+    const validationError = validatePackagePlanPayload(payload);
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setIsPackagePlanCreating(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await createAdminServicePackagePlan(payload);
+      await reloadPackagePlans();
+      setPackagePlanCreateForm(initialPackagePlanCreateForm);
+      setSuccessMessage("Пакет услуг создан.");
+    } catch (createError) {
+      setError(
+        createError instanceof Error
+          ? createError.message
+          : "Не удалось создать пакет услуг"
+      );
+    } finally {
+      setIsPackagePlanCreating(false);
+    }
+  };
+
   const startEditing = (service: CrmServiceRecord) => {
     setEditingServiceId(service.id);
     setEditForm({
@@ -183,9 +338,23 @@ export function ServicesPage() {
     setSuccessMessage("");
   };
 
+  const startEditingPackagePlan = (
+    packagePlan: CrmServicePackagePlanRecord
+  ) => {
+    setEditingPackagePlanId(packagePlan.id);
+    setPackagePlanEditForm(mapPackagePlanToForm(packagePlan));
+    setError("");
+    setSuccessMessage("");
+  };
+
   const cancelEditing = () => {
     setEditingServiceId(null);
     setEditForm(initialEditForm);
+  };
+
+  const cancelPackagePlanEditing = () => {
+    setEditingPackagePlanId(null);
+    setPackagePlanEditForm(initialPackagePlanEditForm);
   };
 
   const handleUpdateService = async (event: FormEvent) => {
@@ -204,21 +373,10 @@ export function ServicesPage() {
       isActive: editForm.isActive,
     };
 
-    if (!payload.title) {
-      setError("Название услуги обязательно.");
-      return;
-    }
+    const validationError = validateServicePayload(payload);
 
-    if (!Number.isFinite(payload.price) || payload.price < 0) {
-      setError("Укажите корректную цену.");
-      return;
-    }
-
-    if (
-      !Number.isInteger(payload.durationMinutes) ||
-      payload.durationMinutes <= 0
-    ) {
-      setError("Укажите корректную длительность в минутах.");
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -228,7 +386,7 @@ export function ServicesPage() {
 
     try {
       await updateAdminService(payload);
-      await reloadServices();
+      await reloadAllServiceData();
       setSuccessMessage("Услуга обновлена.");
       cancelEditing();
     } catch (updateError) {
@@ -239,6 +397,50 @@ export function ServicesPage() {
       );
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleUpdatePackagePlan = async (event: FormEvent) => {
+    event.preventDefault();
+
+    if (editingPackagePlanId === null) {
+      return;
+    }
+
+    const payload: UpdateServicePackagePlanPayload = {
+      id: editingPackagePlanId,
+      serviceId: Number(packagePlanEditForm.serviceId),
+      title: packagePlanEditForm.title.trim(),
+      description: packagePlanEditForm.description.trim(),
+      sessionsCount: Number(packagePlanEditForm.sessionsCount),
+      price: Number(packagePlanEditForm.price),
+      isActive: packagePlanEditForm.isActive,
+    };
+
+    const validationError = validatePackagePlanPayload(payload);
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setIsPackagePlanUpdating(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await updateAdminServicePackagePlan(payload);
+      await reloadPackagePlans();
+      setSuccessMessage("Пакет услуг обновлён.");
+      cancelPackagePlanEditing();
+    } catch (updateError) {
+      setError(
+        updateError instanceof Error
+          ? updateError.message
+          : "Не удалось обновить пакет услуг"
+      );
+    } finally {
+      setIsPackagePlanUpdating(false);
     }
   };
 
@@ -269,7 +471,7 @@ export function ServicesPage() {
         isActive: false,
       });
 
-      await reloadServices();
+      await reloadAllServiceData();
 
       if (editingServiceId === service.id) {
         setEditForm((prev) => ({
@@ -305,7 +507,7 @@ export function ServicesPage() {
 
     try {
       await deleteAdminService(id);
-      await reloadServices();
+      await reloadAllServiceData();
 
       if (editingServiceId === id) {
         cancelEditing();
@@ -320,6 +522,39 @@ export function ServicesPage() {
       );
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleDeletePackagePlan = async (id: number) => {
+    const confirmed = window.confirm(
+      "Удалить пакет услуг? Это действие нельзя отменить."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingPackagePlanId(id);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      await deleteAdminServicePackagePlan(id);
+      await reloadPackagePlans();
+
+      if (editingPackagePlanId === id) {
+        cancelPackagePlanEditing();
+      }
+
+      setSuccessMessage("Пакет услуг удалён.");
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Не удалось удалить пакет услуг"
+      );
+    } finally {
+      setDeletingPackagePlanId(null);
     }
   };
 
@@ -347,9 +582,12 @@ export function ServicesPage() {
       <AdminFiltersRow>
         <select
           value={activityFilter}
-          onChange={(event) =>
-            setActivityFilter(event.target.value as "all" | "active" | "inactive")
-          }
+          onChange={(event) => {
+            setActivityFilter(
+              event.target.value as "all" | "active" | "inactive"
+            );
+            resetMessages();
+          }}
           className={`${styles.input} ${styles.filterSelect}`}
         >
           <option value="all">все услуги</option>
@@ -360,7 +598,10 @@ export function ServicesPage() {
         <input
           type="text"
           value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
+          onChange={(event) => {
+            setSearchQuery(event.target.value);
+            resetMessages();
+          }}
           placeholder="Поиск по названию или описанию"
           className={`${styles.input} ${styles.searchInput}`}
         />
@@ -381,6 +622,46 @@ export function ServicesPage() {
           onEdit={startEditing}
           onDelete={handleDeleteService}
           onHide={handleHideService}
+        />
+      )}
+
+      <div className={styles.packagePlansHeader}>
+        <h2 className={styles.packagePlansTitle}>Пакеты услуг</h2>
+        <p className={styles.packagePlansDescription}>
+          Здесь можно создать пакеты на основе обычных услуг: например 4, 8 или
+          12 разовых сессий по отдельной цене.
+        </p>
+      </div>
+
+      <ServicePackagePlanCreateForm
+        form={packagePlanCreateForm}
+        isCreating={isPackagePlanCreating}
+        services={activeServices}
+        onChange={handlePackagePlanCreateFormChange}
+        onSubmit={handleCreatePackagePlan}
+      />
+
+      {editingPackagePlanId !== null ? (
+        <ServicePackagePlanEditForm
+          form={packagePlanEditForm}
+          isUpdating={isPackagePlanUpdating}
+          services={items}
+          onCancel={cancelPackagePlanEditing}
+          onChange={handlePackagePlanEditFormChange}
+          onSubmit={handleUpdatePackagePlan}
+        />
+      ) : null}
+
+      {isPackagePlansLoading ? (
+        <p>Загрузка пакетов...</p>
+      ) : packagePlans.length === 0 ? (
+        <p className={styles.empty}>Пакетов услуг пока нет.</p>
+      ) : (
+        <ServicePackagePlansTable
+          items={packagePlans}
+          deletingId={deletingPackagePlanId}
+          onEdit={startEditingPackagePlan}
+          onDelete={handleDeletePackagePlan}
         />
       )}
     </main>

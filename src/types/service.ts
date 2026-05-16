@@ -25,3 +25,36 @@ export type UpdateServicePayload = {
   durationMinutes: number;
   isActive: boolean;
 };
+
+export type CrmServicePackagePlanRecord = {
+  id: number;
+  serviceId: number;
+  serviceTitle: string;
+  serviceDurationMinutes: number;
+  serviceIsActive: boolean;
+  title: string;
+  description: string;
+  sessionsCount: number;
+  price: number;
+  isActive: boolean;
+  createdAt: string;
+};
+
+export type CreateServicePackagePlanPayload = {
+  serviceId: number;
+  title: string;
+  description?: string;
+  sessionsCount: number;
+  price: number;
+  isActive?: boolean;
+};
+
+export type UpdateServicePackagePlanPayload = {
+  id: number;
+  serviceId: number;
+  title: string;
+  description?: string;
+  sessionsCount: number;
+  price: number;
+  isActive: boolean;
+};

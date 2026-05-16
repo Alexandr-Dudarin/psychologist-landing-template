@@ -10,6 +10,7 @@ type ServiceRow = {
   price: string | number;
   duration_minutes: number;
   is_active: boolean;
+  sessions_count: string | number;
   created_at: string;
 };
 
@@ -28,6 +29,7 @@ export default async function handler(req: any, res: any) {
           price,
           duration_minutes,
           is_active,
+          0 AS sessions_count,
           created_at
         FROM services
         WHERE is_active = TRUE
@@ -42,6 +44,7 @@ export default async function handler(req: any, res: any) {
       price: Number(row.price),
       durationMinutes: row.duration_minutes,
       isActive: row.is_active,
+      sessionsCount: Number(row.sessions_count),
       createdAt: row.created_at,
     }));
 

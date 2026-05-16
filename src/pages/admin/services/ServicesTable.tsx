@@ -13,6 +13,13 @@ type ServicesTableProps = {
   onHide: (service: CrmServiceRecord) => void;
 };
 
+function getServiceStatusBadgeClassName(isActive: boolean): string {
+  return [
+    styles.statusBadge,
+    isActive ? styles.statusBadgeActive : styles.statusBadgeInactive,
+  ].join(" ");
+}
+
 export function ServicesTable({
   deletingId,
   hidingId,
@@ -23,18 +30,19 @@ export function ServicesTable({
 }: ServicesTableProps) {
   return (
     <AdminTable>
-      <thead>
+      <thead className={styles.tableHead}>
         <tr>
           <th>Создана</th>
           <th>Название</th>
           <th>Цена</th>
           <th>Длительность</th>
-          <th>Активна</th>
+          <th>Статус</th>
           <th>Записи</th>
           <th>Описание</th>
           <th className={styles.actionCell}>Действия</th>
         </tr>
       </thead>
+
       <tbody>
         {items.map((item) => {
           const isUsed = item.sessionsCount > 0;
@@ -42,14 +50,42 @@ export function ServicesTable({
           const isHiding = hidingId === item.id;
 
           return (
-            <tr key={item.id} className={!item.isActive ? styles.inactiveRow : undefined}>
-              <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
-              <td>{item.title}</td>
-              <td>{item.price}</td>
-              <td>{item.durationMinutes} мин</td>
-              <td>{item.isActive ? "Да" : "Нет"}</td>
-              <td>{item.sessionsCount}</td>
-              <td>{item.description || "-"}</td>
+            <tr
+              key={item.id}
+              className={!item.isActive ? styles.inactiveRow : undefined}
+            >
+              <td className={styles.createdCell}>
+                {new Date(item.createdAt).toLocaleString("ru-RU")}
+              </td>
+
+              <td className={styles.titleCell}>
+                <span className={styles.primaryValue}>{item.title}</span>
+              </td>
+
+              <td className={styles.compactCell}>{item.price} ₽</td>
+
+              <td className={styles.compactCell}>
+                {item.durationMinutes} мин
+              </td>
+
+              <td className={styles.statusCell}>
+                <span className={getServiceStatusBadgeClassName(item.isActive)}>
+                  {item.isActive ? "Активна" : "Скрыта"}
+                </span>
+              </td>
+
+              <td className={styles.compactCell}>{item.sessionsCount}</td>
+
+              <td className={styles.descriptionCell}>
+                {item.description ? (
+                  <span className={styles.descriptionPreview}>
+                    {item.description}
+                  </span>
+                ) : (
+                  <span className={styles.emptyValue}>—</span>
+                )}
+              </td>
+
               <td className={styles.actionCell}>
                 <div className={styles.actionsRow}>
                   <AdminButton
@@ -75,12 +111,12 @@ export function ServicesTable({
                       </AdminButton>
                     ) : (
                       <span
-  className={styles.hiddenButton}
-  title="Услуга уже скрыта из онлайн-записи"
-  aria-disabled="true"
->
-  Скрыта
-</span>
+                        className={styles.hiddenButton}
+                        title="Услуга уже скрыта из онлайн-записи"
+                        aria-disabled="true"
+                      >
+                        Скрыта
+                      </span>
                     )
                   ) : (
                     <AdminButton
