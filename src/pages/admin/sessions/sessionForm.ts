@@ -9,6 +9,7 @@ import type { SessionStatus } from "../../../types/session";
 export type SessionForm = {
   clientId: string;
   serviceId: string;
+  clientPackageId: string;
   scheduledAt: string;
   durationMinutes: string;
   price: string;
@@ -19,6 +20,7 @@ export type SessionForm = {
 export const initialCreateForm: SessionForm = {
   clientId: "",
   serviceId: "",
+  clientPackageId: "",
   scheduledAt: "",
   durationMinutes: "60",
   price: "0",
@@ -29,6 +31,7 @@ export const initialCreateForm: SessionForm = {
 export const initialEditForm: SessionForm = {
   clientId: "",
   serviceId: "",
+  clientPackageId: "",
   scheduledAt: "",
   durationMinutes: "60",
   price: "0",

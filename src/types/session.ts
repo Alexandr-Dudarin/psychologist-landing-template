@@ -23,6 +23,9 @@ export type CrmSessionRecord = {
   status: SessionStatus;
   notes: string;
   source: string;
+  clientPackageId: number | null;
+  clientPackageCode: string | null;
+  clientPackageTitle: string | null;
   createdAt: string;
 };
 
@@ -35,6 +38,7 @@ export type CreateSessionPayload = {
   status?: SessionStatus;
   notes?: string;
   source?: string;
+  clientPackageId?: number | null;
 };
 
 export type UpdateSessionPayload = {
@@ -46,4 +50,5 @@ export type UpdateSessionPayload = {
   price: number;
   status: SessionStatus;
   notes?: string;
+  clientPackageId?: number | null;
 };

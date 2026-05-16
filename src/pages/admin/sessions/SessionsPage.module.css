@@ -283,7 +283,51 @@
 .finalSessionRow .wrapValue,
 .finalSessionRow .dateValue,
 .finalSessionRow .notesPreview,
-.finalSessionRow .notesEmpty {
+.finalSessionRow .notesEmpty,
+.finalSessionRow .packageBadge {
+  opacity: 0.78;
+}
+
+.packageField {
+  display: grid;
+  gap: 8px;
+}
+
+.packageFieldLabel {
+  color: var(--admin-text);
+  font-weight: 600;
+}
+
+.packageFieldHint {
+  color: var(--admin-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.serviceValue {
+  display: grid;
+  gap: 6px;
+  align-items: start;
+}
+
+.packageBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  max-width: 100%;
+  min-height: 24px;
+  padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, var(--admin-accent) 24%, white);
+  border-radius: 999px;
+  background: var(--admin-accent-soft);
+  color: var(--admin-accent);
+  font-size: 0.78rem;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.finalSessionRow .packageBadge {
   opacity: 0.78;
 }
 

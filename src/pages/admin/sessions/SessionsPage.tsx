@@ -8,7 +8,10 @@ import {
   resolveBookingTimezone,
 } from "../../../lib/booking/bookingTimezones";
 import { getAdminSchedule } from "../../../lib/api/adminSchedule";
-import { getAdminClients } from "../../../lib/api/adminClients";
+import {
+  getAdminClients,
+  getClientServicePackages,
+} from "../../../lib/api/adminClients";
 import { getAdminServices } from "../../../lib/api/adminServices";
 import {
   createAdminSession,
@@ -16,7 +19,10 @@ import {
   getAdminSessions,
   updateAdminSession,
 } from "../../../lib/api/adminSessions";
-import type { CrmClientRecord } from "../../../types/client";
+import type {
+  CrmClientRecord,
+  CrmClientServicePackageRecord,
+} from "../../../types/client";
 import type { CrmServiceRecord } from "../../../types/service";
 import type { CrmSessionRecord, SessionStatus } from "../../../types/session";
 import { SessionCreateForm } from "./SessionCreateForm";
@@ -45,6 +51,12 @@ function isArchivedStatus(status: SessionStatus | "all") {
   return status === "completed" || status === "cancelled" || status === "no_show";
 }
 
+function getParsedClientId(value: string): number | null {
+  const clientId = Number(value);
+
+  return Number.isInteger(clientId) && clientId > 0 ? clientId : null;
+}
+
 export function SessionsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -52,6 +64,14 @@ export function SessionsPage() {
   const [archivedItems, setArchivedItems] = useState<CrmSessionRecord[]>([]);
   const [clients, setClients] = useState<CrmClientRecord[]>([]);
   const [services, setServices] = useState<CrmServiceRecord[]>([]);
+  const [createClientPackages, setCreateClientPackages] = useState<
+    CrmClientServicePackageRecord[]
+  >([]);
+  const [editClientPackages, setEditClientPackages] = useState<
+    CrmClientServicePackageRecord[]
+  >([]);
+  const [isCreatePackagesLoading, setIsCreatePackagesLoading] = useState(false);
+  const [isEditPackagesLoading, setIsEditPackagesLoading] = useState(false);
   const [scheduleTimezone, setScheduleTimezone] = useState(
     getDefaultBookingTimezone()
   );
@@ -145,11 +165,11 @@ export function SessionsPage() {
 
         const activeSessionsPromise = shouldLoadActiveSessions
           ? getAdminSessions({
-              scope: "active",
-              status: statusFilter,
-              clientId: clientFilter,
-              search: searchQuery,
-            })
+            scope: "active",
+            status: statusFilter,
+            clientId: clientFilter,
+            search: searchQuery,
+          })
           : Promise.resolve([]);
 
         const [sessionsData, clientsData, servicesData, scheduleData] =
@@ -237,6 +257,98 @@ export function SessionsPage() {
   }, [showArchivedSessions, statusFilter, clientFilter, searchQuery]);
 
   useEffect(() => {
+    const clientId = getParsedClientId(createForm.clientId);
+
+    if (clientId === null) {
+      setCreateClientPackages([]);
+      setIsCreatePackagesLoading(false);
+      return;
+    }
+
+    const selectedClientId = clientId;
+    let isMounted = true;
+
+    async function loadCreateClientPackages() {
+      try {
+        if (isMounted) {
+          setIsCreatePackagesLoading(true);
+        }
+
+        const packages = await getClientServicePackages(selectedClientId);
+
+        if (isMounted) {
+          setCreateClientPackages(packages);
+        }
+      } catch (loadError) {
+        if (isMounted) {
+          setCreateClientPackages([]);
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Не удалось загрузить пакеты клиента"
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsCreatePackagesLoading(false);
+        }
+      }
+    }
+
+    loadCreateClientPackages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [createForm.clientId]);
+
+  useEffect(() => {
+    const clientId = getParsedClientId(editForm.clientId);
+
+    if (editingSessionId === null || clientId === null) {
+      setEditClientPackages([]);
+      setIsEditPackagesLoading(false);
+      return;
+    }
+
+    const selectedClientId = clientId;
+    let isMounted = true;
+
+    async function loadEditClientPackages() {
+      try {
+        if (isMounted) {
+          setIsEditPackagesLoading(true);
+        }
+
+        const packages = await getClientServicePackages(selectedClientId);
+
+        if (isMounted) {
+          setEditClientPackages(packages);
+        }
+      } catch (loadError) {
+        if (isMounted) {
+          setEditClientPackages([]);
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Не удалось загрузить пакеты клиента"
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsEditPackagesLoading(false);
+        }
+      }
+    }
+
+    loadEditClientPackages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [editingSessionId, editForm.clientId]);
+
+  useEffect(() => {
     if (editingSessionId === null) {
       return;
     }
@@ -253,19 +365,19 @@ export function SessionsPage() {
     const [sessionsData, archivedSessionsData] = await Promise.all([
       shouldLoadActiveSessions
         ? getAdminSessions({
-            scope: "active",
-            status: statusFilter,
-            clientId: clientFilter,
-            search: searchQuery,
-          })
+          scope: "active",
+          status: statusFilter,
+          clientId: clientFilter,
+          search: searchQuery,
+        })
         : Promise.resolve([]),
       showArchivedSessions
         ? getAdminSessions({
-            scope: "archived",
-            status: statusFilter,
-            clientId: clientFilter,
-            search: searchQuery,
-          })
+          scope: "archived",
+          status: statusFilter,
+          clientId: clientFilter,
+          search: searchQuery,
+        })
         : Promise.resolve(null),
     ]);
 
@@ -288,13 +400,15 @@ export function SessionsPage() {
 
   const handleCreateFormChange = (field: keyof SessionForm, value: string) => {
     setCreateForm((prev) =>
-      updateSessionFormField(prev, field, value, services)
+      updateSessionFormField(prev, field, value, services, createClientPackages)
     );
     resetFeedback();
   };
 
   const handleEditFormChange = (field: keyof SessionForm, value: string) => {
-    setEditForm((prev) => updateSessionFormField(prev, field, value, services));
+    setEditForm((prev) =>
+      updateSessionFormField(prev, field, value, services, editClientPackages)
+    );
     resetFeedback();
   };
 
@@ -320,7 +434,12 @@ export function SessionsPage() {
       await createAdminSession(payload);
       await reloadSessions();
       setCreateForm(initialCreateForm);
-      setSuccessMessage("Сессия создана.");
+      setCreateClientPackages([]);
+      setSuccessMessage(
+        payload.clientPackageId
+          ? "Сессия создана и связана с пакетом клиента."
+          : "Сессия создана."
+      );
     } catch (createError) {
       setError(
         createError instanceof Error
@@ -344,6 +463,7 @@ export function SessionsPage() {
     setEditingSessionId(null);
     setEditingOriginalScheduledAt(null);
     setEditForm(initialEditForm);
+    setEditClientPackages([]);
   };
 
   const handleUpdateSession = async (e: FormEvent) => {
@@ -376,7 +496,11 @@ export function SessionsPage() {
     try {
       await updateAdminSession(payload);
       await reloadSessions();
-      setSuccessMessage("Сессия обновлена.");
+      setSuccessMessage(
+        payload.clientPackageId
+          ? "Сессия обновлена и связана с пакетом клиента."
+          : "Сессия обновлена."
+      );
       cancelEditing();
     } catch (updateError) {
       setError(
@@ -462,9 +586,11 @@ export function SessionsPage() {
       <SessionCreateForm
         clients={clients}
         activeServices={activeServices}
+        clientPackages={createClientPackages}
         form={createForm}
         timezone={scheduleTimezone}
         isCreating={isCreating}
+        isPackagesLoading={isCreatePackagesLoading}
         onFormChange={handleCreateFormChange}
         onSubmit={handleCreateSession}
       />
@@ -474,9 +600,11 @@ export function SessionsPage() {
           <SessionEditForm
             clients={clients}
             activeServices={activeServices}
+            clientPackages={editClientPackages}
             form={editForm}
             timezone={scheduleTimezone}
             isUpdating={isUpdating}
+            isPackagesLoading={isEditPackagesLoading}
             onFormChange={handleEditFormChange}
             onSubmit={handleUpdateSession}
             onCancel={cancelEditing}

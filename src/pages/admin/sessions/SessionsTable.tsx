@@ -146,7 +146,27 @@ export function SessionsTable({
               </td>
 
               <td className={styles.serviceCell} data-label="Услуга">
-                <span className={styles.wrapValue}>{item.serviceTitle}</span>
+                <span className={styles.serviceValue}>
+                  <span className={styles.wrapValue}>{item.serviceTitle}</span>
+
+                  {item.clientPackageId ? (
+                    <span
+                      className={styles.packageBadge}
+                      title={[
+                        item.clientPackageTitle
+                          ? `Пакет: ${item.clientPackageTitle}`
+                          : "Сессия из пакета",
+                        item.clientPackageCode
+                          ? `Код: ${item.clientPackageCode}`
+                          : "",
+                      ]
+                        .filter(Boolean)
+                        .join(". ")}
+                    >
+                      Из пакета
+                    </span>
+                  ) : null}
+                </span>
               </td>
 
               <td className={styles.dateCell} data-label="Дата и время">

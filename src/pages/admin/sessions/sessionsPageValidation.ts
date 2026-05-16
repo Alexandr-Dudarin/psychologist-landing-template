@@ -3,6 +3,14 @@ import type {
   UpdateSessionPayload,
 } from "../../../types/session";
 
+function isValidClientPackageId(value: number | null | undefined): boolean {
+  if (value === null || value === undefined) {
+    return true;
+  }
+
+  return Number.isInteger(value) && value > 0;
+}
+
 function getDateTimestamp(value: string): number | null {
   const timestamp = new Date(value).getTime();
 
@@ -10,21 +18,17 @@ function getDateTimestamp(value: string): number | null {
 }
 
 function hasScheduledAtChanged(
-  previousScheduledAt: string | null | undefined,
-  nextScheduledAt: string
+  currentValue: string,
+  nextValue: string
 ): boolean {
-  if (!previousScheduledAt) {
+  const currentTimestamp = getDateTimestamp(currentValue);
+  const nextTimestamp = getDateTimestamp(nextValue);
+
+  if (currentTimestamp === null || nextTimestamp === null) {
     return true;
   }
 
-  const previousTimestamp = getDateTimestamp(previousScheduledAt);
-  const nextTimestamp = getDateTimestamp(nextScheduledAt);
-
-  if (previousTimestamp === null || nextTimestamp === null) {
-    return true;
-  }
-
-  return Math.abs(previousTimestamp - nextTimestamp) > 1000;
+  return Math.abs(currentTimestamp - nextTimestamp) > 1000;
 }
 
 export function validateCreateSessionPayload(
@@ -39,7 +43,14 @@ export function validateCreateSessionPayload(
     return "Выберите услугу.";
   }
 
-  if (!payload.scheduledAt || Number.isNaN(new Date(payload.scheduledAt).getTime())) {
+  if (!isValidClientPackageId(payload.clientPackageId)) {
+    return "Выберите корректный пакет клиента.";
+  }
+
+  if (
+    !payload.scheduledAt ||
+    Number.isNaN(new Date(payload.scheduledAt).getTime())
+  ) {
     return "Укажите дату и время сессии.";
   }
 
@@ -47,7 +58,10 @@ export function validateCreateSessionPayload(
     return "Нельзя создать сессию в прошлом.";
   }
 
-  if (!Number.isInteger(payload.durationMinutes) || payload.durationMinutes <= 0) {
+  if (
+    !Number.isInteger(payload.durationMinutes) ||
+    payload.durationMinutes <= 0
+  ) {
     return "Укажите корректную длительность.";
   }
 
@@ -61,7 +75,7 @@ export function validateCreateSessionPayload(
 export function validateUpdateSessionPayload(
   payload: UpdateSessionPayload,
   _timezone: string,
-  previousScheduledAt?: string | null
+  originalScheduledAt: string | null = null
 ): string | null {
   if (!Number.isInteger(payload.id) || payload.id <= 0) {
     return "Некорректная сессия.";
@@ -75,18 +89,29 @@ export function validateUpdateSessionPayload(
     return "Выберите услугу.";
   }
 
-  if (!payload.scheduledAt || Number.isNaN(new Date(payload.scheduledAt).getTime())) {
+  if (!isValidClientPackageId(payload.clientPackageId)) {
+    return "Выберите корректный пакет клиента.";
+  }
+
+  if (
+    !payload.scheduledAt ||
+    Number.isNaN(new Date(payload.scheduledAt).getTime())
+  ) {
     return "Укажите дату и время сессии.";
   }
 
   if (
-    hasScheduledAtChanged(previousScheduledAt, payload.scheduledAt) &&
+    originalScheduledAt &&
+    hasScheduledAtChanged(originalScheduledAt, payload.scheduledAt) &&
     new Date(payload.scheduledAt).getTime() < Date.now()
   ) {
     return "Нельзя перенести сессию в прошлое.";
   }
 
-  if (!Number.isInteger(payload.durationMinutes) || payload.durationMinutes <= 0) {
+  if (
+    !Number.isInteger(payload.durationMinutes) ||
+    payload.durationMinutes <= 0
+  ) {
     return "Укажите корректную длительность.";
   }
 
