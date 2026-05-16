@@ -2,6 +2,10 @@ import type { FormEvent } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
+import {
+  formatAdminPriceInput,
+  normalizeAdminPriceInput,
+} from "../../../lib/format/adminPriceInput";
 import styles from "./ServicesPage.module.css";
 import type { ServiceForm } from "./serviceForm";
 
@@ -37,11 +41,12 @@ export function ServiceCreateForm({
         />
 
         <input
-          type="number"
-          min="0"
-          step="0.01"
-          value={form.price}
-          onChange={(event) => onChange("price", event.target.value)}
+          type="text"
+          inputMode="numeric"
+          value={formatAdminPriceInput(form.price)}
+          onChange={(event) =>
+            onChange("price", normalizeAdminPriceInput(event.target.value))
+          }
           placeholder="Цена"
           className={styles.input}
         />
@@ -67,9 +72,7 @@ export function ServiceCreateForm({
 
         <div>
           <AdminButton type="submit" disabled={isCreating} variant="primary">
-            {isCreating
-              ? "Создание..."
-              : "Создать услугу"}
+            {isCreating ? "Создание..." : "Создать услугу"}
           </AdminButton>
         </div>
       </form>

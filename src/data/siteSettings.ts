@@ -18,6 +18,11 @@ export const siteSettings = {
     required: true,
   },
 
+  servicePackages: {
+    enabled: true,
+    publicPricingEnabled: false,
+  },
+
   premiumModules: {
     scheduler: {
       enabled: true,
@@ -25,39 +30,39 @@ export const siteSettings = {
     },
   },
 
-sections: {
-  about: {
-    enabled: true,
+  sections: {
+    about: {
+      enabled: true,
+    },
+    education: {
+      enabled: true,
+      documentsEnabled: false,
+    },
+    pricing: {
+      enabled: true,
+    },
+    booking: {
+      enabled: true,
+    },
+    contacts: {
+      enabled: true,
+      socialLinksEnabled: true,
+      telegramButtonEnabled: true,
+      whatsappButtonEnabled: true,
+    },
+    faq: {
+      enabled: true,
+    },
+    privacy: {
+      enabled: true,
+    },
+    guides: {
+      enabled: true,
+    },
+    reviews: {
+      enabled: true,
+    },
   },
-  education: {
-    enabled: true,
-    documentsEnabled: false,
-  },
-  pricing: {
-    enabled: true,
-  },
-  booking: {
-    enabled: true,
-  },
-  contacts: {
-    enabled: true,
-    socialLinksEnabled: true,
-    telegramButtonEnabled: true,
-    whatsappButtonEnabled: true,
-  },
-  faq: {
-    enabled: true,
-  },
-  privacy: {
-    enabled: true,
-  },
-  guides: {
-    enabled: true,
-  },
-  reviews: {
-    enabled: true,
-  },
-},
 
   pricingSource: "database" as "config" | "database",
 

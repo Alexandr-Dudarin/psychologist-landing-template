@@ -2,6 +2,10 @@ import type { FormEvent } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
+import {
+  formatAdminPriceInput,
+  normalizeAdminPriceInput,
+} from "../../../lib/format/adminPriceInput";
 import type { CrmServiceRecord } from "../../../types/service";
 import styles from "./ServicesPage.module.css";
 import type { ServicePackagePlanForm } from "./servicePackagePlanForm";
@@ -38,7 +42,7 @@ export function ServicePackagePlanEditForm({
 
           {services.map((service) => (
             <option key={service.id} value={service.id}>
-              {service.title} — {service.price} ₽ /{" "}
+              {service.title} — {formatAdminPriceInput(service.price)} ₽ /{" "}
               {service.durationMinutes} мин
               {!service.isActive ? " — скрыта" : ""}
             </option>
@@ -71,11 +75,12 @@ export function ServicePackagePlanEditForm({
         />
 
         <input
-          type="number"
-          min="0"
-          step="0.01"
-          value={form.price}
-          onChange={(event) => onChange("price", event.target.value)}
+          type="text"
+          inputMode="numeric"
+          value={formatAdminPriceInput(form.price)}
+          onChange={(event) =>
+            onChange("price", normalizeAdminPriceInput(event.target.value))
+          }
           placeholder="Цена пакета"
           className={styles.input}
         />

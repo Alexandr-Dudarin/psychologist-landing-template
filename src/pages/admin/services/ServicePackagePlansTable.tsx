@@ -1,5 +1,6 @@
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import { formatAdminPriceInput } from "../../../lib/format/adminPriceInput";
 import type { CrmServicePackagePlanRecord } from "../../../types/service";
 import styles from "./ServicesPage.module.css";
 
@@ -71,7 +72,9 @@ export function ServicePackagePlansTable({
 
               <td className={styles.compactCell}>{item.sessionsCount}</td>
 
-              <td className={styles.compactCell}>{item.price} ₽</td>
+              <td className={styles.compactCell}>
+                {formatAdminPriceInput(item.price)} ₽
+              </td>
 
               <td className={styles.compactCell}>
                 {item.serviceDurationMinutes} мин

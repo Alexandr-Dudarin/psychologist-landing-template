@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
+import { siteSettings } from "../../../data/siteSettings";
 import {
   createAdminService,
   createAdminServicePackagePlan,
@@ -83,12 +84,16 @@ function validatePackagePlanPayload(
 }
 
 export function ServicesPage() {
+  const servicePackagesEnabled = siteSettings.servicePackages.enabled;
+
   const [items, setItems] = useState<CrmServiceRecord[]>([]);
   const [packagePlans, setPackagePlans] = useState<
     CrmServicePackagePlanRecord[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPackagePlansLoading, setIsPackagePlansLoading] = useState(true);
+  const [isPackagePlansLoading, setIsPackagePlansLoading] = useState(
+    servicePackagesEnabled
+  );
   const [isCreating, setIsCreating] = useState(false);
   const [isPackagePlanCreating, setIsPackagePlanCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -127,7 +132,7 @@ export function ServicesPage() {
       try {
         if (isMounted) {
           setIsLoading(true);
-          setIsPackagePlansLoading(true);
+          setIsPackagePlansLoading(servicePackagesEnabled);
           setError("");
         }
 
@@ -136,7 +141,9 @@ export function ServicesPage() {
             activity: activityFilter,
             search: searchQuery,
           }),
-          getAdminServicePackagePlans(),
+          servicePackagesEnabled
+            ? getAdminServicePackagePlans()
+            : Promise.resolve([]),
         ]);
 
         if (isMounted) {
@@ -164,7 +171,7 @@ export function ServicesPage() {
     return () => {
       isMounted = false;
     };
-  }, [activityFilter, searchQuery]);
+  }, [activityFilter, searchQuery, servicePackagesEnabled]);
 
   const resetMessages = () => {
     if (error) {
@@ -230,6 +237,11 @@ export function ServicesPage() {
   };
 
   const reloadPackagePlans = async () => {
+    if (!servicePackagesEnabled) {
+      setPackagePlans([]);
+      return;
+    }
+
     const servicePackagePlans = await getAdminServicePackagePlans();
 
     setPackagePlans(servicePackagePlans);
@@ -241,7 +253,9 @@ export function ServicesPage() {
         activity: activityFilter,
         search: searchQuery,
       }),
-      getAdminServicePackagePlans(),
+      servicePackagesEnabled
+        ? getAdminServicePackagePlans()
+        : Promise.resolve([]),
     ]);
 
     setItems(services);
@@ -288,6 +302,10 @@ export function ServicesPage() {
 
   const handleCreatePackagePlan = async (event: FormEvent) => {
     event.preventDefault();
+
+    if (!servicePackagesEnabled) {
+      return;
+    }
 
     const payload: CreateServicePackagePlanPayload = {
       serviceId: Number(packagePlanCreateForm.serviceId),
@@ -403,7 +421,7 @@ export function ServicesPage() {
   const handleUpdatePackagePlan = async (event: FormEvent) => {
     event.preventDefault();
 
-    if (editingPackagePlanId === null) {
+    if (!servicePackagesEnabled || editingPackagePlanId === null) {
       return;
     }
 
@@ -526,6 +544,10 @@ export function ServicesPage() {
   };
 
   const handleDeletePackagePlan = async (id: number) => {
+    if (!servicePackagesEnabled) {
+      return;
+    }
+
     const confirmed = window.confirm(
       "Удалить пакет услуг? Это действие нельзя отменить."
     );
@@ -625,45 +647,49 @@ export function ServicesPage() {
         />
       )}
 
-      <div className={styles.packagePlansHeader}>
-        <h2 className={styles.packagePlansTitle}>Пакеты услуг</h2>
-        <p className={styles.packagePlansDescription}>
-          Здесь можно создать пакеты на основе обычных услуг: например 4, 8 или
-          12 разовых сессий по отдельной цене.
-        </p>
-      </div>
+      {servicePackagesEnabled ? (
+        <>
+          <div className={styles.packagePlansHeader}>
+            <h2 className={styles.packagePlansTitle}>Пакеты услуг</h2>
+            <p className={styles.packagePlansDescription}>
+              Здесь можно создать пакеты на основе обычных услуг: например 4, 8
+              или 12 разовых сессий по отдельной цене.
+            </p>
+          </div>
 
-      <ServicePackagePlanCreateForm
-        form={packagePlanCreateForm}
-        isCreating={isPackagePlanCreating}
-        services={activeServices}
-        onChange={handlePackagePlanCreateFormChange}
-        onSubmit={handleCreatePackagePlan}
-      />
+          <ServicePackagePlanCreateForm
+            form={packagePlanCreateForm}
+            isCreating={isPackagePlanCreating}
+            services={activeServices}
+            onChange={handlePackagePlanCreateFormChange}
+            onSubmit={handleCreatePackagePlan}
+          />
 
-      {editingPackagePlanId !== null ? (
-        <ServicePackagePlanEditForm
-          form={packagePlanEditForm}
-          isUpdating={isPackagePlanUpdating}
-          services={items}
-          onCancel={cancelPackagePlanEditing}
-          onChange={handlePackagePlanEditFormChange}
-          onSubmit={handleUpdatePackagePlan}
-        />
+          {editingPackagePlanId !== null ? (
+            <ServicePackagePlanEditForm
+              form={packagePlanEditForm}
+              isUpdating={isPackagePlanUpdating}
+              services={items}
+              onCancel={cancelPackagePlanEditing}
+              onChange={handlePackagePlanEditFormChange}
+              onSubmit={handleUpdatePackagePlan}
+            />
+          ) : null}
+
+          {isPackagePlansLoading ? (
+            <p>Загрузка пакетов...</p>
+          ) : packagePlans.length === 0 ? (
+            <p className={styles.empty}>Пакетов услуг пока нет.</p>
+          ) : (
+            <ServicePackagePlansTable
+              items={packagePlans}
+              deletingId={deletingPackagePlanId}
+              onEdit={startEditingPackagePlan}
+              onDelete={handleDeletePackagePlan}
+            />
+          )}
+        </>
       ) : null}
-
-      {isPackagePlansLoading ? (
-        <p>Загрузка пакетов...</p>
-      ) : packagePlans.length === 0 ? (
-        <p className={styles.empty}>Пакетов услуг пока нет.</p>
-      ) : (
-        <ServicePackagePlansTable
-          items={packagePlans}
-          deletingId={deletingPackagePlanId}
-          onEdit={startEditingPackagePlan}
-          onDelete={handleDeletePackagePlan}
-        />
-      )}
     </main>
   );
 }

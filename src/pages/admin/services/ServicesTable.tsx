@@ -2,6 +2,7 @@ import type { CrmServiceRecord } from "../../../types/service";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import { formatAdminPriceInput } from "../../../lib/format/adminPriceInput";
 import styles from "./ServicesPage.module.css";
 
 type ServicesTableProps = {
@@ -62,7 +63,9 @@ export function ServicesTable({
                 <span className={styles.primaryValue}>{item.title}</span>
               </td>
 
-              <td className={styles.compactCell}>{item.price} ₽</td>
+              <td className={styles.compactCell}>
+                {formatAdminPriceInput(item.price)} ₽
+              </td>
 
               <td className={styles.compactCell}>
                 {item.durationMinutes} мин
