@@ -7,7 +7,7 @@
   width: 100%;
 }
 
-.form > * {
+.form>* {
   min-width: 0;
 }
 
@@ -221,12 +221,24 @@
 }
 
 .finalSessionRow td {
-  color: color-mix(in srgb, var(--admin-text) 72%, var(--admin-text-muted));
-  background: color-mix(in srgb, var(--admin-surface-muted) 34%, var(--admin-surface));
+  color: color-mix(in srgb, var(--admin-text) 62%, var(--admin-text-muted));
+  background: color-mix(in srgb, var(--admin-surface-muted) 82%, white);
+}
+
+.finalSessionRow td:first-child {
+  box-shadow: inset 4px 0 0 color-mix(in srgb, var(--admin-text-muted) 34%, white);
 }
 
 .finalSessionRow:hover td {
-  background: color-mix(in srgb, var(--admin-surface-muted) 52%, var(--admin-surface));
+  background: color-mix(in srgb, var(--admin-surface-muted) 92%, white);
+}
+
+.finalSessionRow .primaryLink,
+.finalSessionRow .wrapValue,
+.finalSessionRow .dateValue,
+.finalSessionRow .notesPreview,
+.finalSessionRow .notesEmpty {
+  opacity: 0.78;
 }
 
 .statusCellContent {
@@ -255,6 +267,12 @@
   border-radius: 999px;
   font-size: 0.85rem;
   line-height: 1.2;
+}
+
+.statusBadge {
+  justify-content: center;
+  min-width: 116px;
+  text-align: center;
 }
 
 .statusBadgeScheduled {
@@ -302,6 +320,17 @@
   overflow-wrap: break-word;
   line-height: 1.45;
   color: var(--admin-text-muted);
+}
+
+.notesEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 260px;
+  min-height: 1.45em;
+  color: var(--admin-text-muted);
+  text-align: center;
 }
 
 .clientCell,
@@ -398,6 +427,14 @@
     border-left: none;
   }
 
+  .finalSessionRow {
+  box-shadow: inset 4px 0 0 color-mix(in srgb, var(--admin-text-muted) 34%, white);
+}
+
+.finalSessionRow td:first-child {
+  box-shadow: none;
+}
+
   .sessionRow {
     display: grid;
     gap: 10px;
@@ -434,7 +471,8 @@
     white-space: normal;
   }
 
-  .notesPreview {
+  .notesPreview,
+  .notesEmpty {
     max-width: none;
   }
 }
