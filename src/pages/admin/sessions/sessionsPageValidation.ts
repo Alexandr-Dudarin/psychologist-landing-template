@@ -3,6 +3,30 @@ import type {
   UpdateSessionPayload,
 } from "../../../types/session";
 
+function getDateTimestamp(value: string): number | null {
+  const timestamp = new Date(value).getTime();
+
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function hasScheduledAtChanged(
+  previousScheduledAt: string | null | undefined,
+  nextScheduledAt: string
+): boolean {
+  if (!previousScheduledAt) {
+    return true;
+  }
+
+  const previousTimestamp = getDateTimestamp(previousScheduledAt);
+  const nextTimestamp = getDateTimestamp(nextScheduledAt);
+
+  if (previousTimestamp === null || nextTimestamp === null) {
+    return true;
+  }
+
+  return Math.abs(previousTimestamp - nextTimestamp) > 1000;
+}
+
 export function validateCreateSessionPayload(
   payload: CreateSessionPayload,
   _timezone: string
@@ -36,7 +60,8 @@ export function validateCreateSessionPayload(
 
 export function validateUpdateSessionPayload(
   payload: UpdateSessionPayload,
-  _timezone: string
+  _timezone: string,
+  previousScheduledAt?: string | null
 ): string | null {
   if (!Number.isInteger(payload.id) || payload.id <= 0) {
     return "Некорректная сессия.";
@@ -54,7 +79,10 @@ export function validateUpdateSessionPayload(
     return "Укажите дату и время сессии.";
   }
 
-  if (new Date(payload.scheduledAt).getTime() < Date.now()) {
+  if (
+    hasScheduledAtChanged(previousScheduledAt, payload.scheduledAt) &&
+    new Date(payload.scheduledAt).getTime() < Date.now()
+  ) {
     return "Нельзя перенести сессию в прошлое.";
   }
 

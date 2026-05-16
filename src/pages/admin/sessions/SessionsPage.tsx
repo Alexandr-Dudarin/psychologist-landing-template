@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
@@ -63,6 +63,10 @@ export function SessionsPage() {
   const [createForm, setCreateForm] = useState<SessionForm>(initialCreateForm);
   const [editingSessionId, setEditingSessionId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<SessionForm>(initialEditForm);
+  const [editingOriginalScheduledAt, setEditingOriginalScheduledAt] = useState<
+    string | null
+  >(null);
+  const editFormRef = useRef<HTMLDivElement | null>(null);
 
   const activeServices = useMemo(
     () => services.filter((service) => service.isActive),
@@ -111,22 +115,25 @@ export function SessionsPage() {
           setError("");
         }
 
-        const [sessionsData, clientsData, servicesData, scheduleData] = await Promise.all([
-          getAdminSessions({
-            status: statusFilter,
-            clientId: clientFilter,
-            search: searchQuery,
-          }),
-          getAdminClients(),
-          getAdminServices(),
-          getAdminSchedule(),
-        ]);
+        const [sessionsData, clientsData, servicesData, scheduleData] =
+          await Promise.all([
+            getAdminSessions({
+              status: statusFilter,
+              clientId: clientFilter,
+              search: searchQuery,
+            }),
+            getAdminClients(),
+            getAdminServices(),
+            getAdminSchedule(),
+          ]);
 
         if (isMounted) {
           setItems(sessionsData);
           setClients(clientsData);
           setServices(servicesData);
-          setScheduleTimezone(resolveBookingTimezone(scheduleData.settings.timezone));
+          setScheduleTimezone(
+            resolveBookingTimezone(scheduleData.settings.timezone)
+          );
         }
       } catch (loadError) {
         if (isMounted) {
@@ -149,6 +156,19 @@ export function SessionsPage() {
       isMounted = false;
     };
   }, [statusFilter, clientFilter, searchQuery]);
+
+  useEffect(() => {
+    if (editingSessionId === null) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      editFormRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 0);
+  }, [editingSessionId]);
 
   const reloadSessions = async () => {
     const sessionsData = await getAdminSessions({
@@ -174,7 +194,9 @@ export function SessionsPage() {
     field: keyof SessionForm,
     value: string
   ) => {
-    setCreateForm((prev) => updateSessionFormField(prev, field, value, services));
+    setCreateForm((prev) =>
+      updateSessionFormField(prev, field, value, services)
+    );
     resetFeedback();
   };
 
@@ -183,11 +205,14 @@ export function SessionsPage() {
     resetFeedback();
   };
 
-  const handleCreateSession = async (e: React.FormEvent) => {
+  const handleCreateSession = async (e: FormEvent) => {
     e.preventDefault();
 
     const payload = buildCreateSessionPayload(createForm, scheduleTimezone);
-    const validationError = validateCreateSessionPayload(payload, scheduleTimezone);
+    const validationError = validateCreateSessionPayload(
+      payload,
+      scheduleTimezone
+    );
 
     if (validationError) {
       setError(validationError);
@@ -216,6 +241,7 @@ export function SessionsPage() {
 
   const startEditing = (session: CrmSessionRecord) => {
     setEditingSessionId(session.id);
+    setEditingOriginalScheduledAt(session.scheduledAt);
     setEditForm(buildEditSessionForm(session, scheduleTimezone));
     setError("");
     setSuccessMessage("");
@@ -223,10 +249,11 @@ export function SessionsPage() {
 
   const cancelEditing = () => {
     setEditingSessionId(null);
+    setEditingOriginalScheduledAt(null);
     setEditForm(initialEditForm);
   };
 
-  const handleUpdateSession = async (e: React.FormEvent) => {
+  const handleUpdateSession = async (e: FormEvent) => {
     e.preventDefault();
 
     if (editingSessionId === null) {
@@ -240,7 +267,8 @@ export function SessionsPage() {
     );
     const validationError = validateUpdateSessionPayload(
       payload,
-      scheduleTimezone
+      scheduleTimezone,
+      editingOriginalScheduledAt
     );
 
     if (validationError) {
@@ -338,16 +366,18 @@ export function SessionsPage() {
       />
 
       {editingSessionId !== null ? (
-        <SessionEditForm
-          clients={clients}
-          activeServices={activeServices}
-          form={editForm}
-          timezone={scheduleTimezone}
-          isUpdating={isUpdating}
-          onFormChange={handleEditFormChange}
-          onSubmit={handleUpdateSession}
-          onCancel={cancelEditing}
-        />
+        <div ref={editFormRef} style={{ scrollMarginTop: 16 }}>
+          <SessionEditForm
+            clients={clients}
+            activeServices={activeServices}
+            form={editForm}
+            timezone={scheduleTimezone}
+            isUpdating={isUpdating}
+            onFormChange={handleEditFormChange}
+            onSubmit={handleUpdateSession}
+            onCancel={cancelEditing}
+          />
+        </div>
       ) : null}
 
       <SessionsFilters

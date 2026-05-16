@@ -100,6 +100,26 @@ function isPastScheduledAt(value: string): boolean {
   return timestamp < Date.now();
 }
 
+function getDateTimestamp(value: string): number | null {
+  const timestamp = new Date(value).getTime();
+
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function hasScheduledAtChanged(
+  currentValue: string,
+  nextValue: string
+): boolean {
+  const currentTimestamp = getDateTimestamp(currentValue);
+  const nextTimestamp = getDateTimestamp(nextValue);
+
+  if (currentTimestamp === null || nextTimestamp === null) {
+    return true;
+  }
+
+  return Math.abs(currentTimestamp - nextTimestamp) > 1000;
+}
+
 function parseCreateBody(body: any): ParsedCreatePayload | null {
   let rawBody = body;
 
@@ -430,13 +450,23 @@ async function handleUpdate(req: any, res: any) {
     });
   }
 
-  if (isPastScheduledAt(payload.scheduledAt)) {
-    return res.status(400).json({
-      error: "Нельзя перенести сессию в прошлое.",
-    });
-  }
-
   try {
+    const existingResult = await selectSession(payload.id);
+    const existing = existingResult.rows[0];
+
+    if (!existing) {
+      return res.status(404).json({ error: "Сессия не найдена" });
+    }
+
+    if (
+      hasScheduledAtChanged(existing.scheduled_at, payload.scheduledAt) &&
+      isPastScheduledAt(payload.scheduledAt)
+    ) {
+      return res.status(400).json({
+        error: "Нельзя перенести сессию в прошлое.",
+      });
+    }
+
     const updatedResult = await pool.query<{ id: string | number }>(
       `
         UPDATE sessions
