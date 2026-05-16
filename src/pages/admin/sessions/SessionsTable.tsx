@@ -186,7 +186,11 @@ export function SessionsTable({
               </td>
 
               <td className={styles.notesCell} data-label="Заметки">
-                <span className={styles.notesPreview}>{item.notes || "—"}</span>
+                {item.notes ? (
+                  <span className={styles.notesPreview}>{item.notes}</span>
+                ) : (
+                  <span className={styles.notesEmpty}>—</span>
+                )}
               </td>
 
               <td className={styles.linksCell} data-label="Связи">
