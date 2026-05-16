@@ -2,11 +2,15 @@
 
 import { pool } from "../../server/db/pool.js";
 import type {
+  ClientFavoriteFilter,
   ClientStatus,
   CrmClientRecord,
   UpdateClientPayload,
 } from "../../src/types/client.js";
-import { clientStatuses } from "../../src/types/client.js";
+import {
+  clientFavoriteFilters,
+  clientStatuses,
+} from "../../src/types/client.js";
 import { siteSettings } from "../../src/data/siteSettings.js";
 import {
   normalizePreferredContactFields,
@@ -30,6 +34,10 @@ type ParsedCreateFromRequestPayload = {
 
 type ParsedUpdatePayload = UpdateClientPayload;
 
+type ParsedToggleFavoritePayload = {
+  id: number;
+};
+
 type RequestRow = {
   id: number;
   name: string;
@@ -47,6 +55,7 @@ type ClientRow = {
   email: string;
   source: string;
   status: string;
+  is_favorite: boolean;
   preferred_contact_method: string | null;
   preferred_contact_value: string | null;
   first_request_id: number | string | null;
@@ -77,7 +86,9 @@ function mapClient(row: ClientRow): CrmClientRecord {
     email: row.email,
     source: row.source,
     status: toClientStatus(row.status),
-    preferredContactMethod: row.preferred_contact_method as PreferredContactMethod | null,
+    isFavorite: row.is_favorite,
+    preferredContactMethod:
+      row.preferred_contact_method as PreferredContactMethod | null,
     preferredContactValue: row.preferred_contact_value,
     firstRequestId:
       row.first_request_id === null ? null : Number(row.first_request_id),
@@ -96,12 +107,9 @@ function parseCreateBody(body: any): ParsedCreatePayload | null {
     }
   }
 
-  const name =
-    typeof rawBody?.name === "string" ? rawBody.name.trim() : "";
-  const phone =
-    typeof rawBody?.phone === "string" ? rawBody.phone.trim() : "";
-  const email =
-    typeof rawBody?.email === "string" ? rawBody.email.trim() : "";
+  const name = typeof rawBody?.name === "string" ? rawBody.name.trim() : "";
+  const phone = typeof rawBody?.phone === "string" ? rawBody.phone.trim() : "";
+  const email = typeof rawBody?.email === "string" ? rawBody.email.trim() : "";
   const source =
     typeof rawBody?.source === "string" && rawBody.source.trim()
       ? rawBody.source.trim()
@@ -237,6 +245,26 @@ function parseUpdateBody(body: any): ParsedUpdatePayload | null {
   };
 }
 
+function parseToggleFavoriteBody(body: any): ParsedToggleFavoritePayload | null {
+  let rawBody = body;
+
+  if (typeof rawBody === "string") {
+    try {
+      rawBody = JSON.parse(rawBody);
+    } catch {
+      return null;
+    }
+  }
+
+  const id = Number(rawBody?.id);
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return null;
+  }
+
+  return { id };
+}
+
 function normalizePhoneDigits(value: string): string {
   return value.replace(/\D/g, "");
 }
@@ -276,6 +304,7 @@ async function findExistingClientByContacts(
         email,
         source,
         status,
+        is_favorite,
         preferred_contact_method,
         preferred_contact_value,
         first_request_id,
@@ -327,6 +356,7 @@ async function findDuplicateClientByContacts(
         email,
         source,
         status,
+        is_favorite,
         preferred_contact_method,
         preferred_contact_value,
         first_request_id,
@@ -338,6 +368,31 @@ async function findDuplicateClientByContacts(
       LIMIT 1
     `,
     values
+  );
+
+  return result.rows[0] ?? null;
+}
+
+async function selectClient(id: number): Promise<ClientRow | null> {
+  const result = await pool.query<ClientRow>(
+    `
+      SELECT
+        id,
+        name,
+        phone,
+        email,
+        source,
+        status,
+        is_favorite,
+        preferred_contact_method,
+        preferred_contact_value,
+        first_request_id,
+        created_at
+      FROM clients
+      WHERE id = $1
+      LIMIT 1
+    `,
+    [id]
   );
 
   return result.rows[0] ?? null;
@@ -359,6 +414,7 @@ async function linkRequestToClient(
 
 async function handleList(req: any, res: any) {
   const status = getSingleQueryValue(req.query?.status).trim();
+  const favorite = getSingleQueryValue(req.query?.favorite).trim();
   const search = getSingleQueryValue(req.query?.search).trim();
 
   const conditions: string[] = [];
@@ -371,6 +427,15 @@ async function handleList(req: any, res: any) {
 
     values.push(status);
     conditions.push(`status = $${values.length}`);
+  }
+
+  if (favorite && favorite !== "all") {
+    if (!clientFavoriteFilters.includes(favorite as ClientFavoriteFilter)) {
+      return res.status(400).json({ error: "Invalid favorite filter" });
+    }
+
+    conditions.push(`is_favorite = true`);
+    conditions.push(`status = 'active'`);
   }
 
   if (search) {
@@ -401,14 +466,19 @@ async function handleList(req: any, res: any) {
           email,
           source,
           status,
+          is_favorite,
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
           created_at
         FROM clients
         ${whereClause}
-          ORDER BY
-          CASE WHEN status = 'active' THEN 0 ELSE 1 END,
+        ORDER BY
+          CASE
+            WHEN status = 'active' AND is_favorite = true THEN 0
+            WHEN status = 'active' THEN 1
+            ELSE 2
+          END,
           created_at DESC
       `,
       values
@@ -471,6 +541,7 @@ async function handleCreate(req: any, res: any) {
           email,
           source,
           status,
+          is_favorite,
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
@@ -516,6 +587,7 @@ async function handleCreateFromRequest(req: any, res: any) {
           email,
           source,
           status,
+          is_favorite,
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
@@ -617,6 +689,7 @@ async function handleCreateFromRequest(req: any, res: any) {
           email,
           source,
           status,
+          is_favorite,
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
@@ -685,6 +758,7 @@ async function handleUpdate(req: any, res: any) {
               email = $4,
               source = $5,
               status = $6,
+              is_favorite = CASE WHEN $6 = 'active' THEN is_favorite ELSE false END,
               preferred_contact_method = $7,
               preferred_contact_value = $8
             WHERE id = $1
@@ -695,6 +769,7 @@ async function handleUpdate(req: any, res: any) {
               email,
               source,
               status,
+              is_favorite,
               preferred_contact_method,
               preferred_contact_value,
               first_request_id,
@@ -719,7 +794,8 @@ async function handleUpdate(req: any, res: any) {
               phone = $3,
               email = $4,
               source = $5,
-              status = $6
+              status = $6,
+              is_favorite = CASE WHEN $6 = 'active' THEN is_favorite ELSE false END
             WHERE id = $1
             RETURNING
               id,
@@ -728,6 +804,7 @@ async function handleUpdate(req: any, res: any) {
               email,
               source,
               status,
+              is_favorite,
               preferred_contact_method,
               preferred_contact_value,
               first_request_id,
@@ -763,6 +840,65 @@ async function handleUpdate(req: any, res: any) {
   }
 }
 
+async function handleToggleFavorite(req: any, res: any) {
+  const payload = parseToggleFavoriteBody(req.body);
+
+  if (!payload) {
+    return res.status(400).json({ error: "Некорректный id клиента" });
+  }
+
+  try {
+    const existingClient = await selectClient(payload.id);
+
+    if (!existingClient) {
+      return res.status(404).json({ error: "Клиент не найден." });
+    }
+
+    if (toClientStatus(existingClient.status) !== "active") {
+      return res.status(400).json({
+        error: "В избранное можно добавить только активного клиента.",
+      });
+    }
+
+    const result = await pool.query<ClientRow>(
+      `
+        UPDATE clients
+        SET is_favorite = NOT is_favorite
+        WHERE id = $1
+        RETURNING
+          id,
+          name,
+          phone,
+          email,
+          source,
+          status,
+          is_favorite,
+          preferred_contact_method,
+          preferred_contact_value,
+          first_request_id,
+          created_at
+      `,
+      [payload.id]
+    );
+
+    const updatedClient = result.rows[0];
+
+    if (!updatedClient) {
+      return res.status(404).json({ error: "Клиент не найден." });
+    }
+
+    return res.status(200).json({
+      success: true,
+      item: mapClient(updatedClient),
+    });
+  } catch (error) {
+    console.error("Client favorite toggle error:", error);
+    return res.status(500).json({
+      error: "Не удалось изменить избранное",
+    });
+  }
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method === "GET") {
     return handleList(req, res);
@@ -784,6 +920,10 @@ export default async function handler(req: any, res: any) {
 
   if (action === "update") {
     return handleUpdate(req, res);
+  }
+
+  if (action === "toggle-favorite") {
+    return handleToggleFavorite(req, res);
   }
 
   return res.status(405).json({ error: "Method not allowed" });

@@ -61,7 +61,8 @@
 }
 
 .inactiveClientRow td:first-child {
-  box-shadow: inset 4px 0 0 color-mix(in srgb, var(--admin-text-muted) 34%, white);
+  box-shadow: inset 4px 0 0
+    color-mix(in srgb, var(--admin-text-muted) 34%, white);
 }
 
 .inactiveClientRow:hover td {
@@ -135,15 +136,72 @@
 }
 
 .nameCell {
-  min-width: 138px;
-  max-width: 260px;
+  min-width: 150px;
+  max-width: 270px;
   overflow-wrap: break-word;
   word-break: normal;
+}
+
+.nameWithFavorite {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.favoriteButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-top: -2px;
+  border: 1px solid color-mix(in srgb, var(--admin-border) 78%, white);
+  border-radius: 999px;
+  background: var(--admin-surface);
+  color: color-mix(in srgb, var(--admin-text-muted) 72%, white);
+  cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.favoriteButton:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--admin-highlight-border) 38%, white);
+  background: color-mix(in srgb, var(--admin-highlight) 54%, white);
+  color: color-mix(in srgb, var(--admin-highlight-border) 82%, var(--admin-text));
+  transform: translateY(-1px);
+}
+
+.favoriteButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(214, 167, 0, 0.18);
+}
+
+.favoriteButtonActive {
+  border-color: color-mix(in srgb, var(--admin-highlight-border) 46%, white);
+  background: var(--admin-highlight);
+  color: color-mix(in srgb, var(--admin-highlight-border) 86%, var(--admin-text));
+}
+
+.favoriteButtonDisabled,
+.favoriteButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
 }
 
 .clientNamePreview {
   display: block;
   max-width: 100%;
+  min-width: 0;
 }
 
 .clientNamePart {
@@ -253,6 +311,13 @@
 .firstRequestCell {
   width: 108px;
   white-space: nowrap;
+}
+
+.firstRequestEmpty {
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: var(--admin-text-muted);
 }
 
 .linksCell {
@@ -472,9 +537,20 @@
   }
 
   .nameCell {
-    width: 118px;
-    min-width: 104px;
-    max-width: 132px;
+    width: 126px;
+    min-width: 116px;
+    max-width: 146px;
+  }
+
+  .nameWithFavorite {
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .favoriteButton {
+    width: 26px;
+    height: 26px;
+    font-size: 0.94rem;
   }
 
   .phoneCell {
@@ -559,9 +635,20 @@
   }
 
   .nameCell {
-    width: 31%;
+    width: 34%;
     min-width: 0;
     max-width: none;
+  }
+
+  .nameWithFavorite {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .favoriteButton {
+    width: 24px;
+    height: 24px;
+    font-size: 0.88rem;
   }
 
   .clientNamePreview {
@@ -592,7 +679,7 @@
   }
 
   .preferredContactCell {
-    width: 50%;
+    width: 48%;
     min-width: 0;
     max-width: none;
   }
@@ -707,11 +794,11 @@
 
 @media (max-width: 420px) {
   .nameCell {
-    width: 29%;
+    width: 32%;
   }
 
   .preferredContactCell {
-    width: 53%;
+    width: 52%;
   }
 
   .actionCell {

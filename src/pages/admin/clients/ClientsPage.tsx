@@ -6,12 +6,14 @@ import { siteSettings } from "../../../data/siteSettings";
 import {
   createManualClient,
   getAdminClients,
+  toggleClientFavorite,
   updateClient,
 } from "../../../lib/api/adminClients";
 import { validatePreferredContactFields } from "../../../lib/preferredContact";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import type {
+  ClientFavoriteFilter,
   ClientStatus,
   CreateManualClientPayload,
   CrmClientRecord,
@@ -47,9 +49,14 @@ export function ClientsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [favoriteUpdatingId, setFavoriteUpdatingId] = useState<number | null>(
+    null
+  );
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [statusFilter, setStatusFilter] = useState<ClientStatus | "all">("all");
+  const [favoriteFilter, setFavoriteFilter] =
+    useState<ClientFavoriteFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [highlightedClientId, setHighlightedClientId] = useState<number | null>(
     null
@@ -105,6 +112,7 @@ export function ClientsPage() {
 
         const clients = await getAdminClients({
           status: statusFilter,
+          favorite: favoriteFilter,
           search: searchQuery,
         });
 
@@ -131,7 +139,12 @@ export function ClientsPage() {
     return () => {
       isMounted = false;
     };
-  }, [statusFilter, searchQuery, t.admin.clients.messages.loadError]);
+  }, [
+    statusFilter,
+    favoriteFilter,
+    searchQuery,
+    t.admin.clients.messages.loadError,
+  ]);
 
   useEffect(() => {
     if (editingClientId === null) {
@@ -175,6 +188,7 @@ export function ClientsPage() {
   const reloadClients = async () => {
     const clients = await getAdminClients({
       status: statusFilter,
+      favorite: favoriteFilter,
       search: searchQuery,
     });
 
@@ -248,6 +262,7 @@ export function ClientsPage() {
 
       if (result.alreadyExisted) {
         setStatusFilter("all");
+        setFavoriteFilter("all");
         setSearchQuery("");
         setSuccessMessage(t.admin.clients.messages.alreadyExists);
         navigate(`/admin/clients?highlightClientId=${result.item.id}`);
@@ -283,6 +298,38 @@ export function ClientsPage() {
   const cancelEditing = () => {
     setEditingClientId(null);
     setEditForm(initialForm);
+  };
+
+  const handleToggleFavorite = async (client: CrmClientRecord) => {
+    if (client.status !== "active") {
+      setError("В избранное можно добавить только активного клиента.");
+      setSuccessMessage("");
+      return;
+    }
+
+    setFavoriteUpdatingId(client.id);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      const updatedClient = await toggleClientFavorite(client.id);
+
+      await reloadClients();
+
+      setSuccessMessage(
+        updatedClient.isFavorite
+          ? "Клиент добавлен в избранное."
+          : "Клиент убран из избранного."
+      );
+    } catch (favoriteError) {
+      setError(
+        favoriteError instanceof Error
+          ? favoriteError.message
+          : "Не удалось изменить избранное"
+      );
+    } finally {
+      setFavoriteUpdatingId(null);
+    }
   };
 
   const handleUpdateClient = async (event: FormEvent) => {
@@ -371,6 +418,7 @@ export function ClientsPage() {
   const handleResetView = () => {
     setSearchQuery("");
     setStatusFilter("all");
+    setFavoriteFilter("all");
     setHighlightedClientId(null);
     navigate("/admin/clients");
   };
@@ -419,9 +467,11 @@ export function ClientsPage() {
         searchPlaceholder={t.admin.clients.filters.searchPlaceholder}
         searchQuery={searchQuery}
         statusFilter={statusFilter}
+        favoriteFilter={favoriteFilter}
         statusOptions={statusOptions}
         onSearchChange={setSearchQuery}
         onStatusChange={setStatusFilter}
+        onFavoriteChange={setFavoriteFilter}
       />
 
       {hasQuickViewState ? (
@@ -473,9 +523,11 @@ export function ClientsPage() {
           firstRequestLabel={t.admin.clients.table.firstRequest}
           statusLabels={t.admin.clients.statusLabels}
           sourceLabels={clientSourceLabels}
+          favoriteUpdatingId={favoriteUpdatingId}
           highlightedClientId={highlightedClientId}
           onEdit={startEditing}
           onViewDetails={openClientDetails}
+          onToggleFavorite={handleToggleFavorite}
         />
       )}
 

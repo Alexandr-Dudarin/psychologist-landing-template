@@ -4,6 +4,10 @@ export const clientStatuses = ["active", "inactive"] as const;
 
 export type ClientStatus = (typeof clientStatuses)[number];
 
+export const clientFavoriteFilters = ["all", "favorites"] as const;
+
+export type ClientFavoriteFilter = (typeof clientFavoriteFilters)[number];
+
 export type CrmClientRecord = {
   id: number;
   name: string;
@@ -11,6 +15,7 @@ export type CrmClientRecord = {
   email: string;
   source: string;
   status: ClientStatus;
+  isFavorite: boolean;
   preferredContactMethod: PreferredContactMethod | null;
   preferredContactValue: string | null;
   firstRequestId: number | null;

@@ -1,4 +1,5 @@
 import type {
+  ClientFavoriteFilter,
   ClientStatus,
   CreateManualClientPayload,
   CrmClientRecord,
@@ -42,8 +43,18 @@ type UpdateClientErrorResponse = {
   error: string;
 };
 
+type ToggleClientFavoriteResponse = {
+  success: true;
+  item: CrmClientRecord;
+};
+
+type ToggleClientFavoriteErrorResponse = {
+  error: string;
+};
+
 export type AdminClientsFilters = {
   status?: ClientStatus | "all";
+  favorite?: ClientFavoriteFilter;
   search?: string;
 };
 
@@ -54,6 +65,10 @@ export async function getAdminClients(
 
   if (filters.status) {
     params.set("status", filters.status);
+  }
+
+  if (filters.favorite) {
+    params.set("favorite", filters.favorite);
   }
 
   if (filters.search?.trim()) {
@@ -176,4 +191,35 @@ export async function updateClient(
   }
 
   throw new Error("Failed to update client");
+}
+
+export async function toggleClientFavorite(
+  id: number
+): Promise<CrmClientRecord> {
+  const response = await fetch("/api/admin/clients?action=toggle-favorite", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id }),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | ToggleClientFavoriteResponse
+    | ToggleClientFavoriteErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data
+        ? data.error
+        : "Не удалось изменить избранное"
+    );
+  }
+
+  if (data && "item" in data) {
+    return data.item;
+  }
+
+  throw new Error("Не удалось изменить избранное");
 }

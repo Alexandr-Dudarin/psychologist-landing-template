@@ -23,9 +23,11 @@ type ClientsTableProps = {
   firstRequestLabel: string;
   statusLabels: Record<ClientStatus, string>;
   sourceLabels: Record<string, string>;
+  favoriteUpdatingId?: number | null;
   highlightedClientId?: number | null;
   onEdit: (client: CrmClientRecord) => void;
   onViewDetails: (client: CrmClientRecord) => void;
+  onToggleFavorite: (client: CrmClientRecord) => void;
 };
 
 function getCreatedAtParts(value: string) {
@@ -48,6 +50,26 @@ function getClientStatusBadgeClass(status: ClientStatus): string {
   ].join(" ");
 }
 
+function getFavoriteButtonClassName(client: CrmClientRecord): string {
+  return [
+    styles.favoriteButton,
+    client.isFavorite ? styles.favoriteButtonActive : "",
+    client.status === "inactive" ? styles.favoriteButtonDisabled : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function getFavoriteButtonLabel(client: CrmClientRecord): string {
+  if (client.status === "inactive") {
+    return "Избранное доступно только для активных клиентов";
+  }
+
+  return client.isFavorite
+    ? "Убрать клиента из избранного"
+    : "Добавить клиента в избранное";
+}
+
 export function ClientsTable({
   items,
   createdLabel,
@@ -59,9 +81,11 @@ export function ClientsTable({
   firstRequestLabel,
   statusLabels,
   sourceLabels,
+  favoriteUpdatingId = null,
   highlightedClientId = null,
   onEdit,
   onViewDetails,
+  onToggleFavorite,
 }: ClientsTableProps) {
   const highlightedRowRef = useRef<HTMLTableRowElement | null>(null);
   const showPreferredContact = siteSettings.preferredContactMethod.enabled;
@@ -118,6 +142,7 @@ export function ClientsTable({
           const preferredContactValue = item.preferredContactValue;
           const createdAt = getCreatedAtParts(item.createdAt);
           const nameParts = splitClientName(item.name);
+          const isFavoriteUpdating = favoriteUpdatingId === item.id;
           const rowClassName = [
             isHighlighted ? styles.highlightedRow : "",
             item.status === "inactive" ? styles.inactiveClientRow : "",
@@ -132,16 +157,29 @@ export function ClientsTable({
               className={rowClassName || undefined}
             >
               <td className={styles.nameCell}>
-                <span className={styles.clientNamePreview} title={item.name}>
-                  <span className={styles.clientNamePart}>
-                    {nameParts.firstName || item.name}
-                  </span>
+                <span className={styles.nameWithFavorite}>
+                  <button
+                    type="button"
+                    className={getFavoriteButtonClassName(item)}
+                    onClick={() => onToggleFavorite(item)}
+                    disabled={isFavoriteUpdating || item.status === "inactive"}
+                    aria-label={getFavoriteButtonLabel(item)}
+                    title={getFavoriteButtonLabel(item)}
+                  >
+                    ★
+                  </button>
 
-                  {nameParts.lastName ? (
+                  <span className={styles.clientNamePreview} title={item.name}>
                     <span className={styles.clientNamePart}>
-                      {nameParts.lastName}
+                      {nameParts.firstName || item.name}
                     </span>
-                  ) : null}
+
+                    {nameParts.lastName ? (
+                      <span className={styles.clientNamePart}>
+                        {nameParts.lastName}
+                      </span>
+                    ) : null}
+                  </span>
                 </span>
               </td>
 
@@ -193,7 +231,7 @@ export function ClientsTable({
                     К заявке
                   </Link>
                 ) : (
-                  "-"
+                  <span className={styles.firstRequestEmpty}>—</span>
                 )}
               </td>
 

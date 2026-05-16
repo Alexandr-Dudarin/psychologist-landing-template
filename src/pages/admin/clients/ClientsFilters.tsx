@@ -1,4 +1,7 @@
-import type { ClientStatus } from "../../../types/client";
+import type {
+  ClientFavoriteFilter,
+  ClientStatus,
+} from "../../../types/client";
 
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import styles from "./ClientsPage.module.css";
@@ -13,9 +16,11 @@ type ClientsFiltersProps = {
   searchPlaceholder: string;
   searchQuery: string;
   statusFilter: ClientStatus | "all";
+  favoriteFilter: ClientFavoriteFilter;
   statusOptions: StatusOption[];
   onSearchChange: (value: string) => void;
   onStatusChange: (value: ClientStatus | "all") => void;
+  onFavoriteChange: (value: ClientFavoriteFilter) => void;
 };
 
 export function ClientsFilters({
@@ -23,9 +28,11 @@ export function ClientsFilters({
   searchPlaceholder,
   searchQuery,
   statusFilter,
+  favoriteFilter,
   statusOptions,
   onSearchChange,
   onStatusChange,
+  onFavoriteChange,
 }: ClientsFiltersProps) {
   return (
     <AdminFiltersRow>
@@ -42,6 +49,17 @@ export function ClientsFilters({
             {status.label}
           </option>
         ))}
+      </select>
+
+      <select
+        value={favoriteFilter}
+        onChange={(event) =>
+          onFavoriteChange(event.target.value as ClientFavoriteFilter)
+        }
+        className={`${styles.input} ${styles.select}`}
+      >
+        <option value="all">все клиенты</option>
+        <option value="favorites">только избранные</option>
       </select>
 
       <input
