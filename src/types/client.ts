@@ -25,6 +25,7 @@ export type CrmClientRecord = {
   source: string;
   status: ClientStatus;
   isFavorite: boolean;
+  hasActivePackages: boolean;
   preferredContactMethod: PreferredContactMethod | null;
   preferredContactValue: string | null;
   firstRequestId: number | null;

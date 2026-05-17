@@ -107,7 +107,7 @@ export function ClientsTable({
 
   return (
     <AdminTable>
-      <thead>
+      <thead className={styles.tableHead}>
         <tr>
           <th className={styles.nameCell}>{nameLabel}</th>
           <th className={styles.phoneCell}>{phoneLabel}</th>
@@ -125,6 +125,7 @@ export function ClientsTable({
           <th className={styles.createdCell}>{createdLabel}</th>
           <th className={styles.sourceCell}>{sourceLabel}</th>
           <th className={styles.statusCell}>{statusLabel}</th>
+          <th className={styles.packagesCell}>Пакеты</th>
           <th className={styles.firstRequestCell}>{firstRequestLabel}</th>
           <th className={styles.linksCell}>Связи</th>
           <th className={styles.actionCell}>
@@ -221,6 +222,21 @@ export function ClientsTable({
                 <span className={getClientStatusBadgeClass(item.status)}>
                   {statusLabels[item.status]}
                 </span>
+              </td>
+
+              <td className={styles.packagesCell}>
+                {item.hasActivePackages ? (
+                  <button
+                    type="button"
+                    className={styles.packagesButton}
+                    onClick={() => onViewDetails(item)}
+                    title="Открыть пакеты клиента"
+                  >
+                    Есть
+                  </button>
+                ) : (
+                  <span className={styles.packagesEmpty}>—</span>
+                )}
               </td>
 
               <td className={styles.firstRequestCell}>

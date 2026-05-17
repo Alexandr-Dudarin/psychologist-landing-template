@@ -67,6 +67,7 @@ type ClientRow = {
   source: string;
   status: string;
   is_favorite: boolean;
+  has_active_packages: boolean;
   preferred_contact_method: string | null;
   preferred_contact_value: string | null;
   first_request_id: number | string | null;
@@ -106,6 +107,24 @@ function getSingleQueryValue(value: string | string[] | undefined): string {
   return value ?? "";
 }
 
+function getHasActivePackagesSelect(clientAlias = "clients"): string {
+  return `
+    EXISTS (
+      SELECT 1
+      FROM client_service_packages csp
+      INNER JOIN service_package_plans spp ON spp.id = csp.package_plan_id
+      WHERE csp.client_id = ${clientAlias}.id
+        AND csp.status = 'active'
+        AND (
+          SELECT COUNT(*)
+          FROM sessions s
+          WHERE s.client_package_id = csp.id
+            AND s.status IN ('scheduled', 'completed', 'no_show')
+        ) < spp.sessions_count
+    )
+  `;
+}
+
 function mapClient(row: ClientRow): CrmClientRecord {
   return {
     id: Number(row.id),
@@ -115,6 +134,7 @@ function mapClient(row: ClientRow): CrmClientRecord {
     source: row.source,
     status: toClientStatus(row.status),
     isFavorite: row.is_favorite,
+    hasActivePackages: Boolean(row.has_active_packages),
     preferredContactMethod:
       row.preferred_contact_method as PreferredContactMethod | null,
     preferredContactValue: row.preferred_contact_value,
@@ -414,6 +434,7 @@ async function findExistingClientByContacts(
         source,
         status,
         is_favorite,
+        ${getHasActivePackagesSelect("clients")} AS has_active_packages,
         preferred_contact_method,
         preferred_contact_value,
         first_request_id,
@@ -466,6 +487,7 @@ async function findDuplicateClientByContacts(
         source,
         status,
         is_favorite,
+        ${getHasActivePackagesSelect("clients")} AS has_active_packages,
         preferred_contact_method,
         preferred_contact_value,
         first_request_id,
@@ -493,6 +515,7 @@ async function selectClient(id: number): Promise<ClientRow | null> {
         source,
         status,
         is_favorite,
+        ${getHasActivePackagesSelect("clients")} AS has_active_packages,
         preferred_contact_method,
         preferred_contact_value,
         first_request_id,
@@ -614,6 +637,7 @@ async function handleList(req: any, res: any) {
           source,
           status,
           is_favorite,
+          ${getHasActivePackagesSelect("clients")} AS has_active_packages,
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
@@ -751,6 +775,7 @@ async function handleCreate(req: any, res: any) {
           source,
           status,
           is_favorite,
+          false AS has_active_packages,
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
@@ -797,6 +822,7 @@ async function handleCreateFromRequest(req: any, res: any) {
           source,
           status,
           is_favorite,
+          ${getHasActivePackagesSelect("clients")} AS has_active_packages,
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
@@ -899,6 +925,7 @@ async function handleCreateFromRequest(req: any, res: any) {
           source,
           status,
           is_favorite,
+          false AS has_active_packages,
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
@@ -979,6 +1006,7 @@ async function handleUpdate(req: any, res: any) {
               source,
               status,
               is_favorite,
+              ${getHasActivePackagesSelect("clients")} AS has_active_packages,
               preferred_contact_method,
               preferred_contact_value,
               first_request_id,
@@ -1014,6 +1042,7 @@ async function handleUpdate(req: any, res: any) {
               source,
               status,
               is_favorite,
+              ${getHasActivePackagesSelect("clients")} AS has_active_packages,
               preferred_contact_method,
               preferred_contact_value,
               first_request_id,
@@ -1082,6 +1111,7 @@ async function handleToggleFavorite(req: any, res: any) {
           source,
           status,
           is_favorite,
+          ${getHasActivePackagesSelect("clients")} AS has_active_packages,
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
