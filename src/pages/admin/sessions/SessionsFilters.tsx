@@ -1,5 +1,8 @@
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
-import type { CrmClientRecord } from "../../../types/client";
+import type {
+  ClientFavoriteFilter,
+  CrmClientRecord,
+} from "../../../types/client";
 import type { SessionStatus } from "../../../types/session";
 import { sessionStatuses } from "../../../types/session";
 import { sessionStatusLabels } from "./sessionForm";
@@ -8,9 +11,11 @@ import styles from "./SessionsPage.module.css";
 type SessionsFiltersProps = {
   clientFilter: number | "all";
   clients: CrmClientRecord[];
+  favoriteFilter: ClientFavoriteFilter;
   statusFilter: SessionStatus | "all";
   searchQuery: string;
   onClientFilterChange: (value: number | "all") => void;
+  onFavoriteFilterChange: (value: ClientFavoriteFilter) => void;
   onStatusFilterChange: (value: SessionStatus | "all") => void;
   onSearchQueryChange: (value: string) => void;
 };
@@ -18,9 +23,11 @@ type SessionsFiltersProps = {
 export function SessionsFilters({
   clientFilter,
   clients,
+  favoriteFilter,
   statusFilter,
   searchQuery,
   onClientFilterChange,
+  onFavoriteFilterChange,
   onStatusFilterChange,
   onSearchQueryChange,
 }: SessionsFiltersProps) {
@@ -41,6 +48,17 @@ export function SessionsFilters({
             {client.name}
           </option>
         ))}
+      </select>
+
+      <select
+        value={favoriteFilter}
+        onChange={(event) =>
+          onFavoriteFilterChange(event.target.value as ClientFavoriteFilter)
+        }
+        className={`${styles.input} ${styles.filterSelect}`}
+      >
+        <option value="all">все клиенты</option>
+        <option value="favorites">только избранные</option>
       </select>
 
       <select

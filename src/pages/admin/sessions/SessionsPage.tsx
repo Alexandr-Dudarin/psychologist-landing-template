@@ -20,6 +20,7 @@ import {
   updateAdminSession,
 } from "../../../lib/api/adminSessions";
 import type {
+  ClientFavoriteFilter,
   CrmClientRecord,
   CrmClientServicePackageRecord,
 } from "../../../types/client";
@@ -264,6 +265,18 @@ function getManualSessionScheduleWarning(
   return warnings.length > 0 ? warnings.join(" ") : null;
 }
 
+function filterSessionsByFavoriteClients(
+  sessions: CrmSessionRecord[],
+  favoriteClientIds: Set<number>,
+  favoriteFilter: ClientFavoriteFilter
+): CrmSessionRecord[] {
+  if (favoriteFilter !== "favorites") {
+    return sessions;
+  }
+
+  return sessions.filter((session) => favoriteClientIds.has(session.clientId));
+}
+
 export function SessionsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -301,6 +314,8 @@ export function SessionsPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [statusFilter, setStatusFilter] = useState<SessionStatus | "all">("all");
   const [clientFilter, setClientFilter] = useState<number | "all">("all");
+  const [favoriteFilter, setFavoriteFilter] =
+    useState<ClientFavoriteFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [highlightedSessionId, setHighlightedSessionId] = useState<number | null>(
     null
@@ -316,6 +331,31 @@ export function SessionsPage() {
   const activeServices = useMemo(
     () => services.filter((service) => service.isActive),
     [services]
+  );
+
+  const favoriteClientIds = useMemo(
+    () =>
+      new Set(
+        clients
+          .filter((client) => client.isFavorite)
+          .map((client) => client.id)
+      ),
+    [clients]
+  );
+
+  const visibleItems = useMemo(
+    () => filterSessionsByFavoriteClients(items, favoriteClientIds, favoriteFilter),
+    [favoriteClientIds, favoriteFilter, items]
+  );
+
+  const visibleArchivedItems = useMemo(
+    () =>
+      filterSessionsByFavoriteClients(
+        archivedItems,
+        favoriteClientIds,
+        favoriteFilter
+      ),
+    [archivedItems, favoriteClientIds, favoriteFilter]
   );
 
   const createScheduleWarning = useMemo(
@@ -392,11 +432,11 @@ export function SessionsPage() {
 
         const activeSessionsPromise = shouldLoadActiveSessions
           ? getAdminSessions({
-            scope: "active",
-            status: statusFilter,
-            clientId: clientFilter,
-            search: searchQuery,
-          })
+              scope: "active",
+              status: statusFilter,
+              clientId: clientFilter,
+              search: searchQuery,
+            })
           : Promise.resolve([]);
 
         const [sessionsData, clientsData, servicesData, scheduleData] =
@@ -595,19 +635,19 @@ export function SessionsPage() {
     const [sessionsData, archivedSessionsData] = await Promise.all([
       shouldLoadActiveSessions
         ? getAdminSessions({
-          scope: "active",
-          status: statusFilter,
-          clientId: clientFilter,
-          search: searchQuery,
-        })
+            scope: "active",
+            status: statusFilter,
+            clientId: clientFilter,
+            search: searchQuery,
+          })
         : Promise.resolve([]),
       showArchivedSessions
         ? getAdminSessions({
-          scope: "archived",
-          status: statusFilter,
-          clientId: clientFilter,
-          search: searchQuery,
-        })
+            scope: "archived",
+            status: statusFilter,
+            clientId: clientFilter,
+            search: searchQuery,
+          })
         : Promise.resolve(null),
     ]);
 
@@ -626,6 +666,26 @@ export function SessionsPage() {
     if (successMessage) {
       setSuccessMessage("");
     }
+  };
+
+  const handleClientFilterChange = (value: number | "all") => {
+    setClientFilter(value);
+    resetFeedback();
+  };
+
+  const handleFavoriteFilterChange = (value: ClientFavoriteFilter) => {
+    setFavoriteFilter(value);
+    resetFeedback();
+  };
+
+  const handleStatusFilterChange = (value: SessionStatus | "all") => {
+    setStatusFilter(value);
+    resetFeedback();
+  };
+
+  const handleSearchQueryChange = (value: string) => {
+    setSearchQuery(value);
+    resetFeedback();
   };
 
   const handleCreateFormChange = (field: keyof SessionForm, value: string) => {
@@ -791,6 +851,7 @@ export function SessionsPage() {
   const handleResetView = () => {
     setStatusFilter("all");
     setClientFilter("all");
+    setFavoriteFilter("all");
     setSearchQuery("");
     setHighlightedSessionId(null);
     setShowArchivedSessions(false);
@@ -863,11 +924,13 @@ export function SessionsPage() {
       <SessionsFilters
         clientFilter={clientFilter}
         clients={clients}
+        favoriteFilter={favoriteFilter}
         statusFilter={statusFilter}
         searchQuery={searchQuery}
-        onClientFilterChange={setClientFilter}
-        onStatusFilterChange={setStatusFilter}
-        onSearchQueryChange={setSearchQuery}
+        onClientFilterChange={handleClientFilterChange}
+        onFavoriteFilterChange={handleFavoriteFilterChange}
+        onStatusFilterChange={handleStatusFilterChange}
+        onSearchQueryChange={handleSearchQueryChange}
       />
 
       <AdminFeedback message={error} tone="error" />
@@ -875,7 +938,7 @@ export function SessionsPage() {
 
       {shouldLoadActiveSessions ? (
         <SessionsTable
-          items={items}
+          items={visibleItems}
           isLoading={isLoading}
           deletingId={deletingId}
           timezone={scheduleTimezone}
@@ -918,7 +981,7 @@ export function SessionsPage() {
 
       {showArchivedSessions ? (
         <SessionsTable
-          items={archivedItems}
+          items={visibleArchivedItems}
           isLoading={isArchivedLoading}
           deletingId={deletingId}
           timezone={scheduleTimezone}

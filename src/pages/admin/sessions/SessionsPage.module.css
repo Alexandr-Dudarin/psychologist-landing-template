@@ -38,6 +38,53 @@
   justify-content: flex-start;
 }
 
+.clientPicker {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.clientPickerTools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.clientSearchInput {
+  min-width: 0;
+}
+
+.clientFavoriteToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  font-size: 0.94rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.clientFavoriteToggle input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.clientPickerHint {
+  color: var(--admin-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
 .editActionButton,
 .deleteActionButton {
   width: 100%;
@@ -575,5 +622,16 @@
   .notesPreview,
   .notesEmpty {
     max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .clientPickerTools {
+    grid-template-columns: 1fr;
+  }
+
+  .clientFavoriteToggle {
+    justify-content: flex-start;
+    width: 100%;
   }
 }
