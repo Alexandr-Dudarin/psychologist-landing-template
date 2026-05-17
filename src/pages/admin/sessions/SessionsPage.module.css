@@ -400,6 +400,16 @@
   color: var(--admin-text-muted);
 }
 
+.warningFeedback {
+  margin: 12px 0 16px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--admin-highlight-border) 42%, white);
+  border-radius: var(--admin-radius-md);
+  background: color-mix(in srgb, var(--admin-highlight) 42%, white);
+  color: color-mix(in srgb, var(--admin-highlight-border) 76%, var(--admin-text));
+  line-height: 1.45;
+}
+
 .notesPreview {
   display: -webkit-box;
   max-width: 260px;

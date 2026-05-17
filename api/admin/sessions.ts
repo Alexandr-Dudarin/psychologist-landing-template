@@ -68,6 +68,13 @@ type ClientPackageValidationRow = {
   used_sessions_count: string | number;
 };
 
+type SessionOverlapRow = {
+  id: string | number;
+  client_name: string;
+  scheduled_at: string;
+  duration_minutes: string | number;
+};
+
 function toSessionStatus(value: string): SessionStatus {
   if (sessionStatuses.includes(value as SessionStatus)) {
     return value as SessionStatus;
@@ -439,6 +446,63 @@ async function validateClientPackageForSession(
   };
 }
 
+async function findSessionTimeOverlap(
+  scheduledAt: string,
+  durationMinutes: number,
+  currentSessionId: number | null = null
+): Promise<SessionOverlapRow | null> {
+  const result = await pool.query<SessionOverlapRow>(
+    `
+      WITH target AS (
+        SELECT
+          $1::timestamptz AS scheduled_at,
+          $2::int AS duration_minutes,
+          COALESCE(
+            (
+              SELECT buffer_minutes::int
+              FROM booking_settings
+              WHERE id = 1
+              LIMIT 1
+            ),
+            0
+          ) AS buffer_minutes
+      )
+      SELECT
+        s.id,
+        c.name AS client_name,
+        s.scheduled_at,
+        s.duration_minutes
+      FROM sessions s
+      INNER JOIN clients c ON c.id = s.client_id
+      CROSS JOIN target t
+      WHERE s.status <> 'cancelled'
+        AND ($3::bigint IS NULL OR s.id <> $3)
+        AND tstzrange(
+          s.scheduled_at,
+          s.scheduled_at + ((s.duration_minutes::int + t.buffer_minutes) * INTERVAL '1 minute'),
+          '[)'
+        ) && tstzrange(
+          t.scheduled_at,
+          t.scheduled_at + ((t.duration_minutes + t.buffer_minutes) * INTERVAL '1 minute'),
+          '[)'
+        )
+      ORDER BY s.scheduled_at ASC
+      LIMIT 1
+    `,
+    [scheduledAt, durationMinutes, currentSessionId]
+  );
+
+  return result.rows[0] ?? null;
+}
+
+function getSessionOverlapError(overlap: SessionOverlapRow): string {
+  return [
+    "Это время уже занято другой сессией или перерывом после неё.",
+    `Конфликт с записью клиента: ${overlap.client_name}.`,
+    "Выберите другое время.",
+  ].join(" ");
+}
+
 async function handleList(req: any, res: any) {
   const status = getSingleQueryValue(req.query?.status).trim();
   const scope = getSingleQueryValue(req.query?.scope).trim();
@@ -576,6 +640,19 @@ async function handleCreate(req: any, res: any) {
       packageValidation.durationMinutes ?? payload.durationMinutes;
     const storedPrice = payload.clientPackageId ? 0 : payload.price;
 
+    if (payload.status !== "cancelled") {
+      const overlap = await findSessionTimeOverlap(
+        payload.scheduledAt,
+        storedDurationMinutes
+      );
+
+      if (overlap) {
+        return res.status(409).json({
+          error: getSessionOverlapError(overlap),
+        });
+      }
+    }
+
     const result = await pool.query<{ id: string | number }>(
       `
         INSERT INTO sessions (
@@ -658,6 +735,20 @@ async function handleUpdate(req: any, res: any) {
     const storedDurationMinutes =
       packageValidation.durationMinutes ?? payload.durationMinutes;
     const storedPrice = payload.clientPackageId ? 0 : payload.price;
+
+    if (payload.status !== "cancelled") {
+      const overlap = await findSessionTimeOverlap(
+        payload.scheduledAt,
+        storedDurationMinutes,
+        payload.id
+      );
+
+      if (overlap) {
+        return res.status(409).json({
+          error: getSessionOverlapError(overlap),
+        });
+      }
+    }
 
     const updatedResult = await pool.query<{ id: string | number }>(
       `
