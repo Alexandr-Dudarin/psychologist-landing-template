@@ -183,7 +183,7 @@ function parseCreateBody(body: any): ParsedCreatePayload | null {
   const price = Number(rawBody?.price);
   const status =
     typeof rawBody?.status === "string" &&
-    sessionStatuses.includes(rawBody.status as SessionStatus)
+      sessionStatuses.includes(rawBody.status as SessionStatus)
       ? (rawBody.status as SessionStatus)
       : "scheduled";
   const notes =
@@ -251,7 +251,7 @@ function parseUpdateBody(body: any): ParsedUpdatePayload | null {
   const price = Number(rawBody?.price);
   const status =
     typeof rawBody?.status === "string" &&
-    sessionStatuses.includes(rawBody.status as SessionStatus)
+      sessionStatuses.includes(rawBody.status as SessionStatus)
       ? (rawBody.status as SessionStatus)
       : null;
   const notes =
@@ -636,8 +636,7 @@ async function handleCreate(req: any, res: any) {
       });
     }
 
-    const storedDurationMinutes =
-      packageValidation.durationMinutes ?? payload.durationMinutes;
+    const storedDurationMinutes = payload.durationMinutes;
     const storedPrice = payload.clientPackageId ? 0 : payload.price;
 
     if (payload.status !== "cancelled") {
@@ -732,8 +731,7 @@ async function handleUpdate(req: any, res: any) {
       });
     }
 
-    const storedDurationMinutes =
-      packageValidation.durationMinutes ?? payload.durationMinutes;
+    const storedDurationMinutes = payload.durationMinutes;
     const storedPrice = payload.clientPackageId ? 0 : payload.price;
 
     if (payload.status !== "cancelled") {

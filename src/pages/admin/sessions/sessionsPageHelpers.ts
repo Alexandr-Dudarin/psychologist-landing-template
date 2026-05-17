@@ -2,6 +2,7 @@ import {
   dateTimeLocalInTimeZoneToIso,
   toDateTimeLocalValueInTimeZone,
 } from "../../../lib/datetime/practiceTimezone";
+import { normalizeAdminPriceInput } from "../../../lib/format/adminPriceInput";
 import type { CrmClientServicePackageRecord } from "../../../types/client";
 import type { CrmServiceRecord } from "../../../types/service";
 import type {
@@ -22,6 +23,25 @@ function findSelectedPackage(
   }
 
   return clientPackages.find((item) => item.id === packageId) ?? null;
+}
+
+function findSelectedService(
+  services: CrmServiceRecord[],
+  value: string
+): CrmServiceRecord | null {
+  const serviceId = Number(value);
+
+  if (!Number.isInteger(serviceId) || serviceId <= 0) {
+    return null;
+  }
+
+  return services.find((service) => Number(service.id) === serviceId) ?? null;
+}
+
+function getNormalizedPriceNumber(value: string): number {
+  const normalizedValue = normalizeAdminPriceInput(value);
+
+  return Number(normalizedValue || 0);
 }
 
 export function updateSessionFormField(
@@ -59,15 +79,14 @@ export function updateSessionFormField(
   }
 
   if (field === "serviceId") {
-    const selectedService = services.find(
-      (service) => service.id === Number(value)
-    );
+    const selectedService = findSelectedService(services, value);
     const selectedPackage = findSelectedPackage(
       clientPackages,
       form.clientPackageId
     );
     const shouldKeepPackage =
-      selectedPackage !== null && selectedPackage.serviceId === Number(value);
+      selectedPackage !== null &&
+      Number(selectedPackage.serviceId) === Number(value);
 
     return {
       ...form,
@@ -82,6 +101,13 @@ export function updateSessionFormField(
           : selectedService
             ? String(selectedService.price)
             : form.price,
+    };
+  }
+
+  if (field === "price") {
+    return {
+      ...form,
+      price: normalizeAdminPriceInput(value),
     };
   }
 
@@ -102,7 +128,7 @@ export function buildCreateSessionPayload(
     serviceId: Number(form.serviceId),
     scheduledAt: dateTimeLocalInTimeZoneToIso(form.scheduledAt, timezone) ?? "",
     durationMinutes: Number(form.durationMinutes),
-    price: Number(form.price),
+    price: getNormalizedPriceNumber(form.price),
     status: form.status,
     notes: form.notes.trim(),
     source: "manual",
@@ -126,7 +152,7 @@ export function buildUpdateSessionPayload(
     serviceId: Number(form.serviceId),
     scheduledAt: dateTimeLocalInTimeZoneToIso(form.scheduledAt, timezone) ?? "",
     durationMinutes: Number(form.durationMinutes),
-    price: Number(form.price),
+    price: getNormalizedPriceNumber(form.price),
     status: form.status,
     notes: form.notes.trim(),
     clientPackageId:

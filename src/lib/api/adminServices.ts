@@ -68,6 +68,15 @@ type UpdateServicePackagePlanErrorResponse = {
   error: string;
 };
 
+type HideServicePackagePlanResponse = {
+  success: true;
+  item: CrmServicePackagePlanRecord;
+};
+
+type HideServicePackagePlanErrorResponse = {
+  error: string;
+};
+
 type DeleteServicePackagePlanResponse = {
   success: true;
   id: number;
@@ -284,6 +293,35 @@ export async function updateAdminServicePackagePlan(
   }
 
   throw new Error("Не удалось обновить пакет услуг");
+}
+
+export async function hideAdminServicePackagePlan(
+  id: number
+): Promise<CrmServicePackagePlanRecord> {
+  const response = await fetch("/api/admin/services?action=hide-package-plan", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id }),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | HideServicePackagePlanResponse
+    | HideServicePackagePlanErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data ? data.error : "Не удалось скрыть пакет услуг"
+    );
+  }
+
+  if (data && "item" in data) {
+    return data.item;
+  }
+
+  throw new Error("Не удалось скрыть пакет услуг");
 }
 
 export async function deleteAdminServicePackagePlan(id: number): Promise<number> {

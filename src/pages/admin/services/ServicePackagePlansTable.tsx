@@ -6,9 +6,11 @@ import styles from "./ServicesPage.module.css";
 
 type ServicePackagePlansTableProps = {
   deletingId: number | null;
+  hidingId: number | null;
   items: CrmServicePackagePlanRecord[];
   onDelete: (id: number) => void;
   onEdit: (packagePlan: CrmServicePackagePlanRecord) => void;
+  onHide: (packagePlan: CrmServicePackagePlanRecord) => void;
 };
 
 function getPackageStatusBadgeClassName(
@@ -24,9 +26,11 @@ function getPackageStatusBadgeClassName(
 
 export function ServicePackagePlansTable({
   deletingId,
+  hidingId,
   items,
   onDelete,
   onEdit,
+  onHide,
 }: ServicePackagePlansTableProps) {
   return (
     <AdminTable>
@@ -45,7 +49,9 @@ export function ServicePackagePlansTable({
 
       <tbody>
         {items.map((item) => {
+          const isUsed = item.clientPackagesCount > 0;
           const isDeleting = deletingId === item.id;
+          const isHiding = hidingId === item.id;
           const isVisuallyInactive = !item.isActive || !item.serviceIsActive;
 
           return (
@@ -61,10 +67,17 @@ export function ServicePackagePlansTable({
 
               <td className={styles.titleCell}>
                 <span className={styles.primaryValue}>{item.title}</span>
+
+                {item.clientPackagesCount > 0 ? (
+                  <span className={styles.mutedLine}>
+                    выдан клиентам: {item.clientPackagesCount}
+                  </span>
+                ) : null}
               </td>
 
               <td className={styles.titleCell}>
                 <span className={styles.primaryValue}>{item.serviceTitle}</span>
+
                 {!item.serviceIsActive ? (
                   <span className={styles.mutedLine}>услуга скрыта</span>
                 ) : null}
@@ -101,15 +114,38 @@ export function ServicePackagePlansTable({
                     Редактировать
                   </AdminButton>
 
-                  <AdminButton
-                    type="button"
-                    onClick={() => onDelete(item.id)}
-                    disabled={isDeleting}
-                    size="sm"
-                    variant="danger"
-                  >
-                    {isDeleting ? "Удаление..." : "Удалить"}
-                  </AdminButton>
+                  {isUsed ? (
+                    item.isActive ? (
+                      <AdminButton
+                        type="button"
+                        onClick={() => onHide(item)}
+                        disabled={isHiding}
+                        size="sm"
+                        variant="secondary"
+                        className={styles.hideButton}
+                      >
+                        {isHiding ? "Скрываем..." : "Скрыть из записи"}
+                      </AdminButton>
+                    ) : (
+                      <span
+                        className={styles.hiddenButton}
+                        title="Пакет уже скрыт из новых записей"
+                        aria-disabled="true"
+                      >
+                        Скрыт
+                      </span>
+                    )
+                  ) : (
+                    <AdminButton
+                      type="button"
+                      onClick={() => onDelete(item.id)}
+                      disabled={isDeleting}
+                      size="sm"
+                      variant="danger"
+                    >
+                      {isDeleting ? "Удаление..." : "Удалить"}
+                    </AdminButton>
+                  )}
                 </div>
               </td>
             </tr>

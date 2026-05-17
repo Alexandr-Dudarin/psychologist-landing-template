@@ -36,6 +36,7 @@ export type CrmServicePackagePlanRecord = {
   description: string;
   sessionsCount: number;
   price: number;
+  clientPackagesCount: number;
   isActive: boolean;
   createdAt: string;
 };

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
-import { siteSettings } from "../../../data/siteSettings";
 import {
   createAdminService,
   createAdminServicePackagePlan,
@@ -10,6 +9,7 @@ import {
   deleteAdminServicePackagePlan,
   getAdminServicePackagePlans,
   getAdminServices,
+  hideAdminServicePackagePlan,
   updateAdminService,
   updateAdminServicePackagePlan,
 } from "../../../lib/api/adminServices";
@@ -84,16 +84,12 @@ function validatePackagePlanPayload(
 }
 
 export function ServicesPage() {
-  const servicePackagesEnabled = siteSettings.servicePackages.enabled;
-
   const [items, setItems] = useState<CrmServiceRecord[]>([]);
   const [packagePlans, setPackagePlans] = useState<
     CrmServicePackagePlanRecord[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPackagePlansLoading, setIsPackagePlansLoading] = useState(
-    servicePackagesEnabled
-  );
+  const [isPackagePlansLoading, setIsPackagePlansLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isPackagePlanCreating, setIsPackagePlanCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -103,8 +99,13 @@ export function ServicesPage() {
     number | null
   >(null);
   const [hidingId, setHidingId] = useState<number | null>(null);
+  const [hidingPackagePlanId, setHidingPackagePlanId] = useState<number | null>(
+    null
+  );
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [packageError, setPackageError] = useState("");
+  const [packageSuccessMessage, setPackageSuccessMessage] = useState("");
   const [activityFilter, setActivityFilter] = useState<
     "all" | "active" | "inactive"
   >("all");
@@ -132,8 +133,9 @@ export function ServicesPage() {
       try {
         if (isMounted) {
           setIsLoading(true);
-          setIsPackagePlansLoading(servicePackagesEnabled);
+          setIsPackagePlansLoading(true);
           setError("");
+          setPackageError("");
         }
 
         const [services, servicePackagePlans] = await Promise.all([
@@ -141,9 +143,7 @@ export function ServicesPage() {
             activity: activityFilter,
             search: searchQuery,
           }),
-          servicePackagesEnabled
-            ? getAdminServicePackagePlans()
-            : Promise.resolve([]),
+          getAdminServicePackagePlans(),
         ]);
 
         if (isMounted) {
@@ -171,7 +171,7 @@ export function ServicesPage() {
     return () => {
       isMounted = false;
     };
-  }, [activityFilter, searchQuery, servicePackagesEnabled]);
+  }, [activityFilter, searchQuery]);
 
   const resetMessages = () => {
     if (error) {
@@ -180,6 +180,24 @@ export function ServicesPage() {
 
     if (successMessage) {
       setSuccessMessage("");
+    }
+
+    if (packageError) {
+      setPackageError("");
+    }
+
+    if (packageSuccessMessage) {
+      setPackageSuccessMessage("");
+    }
+  };
+
+  const resetPackageMessages = () => {
+    if (packageError) {
+      setPackageError("");
+    }
+
+    if (packageSuccessMessage) {
+      setPackageSuccessMessage("");
     }
   };
 
@@ -213,7 +231,7 @@ export function ServicesPage() {
       ...prev,
       [field]: value,
     }));
-    resetMessages();
+    resetPackageMessages();
   };
 
   const handlePackagePlanEditFormChange = (
@@ -224,7 +242,7 @@ export function ServicesPage() {
       ...prev,
       [field]: value,
     }));
-    resetMessages();
+    resetPackageMessages();
   };
 
   const reloadServices = async () => {
@@ -237,11 +255,6 @@ export function ServicesPage() {
   };
 
   const reloadPackagePlans = async () => {
-    if (!servicePackagesEnabled) {
-      setPackagePlans([]);
-      return;
-    }
-
     const servicePackagePlans = await getAdminServicePackagePlans();
 
     setPackagePlans(servicePackagePlans);
@@ -253,9 +266,7 @@ export function ServicesPage() {
         activity: activityFilter,
         search: searchQuery,
       }),
-      servicePackagesEnabled
-        ? getAdminServicePackagePlans()
-        : Promise.resolve([]),
+      getAdminServicePackagePlans(),
     ]);
 
     setItems(services);
@@ -277,6 +288,7 @@ export function ServicesPage() {
 
     if (validationError) {
       setError(validationError);
+      setSuccessMessage("");
       return;
     }
 
@@ -303,10 +315,6 @@ export function ServicesPage() {
   const handleCreatePackagePlan = async (event: FormEvent) => {
     event.preventDefault();
 
-    if (!servicePackagesEnabled) {
-      return;
-    }
-
     const payload: CreateServicePackagePlanPayload = {
       serviceId: Number(packagePlanCreateForm.serviceId),
       title: packagePlanCreateForm.title.trim(),
@@ -319,21 +327,22 @@ export function ServicesPage() {
     const validationError = validatePackagePlanPayload(payload);
 
     if (validationError) {
-      setError(validationError);
+      setPackageError(validationError);
+      setPackageSuccessMessage("");
       return;
     }
 
     setIsPackagePlanCreating(true);
-    setError("");
-    setSuccessMessage("");
+    setPackageError("");
+    setPackageSuccessMessage("");
 
     try {
       await createAdminServicePackagePlan(payload);
       await reloadPackagePlans();
       setPackagePlanCreateForm(initialPackagePlanCreateForm);
-      setSuccessMessage("Пакет услуг создан.");
+      setPackageSuccessMessage("Пакет услуг создан.");
     } catch (createError) {
-      setError(
+      setPackageError(
         createError instanceof Error
           ? createError.message
           : "Не удалось создать пакет услуг"
@@ -361,8 +370,7 @@ export function ServicesPage() {
   ) => {
     setEditingPackagePlanId(packagePlan.id);
     setPackagePlanEditForm(mapPackagePlanToForm(packagePlan));
-    setError("");
-    setSuccessMessage("");
+    resetPackageMessages();
   };
 
   const cancelEditing = () => {
@@ -373,6 +381,7 @@ export function ServicesPage() {
   const cancelPackagePlanEditing = () => {
     setEditingPackagePlanId(null);
     setPackagePlanEditForm(initialPackagePlanEditForm);
+    resetPackageMessages();
   };
 
   const handleUpdateService = async (event: FormEvent) => {
@@ -395,6 +404,7 @@ export function ServicesPage() {
 
     if (validationError) {
       setError(validationError);
+      setSuccessMessage("");
       return;
     }
 
@@ -421,7 +431,7 @@ export function ServicesPage() {
   const handleUpdatePackagePlan = async (event: FormEvent) => {
     event.preventDefault();
 
-    if (!servicePackagesEnabled || editingPackagePlanId === null) {
+    if (editingPackagePlanId === null) {
       return;
     }
 
@@ -438,21 +448,22 @@ export function ServicesPage() {
     const validationError = validatePackagePlanPayload(payload);
 
     if (validationError) {
-      setError(validationError);
+      setPackageError(validationError);
+      setPackageSuccessMessage("");
       return;
     }
 
     setIsPackagePlanUpdating(true);
-    setError("");
-    setSuccessMessage("");
+    setPackageError("");
+    setPackageSuccessMessage("");
 
     try {
       await updateAdminServicePackagePlan(payload);
       await reloadPackagePlans();
-      setSuccessMessage("Пакет услуг обновлён.");
+      setPackageSuccessMessage("Пакет услуг обновлён.");
       cancelPackagePlanEditing();
     } catch (updateError) {
-      setError(
+      setPackageError(
         updateError instanceof Error
           ? updateError.message
           : "Не удалось обновить пакет услуг"
@@ -510,6 +521,48 @@ export function ServicesPage() {
     }
   };
 
+  const handleHidePackagePlan = async (
+    packagePlan: CrmServicePackagePlanRecord
+  ) => {
+    if (!packagePlan.isActive) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Скрыть пакет услуг из новых записей? Уже выданные клиентам пакеты и история сохранятся."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setHidingPackagePlanId(packagePlan.id);
+    setPackageError("");
+    setPackageSuccessMessage("");
+
+    try {
+      await hideAdminServicePackagePlan(packagePlan.id);
+      await reloadPackagePlans();
+
+      if (editingPackagePlanId === packagePlan.id) {
+        setPackagePlanEditForm((prev) => ({
+          ...prev,
+          isActive: false,
+        }));
+      }
+
+      setPackageSuccessMessage("Пакет услуг скрыт из записи.");
+    } catch (hideError) {
+      setPackageError(
+        hideError instanceof Error
+          ? hideError.message
+          : "Не удалось скрыть пакет услуг"
+      );
+    } finally {
+      setHidingPackagePlanId(null);
+    }
+  };
+
   const handleDeleteService = async (id: number) => {
     const confirmed = window.confirm(
       "Удалить услугу? Это действие нельзя отменить."
@@ -544,10 +597,6 @@ export function ServicesPage() {
   };
 
   const handleDeletePackagePlan = async (id: number) => {
-    if (!servicePackagesEnabled) {
-      return;
-    }
-
     const confirmed = window.confirm(
       "Удалить пакет услуг? Это действие нельзя отменить."
     );
@@ -557,8 +606,8 @@ export function ServicesPage() {
     }
 
     setDeletingPackagePlanId(id);
-    setError("");
-    setSuccessMessage("");
+    setPackageError("");
+    setPackageSuccessMessage("");
 
     try {
       await deleteAdminServicePackagePlan(id);
@@ -568,9 +617,9 @@ export function ServicesPage() {
         cancelPackagePlanEditing();
       }
 
-      setSuccessMessage("Пакет услуг удалён.");
+      setPackageSuccessMessage("Пакет услуг удалён.");
     } catch (deleteError) {
-      setError(
+      setPackageError(
         deleteError instanceof Error
           ? deleteError.message
           : "Не удалось удалить пакет услуг"
@@ -647,49 +696,50 @@ export function ServicesPage() {
         />
       )}
 
-      {servicePackagesEnabled ? (
-        <>
-          <div className={styles.packagePlansHeader}>
-            <h2 className={styles.packagePlansTitle}>Пакеты услуг</h2>
-            <p className={styles.packagePlansDescription}>
-              Здесь можно создать пакеты на основе обычных услуг: например 4, 8
-              или 12 разовых сессий по отдельной цене.
-            </p>
-          </div>
+      <div className={styles.packagePlansHeader}>
+        <h2 className={styles.packagePlansTitle}>Пакеты услуг</h2>
+        <p className={styles.packagePlansDescription}>
+          Здесь можно создать пакеты на основе обычных услуг: например 4, 8 или
+          12 разовых сессий по отдельной цене.
+        </p>
+      </div>
 
-          <ServicePackagePlanCreateForm
-            form={packagePlanCreateForm}
-            isCreating={isPackagePlanCreating}
-            services={activeServices}
-            onChange={handlePackagePlanCreateFormChange}
-            onSubmit={handleCreatePackagePlan}
-          />
+      <ServicePackagePlanCreateForm
+        form={packagePlanCreateForm}
+        isCreating={isPackagePlanCreating}
+        services={activeServices}
+        onChange={handlePackagePlanCreateFormChange}
+        onSubmit={handleCreatePackagePlan}
+      />
 
-          {editingPackagePlanId !== null ? (
-            <ServicePackagePlanEditForm
-              form={packagePlanEditForm}
-              isUpdating={isPackagePlanUpdating}
-              services={items}
-              onCancel={cancelPackagePlanEditing}
-              onChange={handlePackagePlanEditFormChange}
-              onSubmit={handleUpdatePackagePlan}
-            />
-          ) : null}
-
-          {isPackagePlansLoading ? (
-            <p>Загрузка пакетов...</p>
-          ) : packagePlans.length === 0 ? (
-            <p className={styles.empty}>Пакетов услуг пока нет.</p>
-          ) : (
-            <ServicePackagePlansTable
-              items={packagePlans}
-              deletingId={deletingPackagePlanId}
-              onEdit={startEditingPackagePlan}
-              onDelete={handleDeletePackagePlan}
-            />
-          )}
-        </>
+      {editingPackagePlanId !== null ? (
+        <ServicePackagePlanEditForm
+          form={packagePlanEditForm}
+          isUpdating={isPackagePlanUpdating}
+          services={items}
+          onCancel={cancelPackagePlanEditing}
+          onChange={handlePackagePlanEditFormChange}
+          onSubmit={handleUpdatePackagePlan}
+        />
       ) : null}
+
+      <AdminFeedback message={packageError} tone="error" />
+      <AdminFeedback message={packageSuccessMessage} tone="success" />
+
+      {isPackagePlansLoading ? (
+        <p>Загрузка пакетов...</p>
+      ) : packagePlans.length === 0 ? (
+        <p className={styles.empty}>Пакетов услуг пока нет.</p>
+      ) : (
+        <ServicePackagePlansTable
+          items={packagePlans}
+          deletingId={deletingPackagePlanId}
+          hidingId={hidingPackagePlanId}
+          onEdit={startEditingPackagePlan}
+          onDelete={handleDeletePackagePlan}
+          onHide={handleHidePackagePlan}
+        />
+      )}
     </main>
   );
 }

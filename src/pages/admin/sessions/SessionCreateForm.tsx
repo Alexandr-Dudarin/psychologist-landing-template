@@ -3,6 +3,10 @@ import type { FormEvent } from "react";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { getTimezoneLabel } from "../../../lib/booking/getTimezoneLabel";
+import {
+  formatAdminPriceInput,
+  normalizeAdminPriceInput,
+} from "../../../lib/format/adminPriceInput";
 import type {
   CrmClientRecord,
   CrmClientServicePackageRecord,
@@ -85,7 +89,8 @@ export function SessionCreateForm({
           <option value="">Выберите услугу</option>
           {activeServices.map((service) => (
             <option key={service.id} value={service.id}>
-              {service.title} — {service.price} ₽ / {service.durationMinutes} мин
+              {service.title} — {formatAdminPriceInput(service.price)} ₽ /{" "}
+              {service.durationMinutes} мин
             </option>
           ))}
         </select>
@@ -102,9 +107,7 @@ export function SessionCreateForm({
             disabled={!hasClient || isPackagesLoading}
           >
             <option value="">
-              {hasClient
-                ? "Без пакета"
-                : "Сначала выберите клиента"}
+              {hasClient ? "Без пакета" : "Сначала выберите клиента"}
             </option>
 
             {packageOptions.map((item) => (
@@ -125,7 +128,7 @@ export function SessionCreateForm({
             {isPackagesLoading
               ? "Загружаем пакеты клиента..."
               : hasClientPackage
-                ? "При выборе пакета услуга, длительность и цена записи подтягиваются автоматически. Цена записи из пакета — 0 ₽."
+                ? "При выборе пакета услуга и длительность подтягиваются автоматически. Цена записи из пакета — 0 ₽. Длительность можно изменить вручную."
                 : hasClient && packageOptions.length === 0
                   ? "У выбранного клиента нет активных пакетов с остатком сессий."
                   : "Можно оставить пустым, если это обычная разовая запись."}
@@ -148,15 +151,15 @@ export function SessionCreateForm({
           onChange={(e) => onFormChange("durationMinutes", e.target.value)}
           placeholder="Длительность в минутах"
           className={styles.input}
-          disabled={hasClientPackage}
         />
 
         <input
-          type="number"
-          min="0"
-          step="0.01"
-          value={form.price}
-          onChange={(e) => onFormChange("price", e.target.value)}
+          type="text"
+          inputMode="numeric"
+          value={formatAdminPriceInput(form.price)}
+          onChange={(e) =>
+            onFormChange("price", normalizeAdminPriceInput(e.target.value))
+          }
           placeholder="Цена"
           className={styles.input}
           disabled={hasClientPackage}

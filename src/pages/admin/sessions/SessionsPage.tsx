@@ -392,11 +392,11 @@ export function SessionsPage() {
 
         const activeSessionsPromise = shouldLoadActiveSessions
           ? getAdminSessions({
-              scope: "active",
-              status: statusFilter,
-              clientId: clientFilter,
-              search: searchQuery,
-            })
+            scope: "active",
+            status: statusFilter,
+            clientId: clientFilter,
+            search: searchQuery,
+          })
           : Promise.resolve([]);
 
         const [sessionsData, clientsData, servicesData, scheduleData] =
@@ -595,19 +595,19 @@ export function SessionsPage() {
     const [sessionsData, archivedSessionsData] = await Promise.all([
       shouldLoadActiveSessions
         ? getAdminSessions({
-            scope: "active",
-            status: statusFilter,
-            clientId: clientFilter,
-            search: searchQuery,
-          })
+          scope: "active",
+          status: statusFilter,
+          clientId: clientFilter,
+          search: searchQuery,
+        })
         : Promise.resolve([]),
       showArchivedSessions
         ? getAdminSessions({
-            scope: "archived",
-            status: statusFilter,
-            clientId: clientFilter,
-            search: searchQuery,
-          })
+          scope: "archived",
+          status: statusFilter,
+          clientId: clientFilter,
+          search: searchQuery,
+        })
         : Promise.resolve(null),
     ]);
 
@@ -630,14 +630,26 @@ export function SessionsPage() {
 
   const handleCreateFormChange = (field: keyof SessionForm, value: string) => {
     setCreateForm((prev) =>
-      updateSessionFormField(prev, field, value, services, createClientPackages)
+      updateSessionFormField(
+        prev,
+        field,
+        value,
+        activeServices,
+        createClientPackages
+      )
     );
     resetFeedback();
   };
 
   const handleEditFormChange = (field: keyof SessionForm, value: string) => {
     setEditForm((prev) =>
-      updateSessionFormField(prev, field, value, services, editClientPackages)
+      updateSessionFormField(
+        prev,
+        field,
+        value,
+        activeServices,
+        editClientPackages
+      )
     );
     resetFeedback();
   };

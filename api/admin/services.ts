@@ -32,6 +32,10 @@ type ParsedDeletePackagePlanPayload = {
   id: number;
 };
 
+type ParsedHidePackagePlanPayload = {
+  id: number;
+};
+
 type ServiceRow = {
   id: number;
   title: string;
@@ -54,6 +58,7 @@ type ServicePackagePlanRow = {
   sessions_count: number | string;
   price: string | number;
   is_active: boolean;
+  client_packages_count: number | string;
   created_at: string;
 };
 
@@ -92,6 +97,7 @@ function mapPackagePlan(
     sessionsCount: Number(row.sessions_count),
     price: Number(row.price),
     isActive: row.is_active,
+    clientPackagesCount: Number(row.client_packages_count),
     createdAt: row.created_at,
   };
 }
@@ -330,6 +336,28 @@ function parseDeletePackagePlanBody(
   return { id };
 }
 
+function parseHidePackagePlanBody(
+  body: any
+): ParsedHidePackagePlanPayload | null {
+  let rawBody = body;
+
+  if (typeof rawBody === "string") {
+    try {
+      rawBody = JSON.parse(rawBody);
+    } catch {
+      return null;
+    }
+  }
+
+  const id = Number(rawBody?.id);
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return null;
+  }
+
+  return { id };
+}
+
 async function getServiceSessionsCount(serviceId: number): Promise<number> {
   const result = await pool.query<{ count: string }>(
     `
@@ -356,6 +384,21 @@ async function getServicePackagePlansCount(serviceId: number): Promise<number> {
   return Number(result.rows[0]?.count ?? 0);
 }
 
+async function getClientPackagesCountByPackagePlan(
+  packagePlanId: number
+): Promise<number> {
+  const result = await pool.query<{ count: string }>(
+    `
+      SELECT COUNT(*) AS count
+      FROM client_service_packages
+      WHERE package_plan_id = $1
+    `,
+    [packagePlanId]
+  );
+
+  return Number(result.rows[0]?.count ?? 0);
+}
+
 async function selectPackagePlan(id: string | number) {
   return pool.query<ServicePackagePlanRow>(
     `
@@ -370,6 +413,11 @@ async function selectPackagePlan(id: string | number) {
         p.sessions_count,
         p.price,
         p.is_active,
+        (
+          SELECT COUNT(*)
+          FROM client_service_packages csp
+          WHERE csp.package_plan_id = p.id
+        ) AS client_packages_count,
         p.created_at
       FROM service_package_plans p
       INNER JOIN services s ON s.id = p.service_id
@@ -458,6 +506,11 @@ async function handleListPackagePlans(_req: any, res: any) {
           p.sessions_count,
           p.price,
           p.is_active,
+          (
+            SELECT COUNT(*)
+            FROM client_service_packages csp
+            WHERE csp.package_plan_id = p.id
+          ) AS client_packages_count,
           p.created_at
         FROM service_package_plans p
         INNER JOIN services s ON s.id = p.service_id
@@ -688,6 +741,44 @@ async function handleUpdatePackagePlan(req: any, res: any) {
   }
 }
 
+async function handleHidePackagePlan(req: any, res: any) {
+  const payload = parseHidePackagePlanBody(req.body);
+
+  if (!payload) {
+    return res.status(400).json({ error: "Некорректный id пакета услуг" });
+  }
+
+  try {
+    const result = await pool.query<{ id: number }>(
+      `
+        UPDATE service_package_plans
+        SET
+          is_active = FALSE,
+          updated_at = NOW()
+        WHERE id = $1
+        RETURNING id
+      `,
+      [payload.id]
+    );
+
+    const updated = result.rows[0];
+
+    if (!updated) {
+      return res.status(404).json({ error: "Пакет услуг не найден" });
+    }
+
+    const joined = await selectPackagePlan(updated.id);
+
+    return res.status(200).json({
+      success: true,
+      item: mapPackagePlan(joined.rows[0]),
+    });
+  } catch (error) {
+    console.error("Service package plan hide error:", error);
+    return res.status(500).json({ error: "Не удалось скрыть пакет услуг" });
+  }
+}
+
 async function handleDelete(req: any, res: any) {
   const payload = parseDeleteBody(req.body);
 
@@ -745,6 +836,17 @@ async function handleDeletePackagePlan(req: any, res: any) {
   }
 
   try {
+    const clientPackagesCount = await getClientPackagesCountByPackagePlan(
+      payload.id
+    );
+
+    if (clientPackagesCount > 0) {
+      return res.status(409).json({
+        error:
+          "Этот пакет нельзя удалить, потому что он уже выдан клиентам. Можно скрыть его из новых записей.",
+      });
+    }
+
     const result = await pool.query<{ id: number }>(
       `
         DELETE FROM service_package_plans
@@ -768,7 +870,7 @@ async function handleDeletePackagePlan(req: any, res: any) {
     if (pgError.code === "23503") {
       return res.status(409).json({
         error:
-          "Этот пакет нельзя удалить, потому что он уже используется. Можно отключить его, чтобы скрыть из новых продаж.",
+          "Этот пакет нельзя удалить, потому что он уже используется. Можно скрыть его из новых записей.",
       });
     }
 
@@ -810,6 +912,10 @@ export default async function handler(req: any, res: any) {
 
   if (action === "update-package-plan") {
     return handleUpdatePackagePlan(req, res);
+  }
+
+  if (action === "hide-package-plan") {
+    return handleHidePackagePlan(req, res);
   }
 
   if (action === "delete-package-plan") {
