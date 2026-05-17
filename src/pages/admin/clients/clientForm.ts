@@ -3,6 +3,11 @@ import type { PreferredContactFields } from "../../../types/preferredContact";
 
 export const CLIENT_NAME_PART_MAX_LENGTH = 20;
 
+const CLIENT_PHONE_PATTERN = /^(?:\+7|8)\d{10}$/;
+
+export const CLIENT_PHONE_VALIDATION_MESSAGE =
+  "Телефон должен начинаться с +7 или 8 и содержать ещё ровно 10 цифр. Например: +79189926439 или 89189926439.";
+
 type NamePartSanitizeOptions = {
   allowSpaces?: boolean;
 };
@@ -73,6 +78,18 @@ export function sanitizeClientNamePartInput(
 
 export function normalizeClientNamePart(value: string): string {
   return value.trim().replace(/\s+/g, " ");
+}
+
+export function validateClientPhone(value: string): string {
+  const normalizedValue = value.trim();
+
+  if (!normalizedValue) {
+    return "";
+  }
+
+  return CLIENT_PHONE_PATTERN.test(normalizedValue)
+    ? ""
+    : CLIENT_PHONE_VALIDATION_MESSAGE;
 }
 
 function validateClientNamePart(

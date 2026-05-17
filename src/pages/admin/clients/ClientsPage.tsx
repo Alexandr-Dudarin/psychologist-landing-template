@@ -30,6 +30,7 @@ import {
   mapClientToForm,
   splitClientName,
   validateClientNameParts,
+  validateClientPhone,
   type ClientForm,
   type ManualClientForm,
 } from "./clientForm";
@@ -245,6 +246,13 @@ export function ClientsPage() {
       return;
     }
 
+    const phoneError = validateClientPhone(payload.phone ?? "");
+
+    if (phoneError) {
+      setError(phoneError);
+      return;
+    }
+
     const preferredContactErrors = validatePreferredContactFields(
       {
         preferredContactMethod: payload.preferredContactMethod ?? "",
@@ -389,6 +397,13 @@ export function ClientsPage() {
 
     if (!payload.phone && !payload.email) {
       setError(t.admin.clients.messages.phoneOrEmailRequired);
+      return;
+    }
+
+    const phoneError = validateClientPhone(payload.phone);
+
+    if (phoneError) {
+      setError(phoneError);
       return;
     }
 

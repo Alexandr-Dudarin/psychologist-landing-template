@@ -28,6 +28,10 @@ const PACKAGE_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const PACKAGE_CODE_LENGTH = 10;
 const PACKAGE_CODE_MAX_ATTEMPTS = 8;
 
+const CLIENT_PHONE_PATTERN = /^(?:\+7|8)\d{10}$/;
+const CLIENT_PHONE_ERROR =
+  "Телефон должен начинаться с +7 или 8 и содержать ещё ровно 10 цифр. Например: +79189926439 или 89189926439.";
+
 type ParsedCreatePayload = {
   name: string;
   phone: string;
@@ -105,6 +109,16 @@ function getSingleQueryValue(value: string | string[] | undefined): string {
   }
 
   return value ?? "";
+}
+
+function isValidClientPhone(value: string): boolean {
+  const normalizedValue = value.trim();
+
+  if (!normalizedValue) {
+    return true;
+  }
+
+  return CLIENT_PHONE_PATTERN.test(normalizedValue);
 }
 
 function getHasActivePackagesSelect(clientAlias = "clients"): string {
@@ -207,6 +221,10 @@ function parseCreateBody(body: any): ParsedCreatePayload | null {
     return null;
   }
 
+  if (!isValidClientPhone(phone)) {
+    return null;
+  }
+
   const preferredContactErrors = validatePreferredContactFields(
     preferredContact,
     siteSettings.preferredContactMethod
@@ -290,6 +308,10 @@ function parseUpdateBody(body: any): ParsedUpdatePayload | null {
   }
 
   if (!phone && !email) {
+    return null;
+  }
+
+  if (!isValidClientPhone(phone)) {
     return null;
   }
 
@@ -731,7 +753,7 @@ async function handleCreate(req: any, res: any) {
 
   if (!payload) {
     return res.status(400).json({
-      error: "Invalid payload. Name and at least phone or email are required.",
+      error: `Некорректные данные. Укажите имя и хотя бы телефон или email. Если телефон заполнен, ${CLIENT_PHONE_ERROR}`,
     });
   }
 
@@ -962,7 +984,7 @@ async function handleUpdate(req: any, res: any) {
 
   if (!payload) {
     return res.status(400).json({
-      error: "Некорректные данные для обновления клиента.",
+      error: `Некорректные данные для обновления клиента. Если телефон заполнен, ${CLIENT_PHONE_ERROR}`,
     });
   }
 
