@@ -50,16 +50,18 @@ export function SessionsFilters({
         ))}
       </select>
 
-      <select
-        value={favoriteFilter}
-        onChange={(event) =>
-          onFavoriteFilterChange(event.target.value as ClientFavoriteFilter)
-        }
-        className={`${styles.input} ${styles.filterSelect}`}
-      >
-        <option value="all">все клиенты</option>
-        <option value="favorites">только избранные</option>
-      </select>
+      <label className={styles.favoriteFilterToggle}>
+        <input
+          type="checkbox"
+          checked={favoriteFilter === "favorites"}
+          onChange={(event) =>
+            onFavoriteFilterChange(
+              event.target.checked ? "favorites" : "all"
+            )
+          }
+        />
+        <span>Только избранные</span>
+      </label>
 
       <select
         value={statusFilter}

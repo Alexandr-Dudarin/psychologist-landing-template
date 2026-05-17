@@ -48,15 +48,127 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
+  align-items: start;
+  min-width: 0;
+}
+
+.clientCombobox {
+  position: relative;
+  min-width: 0;
+}
+
+.clientComboboxField {
+  position: relative;
+  min-width: 0;
+}
+
+.clientComboboxInput {
+  padding-right: 40px;
+}
+
+.clientComboboxClear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  background: var(--admin-surface);
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  transform: translateY(-50%);
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.clientComboboxClear:hover {
+  border-color: color-mix(in srgb, var(--admin-danger) 28%, white);
+  background: var(--admin-danger-soft);
+  color: var(--admin-danger);
+}
+
+.clientComboboxList {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: grid;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface);
+  box-shadow: 0 16px 40px rgba(20, 30, 40, 0.18);
+}
+
+.clientComboboxOption {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--admin-table-row-divider);
+  background: transparent;
+  color: var(--admin-text);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.clientComboboxOption:last-child {
+  border-bottom: 0;
+}
+
+.clientComboboxOption:hover,
+.clientComboboxOptionActive {
+  background: var(--admin-accent-soft);
+}
+
+.clientComboboxOptionSelected {
+  background: color-mix(in srgb, var(--admin-accent-soft) 78%, white);
+}
+
+.clientComboboxOptionMain {
+  display: grid;
+  gap: 3px;
   min-width: 0;
 }
 
-.clientSearchInput {
+.clientComboboxOptionName {
   min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.clientFavoriteToggle {
+.clientComboboxOptionMeta {
+  min-width: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clientComboboxEmpty {
+  padding: 12px;
+  color: var(--admin-text-muted);
+  font-size: 0.94rem;
+  line-height: 1.4;
+}
+
+.clientFavoriteToggle,
+.favoriteFilterToggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -73,10 +185,22 @@
   cursor: pointer;
 }
 
-.clientFavoriteToggle input {
+.clientFavoriteToggle input,
+.favoriteFilterToggle input {
   width: 16px;
   height: 16px;
   margin: 0;
+}
+
+.clientFavoriteToggle:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.clientPickerHint {
+  color: var(--admin-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
 }
 
 .clientPickerHint {
@@ -630,8 +754,13 @@
     grid-template-columns: 1fr;
   }
 
-  .clientFavoriteToggle {
+  .clientFavoriteToggle,
+  .favoriteFilterToggle {
     justify-content: flex-start;
     width: 100%;
+  }
+
+  .clientComboboxList {
+    max-height: 230px;
   }
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import type { FormEvent } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
@@ -16,6 +16,7 @@ import type { SessionStatus } from "../../../types/session";
 import { sessionStatuses } from "../../../types/session";
 import type { SessionForm } from "./sessionForm";
 import { sessionStatusLabels } from "./sessionForm";
+import { SessionClientCombobox } from "./SessionClientCombobox";
 import { SessionDateTimeField } from "./SessionDateTimeField";
 import styles from "./SessionsPage.module.css";
 
@@ -46,20 +47,6 @@ function getAvailablePackageOptions(
   });
 }
 
-function normalizeSearchValue(value: string): string {
-  return value.trim().toLowerCase();
-}
-
-function doesClientMatchSearch(client: CrmClientRecord, query: string): boolean {
-  if (!query) {
-    return true;
-  }
-
-  return [client.name, client.phone, client.email]
-    .filter(Boolean)
-    .some((value) => value.toLowerCase().includes(query));
-}
-
 export function SessionCreateForm({
   clients,
   activeServices,
@@ -71,9 +58,6 @@ export function SessionCreateForm({
   onFormChange,
   onSubmit,
 }: SessionCreateFormProps) {
-  const [clientSearchQuery, setClientSearchQuery] = useState("");
-  const [showFavoriteClientsOnly, setShowFavoriteClientsOnly] = useState(false);
-
   const timezoneLabel = getTimezoneLabel(timezone, "ru");
   const hasClient = Boolean(form.clientId);
   const hasClientPackage = Boolean(form.clientPackageId);
@@ -82,89 +66,14 @@ export function SessionCreateForm({
     form.clientPackageId
   );
 
-  const activeClients = useMemo(
-    () => clients.filter((client) => client.status === "active"),
-    [clients]
-  );
-
-  const filteredClients = useMemo(() => {
-    const query = normalizeSearchValue(clientSearchQuery);
-
-    const filtered = activeClients.filter((client) => {
-      if (showFavoriteClientsOnly && !client.isFavorite) {
-        return false;
-      }
-
-      return doesClientMatchSearch(client, query);
-    });
-
-    const selectedClient = activeClients.find(
-      (client) => String(client.id) === form.clientId
-    );
-
-    if (
-      selectedClient &&
-      !filtered.some((client) => client.id === selectedClient.id)
-    ) {
-      return [selectedClient, ...filtered];
-    }
-
-    return filtered;
-  }, [activeClients, clientSearchQuery, form.clientId, showFavoriteClientsOnly]);
-
-  const hasActiveClients = activeClients.length > 0;
-  const hasFilteredClients = filteredClients.length > 0;
-
   return (
     <AdminSection title="Создать сессию">
       <form onSubmit={onSubmit} className={styles.form}>
-        <div className={styles.clientPicker}>
-          <div className={styles.clientPickerTools}>
-            <input
-              type="text"
-              value={clientSearchQuery}
-              onChange={(event) => setClientSearchQuery(event.target.value)}
-              placeholder="Поиск клиента по имени, телефону или email"
-              className={`${styles.input} ${styles.clientSearchInput}`}
-            />
-
-            <label className={styles.clientFavoriteToggle}>
-              <input
-                type="checkbox"
-                checked={showFavoriteClientsOnly}
-                onChange={(event) =>
-                  setShowFavoriteClientsOnly(event.target.checked)
-                }
-              />
-              <span>Только избранные</span>
-            </label>
-          </div>
-
-          <select
-            value={form.clientId}
-            onChange={(e) => onFormChange("clientId", e.target.value)}
-            className={styles.input}
-            disabled={!hasActiveClients}
-          >
-            <option value="">
-              {hasActiveClients ? "Выберите клиента" : "Нет активных клиентов"}
-            </option>
-
-            {filteredClients.map((client) => (
-              <option key={client.id} value={client.id}>
-                {client.name} — {client.phone || client.email || client.id}
-              </option>
-            ))}
-          </select>
-
-          <span className={styles.clientPickerHint}>
-            {!hasActiveClients
-              ? "В списке показываются только активные клиенты. Сейчас активных клиентов нет."
-              : !hasFilteredClients
-                ? "По выбранным условиям клиентов не найдено."
-                : "В списке показываются только активные клиенты. Можно быстро найти клиента по имени, телефону или email."}
-          </span>
-        </div>
+        <SessionClientCombobox
+          clients={clients}
+          selectedClientId={form.clientId}
+          onClientChange={(clientId) => onFormChange("clientId", clientId)}
+        />
 
         <select
           value={form.serviceId}
