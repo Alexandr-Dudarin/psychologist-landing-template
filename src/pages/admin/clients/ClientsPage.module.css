@@ -483,6 +483,7 @@
 }
 
 .modalDialog {
+  composes: scrollbarBase from "../../../components/admin/adminUi.module.css";
   width: min(720px, 100%);
   max-height: calc(100vh - 48px);
   overflow-y: auto;

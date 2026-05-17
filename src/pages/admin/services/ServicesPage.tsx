@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
@@ -121,6 +121,9 @@ export function ServicesPage() {
   const [packagePlanEditForm, setPackagePlanEditForm] =
     useState<ServicePackagePlanForm>(initialPackagePlanEditForm);
 
+  const editServiceFormRef = useRef<HTMLDivElement | null>(null);
+  const editPackagePlanFormRef = useRef<HTMLDivElement | null>(null);
+
   const activeServices = useMemo(
     () => items.filter((service) => service.isActive),
     [items]
@@ -172,6 +175,40 @@ export function ServicesPage() {
       isMounted = false;
     };
   }, [activityFilter, searchQuery]);
+
+  useEffect(() => {
+    if (editingServiceId === null) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      editServiceFormRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [editingServiceId]);
+
+  useEffect(() => {
+    if (editingPackagePlanId === null) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      editPackagePlanFormRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [editingPackagePlanId]);
 
   const resetMessages = () => {
     if (error) {
@@ -641,13 +678,15 @@ export function ServicesPage() {
       />
 
       {editingServiceId !== null ? (
-        <ServiceEditForm
-          form={editForm}
-          isUpdating={isUpdating}
-          onCancel={cancelEditing}
-          onChange={handleEditFormChange}
-          onSubmit={handleUpdateService}
-        />
+        <div ref={editServiceFormRef}>
+          <ServiceEditForm
+            form={editForm}
+            isUpdating={isUpdating}
+            onCancel={cancelEditing}
+            onChange={handleEditFormChange}
+            onSubmit={handleUpdateService}
+          />
+        </div>
       ) : null}
 
       <AdminFiltersRow>
@@ -713,14 +752,16 @@ export function ServicesPage() {
       />
 
       {editingPackagePlanId !== null ? (
-        <ServicePackagePlanEditForm
-          form={packagePlanEditForm}
-          isUpdating={isPackagePlanUpdating}
-          services={items}
-          onCancel={cancelPackagePlanEditing}
-          onChange={handlePackagePlanEditFormChange}
-          onSubmit={handleUpdatePackagePlan}
-        />
+        <div ref={editPackagePlanFormRef}>
+          <ServicePackagePlanEditForm
+            form={packagePlanEditForm}
+            isUpdating={isPackagePlanUpdating}
+            services={items}
+            onCancel={cancelPackagePlanEditing}
+            onChange={handlePackagePlanEditFormChange}
+            onSubmit={handleUpdatePackagePlan}
+          />
+        </div>
       ) : null}
 
       <AdminFeedback message={packageError} tone="error" />

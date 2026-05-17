@@ -108,6 +108,7 @@
 }
 
 .tableWrap {
+  composes: scrollbarBase from "../../../components/admin/adminUi.module.css";
   overflow-x: auto;
 }
 

@@ -20,11 +20,43 @@
   --admin-success-soft: #eef8f1;
   --admin-highlight: #fff0b8;
   --admin-highlight-border: #d6a700;
+  --admin-scrollbar-track: color-mix(in srgb, var(--admin-surface-muted) 74%, white);
+  --admin-scrollbar-thumb: color-mix(in srgb, var(--admin-accent) 34%, var(--admin-border-strong));
+  --admin-scrollbar-thumb-hover: color-mix(in srgb, var(--admin-accent) 52%, var(--admin-border-strong));
   --admin-radius-md: 10px;
   --admin-radius-lg: 14px;
   --admin-gap-sm: 8px;
   --admin-gap-md: 12px;
   --admin-gap-lg: 16px;
+}
+
+.scrollbarBase {
+  scrollbar-width: thin;
+  scrollbar-color: var(--admin-scrollbar-thumb) var(--admin-scrollbar-track);
+}
+
+.scrollbarBase::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.scrollbarBase::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: var(--admin-scrollbar-track);
+}
+
+.scrollbarBase::-webkit-scrollbar-thumb {
+  border: 2px solid var(--admin-scrollbar-track);
+  border-radius: 999px;
+  background: var(--admin-scrollbar-thumb);
+}
+
+.scrollbarBase::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-scrollbar-thumb-hover);
+}
+
+.scrollbarBase::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .section {
@@ -115,6 +147,7 @@
 }
 
 .controlTextArea {
+  composes: scrollbarBase;
   min-height: 120px;
   resize: vertical;
 }
@@ -222,6 +255,7 @@
 }
 
 .tableWrapper {
+  composes: scrollbarBase;
   overflow-x: auto;
   border: 2px solid var(--admin-table-frame);
   border-radius: calc(var(--admin-radius-lg) + 2px);
