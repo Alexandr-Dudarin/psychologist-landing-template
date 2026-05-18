@@ -353,6 +353,12 @@ export function NotesPage() {
     navigate("/admin/notes");
   };
 
+  const hasActiveFilters =
+    clientFilter !== "all" ||
+    favoriteFilter !== "all" ||
+    sessionFilter !== "all" ||
+    searchQuery.trim().length > 0;
+
   const hasQuickViewState = hasActiveQuickViewState({
     clientFilter,
     sessionFilter,
@@ -400,9 +406,11 @@ export function NotesPage() {
         favoriteFilter={favoriteFilter}
         clients={clients}
         searchQuery={searchQuery}
+        hasActiveFilters={hasActiveFilters}
         onClientFilterChange={handleClientFilterChange}
         onFavoriteFilterChange={handleFavoriteFilterChange}
         onSearchChange={handleSearchQueryChange}
+        onResetFilters={handleResetView}
       />
 
       <AdminFeedback message={error} tone="error" />

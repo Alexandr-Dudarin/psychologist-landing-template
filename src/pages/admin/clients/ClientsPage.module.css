@@ -165,6 +165,11 @@
   cursor: pointer;
 }
 
+.filtersResetButton {
+  min-height: 46px;
+  white-space: nowrap;
+}
+
 .tableHead.tableHead > tr > th.phoneCell,
 .tableHead.tableHead > tr > th.emailCell,
 .tableHead.tableHead > tr > th.preferredContactCell,
@@ -970,8 +975,9 @@
     display: none;
   }
 
-  .favoriteFilterToggle {
-  width: 100%;
+  .favoriteFilterToggle,
+  .filtersResetButton {
+    width: 100%;
   }
 
   .tableHead.tableHead > tr > th.nameCell,

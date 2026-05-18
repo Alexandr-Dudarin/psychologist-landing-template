@@ -1,3 +1,4 @@
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import type {
   ClientFavoriteFilter,
@@ -14,10 +15,12 @@ type SessionsFiltersProps = {
   favoriteFilter: ClientFavoriteFilter;
   statusFilter: SessionStatus | "all";
   searchQuery: string;
+  hasActiveFilters: boolean;
   onClientFilterChange: (value: number | "all") => void;
   onFavoriteFilterChange: (value: ClientFavoriteFilter) => void;
   onStatusFilterChange: (value: SessionStatus | "all") => void;
   onSearchQueryChange: (value: string) => void;
+  onResetFilters: () => void;
 };
 
 export function SessionsFilters({
@@ -26,10 +29,12 @@ export function SessionsFilters({
   favoriteFilter,
   statusFilter,
   searchQuery,
+  hasActiveFilters,
   onClientFilterChange,
   onFavoriteFilterChange,
   onStatusFilterChange,
   onSearchQueryChange,
+  onResetFilters,
 }: SessionsFiltersProps) {
   return (
     <AdminFiltersRow>
@@ -85,6 +90,18 @@ export function SessionsFilters({
         placeholder="Поиск по клиенту, услуге или заметке"
         className={`${styles.input} ${styles.searchInput}`}
       />
+
+      {hasActiveFilters ? (
+        <AdminButton
+          type="button"
+          variant="secondary"
+          size="sm"
+          className={styles.filtersResetButton}
+          onClick={onResetFilters}
+        >
+          Сбросить
+        </AdminButton>
+      ) : null}
     </AdminFiltersRow>
   );
 }

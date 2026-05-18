@@ -456,6 +456,11 @@ export function ClientsPage() {
     navigate("/admin/clients");
   };
 
+  const hasActiveFilters =
+    statusFilter !== "all" ||
+    favoriteFilter !== "all" ||
+    searchQuery.trim().length > 0;
+
   const hasQuickViewState =
     highlightedClientId !== null || searchQuery.trim().length > 0;
 
@@ -502,9 +507,11 @@ export function ClientsPage() {
         statusFilter={statusFilter}
         favoriteFilter={favoriteFilter}
         statusOptions={statusOptions}
+        hasActiveFilters={hasActiveFilters}
         onSearchChange={handleSearchQueryChange}
         onStatusChange={handleStatusFilterChange}
         onFavoriteChange={handleFavoriteFilterChange}
+        onResetFilters={handleResetView}
       />
 
       {hasQuickViewState ? (

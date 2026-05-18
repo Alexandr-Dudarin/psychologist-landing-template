@@ -141,6 +141,11 @@
   cursor: pointer;
 }
 
+.filtersResetButton {
+  min-height: 46px;
+  white-space: nowrap;
+}
+
 .buttonRow {
   composes: buttonRow from "../../../components/admin/adminUi.module.css";
 }
@@ -196,14 +201,14 @@
   justify-content: flex-start;
 }
 
-.actionsRow>* {
+.actionsRow > * {
   width: 100%;
 }
 
 @media (max-width: 760px) {
-
   .filterClientPicker,
-  .favoriteFilterToggle {
+  .favoriteFilterToggle,
+  .filtersResetButton {
     width: 100%;
     min-width: 0;
   }

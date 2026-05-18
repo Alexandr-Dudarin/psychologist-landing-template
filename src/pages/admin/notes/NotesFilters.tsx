@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import type {
   ClientFavoriteFilter,
@@ -12,9 +13,11 @@ type NotesFiltersProps = {
   favoriteFilter: ClientFavoriteFilter;
   clients: CrmClientRecord[];
   searchQuery: string;
+  hasActiveFilters: boolean;
   onClientFilterChange: (value: number | "all") => void;
   onFavoriteFilterChange: (value: ClientFavoriteFilter) => void;
   onSearchChange: (value: string) => void;
+  onResetFilters: () => void;
 };
 
 function normalizeSearchValue(value: string): string {
@@ -40,9 +43,11 @@ export function NotesFilters({
   favoriteFilter,
   clients,
   searchQuery,
+  hasActiveFilters,
   onClientFilterChange,
   onFavoriteFilterChange,
   onSearchChange,
+  onResetFilters,
 }: NotesFiltersProps) {
   const [clientSearchQuery, setClientSearchQuery] = useState("");
   const [isClientPickerOpen, setIsClientPickerOpen] = useState(false);
@@ -192,6 +197,18 @@ export function NotesFilters({
         placeholder="Поиск по клиенту, услуге или тексту заметки"
         className={`${styles.input} ${styles.searchInput}`}
       />
+
+      {hasActiveFilters ? (
+        <AdminButton
+          type="button"
+          variant="secondary"
+          size="sm"
+          className={styles.filtersResetButton}
+          onClick={onResetFilters}
+        >
+          Сбросить
+        </AdminButton>
+      ) : null}
     </AdminFiltersRow>
   );
 }

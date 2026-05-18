@@ -868,6 +868,12 @@ export function SessionsPage() {
     setArchivedItems([]);
   };
 
+  const hasActiveFilters =
+    clientFilter !== "all" ||
+    favoriteFilter !== "all" ||
+    statusFilter !== "all" ||
+    searchQuery.trim().length > 0;
+
   const hasQuickViewState =
     clientFilter !== "all" ||
     highlightedSessionId !== null ||
@@ -927,10 +933,12 @@ export function SessionsPage() {
         favoriteFilter={favoriteFilter}
         statusFilter={statusFilter}
         searchQuery={searchQuery}
+        hasActiveFilters={hasActiveFilters}
         onClientFilterChange={handleClientFilterChange}
         onFavoriteFilterChange={handleFavoriteFilterChange}
         onStatusFilterChange={handleStatusFilterChange}
         onSearchQueryChange={handleSearchQueryChange}
+        onResetFilters={handleResetView}
       />
 
       <AdminFeedback message={error} tone="error" />

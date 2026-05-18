@@ -31,6 +31,11 @@
   composes: controlSearch from "../../../components/admin/adminUi.module.css";
 }
 
+.filtersResetButton {
+  min-height: 46px;
+  white-space: nowrap;
+}
+
 .actionsRow {
   composes: actionGroup from "../../../components/admin/adminUi.module.css";
   flex-direction: column;
@@ -755,7 +760,8 @@
   }
 
   .clientFavoriteToggle,
-  .favoriteFilterToggle {
+  .favoriteFilterToggle,
+  .filtersResetButton {
     justify-content: flex-start;
     width: 100%;
   }

@@ -3,6 +3,7 @@ import type {
   ClientStatus,
 } from "../../../types/client";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import styles from "./ClientsPage.module.css";
 
@@ -18,9 +19,11 @@ type ClientsFiltersProps = {
   statusFilter: ClientStatus | "all";
   favoriteFilter: ClientFavoriteFilter;
   statusOptions: StatusOption[];
+  hasActiveFilters: boolean;
   onSearchChange: (value: string) => void;
   onStatusChange: (value: ClientStatus | "all") => void;
   onFavoriteChange: (value: ClientFavoriteFilter) => void;
+  onResetFilters: () => void;
 };
 
 export function ClientsFilters({
@@ -30,9 +33,11 @@ export function ClientsFilters({
   statusFilter,
   favoriteFilter,
   statusOptions,
+  hasActiveFilters,
   onSearchChange,
   onStatusChange,
   onFavoriteChange,
+  onResetFilters,
 }: ClientsFiltersProps) {
   const showFavoritesOnly = favoriteFilter === "favorites";
 
@@ -71,6 +76,18 @@ export function ClientsFilters({
         placeholder={searchPlaceholder}
         className={`${styles.input} ${styles.searchInput}`}
       />
+
+      {hasActiveFilters ? (
+        <AdminButton
+          type="button"
+          variant="secondary"
+          size="sm"
+          className={styles.filtersResetButton}
+          onClick={onResetFilters}
+        >
+          Сбросить
+        </AdminButton>
+      ) : null}
     </AdminFiltersRow>
   );
 }
