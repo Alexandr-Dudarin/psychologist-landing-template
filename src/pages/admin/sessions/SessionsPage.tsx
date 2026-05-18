@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
+import { AdminRefreshableTableArea } from "../../../components/admin/AdminRefreshableTableArea";
 import {
   getDefaultBookingTimezone,
   resolveBookingTimezone,
@@ -282,6 +283,21 @@ export function SessionsPage() {
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmSessionRecord[]>([]);
   const [archivedItems, setArchivedItems] = useState<CrmSessionRecord[]>([]);
+  const [lastVisibleItems, setLastVisibleItems] = useState<CrmSessionRecord[]>(
+    []
+  );
+  const [lastVisibleArchivedItems, setLastVisibleArchivedItems] = useState<
+    CrmSessionRecord[]
+  >([]);
+  const [lastStableVisibleItems, setLastStableVisibleItems] = useState<
+    CrmSessionRecord[]
+  >([]);
+  const [hasLoadedActiveSessionsOnce, setHasLoadedActiveSessionsOnce] =
+    useState(false);
+  const [hasLoadedArchivedSessionsOnce, setHasLoadedArchivedSessionsOnce] =
+    useState(false);
+  const [hasLoadedAnySessionsOnce, setHasLoadedAnySessionsOnce] =
+    useState(false);
   const [clients, setClients] = useState<CrmClientRecord[]>([]);
   const [services, setServices] = useState<CrmServiceRecord[]>([]);
   const [createClientPackages, setCreateClientPackages] = useState<
@@ -375,7 +391,35 @@ export function SessionsPage() {
     statusFilter === "all" || statusFilter === "scheduled";
   const shouldShowArchivedPanel =
     statusFilter === "all" || isArchivedFilterActive;
+  const shouldDisplayArchivedSessions =
+    showArchivedSessions || isArchivedFilterActive;
   const canToggleArchivedSessions = statusFilter === "all";
+
+  useEffect(() => {
+    if (!isLoading && shouldLoadActiveSessions) {
+      setLastVisibleItems(visibleItems);
+      setLastStableVisibleItems(visibleItems);
+      setHasLoadedActiveSessionsOnce(true);
+      setHasLoadedAnySessionsOnce(true);
+    }
+  }, [isLoading, shouldLoadActiveSessions, visibleItems]);
+
+  useEffect(() => {
+    if (
+      !isArchivedLoading &&
+      shouldDisplayArchivedSessions &&
+      hasLoadedArchivedSessionsOnce
+    ) {
+      setLastVisibleArchivedItems(visibleArchivedItems);
+      setLastStableVisibleItems(visibleArchivedItems);
+      setHasLoadedAnySessionsOnce(true);
+    }
+  }, [
+    hasLoadedArchivedSessionsOnce,
+    isArchivedLoading,
+    shouldDisplayArchivedSessions,
+    visibleArchivedItems,
+  ]);
 
   useEffect(() => {
     const clientIdFromUrl = searchParams.get("clientId");
@@ -431,15 +475,16 @@ export function SessionsPage() {
           setError("");
         }
 
-        const activeSessionsPromise = shouldLoadActiveSessions
-          ? getAdminSessions({
-              scope: "active",
-              status: statusFilter,
-              clientId: clientFilter,
-              serviceId: serviceFilter,
-              search: searchQuery,
-            })
-          : Promise.resolve([]);
+        const activeSessionsPromise: Promise<CrmSessionRecord[] | null> =
+          shouldLoadActiveSessions
+            ? getAdminSessions({
+                scope: "active",
+                status: statusFilter,
+                clientId: clientFilter,
+                serviceId: serviceFilter,
+                search: searchQuery,
+              })
+            : Promise.resolve(null);
 
         const [sessionsData, clientsData, servicesData, scheduleData] =
           await Promise.all([
@@ -450,7 +495,10 @@ export function SessionsPage() {
           ]);
 
         if (isMounted) {
-          setItems(sessionsData);
+          if (sessionsData !== null) {
+            setItems(sessionsData);
+          }
+
           setClients(clientsData);
           setServices(servicesData);
           setScheduleTimezone(
@@ -489,7 +537,7 @@ export function SessionsPage() {
   ]);
 
   useEffect(() => {
-    if (!showArchivedSessions) {
+    if (!shouldDisplayArchivedSessions) {
       return;
     }
 
@@ -512,6 +560,8 @@ export function SessionsPage() {
 
         if (isMounted) {
           setArchivedItems(archivedSessionsData);
+          setHasLoadedArchivedSessionsOnce(true);
+          setHasLoadedAnySessionsOnce(true);
         }
       } catch (loadError) {
         if (isMounted) {
@@ -533,7 +583,13 @@ export function SessionsPage() {
     return () => {
       isMounted = false;
     };
-  }, [showArchivedSessions, statusFilter, clientFilter, serviceFilter, searchQuery]);
+  }, [
+    shouldDisplayArchivedSessions,
+    statusFilter,
+    clientFilter,
+    serviceFilter,
+    searchQuery,
+  ]);
 
   useEffect(() => {
     const clientId = getParsedClientId(createForm.clientId);
@@ -650,8 +706,8 @@ export function SessionsPage() {
             serviceId: serviceFilter,
             search: searchQuery,
           })
-        : Promise.resolve([]),
-      showArchivedSessions
+        : Promise.resolve(null),
+      shouldDisplayArchivedSessions
         ? getAdminSessions({
             scope: "archived",
             status: statusFilter,
@@ -662,10 +718,14 @@ export function SessionsPage() {
         : Promise.resolve(null),
     ]);
 
-    setItems(sessionsData);
+    if (sessionsData !== null) {
+      setItems(sessionsData);
+    }
 
     if (archivedSessionsData !== null) {
       setArchivedItems(archivedSessionsData);
+      setHasLoadedArchivedSessionsOnce(true);
+      setHasLoadedAnySessionsOnce(true);
     }
   };
 
@@ -902,6 +962,36 @@ export function SessionsPage() {
     highlightedSessionId !== null ||
     searchQuery.trim().length > 0;
 
+  const activeFallbackItems = hasLoadedActiveSessionsOnce
+    ? lastVisibleItems
+    : lastStableVisibleItems;
+
+  const displayedActiveItems =
+    isLoading && hasLoadedAnySessionsOnce ? activeFallbackItems : visibleItems;
+
+  const isActiveSessionsInitialLoading = isLoading && !hasLoadedAnySessionsOnce;
+  const isActiveSessionsRefreshing = isLoading && hasLoadedAnySessionsOnce;
+
+  const archivedFallbackItems = hasLoadedArchivedSessionsOnce
+    ? lastVisibleArchivedItems
+    : lastStableVisibleItems;
+
+  const shouldUseArchivedFallback =
+    shouldDisplayArchivedSessions &&
+    hasLoadedAnySessionsOnce &&
+    (isArchivedLoading || !hasLoadedArchivedSessionsOnce);
+
+  const displayedArchivedItems = shouldUseArchivedFallback
+    ? archivedFallbackItems
+    : visibleArchivedItems;
+
+  const isArchivedSessionsInitialLoading =
+    isArchivedLoading && !hasLoadedAnySessionsOnce;
+  const isArchivedSessionsRefreshing =
+    shouldDisplayArchivedSessions &&
+    hasLoadedAnySessionsOnce &&
+    (isArchivedLoading || !hasLoadedArchivedSessionsOnce);
+
   return (
     <main>
       <h1>Сессии</h1>
@@ -969,16 +1059,18 @@ export function SessionsPage() {
       <AdminFeedback message={successMessage} tone="success" />
 
       {shouldLoadActiveSessions ? (
-        <SessionsTable
-          items={visibleItems}
-          isLoading={isLoading}
-          deletingId={deletingId}
-          timezone={scheduleTimezone}
-          highlightedSessionId={highlightedSessionId}
-          emptyMessage="Запланированных сессий пока нет."
-          onEdit={startEditing}
-          onDelete={handleDeleteSession}
-        />
+        <AdminRefreshableTableArea isRefreshing={isActiveSessionsRefreshing}>
+          <SessionsTable
+            items={displayedActiveItems}
+            isLoading={isActiveSessionsInitialLoading}
+            deletingId={deletingId}
+            timezone={scheduleTimezone}
+            highlightedSessionId={highlightedSessionId}
+            emptyMessage="Запланированных сессий пока нет."
+            onEdit={startEditing}
+            onDelete={handleDeleteSession}
+          />
+        </AdminRefreshableTableArea>
       ) : null}
 
       {shouldShowArchivedPanel ? (
@@ -1011,17 +1103,19 @@ export function SessionsPage() {
         </section>
       ) : null}
 
-      {showArchivedSessions ? (
-        <SessionsTable
-          items={visibleArchivedItems}
-          isLoading={isArchivedLoading}
-          deletingId={deletingId}
-          timezone={scheduleTimezone}
-          highlightedSessionId={highlightedSessionId}
-          emptyMessage="Завершённых сессий пока нет."
-          onEdit={startEditing}
-          onDelete={handleDeleteSession}
-        />
+      {shouldDisplayArchivedSessions ? (
+        <AdminRefreshableTableArea isRefreshing={isArchivedSessionsRefreshing}>
+          <SessionsTable
+            items={displayedArchivedItems}
+            isLoading={isArchivedSessionsInitialLoading}
+            deletingId={deletingId}
+            timezone={scheduleTimezone}
+            highlightedSessionId={highlightedSessionId}
+            emptyMessage="Завершённых сессий пока нет."
+            onEdit={startEditing}
+            onDelete={handleDeleteSession}
+          />
+        </AdminRefreshableTableArea>
       ) : null}
     </main>
   );
