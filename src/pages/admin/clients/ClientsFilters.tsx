@@ -34,6 +34,8 @@ export function ClientsFilters({
   onStatusChange,
   onFavoriteChange,
 }: ClientsFiltersProps) {
+  const showFavoritesOnly = favoriteFilter === "favorites";
+
   return (
     <AdminFiltersRow>
       <select
@@ -51,16 +53,16 @@ export function ClientsFilters({
         ))}
       </select>
 
-      <select
-        value={favoriteFilter}
-        onChange={(event) =>
-          onFavoriteChange(event.target.value as ClientFavoriteFilter)
-        }
-        className={`${styles.input} ${styles.select}`}
-      >
-        <option value="all">все клиенты</option>
-        <option value="favorites">только избранные</option>
-      </select>
+      <label className={styles.favoriteFilterToggle}>
+        <input
+          type="checkbox"
+          checked={showFavoritesOnly}
+          onChange={(event) =>
+            onFavoriteChange(event.target.checked ? "favorites" : "all")
+          }
+        />
+        <span>Только избранные</span>
+      </label>
 
       <input
         type="text"
