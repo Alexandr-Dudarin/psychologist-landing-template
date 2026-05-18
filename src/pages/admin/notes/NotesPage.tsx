@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
+import { AdminRefreshableTableArea } from "../../../components/admin/AdminRefreshableTableArea";
 import { getAdminClients } from "../../../lib/api/adminClients";
 import {
   createAdminNote,
@@ -60,6 +61,8 @@ export function NotesPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmNoteRecord[]>([]);
+  const [lastVisibleItems, setLastVisibleItems] = useState<CrmNoteRecord[]>([]);
+  const [hasLoadedNotesOnce, setHasLoadedNotesOnce] = useState(false);
   const [clients, setClients] = useState<CrmClientRecord[]>([]);
   const [sessions, setSessions] = useState<CrmSessionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -165,6 +168,13 @@ export function NotesPage() {
       isMounted = false;
     };
   }, [clientFilter, sessionFilter, searchQuery, favoriteFilter]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLastVisibleItems(items);
+      setHasLoadedNotesOnce(true);
+    }
+  }, [isLoading, items]);
 
   const availableCreateSessions = useMemo(() => {
     return getSessionsForClient(sessions, createForm.clientId);
@@ -365,6 +375,11 @@ export function NotesPage() {
     searchQuery,
   });
 
+  const displayedItems =
+    isLoading && hasLoadedNotesOnce ? lastVisibleItems : items;
+  const isInitialLoading = isLoading && !hasLoadedNotesOnce;
+  const isRefreshing = isLoading && hasLoadedNotesOnce;
+
   return (
     <main>
       <h1>Заметки</h1>
@@ -416,17 +431,21 @@ export function NotesPage() {
       <AdminFeedback message={error} tone="error" />
       <AdminFeedback message={successMessage} tone="success" />
 
-      {isLoading ? (
+      {isInitialLoading ? (
         <p>Загрузка...</p>
-      ) : items.length === 0 ? (
-        <p>Заметок пока нет.</p>
+      ) : displayedItems.length === 0 ? (
+        <AdminRefreshableTableArea isRefreshing={isRefreshing}>
+          <p>Заметок пока нет.</p>
+        </AdminRefreshableTableArea>
       ) : (
-        <NotesTable
-          items={items}
-          deletingId={deletingId}
-          onEdit={startEditing}
-          onDelete={handleDeleteNote}
-        />
+        <AdminRefreshableTableArea isRefreshing={isRefreshing}>
+          <NotesTable
+            items={displayedItems}
+            deletingId={deletingId}
+            onEdit={startEditing}
+            onDelete={handleDeleteNote}
+          />
+        </AdminRefreshableTableArea>
       )}
     </main>
   );
