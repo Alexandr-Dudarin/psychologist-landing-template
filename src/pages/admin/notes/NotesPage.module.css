@@ -196,11 +196,12 @@
   justify-content: flex-start;
 }
 
-.actionsRow > * {
+.actionsRow>* {
   width: 100%;
 }
 
 @media (max-width: 760px) {
+
   .filterClientPicker,
   .favoriteFilterToggle {
     width: 100%;

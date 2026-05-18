@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
@@ -78,6 +78,8 @@ export function NotesPage() {
   const [createForm, setCreateForm] = useState<NoteForm>(initialCreateForm);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<NoteForm>(initialEditForm);
+  const [editScrollRequest, setEditScrollRequest] = useState(0);
+  const editFormRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setClientFilter(getFilterValueFromSearchParam(searchParams.get("clientId")));
@@ -85,6 +87,31 @@ export function NotesPage() {
       getFilterValueFromSearchParam(searchParams.get("sessionId"))
     );
   }, [searchParams]);
+
+  useEffect(() => {
+    if (editingNoteId === null || editScrollRequest === 0) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      const element = editFormRef.current;
+
+      if (!element) {
+        return;
+      }
+
+      const elementTop = element.getBoundingClientRect().top + window.scrollY;
+
+      window.scrollTo({
+        top: Math.max(elementTop - 16, 0),
+        behavior: "smooth",
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [editingNoteId, editScrollRequest]);
 
   useEffect(() => {
     let isMounted = true;
@@ -164,7 +191,9 @@ export function NotesPage() {
       search: searchQuery,
     });
 
-    setItems(getNotesFilteredByFavoriteClients(notesData, clients, favoriteFilter));
+    setItems(
+      getNotesFilteredByFavoriteClients(notesData, clients, favoriteFilter)
+    );
   };
 
   const handleClientFilterChange = (value: NotesPageFilterValue) => {
@@ -240,6 +269,7 @@ export function NotesPage() {
     setEditForm(getEditFormFromNote(note));
     setError("");
     setSuccessMessage("");
+    setEditScrollRequest((prev) => prev + 1);
   };
 
   const cancelEditing = () => {
@@ -352,15 +382,17 @@ export function NotesPage() {
       />
 
       {editingNoteId !== null ? (
-        <NoteEditForm
-          clients={clients}
-          availableSessions={availableEditSessions}
-          form={editForm}
-          isUpdating={isUpdating}
-          onCancel={cancelEditing}
-          onChange={handleEditFormChange}
-          onSubmit={handleUpdateNote}
-        />
+        <div ref={editFormRef}>
+          <NoteEditForm
+            clients={clients}
+            availableSessions={availableEditSessions}
+            form={editForm}
+            isUpdating={isUpdating}
+            onCancel={cancelEditing}
+            onChange={handleEditFormChange}
+            onSubmit={handleUpdateNote}
+          />
+        </div>
       ) : null}
 
       <NotesFilters
