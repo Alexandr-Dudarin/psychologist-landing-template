@@ -10,7 +10,10 @@ import {
   updateAdminNote,
 } from "../../../lib/api/adminNotes";
 import { getAdminSessions } from "../../../lib/api/adminSessions";
-import type { CrmClientRecord } from "../../../types/client";
+import type {
+  ClientFavoriteFilter,
+  CrmClientRecord,
+} from "../../../types/client";
 import type { CrmNoteRecord } from "../../../types/note";
 import type { CrmSessionRecord } from "../../../types/session";
 import { NoteCreateForm } from "./NoteCreateForm";
@@ -32,11 +35,26 @@ import {
   getNextNoteFormState,
   getSessionsForClient,
   hasActiveQuickViewState,
-  shouldResetSessionFilter,
   type NotesPageFilterValue,
 } from "./notesPageHelpers";
 import { NotesQuickViewBanner } from "./NotesQuickViewBanner";
 import { NotesTable } from "./NotesTable";
+
+function getNotesFilteredByFavoriteClients(
+  notes: CrmNoteRecord[],
+  clients: CrmClientRecord[],
+  favoriteFilter: ClientFavoriteFilter
+): CrmNoteRecord[] {
+  if (favoriteFilter !== "favorites") {
+    return notes;
+  }
+
+  const favoriteClientIds = new Set(
+    clients.filter((client) => client.isFavorite).map((client) => client.id)
+  );
+
+  return notes.filter((note) => favoriteClientIds.has(note.clientId));
+}
 
 export function NotesPage() {
   const navigate = useNavigate();
@@ -52,6 +70,8 @@ export function NotesPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [clientFilter, setClientFilter] =
     useState<NotesPageFilterValue>("all");
+  const [favoriteFilter, setFavoriteFilter] =
+    useState<ClientFavoriteFilter>("all");
   const [sessionFilter, setSessionFilter] =
     useState<NotesPageFilterValue>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -87,7 +107,13 @@ export function NotesPage() {
         ]);
 
         if (isMounted) {
-          setItems(notesData);
+          setItems(
+            getNotesFilteredByFavoriteClients(
+              notesData,
+              clientsData,
+              favoriteFilter
+            )
+          );
           setClients(clientsData);
           setSessions(sessionsData);
         }
@@ -111,23 +137,7 @@ export function NotesPage() {
     return () => {
       isMounted = false;
     };
-  }, [clientFilter, sessionFilter, searchQuery]);
-
-  const availableFilterSessions = useMemo(() => {
-    return getSessionsForClient(sessions, clientFilter);
-  }, [clientFilter, sessions]);
-
-  useEffect(() => {
-    if (
-      shouldResetSessionFilter(
-        sessionFilter,
-        availableFilterSessions,
-        isLoading
-      )
-    ) {
-      setSessionFilter("all");
-    }
-  }, [sessionFilter, availableFilterSessions, isLoading]);
+  }, [clientFilter, sessionFilter, searchQuery, favoriteFilter]);
 
   const availableCreateSessions = useMemo(() => {
     return getSessionsForClient(sessions, createForm.clientId);
@@ -154,16 +164,34 @@ export function NotesPage() {
       search: searchQuery,
     });
 
-    setItems(notesData);
+    setItems(getNotesFilteredByFavoriteClients(notesData, clients, favoriteFilter));
   };
 
   const handleClientFilterChange = (value: NotesPageFilterValue) => {
     setClientFilter(value);
     setSessionFilter("all");
+    resetMessages();
   };
 
-  const handleSessionFilterChange = (value: NotesPageFilterValue) => {
-    setSessionFilter(value);
+  const handleFavoriteFilterChange = (value: ClientFavoriteFilter) => {
+    setFavoriteFilter(value);
+    resetMessages();
+
+    if (value !== "favorites" || clientFilter === "all") {
+      return;
+    }
+
+    const selectedClient = clients.find((client) => client.id === clientFilter);
+
+    if (!selectedClient?.isFavorite) {
+      setClientFilter("all");
+      setSessionFilter("all");
+    }
+  };
+
+  const handleSearchQueryChange = (value: string) => {
+    setSearchQuery(value);
+    resetMessages();
   };
 
   const handleCreateFormChange = (field: keyof NoteForm, value: string) => {
@@ -289,6 +317,7 @@ export function NotesPage() {
 
   const handleResetView = () => {
     setClientFilter("all");
+    setFavoriteFilter("all");
     setSessionFilter("all");
     setSearchQuery("");
     navigate("/admin/notes");
@@ -336,13 +365,12 @@ export function NotesPage() {
 
       <NotesFilters
         clientFilter={clientFilter}
-        sessionFilter={sessionFilter}
+        favoriteFilter={favoriteFilter}
         clients={clients}
-        sessions={availableFilterSessions}
         searchQuery={searchQuery}
         onClientFilterChange={handleClientFilterChange}
-        onSessionFilterChange={handleSessionFilterChange}
-        onSearchChange={setSearchQuery}
+        onFavoriteFilterChange={handleFavoriteFilterChange}
+        onSearchChange={handleSearchQueryChange}
       />
 
       <AdminFeedback message={error} tone="error" />
