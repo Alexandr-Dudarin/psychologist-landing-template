@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
+import { AdminRefreshableTableArea } from "../../../components/admin/AdminRefreshableTableArea";
 import {
   createAdminService,
   createAdminServicePackagePlan,
@@ -88,6 +89,15 @@ export function ServicesPage() {
   const [packagePlans, setPackagePlans] = useState<
     CrmServicePackagePlanRecord[]
   >([]);
+  const [lastVisibleItems, setLastVisibleItems] = useState<CrmServiceRecord[]>(
+    []
+  );
+  const [lastVisiblePackagePlans, setLastVisiblePackagePlans] = useState<
+    CrmServicePackagePlanRecord[]
+  >([]);
+  const [hasLoadedServicesOnce, setHasLoadedServicesOnce] = useState(false);
+  const [hasLoadedPackagePlansOnce, setHasLoadedPackagePlansOnce] =
+    useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isPackagePlansLoading, setIsPackagePlansLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -175,6 +185,20 @@ export function ServicesPage() {
       isMounted = false;
     };
   }, [activityFilter, searchQuery]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLastVisibleItems(items);
+      setHasLoadedServicesOnce(true);
+    }
+  }, [isLoading, items]);
+
+  useEffect(() => {
+    if (!isPackagePlansLoading) {
+      setLastVisiblePackagePlans(packagePlans);
+      setHasLoadedPackagePlansOnce(true);
+    }
+  }, [isPackagePlansLoading, packagePlans]);
 
   useEffect(() => {
     if (editingServiceId === null) {
@@ -666,6 +690,20 @@ export function ServicesPage() {
     }
   };
 
+  const displayedItems =
+    isLoading && hasLoadedServicesOnce ? lastVisibleItems : items;
+  const isServicesInitialLoading = isLoading && !hasLoadedServicesOnce;
+  const isServicesRefreshing = isLoading && hasLoadedServicesOnce;
+
+  const displayedPackagePlans =
+    isPackagePlansLoading && hasLoadedPackagePlansOnce
+      ? lastVisiblePackagePlans
+      : packagePlans;
+  const isPackagePlansInitialLoading =
+    isPackagePlansLoading && !hasLoadedPackagePlansOnce;
+  const isPackagePlansRefreshing =
+    isPackagePlansLoading && hasLoadedPackagePlansOnce;
+
   return (
     <main>
       <h1>Услуги</h1>
@@ -720,19 +758,23 @@ export function ServicesPage() {
       <AdminFeedback message={error} tone="error" />
       <AdminFeedback message={successMessage} tone="success" />
 
-      {isLoading ? (
+      {isServicesInitialLoading ? (
         <p>Загрузка...</p>
-      ) : items.length === 0 ? (
-        <p>Услуг пока нет.</p>
+      ) : displayedItems.length === 0 ? (
+        <AdminRefreshableTableArea isRefreshing={isServicesRefreshing}>
+          <p>Услуг пока нет.</p>
+        </AdminRefreshableTableArea>
       ) : (
-        <ServicesTable
-          items={items}
-          deletingId={deletingId}
-          hidingId={hidingId}
-          onEdit={startEditing}
-          onDelete={handleDeleteService}
-          onHide={handleHideService}
-        />
+        <AdminRefreshableTableArea isRefreshing={isServicesRefreshing}>
+          <ServicesTable
+            items={displayedItems}
+            deletingId={deletingId}
+            hidingId={hidingId}
+            onEdit={startEditing}
+            onDelete={handleDeleteService}
+            onHide={handleHideService}
+          />
+        </AdminRefreshableTableArea>
       )}
 
       <div className={styles.packagePlansHeader}>
@@ -767,19 +809,23 @@ export function ServicesPage() {
       <AdminFeedback message={packageError} tone="error" />
       <AdminFeedback message={packageSuccessMessage} tone="success" />
 
-      {isPackagePlansLoading ? (
+      {isPackagePlansInitialLoading ? (
         <p>Загрузка пакетов...</p>
-      ) : packagePlans.length === 0 ? (
-        <p className={styles.empty}>Пакетов услуг пока нет.</p>
+      ) : displayedPackagePlans.length === 0 ? (
+        <AdminRefreshableTableArea isRefreshing={isPackagePlansRefreshing}>
+          <p className={styles.empty}>Пакетов услуг пока нет.</p>
+        </AdminRefreshableTableArea>
       ) : (
-        <ServicePackagePlansTable
-          items={packagePlans}
-          deletingId={deletingPackagePlanId}
-          hidingId={hidingPackagePlanId}
-          onEdit={startEditingPackagePlan}
-          onDelete={handleDeletePackagePlan}
-          onHide={handleHidePackagePlan}
-        />
+        <AdminRefreshableTableArea isRefreshing={isPackagePlansRefreshing}>
+          <ServicePackagePlansTable
+            items={displayedPackagePlans}
+            deletingId={deletingPackagePlanId}
+            hidingId={hidingPackagePlanId}
+            onEdit={startEditingPackagePlan}
+            onDelete={handleDeletePackagePlan}
+            onHide={handleHidePackagePlan}
+          />
+        </AdminRefreshableTableArea>
       )}
     </main>
   );
