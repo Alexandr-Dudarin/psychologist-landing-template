@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../../../app/providers/LanguageProvider";
+import { AdminButton } from "../../../components/admin/AdminButton";
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
+import { AdminRefreshableTableArea } from "../../../components/admin/AdminRefreshableTableArea";
 import { siteSettings } from "../../../data/siteSettings";
 import {
   createManualClient,
@@ -10,8 +13,6 @@ import {
   updateClient,
 } from "../../../lib/api/adminClients";
 import { validatePreferredContactFields } from "../../../lib/preferredContact";
-import { AdminButton } from "../../../components/admin/AdminButton";
-import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import type {
   ClientFavoriteFilter,
   ClientStatus,
@@ -47,6 +48,10 @@ export function ClientsPage() {
   const preferredContactSettings = siteSettings.preferredContactMethod;
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmClientRecord[]>([]);
+  const [lastVisibleItems, setLastVisibleItems] = useState<CrmClientRecord[]>(
+    []
+  );
+  const [hasLoadedClientsOnce, setHasLoadedClientsOnce] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -146,6 +151,13 @@ export function ClientsPage() {
     searchQuery,
     t.admin.clients.messages.loadError,
   ]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLastVisibleItems(items);
+      setHasLoadedClientsOnce(true);
+    }
+  }, [isLoading, items]);
 
   useEffect(() => {
     if (editingClientId === null) {
@@ -464,6 +476,11 @@ export function ClientsPage() {
   const hasQuickViewState =
     highlightedClientId !== null || searchQuery.trim().length > 0;
 
+  const displayedItems =
+    isLoading && hasLoadedClientsOnce ? lastVisibleItems : items;
+  const isInitialLoading = isLoading && !hasLoadedClientsOnce;
+  const isRefreshing = isLoading && hasLoadedClientsOnce;
+
   return (
     <main>
       <h1>{t.admin.clients.title}</h1>
@@ -547,28 +564,32 @@ export function ClientsPage() {
       <AdminFeedback message={error} tone="error" />
       <AdminFeedback message={successMessage} tone="success" />
 
-      {isLoading ? (
+      {isInitialLoading ? (
         <p>{t.admin.clients.messages.loading}</p>
-      ) : items.length === 0 ? (
-        <p>{t.admin.clients.messages.empty}</p>
+      ) : displayedItems.length === 0 ? (
+        <AdminRefreshableTableArea isRefreshing={isRefreshing}>
+          <p>{t.admin.clients.messages.empty}</p>
+        </AdminRefreshableTableArea>
       ) : (
-        <ClientsTable
-          items={items}
-          createdLabel={t.admin.clients.table.created}
-          nameLabel={t.admin.clients.table.name}
-          phoneLabel={t.admin.clients.table.phone}
-          emailLabel={t.admin.clients.table.email}
-          sourceLabel={t.admin.clients.table.source}
-          statusLabel={t.admin.clients.table.status}
-          firstRequestLabel={t.admin.clients.table.firstRequest}
-          statusLabels={t.admin.clients.statusLabels}
-          sourceLabels={clientSourceLabels}
-          favoriteUpdatingId={favoriteUpdatingId}
-          highlightedClientId={highlightedClientId}
-          onEdit={startEditing}
-          onViewDetails={openClientDetails}
-          onToggleFavorite={handleToggleFavorite}
-        />
+        <AdminRefreshableTableArea isRefreshing={isRefreshing}>
+          <ClientsTable
+            items={displayedItems}
+            createdLabel={t.admin.clients.table.created}
+            nameLabel={t.admin.clients.table.name}
+            phoneLabel={t.admin.clients.table.phone}
+            emailLabel={t.admin.clients.table.email}
+            sourceLabel={t.admin.clients.table.source}
+            statusLabel={t.admin.clients.table.status}
+            firstRequestLabel={t.admin.clients.table.firstRequest}
+            statusLabels={t.admin.clients.statusLabels}
+            sourceLabels={clientSourceLabels}
+            favoriteUpdatingId={favoriteUpdatingId}
+            highlightedClientId={highlightedClientId}
+            onEdit={startEditing}
+            onViewDetails={openClientDetails}
+            onToggleFavorite={handleToggleFavorite}
+          />
+        </AdminRefreshableTableArea>
       )}
 
       {selectedClient ? (
