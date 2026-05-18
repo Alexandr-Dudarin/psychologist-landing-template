@@ -316,6 +316,7 @@ export function SessionsPage() {
   const [clientFilter, setClientFilter] = useState<number | "all">("all");
   const [favoriteFilter, setFavoriteFilter] =
     useState<ClientFavoriteFilter>("all");
+  const [serviceFilter, setServiceFilter] = useState<number | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [highlightedSessionId, setHighlightedSessionId] = useState<number | null>(
     null
@@ -435,6 +436,7 @@ export function SessionsPage() {
               scope: "active",
               status: statusFilter,
               clientId: clientFilter,
+              serviceId: serviceFilter,
               search: searchQuery,
             })
           : Promise.resolve([]);
@@ -478,7 +480,13 @@ export function SessionsPage() {
     return () => {
       isMounted = false;
     };
-  }, [statusFilter, clientFilter, searchQuery, shouldLoadActiveSessions]);
+  }, [
+    statusFilter,
+    clientFilter,
+    serviceFilter,
+    searchQuery,
+    shouldLoadActiveSessions,
+  ]);
 
   useEffect(() => {
     if (!showArchivedSessions) {
@@ -498,6 +506,7 @@ export function SessionsPage() {
           scope: "archived",
           status: statusFilter,
           clientId: clientFilter,
+          serviceId: serviceFilter,
           search: searchQuery,
         });
 
@@ -524,7 +533,7 @@ export function SessionsPage() {
     return () => {
       isMounted = false;
     };
-  }, [showArchivedSessions, statusFilter, clientFilter, searchQuery]);
+  }, [showArchivedSessions, statusFilter, clientFilter, serviceFilter, searchQuery]);
 
   useEffect(() => {
     const clientId = getParsedClientId(createForm.clientId);
@@ -638,6 +647,7 @@ export function SessionsPage() {
             scope: "active",
             status: statusFilter,
             clientId: clientFilter,
+            serviceId: serviceFilter,
             search: searchQuery,
           })
         : Promise.resolve([]),
@@ -646,6 +656,7 @@ export function SessionsPage() {
             scope: "archived",
             status: statusFilter,
             clientId: clientFilter,
+            serviceId: serviceFilter,
             search: searchQuery,
           })
         : Promise.resolve(null),
@@ -676,6 +687,16 @@ export function SessionsPage() {
   const handleFavoriteFilterChange = (value: ClientFavoriteFilter) => {
     setFavoriteFilter(value);
     resetFeedback();
+
+    if (value !== "favorites" || clientFilter === "all") {
+      return;
+    }
+
+    const selectedClient = clients.find((client) => client.id === clientFilter);
+
+    if (!selectedClient?.isFavorite) {
+      setClientFilter("all");
+    }
   };
 
   const handleStatusFilterChange = (value: SessionStatus | "all") => {
@@ -683,8 +704,8 @@ export function SessionsPage() {
     resetFeedback();
   };
 
-  const handleSearchQueryChange = (value: string) => {
-    setSearchQuery(value);
+  const handleServiceFilterChange = (value: number | "all") => {
+    setServiceFilter(value);
     resetFeedback();
   };
 
@@ -852,6 +873,7 @@ export function SessionsPage() {
     setStatusFilter("all");
     setClientFilter("all");
     setFavoriteFilter("all");
+    setServiceFilter("all");
     setSearchQuery("");
     setHighlightedSessionId(null);
     setShowArchivedSessions(false);
@@ -871,6 +893,7 @@ export function SessionsPage() {
   const hasActiveFilters =
     clientFilter !== "all" ||
     favoriteFilter !== "all" ||
+    serviceFilter !== "all" ||
     statusFilter !== "all" ||
     searchQuery.trim().length > 0;
 
@@ -931,13 +954,14 @@ export function SessionsPage() {
         clientFilter={clientFilter}
         clients={clients}
         favoriteFilter={favoriteFilter}
+        serviceFilter={serviceFilter}
+        services={services}
         statusFilter={statusFilter}
-        searchQuery={searchQuery}
         hasActiveFilters={hasActiveFilters}
         onClientFilterChange={handleClientFilterChange}
         onFavoriteFilterChange={handleFavoriteFilterChange}
+        onServiceFilterChange={handleServiceFilterChange}
         onStatusFilterChange={handleStatusFilterChange}
-        onSearchQueryChange={handleSearchQueryChange}
         onResetFilters={handleResetView}
       />
 

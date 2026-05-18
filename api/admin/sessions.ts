@@ -507,6 +507,7 @@ async function handleList(req: any, res: any) {
   const status = getSingleQueryValue(req.query?.status).trim();
   const scope = getSingleQueryValue(req.query?.scope).trim();
   const clientIdRaw = getSingleQueryValue(req.query?.clientId).trim();
+  const serviceIdRaw = getSingleQueryValue(req.query?.serviceId).trim();
   const search = getSingleQueryValue(req.query?.search).trim();
 
   const conditions: string[] = [];
@@ -533,15 +534,15 @@ async function handleList(req: any, res: any) {
     conditions.push(`s.status = $${values.length}`);
   }
 
-  if (clientIdRaw && clientIdRaw !== "all") {
-    const clientId = Number(clientIdRaw);
+  if (serviceIdRaw && serviceIdRaw !== "all") {
+    const serviceId = Number(serviceIdRaw);
 
-    if (!Number.isInteger(clientId) || clientId <= 0) {
-      return res.status(400).json({ error: "Некорректный клиент" });
+    if (!Number.isInteger(serviceId) || serviceId <= 0) {
+      return res.status(400).json({ error: "Некорректная услуга" });
     }
 
-    values.push(clientId);
-    conditions.push(`s.client_id = $${values.length}`);
+    values.push(serviceId);
+    conditions.push(`s.service_id = $${values.length}`);
   }
 
   if (search) {
