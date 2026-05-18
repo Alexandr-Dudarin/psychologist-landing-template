@@ -84,6 +84,27 @@ function validatePackagePlanPayload(
   return null;
 }
 
+function normalizeSearchValue(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function doesPackagePlanMatchSearch(
+  packagePlan: CrmServicePackagePlanRecord,
+  searchQuery: string
+): boolean {
+  const normalizedQuery = normalizeSearchValue(searchQuery);
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  return [
+    packagePlan.title,
+    packagePlan.description,
+    packagePlan.serviceTitle,
+  ].some((value) => value.toLowerCase().includes(normalizedQuery));
+}
+
 export function ServicesPage() {
   const [items, setItems] = useState<CrmServiceRecord[]>([]);
   const [packagePlans, setPackagePlans] = useState<
@@ -119,7 +140,11 @@ export function ServicesPage() {
   const [activityFilter, setActivityFilter] = useState<
     "all" | "active" | "inactive"
   >("all");
+  const [packageActivityFilter, setPackageActivityFilter] = useState<
+    "all" | "active" | "inactive"
+  >("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [packageSearchQuery, setPackageSearchQuery] = useState("");
   const [createForm, setCreateForm] = useState<ServiceForm>(initialCreateForm);
   const [packagePlanCreateForm, setPackagePlanCreateForm] =
     useState<ServicePackagePlanForm>(initialPackagePlanCreateForm);
@@ -138,6 +163,26 @@ export function ServicesPage() {
     () => items.filter((service) => service.isActive),
     [items]
   );
+
+  const filteredPackagePlans = useMemo(() => {
+    return packagePlans.filter((packagePlan) => {
+      if (
+        packageActivityFilter === "active" &&
+        packagePlan.isActive !== true
+      ) {
+        return false;
+      }
+
+      if (
+        packageActivityFilter === "inactive" &&
+        packagePlan.isActive !== false
+      ) {
+        return false;
+      }
+
+      return doesPackagePlanMatchSearch(packagePlan, packageSearchQuery);
+    });
+  }, [packageActivityFilter, packagePlans, packageSearchQuery]);
 
   useEffect(() => {
     let isMounted = true;
@@ -195,10 +240,10 @@ export function ServicesPage() {
 
   useEffect(() => {
     if (!isPackagePlansLoading) {
-      setLastVisiblePackagePlans(packagePlans);
+      setLastVisiblePackagePlans(filteredPackagePlans);
       setHasLoadedPackagePlansOnce(true);
     }
-  }, [isPackagePlansLoading, packagePlans]);
+  }, [filteredPackagePlans, isPackagePlansLoading]);
 
   useEffect(() => {
     if (editingServiceId === null) {
@@ -698,11 +743,15 @@ export function ServicesPage() {
   const displayedPackagePlans =
     isPackagePlansLoading && hasLoadedPackagePlansOnce
       ? lastVisiblePackagePlans
-      : packagePlans;
+      : filteredPackagePlans;
   const isPackagePlansInitialLoading =
     isPackagePlansLoading && !hasLoadedPackagePlansOnce;
   const isPackagePlansRefreshing =
     isPackagePlansLoading && hasLoadedPackagePlansOnce;
+  const packagePlansEmptyMessage =
+    packagePlans.length === 0
+      ? "Пакетов услуг пока нет."
+      : "Пакетов по выбранным фильтрам нет.";
 
   return (
     <main>
@@ -809,11 +858,39 @@ export function ServicesPage() {
       <AdminFeedback message={packageError} tone="error" />
       <AdminFeedback message={packageSuccessMessage} tone="success" />
 
+      <AdminFiltersRow>
+        <select
+          value={packageActivityFilter}
+          onChange={(event) => {
+            setPackageActivityFilter(
+              event.target.value as "all" | "active" | "inactive"
+            );
+            resetPackageMessages();
+          }}
+          className={`${styles.input} ${styles.filterSelect}`}
+        >
+          <option value="all">все пакеты</option>
+          <option value="active">только активные</option>
+          <option value="inactive">только скрытые</option>
+        </select>
+
+        <input
+          type="text"
+          value={packageSearchQuery}
+          onChange={(event) => {
+            setPackageSearchQuery(event.target.value);
+            resetPackageMessages();
+          }}
+          placeholder="Поиск по названию, описанию или базовой услуге"
+          className={`${styles.input} ${styles.searchInput}`}
+        />
+      </AdminFiltersRow>
+
       {isPackagePlansInitialLoading ? (
         <p>Загрузка пакетов...</p>
       ) : displayedPackagePlans.length === 0 ? (
         <AdminRefreshableTableArea isRefreshing={isPackagePlansRefreshing}>
-          <p className={styles.empty}>Пакетов услуг пока нет.</p>
+          <p className={styles.empty}>{packagePlansEmptyMessage}</p>
         </AdminRefreshableTableArea>
       ) : (
         <AdminRefreshableTableArea isRefreshing={isPackagePlansRefreshing}>
