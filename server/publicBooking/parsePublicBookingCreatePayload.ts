@@ -43,6 +43,14 @@ export function parsePublicBookingCreatePayload(
     rawBody?.preferredContactMethod,
     rawBody?.preferredContactValue
   );
+  const clientPackageCode =
+    typeof rawBody?.clientPackageCode === "string"
+      ? rawBody.clientPackageCode.trim()
+      : "";
+  const clientPackageContact =
+    typeof rawBody?.clientPackageContact === "string"
+      ? rawBody.clientPackageContact.trim()
+      : "";
   const consent = rawBody?.consent === true;
 
   if (!Number.isInteger(serviceId) || serviceId <= 0) {
@@ -67,6 +75,8 @@ export function parsePublicBookingCreatePayload(
     preferredContactValue: siteSettings.preferredContactMethod.enabled
       ? preferredContact.preferredContactValue
       : "",
+    clientPackageCode,
+    clientPackageContact,
     consent,
   };
 }
@@ -88,6 +98,17 @@ export function getPublicBookingValidationError(
 
   if (!isValidEmail(payload.email)) {
     return "Введите корректный email.";
+  }
+
+  if (payload.clientPackageCode?.trim()) {
+    const packageContact =
+      payload.clientPackageContact?.trim() ||
+      payload.email.trim() ||
+      payload.phone.trim();
+
+    if (!packageContact) {
+      return "Укажите телефон или email, чтобы проверить пакет.";
+    }
   }
 
   const preferredContactErrors = validatePreferredContactFields(

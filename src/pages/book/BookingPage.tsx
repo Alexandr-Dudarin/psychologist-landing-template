@@ -1,14 +1,18 @@
-import { useEffect, useState, useRef, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Container } from "../../components/Container/Container";
 import {
   createPublicBooking,
   getPublicBookingAvailability,
+  lookupPublicBookingPackage,
 } from "../../lib/api/publicBooking";
 import type {
   PublicBookingAvailabilityResponse,
   PublicBookingCreateSuccessResponse,
+  PublicBookingPackageInfo,
+  PublicBookingService,
   PublicBookingSlot,
 } from "../../types/booking";
 import { createPayment } from "../../lib/api/payment";
@@ -35,12 +39,39 @@ import {
 } from "./bookingPage.types";
 import styles from "./BookingPage.module.css";
 
+type BookingMode = "regular" | "package";
+
 const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
   ru: {
     eyebrow: "Онлайн-запись",
     title: "Выберите услугу, дату и удобный слот",
     description:
       "Выберите свободное время и сразу отправьте запрос на бронирование. Перед созданием записи сервер ещё раз проверит слот по актуальному расписанию.",
+
+    bookingModeTitle: "Как вы хотите записаться?",
+    bookingModeHint:
+      "Можно выбрать обычную разовую запись или использовать уже выданный код пакета.",
+    regularBookingLabel: "Обычная запись",
+    packageBookingLabel: "По пакету",
+
+    packageLookupTitle: "Запись по коду пакета",
+    packageLookupHint:
+      "Введите код пакета и телефон или email, который был указан при выдаче пакета.",
+    packageCodeLabel: "Код пакета",
+    packageCodePlaceholder: "Например: AB12CD34",
+    packageContactLabel: "Телефон или email",
+    packageContactPlaceholder: "+79189926439 или email",
+    packageLookupButton: "Проверить пакет",
+    packageLookupLoading: "Проверяем...",
+    packageLookupSuccessTitle: "Пакет найден",
+    packageLookupReset: "Изменить код",
+    packageRemaining: "Осталось сессий",
+    packageTotal: "Всего сессий",
+    packageService: "Услуга",
+    packageReadOnlyHint:
+      "Услуга и длительность подтянуты из пакета. Запись по пакету не отправляется на оплату.",
+    packageLookupRequiredError: "Введите код пакета и телефон или email.",
+
     serviceTitle: "1. Услуга",
     serviceHint: "Показываются только активные услуги из текущей CRM.",
     serviceEmpty: "Сейчас нет активных услуг для онлайн-записи.",
@@ -60,6 +91,7 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     errorFallback: "Не удалось загрузить доступность",
     summaryTitle: "Ваш выбор",
     summaryService: "Услуга",
+    summaryPackage: "Пакет",
     summaryDate: "Дата",
     summarySlot: "Слот",
     summaryWaiting: "Пока ничего не выбрано",
@@ -96,6 +128,31 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     title: "Choose a service, date, and available slot",
     description:
       "Pick an open time and submit your booking request right away. The server will re-check the slot against the latest schedule before creating anything.",
+
+    bookingModeTitle: "How would you like to book?",
+    bookingModeHint:
+      "Choose a regular one-time booking or use an existing package code.",
+    regularBookingLabel: "Regular booking",
+    packageBookingLabel: "Use package",
+
+    packageLookupTitle: "Book with a package code",
+    packageLookupHint:
+      "Enter the package code and the phone or email used for that package.",
+    packageCodeLabel: "Package code",
+    packageCodePlaceholder: "For example: AB12CD34",
+    packageContactLabel: "Phone or email",
+    packageContactPlaceholder: "+79189926439 or email",
+    packageLookupButton: "Check package",
+    packageLookupLoading: "Checking...",
+    packageLookupSuccessTitle: "Package found",
+    packageLookupReset: "Change code",
+    packageRemaining: "Sessions left",
+    packageTotal: "Total sessions",
+    packageService: "Service",
+    packageReadOnlyHint:
+      "Service and duration are taken from the package. Package bookings do not go to payment.",
+    packageLookupRequiredError: "Enter the package code and phone or email.",
+
     serviceTitle: "1. Service",
     serviceHint: "Only active services from the current CRM are shown here.",
     serviceEmpty: "There are no active services available right now.",
@@ -114,6 +171,7 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     errorFallback: "Failed to load availability",
     summaryTitle: "Your selection",
     summaryService: "Service",
+    summaryPackage: "Package",
     summaryDate: "Date",
     summarySlot: "Slot",
     summaryWaiting: "Nothing selected yet",
@@ -146,6 +204,18 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
   },
 };
 
+function getServiceFromPackage(
+  packageInfo: PublicBookingPackageInfo
+): PublicBookingService {
+  return {
+    id: packageInfo.serviceId,
+    title: packageInfo.serviceTitle,
+    description: "",
+    price: 0,
+    durationMinutes: packageInfo.serviceDurationMinutes,
+  };
+}
+
 export function BookingPage() {
   const { language, t } = useLanguage();
   const navigate = useNavigate();
@@ -155,21 +225,6 @@ export function BookingPage() {
   const isPaymentEnabled = siteSettings.booking.paymentEnabled;
   const preferredContactSettings = siteSettings.preferredContactMethod;
 
-  const baseCopy = copyByLanguage[currentLanguage];
-  const copy: BookingPageCopy = {
-    ...baseCopy,
-    submitIdle: isPaymentEnabled
-      ? currentLanguage === "ru"
-        ? "Перейти к оплате"
-        : "Proceed to payment"
-      : baseCopy.submitIdle,
-    submitLoading: isPaymentEnabled
-      ? currentLanguage === "ru"
-        ? "Переходим к оплате..."
-        : "Redirecting to payment..."
-      : baseCopy.submitLoading,
-  };
-
   const bookingContent = t.content.booking;
   const privacyLinkText = t.ui.booking.privacyLinkText;
 
@@ -177,15 +232,30 @@ export function BookingPage() {
   const slotsRef = useRef<HTMLDivElement | null>(null);
   const formRef = useRef<HTMLDivElement | null>(null);
 
-  const [data, setData] = useState<PublicBookingAvailabilityResponse | null>(null);
-  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
+  const [data, setData] = useState<PublicBookingAvailabilityResponse | null>(
+    null
+  );
+  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
+    null
+  );
   const [selectedDate, setSelectedDate] = useState("");
   const [visibleMonth, setVisibleMonth] = useState("");
-  const [selectedSlot, setSelectedSlot] = useState<PublicBookingSlot | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<PublicBookingSlot | null>(
+    null
+  );
   const [form, setForm] = useState<BookingFormState>(initialFormState);
   const [formErrors, setFormErrors] = useState<BookingFormErrors>({});
   const [confirmedBooking, setConfirmedBooking] =
     useState<PublicBookingCreateSuccessResponse["booking"] | null>(null);
+  const [bookingMode, setBookingMode] = useState<BookingMode>("regular");
+  const [packageCode, setPackageCode] = useState("");
+  const [packageContact, setPackageContact] = useState("");
+  const [verifiedPackage, setVerifiedPackage] =
+    useState<PublicBookingPackageInfo | null>(null);
+  const [packageLookupError, setPackageLookupError] = useState<string | null>(
+    null
+  );
+  const [isLookingUpPackage, setIsLookingUpPackage] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshingSlots, setIsRefreshingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -197,6 +267,23 @@ export function BookingPage() {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const isCompleted = Boolean(confirmedBooking);
+  const isPackageBooking = bookingMode === "package" && Boolean(verifiedPackage);
+  const shouldUsePayment = isPaymentEnabled && !isPackageBooking;
+
+  const baseCopy = copyByLanguage[currentLanguage];
+  const copy: BookingPageCopy = {
+    ...baseCopy,
+    submitIdle: shouldUsePayment
+      ? currentLanguage === "ru"
+        ? "Перейти к оплате"
+        : "Proceed to payment"
+      : baseCopy.submitIdle,
+    submitLoading: shouldUsePayment
+      ? currentLanguage === "ru"
+        ? "Переходим к оплате..."
+        : "Redirecting to payment..."
+      : baseCopy.submitLoading,
+  };
 
   useEffect(() => {
     if (isRedirecting) {
@@ -223,7 +310,9 @@ export function BookingPage() {
         if (!isActive) return;
 
         setData(response);
-        setVisibleMonth((current) => current || getInitialVisibleMonth(response, ""));
+        setVisibleMonth(
+          (current) => current || getInitialVisibleMonth(response, "")
+        );
       } catch (loadError) {
         if (!isActive) return;
 
@@ -273,8 +362,9 @@ export function BookingPage() {
         setSelectedSlot((currentSlot) => {
           if (!currentSlot) return null;
           return (
-            response.slots.find((slot) => slot.startsAt === currentSlot.startsAt) ??
-            currentSlot
+            response.slots.find(
+              (slot) => slot.startsAt === currentSlot.startsAt
+            ) ?? currentSlot
           );
         });
       } catch (loadError) {
@@ -296,16 +386,32 @@ export function BookingPage() {
   }, [copy.errorFallback, resolvedVisibleMonth, selectedDate, selectedServiceId]);
 
   const services = data?.services ?? [];
-  const selectedService = getSelectedService(services, selectedServiceId);
+  const selectedServiceFromList = getSelectedService(services, selectedServiceId);
+  const selectedService =
+    selectedServiceFromList ??
+    (verifiedPackage && selectedServiceId === verifiedPackage.serviceId
+      ? getServiceFromPackage(verifiedPackage)
+      : null);
   const slots = data?.slots ?? [];
   const monthAvailability = data?.monthAvailability ?? [];
   const isFormEnabled = Boolean(selectedService && selectedDate && selectedSlot);
   const datesMeta = buildCalendarDatesMeta({ monthAvailability, copy });
   const bookingTimezone = data?.timezone ?? getDefaultBookingTimezone();
-  const timezoneLabel = getTimezoneLabel(
-    bookingTimezone,
-    currentLanguage
-  );
+  const timezoneLabel = getTimezoneLabel(bookingTimezone, currentLanguage);
+
+  const resetPackageState = () => {
+    setPackageCode("");
+    setPackageContact("");
+    setVerifiedPackage(null);
+    setPackageLookupError(null);
+  };
+
+  const resetSelectionAfterServiceChange = () => {
+    setSelectedDate("");
+    setSelectedSlot(null);
+    setSubmitError(null);
+    setSubmitSuccess(null);
+  };
 
   const handleFormChange = <Field extends keyof BookingFormState>(
     field: Field,
@@ -318,6 +424,96 @@ export function BookingPage() {
     }
 
     if (submitError) setSubmitError(null);
+  };
+
+  const handleBookingModeChange = (mode: BookingMode) => {
+    if (isCompleted) return;
+
+    setBookingMode(mode);
+    setSelectedServiceId(null);
+    resetSelectionAfterServiceChange();
+    setError(null);
+    setSubmitError(null);
+    setSubmitSuccess(null);
+
+    if (mode === "regular") {
+      resetPackageState();
+    }
+  };
+
+  const handlePackageReset = () => {
+    if (isCompleted) return;
+
+    resetPackageState();
+    setSelectedServiceId(null);
+    resetSelectionAfterServiceChange();
+  };
+
+  const handlePackageLookup = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (isLookingUpPackage || isCompleted) return;
+
+    const trimmedCode = packageCode.trim();
+    const trimmedContact = packageContact.trim();
+
+    setPackageLookupError(null);
+    setSubmitError(null);
+    setSubmitSuccess(null);
+
+    if (!trimmedCode || !trimmedContact) {
+      setPackageLookupError(copy.packageLookupRequiredError);
+      return;
+    }
+
+    setIsLookingUpPackage(true);
+
+    try {
+      const response = await lookupPublicBookingPackage({
+        code: trimmedCode,
+        contact: trimmedContact,
+      });
+
+      setVerifiedPackage(response.package);
+      setSelectedServiceId(response.package.serviceId);
+      resetSelectionAfterServiceChange();
+
+      setForm((current) => {
+        if (trimmedContact.includes("@")) {
+          return {
+            ...current,
+            email: current.email || trimmedContact,
+          };
+        }
+
+        return {
+          ...current,
+          phone: current.phone || trimmedContact,
+        };
+      });
+
+      setPulseSummary(true);
+      window.setTimeout(() => setPulseSummary(false), 400);
+
+      window.setTimeout(() => {
+        dateRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 160);
+    } catch (lookupError) {
+      setVerifiedPackage(null);
+      setSelectedServiceId(null);
+      resetSelectionAfterServiceChange();
+
+      setPackageLookupError(
+        lookupError instanceof Error
+          ? lookupError.message
+          : copy.submitErrorFallback
+      );
+    } finally {
+      setIsLookingUpPackage(false);
+    }
   };
 
   const refreshSelectedDateAvailability = async () => {
@@ -338,7 +534,8 @@ export function BookingPage() {
       if (!current) return null;
 
       return (
-        response.slots.find((slot) => slot.startsAt === current.startsAt) ?? current
+        response.slots.find((slot) => slot.startsAt === current.startsAt) ??
+        current
       );
     });
   };
@@ -364,6 +561,11 @@ export function BookingPage() {
 
     if (Object.keys(validationErrors).length > 0) return;
 
+    if (bookingMode === "package" && !verifiedPackage) {
+      setSubmitError(copy.packageLookupRequiredError);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -384,11 +586,13 @@ export function BookingPage() {
         preferredContactValue: preferredContactSettings.enabled
           ? form.preferredContactValue.trim()
           : "",
+        clientPackageCode: verifiedPackage?.code ?? "",
+        clientPackageContact: verifiedPackage ? packageContact.trim() : "",
         message: form.message.trim(),
         consent: form.consent,
       };
 
-      if (isPaymentEnabled) {
+      if (shouldUsePayment) {
         const payment = await createPayment(payload);
         const target = new URL(payment.confirmationUrl, window.location.origin);
 
@@ -407,6 +611,16 @@ export function BookingPage() {
 
       setConfirmedBooking(response.booking);
       setSubmitSuccess(copy.submitSuccess);
+
+      if (verifiedPackage && response.booking.clientPackage) {
+        setVerifiedPackage({
+          ...verifiedPackage,
+          remainingSessions: response.booking.clientPackage.remainingSessions,
+          usedSessions:
+            verifiedPackage.totalSessions -
+            response.booking.clientPackage.remainingSessions,
+        });
+      }
 
       setFormErrors({});
       setRequestId(null);
@@ -466,12 +680,28 @@ export function BookingPage() {
                   currentLanguage={currentLanguage}
                   services={services}
                   selectedServiceId={selectedServiceId}
+                  bookingMode={bookingMode}
+                  packageCode={packageCode}
+                  packageContact={packageContact}
+                  packageInfo={verifiedPackage}
+                  packageLookupError={packageLookupError}
+                  isLookingUpPackage={isLookingUpPackage}
+                  onBookingModeChange={handleBookingModeChange}
+                  onPackageCodeChange={(value) => {
+                    setPackageCode(value);
+                    setPackageLookupError(null);
+                  }}
+                  onPackageContactChange={(value) => {
+                    setPackageContact(value);
+                    setPackageLookupError(null);
+                  }}
+                  onPackageLookup={handlePackageLookup}
+                  onPackageReset={handlePackageReset}
                   onSelect={(serviceId) => {
                     if (isCompleted) return;
                     setSelectedServiceId(serviceId);
-                    setSelectedSlot(null);
-                    setSubmitError(null);
-                    setSubmitSuccess(null);
+                    resetPackageState();
+                    resetSelectionAfterServiceChange();
 
                     setPulseSummary(true);
                     setTimeout(() => setPulseSummary(false), 300);
@@ -529,7 +759,7 @@ export function BookingPage() {
                     : styles.stepActive
                 }
               >
-                {selectedService && selectedDate && (
+                {selectedService && selectedDate ? (
                   <div className={styles.timezoneNotice}>
                     <span className={styles.timezoneIcon} aria-hidden="true">
                       🕒
@@ -541,7 +771,7 @@ export function BookingPage() {
                         : `Times are shown in the booking timezone: ${timezoneLabel}. Please keep this in mind when choosing a slot.`}
                     </span>
                   </div>
-                )}
+                ) : null}
 
                 <BookingSlotsStep
                   copy={copy}
@@ -576,9 +806,9 @@ export function BookingPage() {
                   bookingContent={bookingContent}
                   privacyLinkText={privacyLinkText}
                   isFormEnabled={isFormEnabled}
-                  showPreferredContact={preferredContactSettings.enabled}
                   form={form}
                   isCompleted={isCompleted}
+                  showPreferredContact={preferredContactSettings.enabled}
                   formErrors={formErrors}
                   isSubmitting={isSubmitting}
                   submitError={submitError}
@@ -598,6 +828,7 @@ export function BookingPage() {
                 selectedDate={selectedDate}
                 selectedSlot={selectedSlot}
                 confirmedBooking={confirmedBooking}
+                clientPackage={verifiedPackage}
                 timezone={bookingTimezone}
               />
             </div>
@@ -605,12 +836,12 @@ export function BookingPage() {
         )}
       </Container>
 
-      {isRedirecting && (
+      {isRedirecting ? (
         <div className={styles.redirectOverlay}>
           <div className={styles.loader} />
-          <p>Переходим к оплате...</p>
+          <p>{copy.submitLoading}</p>
         </div>
-      )}
+      ) : null}
     </main>
   );
 }

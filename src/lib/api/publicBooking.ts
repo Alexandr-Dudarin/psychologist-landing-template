@@ -3,6 +3,9 @@ import type {
   PublicBookingCreateErrorResponse,
   PublicBookingCreatePayload,
   PublicBookingCreateSuccessResponse,
+  PublicBookingPackageLookupErrorResponse,
+  PublicBookingPackageLookupPayload,
+  PublicBookingPackageLookupSuccessResponse,
 } from "../../types/booking";
 
 type PublicBookingAvailabilityParams = {
@@ -57,6 +60,38 @@ export async function getPublicBookingAvailability(
   return data as PublicBookingAvailabilityResponse;
 }
 
+export async function lookupPublicBookingPackage(
+  payload: PublicBookingPackageLookupPayload
+): Promise<PublicBookingPackageLookupSuccessResponse> {
+  const response = await fetch("/api/public/booking?action=lookup-package", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | PublicBookingPackageLookupSuccessResponse
+    | PublicBookingPackageLookupErrorResponse
+    | null;
+
+  if (!response.ok) {
+    const error = new Error(
+      data && "error" in data ? data.error : "Не удалось проверить пакет"
+    ) as PublicBookingError;
+
+    if (data && "code" in data && typeof data.code === "string") {
+      error.code = data.code;
+    }
+
+    error.status = response.status;
+    throw error;
+  }
+
+  return data as PublicBookingPackageLookupSuccessResponse;
+}
+
 export async function createPublicBooking(
   payload: PublicBookingCreatePayload
 ): Promise<PublicBookingCreateSuccessResponse> {
@@ -88,4 +123,3 @@ export async function createPublicBooking(
 
   return data as PublicBookingCreateSuccessResponse;
 }
-

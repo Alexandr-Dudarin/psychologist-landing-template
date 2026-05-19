@@ -68,6 +68,14 @@
   }
 }
 
+.packageMeta,
+.timezoneLabel {
+  margin-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .summaryFootnote {
   margin: 18px 0 0;
   color: var(--color-text-muted);

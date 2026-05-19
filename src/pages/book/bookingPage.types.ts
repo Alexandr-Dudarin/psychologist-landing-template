@@ -9,6 +9,28 @@ export type BookingPageCopy = {
   eyebrow: string;
   title: string;
   description: string;
+
+  bookingModeTitle: string;
+  bookingModeHint: string;
+  regularBookingLabel: string;
+  packageBookingLabel: string;
+
+  packageLookupTitle: string;
+  packageLookupHint: string;
+  packageCodeLabel: string;
+  packageCodePlaceholder: string;
+  packageContactLabel: string;
+  packageContactPlaceholder: string;
+  packageLookupButton: string;
+  packageLookupLoading: string;
+  packageLookupSuccessTitle: string;
+  packageLookupReset: string;
+  packageRemaining: string;
+  packageTotal: string;
+  packageService: string;
+  packageReadOnlyHint: string;
+  packageLookupRequiredError: string;
+
   serviceTitle: string;
   serviceHint: string;
   serviceEmpty: string;
@@ -25,6 +47,7 @@ export type BookingPageCopy = {
   errorFallback: string;
   summaryTitle: string;
   summaryService: string;
+  summaryPackage: string;
   summaryDate: string;
   summarySlot: string;
   summaryWaiting: string;

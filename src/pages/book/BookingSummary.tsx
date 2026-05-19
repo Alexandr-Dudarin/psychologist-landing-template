@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import type { PublicBookingService, PublicBookingSlot } from "../../types/booking";
+import type {
+  PublicBookingPackageInfo,
+  PublicBookingService,
+  PublicBookingSlot,
+} from "../../types/booking";
 import { formatDateLabel } from "./bookingPage.helpers";
 import type { BookingPageCopy, ConfirmedBooking } from "./bookingPage.types";
 import styles from "./BookingSummary.module.css";
@@ -15,6 +19,7 @@ type BookingSummaryProps = {
   selectedDate: string;
   selectedSlot: PublicBookingSlot | null;
   confirmedBooking: ConfirmedBooking | null;
+  clientPackage: PublicBookingPackageInfo | null;
   timezone: string;
 };
 
@@ -26,19 +31,37 @@ export function BookingSummary({
   selectedDate,
   selectedSlot,
   confirmedBooking,
+  clientPackage,
   timezone,
 }: BookingSummaryProps) {
   const [animateField, setAnimateField] = useState<
-    "service" | "date" | "slot" | null
+    "service" | "package" | "date" | "slot" | null
   >(null);
 
   const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
 
   const timezoneLabel = getTimezoneLabel(timezone, currentLanguage);
 
+  const packageTitle =
+    confirmedBooking?.clientPackage?.packageTitle ??
+    clientPackage?.packageTitle ??
+    "";
+
+  const packageCode =
+    confirmedBooking?.clientPackage?.code ?? clientPackage?.code ?? "";
+
+  const packageRemaining =
+    confirmedBooking?.clientPackage?.remainingSessions ??
+    clientPackage?.remainingSessions ??
+    null;
+
   useEffect(() => {
     if (selectedService) setAnimateField("service");
   }, [selectedService]);
+
+  useEffect(() => {
+    if (packageTitle) setAnimateField("package");
+  }, [packageTitle]);
 
   useEffect(() => {
     if (selectedDate) setAnimateField("date");
@@ -71,11 +94,7 @@ export function BookingSummary({
         confirmedBooking.startsAt,
         locale,
         timezone
-      )} - ${formatBookingTime(
-        confirmedBooking.endsAt,
-        locale,
-        timezone
-      )}`
+      )} - ${formatBookingTime(confirmedBooking.endsAt, locale, timezone)}`
     : null;
 
   return (
@@ -83,7 +102,6 @@ export function BookingSummary({
       <h2 className={styles.summaryTitle}>{copy.summaryTitle}</h2>
 
       <div className={styles.summaryList}>
-        {}
         <div className={styles.summaryItem}>
           <span className={styles.summaryLabel}>{copy.summaryService}</span>
           <span
@@ -95,7 +113,25 @@ export function BookingSummary({
           </span>
         </div>
 
-        {}
+        {packageTitle ? (
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>{copy.summaryPackage}</span>
+            <span
+              className={`${styles.summaryValue} ${
+                animateField === "package" ? styles.summaryValueAnimate : ""
+              }`}
+            >
+              {packageTitle}
+            </span>
+            <span className={styles.packageMeta}>
+              {packageCode}
+              {packageRemaining !== null
+                ? ` · ${copy.packageRemaining}: ${packageRemaining}`
+                : ""}
+            </span>
+          </div>
+        ) : null}
+
         <div className={styles.summaryItem}>
           <span className={styles.summaryLabel}>{copy.summaryDate}</span>
           <span
@@ -107,7 +143,6 @@ export function BookingSummary({
           </span>
         </div>
 
-        {}
         <div className={styles.summaryItem}>
           <span className={styles.summaryLabel}>{copy.summarySlot}</span>
           <span
@@ -118,18 +153,9 @@ export function BookingSummary({
             {selectedSlotLabel}
           </span>
 
-          {}
-          {selectedSlot && (
-            <div
-              style={{
-                marginTop: 4,
-                fontSize: 12,
-                color: "var(--color-text-muted)",
-              }}
-            >
-              {timezoneLabel}
-            </div>
-          )}
+          {selectedSlot ? (
+            <div className={styles.timezoneLabel}>{timezoneLabel}</div>
+          ) : null}
         </div>
       </div>
 
@@ -140,26 +166,21 @@ export function BookingSummary({
           <h3 className={styles.confirmationTitle}>
             {copy.confirmationTitle}
           </h3>
-          <p className={styles.confirmationText}>
-            {copy.confirmationText}
-          </p>
+          <p className={styles.confirmationText}>{copy.confirmationText}</p>
 
           <div className={styles.confirmationMeta}>
             <span>{confirmedBooking.serviceTitle}</span>
+            {confirmedBooking.clientPackage ? (
+              <span>
+                {copy.summaryPackage}:{" "}
+                {confirmedBooking.clientPackage.packageTitle}
+              </span>
+            ) : null}
             {confirmedDateLabel ? <span>{confirmedDateLabel}</span> : null}
             {confirmedTimeLabel ? <span>{confirmedTimeLabel}</span> : null}
           </div>
 
-          {}
-          <div
-            style={{
-              marginTop: 6,
-              fontSize: 12,
-              color: "var(--color-text-muted)",
-            }}
-          >
-            {timezoneLabel}
-          </div>
+          <div className={styles.timezoneLabel}>{timezoneLabel}</div>
         </div>
       ) : null}
     </aside>

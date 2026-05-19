@@ -14,16 +14,89 @@ import {
   createBookingService,
   isCreateBookingServiceError,
 } from "../../server/services/createBookingService.js";
+import type {
+  PublicBookingPackageInfo,
+  PublicBookingPackageLookupPayload,
+} from "../../src/types/booking.js";
 
 type AvailabilityErrorResult = Extract<
   Awaited<ReturnType<typeof getPublicBookingAvailabilityData>>,
   { ok: false }
 >;
 
+type PackageLookupRow = {
+  id: number | string;
+  client_id: number | string;
+  client_name: string;
+  code: string;
+  package_title: string;
+  service_id: number | string;
+  service_title: string;
+  service_duration_minutes: number | string;
+  sessions_count: number | string;
+  status: string;
+  used_sessions_count: number | string;
+};
+
 function isAvailabilityError(
   result: Awaited<ReturnType<typeof getPublicBookingAvailabilityData>>
 ): result is AvailabilityErrorResult {
   return result.ok === false;
+}
+
+function normalizePhoneDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+function normalizePackageCode(value: string): string {
+  return value.trim().toUpperCase();
+}
+
+function parsePackageLookupPayload(
+  body: any
+): PublicBookingPackageLookupPayload | null {
+  let rawBody = body;
+
+  if (typeof rawBody === "string") {
+    try {
+      rawBody = JSON.parse(rawBody);
+    } catch {
+      return null;
+    }
+  }
+
+  const code = typeof rawBody?.code === "string" ? rawBody.code.trim() : "";
+  const contact =
+    typeof rawBody?.contact === "string" ? rawBody.contact.trim() : "";
+
+  if (!code || !contact) {
+    return null;
+  }
+
+  return {
+    code,
+    contact,
+  };
+}
+
+function mapPackageLookup(row: PackageLookupRow): PublicBookingPackageInfo {
+  const totalSessions = Number(row.sessions_count);
+  const usedSessions = Number(row.used_sessions_count);
+  const remainingSessions = Math.max(totalSessions - usedSessions, 0);
+
+  return {
+    clientPackageId: Number(row.id),
+    clientId: Number(row.client_id),
+    clientName: row.client_name,
+    code: row.code,
+    packageTitle: row.package_title,
+    serviceId: Number(row.service_id),
+    serviceTitle: row.service_title,
+    serviceDurationMinutes: Number(row.service_duration_minutes),
+    totalSessions,
+    usedSessions,
+    remainingSessions,
+  };
 }
 
 async function handleAvailability(req: any, res: any) {
@@ -68,6 +141,87 @@ async function handleAvailability(req: any, res: any) {
   }
 }
 
+async function handleLookupPackage(req: any, res: any) {
+  const payload = parsePackageLookupPayload(req.body);
+
+  if (!payload) {
+    return res.status(400).json({
+      error: "Укажите код пакета и телефон или email.",
+      code: "invalid_payload",
+    });
+  }
+
+  const normalizedCode = normalizePackageCode(payload.code);
+  const normalizedPhone = normalizePhoneDigits(payload.contact);
+  const normalizedEmail = payload.contact.trim().toLowerCase();
+
+  try {
+    const result = await pool.query<PackageLookupRow>(
+      `
+        SELECT
+          csp.id,
+          csp.client_id,
+          c.name AS client_name,
+          csp.code,
+          spp.title AS package_title,
+          spp.service_id,
+          sv.title AS service_title,
+          sv.duration_minutes AS service_duration_minutes,
+          spp.sessions_count,
+          csp.status,
+          (
+            SELECT COUNT(*)
+            FROM sessions s
+            WHERE s.client_package_id = csp.id
+              AND s.status IN ('scheduled', 'completed', 'no_show')
+          ) AS used_sessions_count
+        FROM client_service_packages csp
+        INNER JOIN clients c ON c.id = csp.client_id
+        INNER JOIN service_package_plans spp ON spp.id = csp.package_plan_id
+        INNER JOIN services sv ON sv.id = spp.service_id
+        WHERE UPPER(csp.code) = $1
+          AND csp.status = 'active'
+          AND c.status = 'active'
+          AND sv.is_active = TRUE
+          AND (
+            regexp_replace(COALESCE(c.phone, ''), '[^0-9]', '', 'g') = $2
+            OR LOWER(COALESCE(c.email, '')) = $3
+          )
+        LIMIT 1
+      `,
+      [normalizedCode, normalizedPhone, normalizedEmail]
+    );
+
+    const row = result.rows[0];
+
+    if (!row) {
+      return res.status(404).json({
+        error: "Пакет не найден. Проверьте код и телефон/email.",
+        code: "package_not_found",
+      });
+    }
+
+    const packageInfo = mapPackageLookup(row);
+
+    if (packageInfo.remainingSessions <= 0) {
+      return res.status(409).json({
+        error: "В этом пакете не осталось доступных сессий.",
+        code: "package_unavailable",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      package: packageInfo,
+    });
+  } catch (error) {
+    console.error("Public package lookup error:", error);
+    return res.status(500).json({
+      error: "Не удалось проверить пакет. Попробуйте ещё раз позже.",
+    });
+  }
+}
+
 async function handleCreate(req: any, res: any) {
   const payload = parsePublicBookingCreatePayload(req.body);
 
@@ -104,8 +258,8 @@ async function handleCreate(req: any, res: any) {
     });
 
     return res.status(200).json(result.response);
-  } catch (error: unknown) {
-    await client.query("ROLLBACK").catch(() => undefined);
+  } catch (error) {
+    await client.query("ROLLBACK");
 
     if (isCreateBookingServiceError(error)) {
       return res.status(error.status).json({
@@ -117,7 +271,7 @@ async function handleCreate(req: any, res: any) {
     console.error("Public booking create error:", error);
 
     return res.status(500).json({
-      error: "Не удалось создать запись. Попробуйте ещё раз позже.",
+      error: "Не удалось создать запись",
       code: "booking_create_failed",
     });
   } finally {
@@ -125,94 +279,9 @@ async function handleCreate(req: any, res: any) {
   }
 }
 
-async function handleConfirmAfterPayment(req: any, res: any) {
-  const rawRequestId =
-    typeof req.body?.requestId === "string" ? req.body.requestId.trim() : "";
-
-  if (!rawRequestId) {
-    return res.status(400).json({ error: "Missing requestId" });
-  }
-
-  const payload = parsePublicBookingCreatePayload(req.body);
-
-  if (!payload) {
-    return res.status(400).json({
-      error: "Некорректные данные для записи.",
-      code: "invalid_payload",
-    });
-  }
-
-  const validationError = getPublicBookingValidationError(payload);
-
-  if (validationError) {
-    return res.status(400).json({
-      error: validationError,
-      code: "invalid_payload",
-    });
-  }
-
-  const client = await pool.connect();
-
-  try {
-    await client.query("BEGIN");
-
-    await client.query(
-      `
-        INSERT INTO booking_payment_requests (request_id)
-        VALUES ($1)
-      `,
-      [rawRequestId]
-    );
-
-    const result = await createBookingService(client, payload);
-
-    await client.query("COMMIT");
-
-    void sendBookingNotificationsBounded(result.notificationPayload).catch((error) => {
-      console.error("Async booking notifications failed:", {
-        sessionId: result.notificationPayload.sessionId,
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    });
-
-    return res.status(200).json({
-      success: true,
-      created: true,
-      booking: result.response.booking,
-    });
-  } catch (error: unknown) {
-    await client.query("ROLLBACK").catch(() => undefined);
-
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === "23505"
-    ) {
-      return res.status(200).json({
-        success: true,
-        alreadyProcessed: true,
-      });
-    }
-
-    if (isCreateBookingServiceError(error)) {
-      return res.status(error.status).json({
-        error: error.message,
-        code: error.code,
-      });
-    }
-
-    console.error("Confirm booking error:", error);
-
-    return res.status(500).json({
-      error: "Failed to confirm booking",
-    });
-  } finally {
-    client.release();
-  }
-}
-
 export default async function handler(req: any, res: any) {
+  const action = getSingleQueryValue(req.query?.action).trim();
+
   if (req.method === "GET") {
     return handleAvailability(req, res);
   }
@@ -221,14 +290,12 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const action = getSingleQueryValue(req.query?.action).trim();
+  if (action === "lookup-package") {
+    return handleLookupPackage(req, res);
+  }
 
   if (action === "create") {
     return handleCreate(req, res);
-  }
-
-  if (action === "confirm-after-payment") {
-    return handleConfirmAfterPayment(req, res);
   }
 
   return res.status(405).json({ error: "Method not allowed" });

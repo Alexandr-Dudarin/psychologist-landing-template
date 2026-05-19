@@ -26,6 +26,34 @@ type RequestRow = {
   id: number | string;
 };
 
+type ClientPackageRow = {
+  id: number | string;
+  client_id: number | string;
+  client_name: string;
+  code: string;
+  package_title: string;
+  service_id: number | string;
+  service_title: string;
+  service_duration_minutes: number | string;
+  sessions_count: number | string;
+  status: string;
+  used_sessions_count: number | string;
+};
+
+type ResolvedClientPackage = {
+  id: number;
+  clientId: number;
+  clientName: string;
+  code: string;
+  packageTitle: string;
+  serviceId: number;
+  serviceTitle: string;
+  serviceDurationMinutes: number;
+  totalSessions: number;
+  usedSessions: number;
+  remainingSessions: number;
+};
+
 type SlotValidationErrorReason =
   | "invalid_service"
   | "invalid_date"
@@ -115,6 +143,30 @@ function buildFullName(firstName: string, lastName: string): string {
 
 function normalizePhoneDigits(value: string): string {
   return value.replace(/\D/g, "");
+}
+
+function normalizePackageCode(value: string): string {
+  return value.trim().toUpperCase();
+}
+
+function mapClientPackage(row: ClientPackageRow): ResolvedClientPackage {
+  const totalSessions = Number(row.sessions_count);
+  const usedSessions = Number(row.used_sessions_count);
+  const remainingSessions = Math.max(totalSessions - usedSessions, 0);
+
+  return {
+    id: Number(row.id),
+    clientId: Number(row.client_id),
+    clientName: row.client_name,
+    code: row.code,
+    packageTitle: row.package_title,
+    serviceId: Number(row.service_id),
+    serviceTitle: row.service_title,
+    serviceDurationMinutes: Number(row.service_duration_minutes),
+    totalSessions,
+    usedSessions,
+    remainingSessions,
+  };
 }
 
 async function findExistingClientByContacts(
@@ -280,14 +332,122 @@ async function lockBookingDate(db: Pick<PoolClient, "query">, startsAt: string) 
   );
 }
 
+async function findClientPackageByCodeAndContacts(
+  db: Pick<PoolClient, "query">,
+  params: {
+    code: string;
+    phone: string;
+    email: string;
+    contact: string;
+  }
+): Promise<ResolvedClientPackage | null> {
+  const normalizedCode = normalizePackageCode(params.code);
+  const normalizedPhone = normalizePhoneDigits(params.phone || params.contact);
+  const normalizedEmail = (params.email || params.contact).trim().toLowerCase();
+
+  const result = await db.query<ClientPackageRow>(
+    `
+      SELECT
+        csp.id,
+        csp.client_id,
+        c.name AS client_name,
+        csp.code,
+        spp.title AS package_title,
+        spp.service_id,
+        sv.title AS service_title,
+        sv.duration_minutes AS service_duration_minutes,
+        spp.sessions_count,
+        csp.status,
+        (
+          SELECT COUNT(*)
+          FROM sessions s
+          WHERE s.client_package_id = csp.id
+            AND s.status IN ('scheduled', 'completed', 'no_show')
+        ) AS used_sessions_count
+      FROM client_service_packages csp
+      INNER JOIN clients c ON c.id = csp.client_id
+      INNER JOIN service_package_plans spp ON spp.id = csp.package_plan_id
+      INNER JOIN services sv ON sv.id = spp.service_id
+      WHERE UPPER(csp.code) = $1
+        AND csp.status = 'active'
+        AND c.status = 'active'
+        AND sv.is_active = TRUE
+        AND (
+          regexp_replace(COALESCE(c.phone, ''), '[^0-9]', '', 'g') = $2
+          OR LOWER(COALESCE(c.email, '')) = $3
+        )
+      LIMIT 1
+    `,
+    [normalizedCode, normalizedPhone, normalizedEmail]
+  );
+
+  const row = result.rows[0];
+
+  if (!row) {
+    return null;
+  }
+
+  return mapClientPackage(row);
+}
+
+async function resolveClientPackageForBooking(
+  db: Pick<PoolClient, "query">,
+  payload: PublicBookingCreatePayload
+): Promise<ResolvedClientPackage | null> {
+  const packageCode = payload.clientPackageCode?.trim();
+
+  if (!packageCode) {
+    return null;
+  }
+
+  const packageContact =
+    payload.clientPackageContact?.trim() || payload.email.trim() || payload.phone.trim();
+
+  const clientPackage = await findClientPackageByCodeAndContacts(db, {
+    code: packageCode,
+    phone: payload.phone,
+    email: payload.email,
+    contact: packageContact,
+  });
+
+  if (!clientPackage) {
+    throw new CreateBookingServiceError(
+      404,
+      "invalid_package",
+      "Пакет не найден. Проверьте код и телефон/email."
+    );
+  }
+
+  if (clientPackage.remainingSessions <= 0) {
+    throw new CreateBookingServiceError(
+      409,
+      "package_unavailable",
+      "В этом пакете не осталось доступных сессий."
+    );
+  }
+
+  if (payload.serviceId !== clientPackage.serviceId) {
+    throw new CreateBookingServiceError(
+      400,
+      "invalid_package",
+      "Выбранная услуга не совпадает с услугой из пакета."
+    );
+  }
+
+  return clientPackage;
+}
+
 export async function createBookingService(
   client: PoolClient,
   payload: PublicBookingCreatePayload
 ): Promise<CreateBookingServiceResult> {
   await lockBookingDate(client, payload.startsAt);
 
+  const clientPackage = await resolveClientPackageForBooking(client, payload);
+  const serviceIdForSlot = clientPackage?.serviceId ?? payload.serviceId;
+
   const slotValidation = await validateBookableSlot({
-    serviceId: payload.serviceId,
+    serviceId: serviceIdForSlot,
     startsAt: payload.startsAt,
     db: client,
   });
@@ -302,6 +462,14 @@ export async function createBookingService(
   };
 
   const clientResult = await ensureClient(client, normalizedPayload);
+
+  if (clientPackage && clientResult.clientId !== clientPackage.clientId) {
+    throw new CreateBookingServiceError(
+      400,
+      "invalid_package",
+      "Пакет принадлежит другому клиенту. Проверьте телефон и email."
+    );
+  }
 
   const createdRequestId = await createBookedRequest(
     client,
@@ -325,9 +493,10 @@ export async function createBookingService(
         price,
         status,
         notes,
-        source
+        source,
+        client_package_id
       )
-      VALUES ($1, $2, $3, $4, $5, 'scheduled', $6, 'website')
+      VALUES ($1, $2, $3, $4, $5, 'scheduled', $6, 'website', $7)
       RETURNING id
     `,
     [
@@ -335,8 +504,9 @@ export async function createBookingService(
       slotValidation.service.id,
       slotValidation.slot.startsAt,
       slotValidation.service.durationMinutes,
-      slotValidation.service.price,
+      clientPackage ? 0 : slotValidation.service.price,
       normalizedPayload.message,
+      clientPackage?.id ?? null,
     ]
   );
 
@@ -349,6 +519,14 @@ export async function createBookingService(
       serviceTitle: slotValidation.service.title,
       startsAt: slotValidation.slot.startsAt,
       endsAt: slotValidation.slot.endsAt,
+      clientPackage: clientPackage
+        ? {
+            id: clientPackage.id,
+            code: clientPackage.code,
+            packageTitle: clientPackage.packageTitle,
+            remainingSessions: Math.max(clientPackage.remainingSessions - 1, 0),
+          }
+        : undefined,
     },
     alreadyExistedClient: clientResult.alreadyExisted,
   };

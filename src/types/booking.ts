@@ -39,6 +39,35 @@ export type PublicBookingAvailabilityResponse = {
   monthAvailability: PublicBookingMonthDayAvailability[];
 };
 
+export type PublicBookingPackageLookupPayload = {
+  code: string;
+  contact: string;
+};
+
+export type PublicBookingPackageInfo = {
+  clientPackageId: number;
+  clientId: number;
+  clientName: string;
+  code: string;
+  packageTitle: string;
+  serviceId: number;
+  serviceTitle: string;
+  serviceDurationMinutes: number;
+  totalSessions: number;
+  usedSessions: number;
+  remainingSessions: number;
+};
+
+export type PublicBookingPackageLookupSuccessResponse = {
+  success: true;
+  package: PublicBookingPackageInfo;
+};
+
+export type PublicBookingPackageLookupErrorResponse = {
+  error: string;
+  code?: "invalid_payload" | "package_not_found" | "package_unavailable";
+};
+
 export type PublicBookingCreatePayload = {
   serviceId: number;
   startsAt: string;
@@ -49,6 +78,8 @@ export type PublicBookingCreatePayload = {
   message?: string;
   preferredContactMethod?: PreferredContactMethod | "";
   preferredContactValue?: string;
+  clientPackageCode?: string;
+  clientPackageContact?: string;
   consent: boolean;
 };
 
@@ -68,6 +99,12 @@ export type PublicBookingCreateSuccessResponse = {
     serviceTitle: string;
     startsAt: string;
     endsAt: string;
+    clientPackage?: {
+      id: number;
+      code: string;
+      packageTitle: string;
+      remainingSessions: number;
+    };
   };
   alreadyExistedClient: boolean;
   notifications?: {
@@ -85,6 +122,7 @@ export type PublicBookingCreateErrorResponse = {
     | "invalid_slot"
     | "slot_unavailable"
     | "settings_missing"
+    | "invalid_package"
+    | "package_unavailable"
     | "booking_create_failed";
 };
-
