@@ -1,14 +1,23 @@
-import type { CrmServiceRecord } from "../../types/service";
+import type {
+  CrmServiceRecord,
+  PublicServicePackagePlanRecord,
+} from "../../types/service";
+
+export type PublicServicesData = {
+  items: CrmServiceRecord[];
+  packagePlans: PublicServicePackagePlanRecord[];
+};
 
 type PublicServicesResponse = {
   items: CrmServiceRecord[];
+  packagePlans?: PublicServicePackagePlanRecord[];
 };
 
 type PublicServicesErrorResponse = {
   error: string;
 };
 
-export async function getPublicServices(): Promise<CrmServiceRecord[]> {
+async function fetchPublicServicesData(): Promise<PublicServicesData> {
   const response = await fetch("/api/public/services");
 
   const data = (await response.json().catch(() => null)) as
@@ -25,8 +34,32 @@ export async function getPublicServices(): Promise<CrmServiceRecord[]> {
   }
 
   if (data && "items" in data) {
-    return data.items;
+    return {
+      items: data.items,
+      packagePlans: data.packagePlans ?? [],
+    };
   }
 
-  return [];
+  return {
+    items: [],
+    packagePlans: [],
+  };
+}
+
+export async function getPublicServices(): Promise<CrmServiceRecord[]> {
+  const data = await fetchPublicServicesData();
+
+  return data.items;
+}
+
+export async function getPublicServicePackagePlans(): Promise<
+  PublicServicePackagePlanRecord[]
+> {
+  const data = await fetchPublicServicesData();
+
+  return data.packagePlans;
+}
+
+export async function getPublicServicesData(): Promise<PublicServicesData> {
+  return fetchPublicServicesData();
 }
