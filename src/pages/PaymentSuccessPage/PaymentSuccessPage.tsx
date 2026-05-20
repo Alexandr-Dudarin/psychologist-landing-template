@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
-import { Container } from "../../components/Container/Container";
 import { Button } from "../../components/Button/Button";
-import styles from "./PaymentSuccessPage.module.css";
-import { getDefaultBookingTimezone } from "../../lib/booking/bookingTimezones";
-import { getTimezoneLabel } from "../../lib/booking/getTimezoneLabel";
+import { Container } from "../../components/Container/Container";
 import {
   formatBookingDate,
   formatBookingTime,
 } from "../../lib/booking/formatBookingDateTime";
+import { getDefaultBookingTimezone } from "../../lib/booking/bookingTimezones";
+import { getTimezoneLabel } from "../../lib/booking/getTimezoneLabel";
 import {
   getPaymentStatus,
   type PaymentStatusResponse,
 } from "../../lib/api/payment";
+import styles from "./PaymentSuccessPage.module.css";
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLL_ATTEMPTS = 7;
@@ -132,8 +132,19 @@ export function PaymentSuccessPage() {
   }, [payment?.status]);
 
   const bookingStartsAt = payment?.booking.startsAt ?? "";
+  const servicePackage = payment?.servicePackage ?? null;
+
   const isPending = payment?.status === "pending";
   const isCancelled = payment?.status === "cancelled";
+  const isPaidBooking =
+    payment?.status === "paid" &&
+    payment.paymentKind === "booking" &&
+    Boolean(bookingStartsAt);
+  const isPaidPackage =
+    payment?.status === "paid" &&
+    payment.paymentKind === "service_package" &&
+    Boolean(servicePackage);
+
   const isRetryAvailable =
     !isLoading &&
     payment !== null &&
@@ -142,6 +153,18 @@ export function PaymentSuccessPage() {
 
   const icon =
     isLoading || payment?.status === "paid" || isPending ? "🎉" : "⚠️";
+
+  const title = isLoading
+    ? "Проверяем статус оплаты..."
+    : isPaidPackage
+      ? "Пакет оплачен"
+      : isPaidBooking
+        ? "Запись подтверждена"
+        : isCancelled
+          ? "Оплата не завершена"
+          : isPending
+            ? "Проверяем статус оплаты"
+            : "Не удалось подтвердить оплату";
 
   return (
     <section className={styles.section}>
@@ -153,24 +176,58 @@ export function PaymentSuccessPage() {
             {icon}
           </div>
 
-          <h1 className={styles.title}>
-            {isLoading
-              ? "Проверяем статус оплаты..."
-              : payment?.status === "paid"
-                ? "Запись подтверждена"
-                : isCancelled
-                  ? "Оплата не завершена"
-                  : isPending
-                    ? "Проверяем статус оплаты"
-                    : "Не удалось подтвердить оплату"}
-          </h1>
+          <h1 className={styles.title}>{title}</h1>
 
           <div className={styles.contentWrapper}>
             {isLoading ? (
               <p className={styles.fallback}>
-                Пожалуйста, подождите: мы проверяем статус оплаты и записи.
+                Пожалуйста, подождите: мы проверяем статус оплаты.
               </p>
-            ) : payment?.status === "paid" && bookingStartsAt ? (
+            ) : isPaidPackage && servicePackage ? (
+              <div className={styles.details}>
+                <p>
+                  <strong>Пакет:</strong> {servicePackage.packageTitle}
+                </p>
+
+                {servicePackage.serviceTitle ? (
+                  <p>
+                    <strong>Услуга:</strong> {servicePackage.serviceTitle}
+                  </p>
+                ) : null}
+
+                {servicePackage.sessionsCount ? (
+                  <p>
+                    <strong>Количество сессий:</strong>{" "}
+                    {servicePackage.sessionsCount}
+                  </p>
+                ) : null}
+
+                <p>
+                  <strong>Имя:</strong> {servicePackage.firstName}{" "}
+                  {servicePackage.lastName}
+                </p>
+
+                {servicePackage.email ? (
+                  <p>
+                    <strong>Email:</strong> {servicePackage.email}
+                  </p>
+                ) : null}
+
+                {servicePackage.code ? (
+                  <div className={styles.codeBox}>
+                    <span className={styles.codeLabel}>Код пакета</span>
+                    <strong className={styles.codeValue}>
+                      {servicePackage.code}
+                    </strong>
+                  </div>
+                ) : null}
+
+                <p className={styles.packageHint}>
+                  Код также будет отправлен на email. Используйте его на
+                  странице онлайн-записи, чтобы записываться по пакету.
+                </p>
+              </div>
+            ) : isPaidBooking && bookingStartsAt ? (
               <div className={styles.details}>
                 <p>
                   <strong>Дата:</strong>{" "}
@@ -197,32 +254,38 @@ export function PaymentSuccessPage() {
             ) : isCancelled ? (
               <p className={styles.fallback}>
                 {errorMessage ||
-                  "Оплата была отменена или не завершилась. Запись не создана. Вы можете вернуться на сайт и попробовать снова."}
+                  "Оплата была отменена или не завершилась. Вы можете вернуться на сайт и попробовать снова."}
               </p>
             ) : isPending && didReachPollLimit ? (
               <p className={styles.fallback}>
                 Мы пока не получили финальный статус оплаты. Если вы отменили
-                оплату или закрыли окно оплаты, запись не будет создана. Если
+                оплату или закрыли окно оплаты, действие не будет завершено. Если
                 платёж был успешно завершён, обновите страницу через несколько
                 секунд.
               </p>
             ) : isPending ? (
               <p className={styles.fallback}>
                 Мы проверяем статус оплаты. Если вы отменили оплату или закрыли
-                окно оплаты, запись создана не будет. Обычно статус обновляется
-                автоматически меньше чем за минуту.
+                окно оплаты, действие не будет завершено. Обычно статус
+                обновляется автоматически меньше чем за минуту.
               </p>
             ) : (
               <p className={styles.fallback}>
                 {errorMessage ||
-                  "Не удалось подтвердить оплату или создать запись."}
+                  "Не удалось подтвердить оплату или завершить действие."}
               </p>
             )}
           </div>
 
-          {payment?.status === "paid" ? (
+          {isPaidBooking ? (
             <p className={styles.note}>
               Я свяжусь с вами в ближайшее время для подтверждения деталей.
+            </p>
+          ) : null}
+
+          {isPaidPackage ? (
+            <p className={styles.note}>
+              Сохраните код пакета: он понадобится для записи на консультации.
             </p>
           ) : null}
 
@@ -233,6 +296,16 @@ export function PaymentSuccessPage() {
                   <Link to="/book" className={styles.retryLink}>
                     Попробовать снова
                   </Link>
+
+                  <Button href="/" variant="premium">
+                    На главную
+                  </Button>
+                </div>
+              ) : isPaidPackage ? (
+                <div className={styles.actionLinks}>
+                  <Button href="/book" variant="premium">
+                    Записаться по пакету
+                  </Button>
 
                   <Button href="/" variant="premium">
                     На главную
