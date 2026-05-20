@@ -41,6 +41,17 @@ export type CrmServicePackagePlanRecord = {
   createdAt: string;
 };
 
+export type PublicServicePackagePlanRecord = {
+  id: number;
+  serviceId: number;
+  serviceTitle: string;
+  serviceDurationMinutes: number;
+  title: string;
+  description: string;
+  sessionsCount: number;
+  price: number;
+};
+
 export type CreateServicePackagePlanPayload = {
   serviceId: number;
   title: string;

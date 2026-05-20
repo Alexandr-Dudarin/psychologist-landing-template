@@ -48,6 +48,11 @@ export type SendBookingNotificationsPayload = {
   timezone: string;
   comment: string;
   alreadyExistedClient: boolean;
+  clientPackage?: {
+    packageTitle: string;
+    code: string;
+    remainingSessions: number;
+  };
 };
 
 const BOOKING_NOTIFICATIONS_TIMEOUT_MS = 1500;
@@ -75,6 +80,57 @@ function getTimezoneText(timezone: string) {
   return getTimezoneLabel(timezone, "ru");
 }
 
+function getOwnerTelegramPackageLines(
+  payload: SendBookingNotificationsPayload
+): string[] {
+  if (!payload.clientPackage) {
+    return ["Запись из пакета: нет"];
+  }
+
+  return [
+    "Запись из пакета: да",
+    `Пакет: ${payload.clientPackage.packageTitle}`,
+    `Код пакета: ${payload.clientPackage.code}`,
+    `Осталось после записи: ${payload.clientPackage.remainingSessions}`,
+  ];
+}
+
+function getOwnerEmailPackageHtml(
+  payload: SendBookingNotificationsPayload
+): string {
+  if (!payload.clientPackage) {
+    return `<p><strong>Запись из пакета:</strong> нет</p>`;
+  }
+
+  return `
+    <p><strong>Запись из пакета:</strong> да</p>
+    <p><strong>Пакет:</strong> ${escapeHtml(payload.clientPackage.packageTitle)}</p>
+    <p><strong>Код пакета:</strong> ${escapeHtml(payload.clientPackage.code)}</p>
+    <p><strong>Осталось после записи:</strong> ${escapeHtml(
+      String(payload.clientPackage.remainingSessions)
+    )}</p>
+  `;
+}
+
+function getClientEmailPackageHtml(
+  payload: SendBookingNotificationsPayload
+): string {
+  if (!payload.clientPackage) {
+    return "";
+  }
+
+  return `
+    <p>
+      Запись создана по вашему пакету
+      <strong>${escapeHtml(payload.clientPackage.packageTitle)}</strong>.
+    </p>
+    <p>
+      Осталось сессий после этой записи:
+      <strong>${escapeHtml(String(payload.clientPackage.remainingSessions))}</strong>.
+    </p>
+  `;
+}
+
 function getOwnerTelegramText(payload: SendBookingNotificationsPayload): string {
   const timezoneText = getTimezoneText(payload.timezone);
 
@@ -86,6 +142,7 @@ function getOwnerTelegramText(payload: SendBookingNotificationsPayload): string 
     `Email: ${payload.clientEmail}`,
     `Предпочтительный способ связи: ${payload.preferredContact}`,
     `Услуга: ${payload.serviceTitle}`,
+    ...getOwnerTelegramPackageLines(payload),
     `Дата: ${formatBookingDate(payload.startsAt, payload.timezone)}`,
     `Время: ${formatBookingTimeRange(payload.startsAt, payload.endsAt, payload.timezone)} (${timezoneText})`,
     `Комментарий: ${payload.comment || "-"}`,
@@ -103,6 +160,7 @@ function getOwnerEmailHtml(payload: SendBookingNotificationsPayload): string {
     <p><strong>Email:</strong> ${escapeHtml(payload.clientEmail)}</p>
     <p><strong>Предпочтительный способ связи:</strong> ${escapeHtml(payload.preferredContact)}</p>
     <p><strong>Услуга:</strong> ${escapeHtml(payload.serviceTitle)}</p>
+    ${getOwnerEmailPackageHtml(payload)}
     <p><strong>Дата:</strong> ${escapeHtml(formatBookingDate(payload.startsAt, payload.timezone))}</p>
     <p>
       <strong>Время:</strong>
@@ -125,6 +183,7 @@ function getClientEmailHtml(payload: SendBookingNotificationsPayload): string {
     <p>Здравствуйте, ${escapeHtml(payload.clientName)}.</p>
     <p>Ваша запись успешно получена.</p>
     <p><strong>Услуга:</strong> ${escapeHtml(payload.serviceTitle)}</p>
+    ${getClientEmailPackageHtml(payload)}
     <p><strong>Дата:</strong> ${escapeHtml(formatBookingDate(payload.startsAt, payload.timezone))}</p>
     <p>
       <strong>Время:</strong>

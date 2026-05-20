@@ -571,6 +571,13 @@ export async function createBookingService(
     timezone: slotValidation.timezone,
     comment: normalizedPayload.message ?? "",
     alreadyExistedClient: response.alreadyExistedClient,
+    clientPackage: clientPackage
+      ? {
+          packageTitle: clientPackage.packageTitle,
+          code: clientPackage.code,
+          remainingSessions: Math.max(clientPackage.remainingSessions - 1, 0),
+        }
+      : undefined,
   };
 
   return {

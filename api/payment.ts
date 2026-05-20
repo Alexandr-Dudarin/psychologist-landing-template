@@ -11,9 +11,15 @@ import {
   finalizeSuccessfulPayment,
   isPaymentFlowError,
 } from "../server/payment/finalizeSuccessfulPayment.js";
+import {
+  getServicePackagePurchaseValidationError,
+  parseServicePackagePurchasePayload,
+} from "../server/payment/packagePurchasePayload.js";
 import { pool } from "../server/db/pool.js";
 import { isCreateBookingServiceError } from "../server/services/createBookingService.js";
 import { getBookingSettingsTimezone } from "../server/utils/getBookingSettingsTimezone.js";
+
+type PaymentKind = "booking" | "service_package";
 
 type SlotValidationErrorResult = Extract<
   Awaited<ReturnType<typeof validateBookableSlot>>,
@@ -22,20 +28,40 @@ type SlotValidationErrorResult = Extract<
 
 type PaymentRow = {
   request_id: string;
+  payment_kind: string;
   status: string;
   provider_payment_id: string | null;
   amount: string | number;
   currency: string;
   session_id: string | number | null;
+  client_package_id: string | number | null;
   error_message: string | null;
   paid_at: string | null;
   booking_payload: unknown;
+  package_purchase_payload: unknown;
 };
 
 type StoredPaymentLookupRow = {
   request_id: string;
   status: string;
   provider_payment_id: string | null;
+};
+
+type ServicePackagePlanPaymentRow = {
+  id: string | number;
+  title: string;
+  sessions_count: string | number;
+  price: string | number;
+  is_active: boolean;
+  service_title: string;
+  service_is_active: boolean;
+};
+
+type ClientPackageStatusRow = {
+  code: string;
+  package_title: string;
+  service_title: string;
+  sessions_count: string | number;
 };
 
 type YooKassaPaymentObject = {
@@ -81,6 +107,10 @@ function isSlotValidationError(
   return result.ok === false;
 }
 
+function getPaymentKind(body: any): PaymentKind {
+  return body?.paymentKind === "service_package" ? "service_package" : "booking";
+}
+
 function mapSlotError(reason: SlotValidationErrorResult["reason"]) {
   if (reason === "invalid_service") {
     return {
@@ -122,7 +152,7 @@ function mapSlotError(reason: SlotValidationErrorResult["reason"]) {
   };
 }
 
-function parseStoredBookingPayload(value: unknown) {
+function parseStoredJson(value: unknown) {
   let rawValue = value;
 
   if (typeof rawValue === "string") {
@@ -277,6 +307,7 @@ async function createYooKassaPayment(params: {
   amount: string;
   returnUrl: string;
   description: string;
+  paymentKind: PaymentKind;
 }): Promise<YooKassaPaymentObject> {
   const response = await fetch("https://api.yookassa.ru/v3/payments", {
     method: "POST",
@@ -298,6 +329,7 @@ async function createYooKassaPayment(params: {
       description: params.description,
       metadata: {
         request_id: params.requestId,
+        payment_kind: params.paymentKind,
       },
     }),
   });
@@ -398,17 +430,127 @@ async function findStoredPaymentByProviderId(
   return byProvider.rows[0] ?? null;
 }
 
-async function handleCreate(req: VercelRequest, res: VercelResponse) {
-  const rawRequestId =
-    typeof req.body?.requestId === "string" ? req.body.requestId.trim() : "";
+async function selectPackagePlanForPayment(packagePlanId: number) {
+  const result = await pool.query<ServicePackagePlanPaymentRow>(
+    `
+      SELECT
+        p.id,
+        p.title,
+        p.sessions_count,
+        p.price,
+        p.is_active,
+        s.title AS service_title,
+        s.is_active AS service_is_active
+      FROM service_package_plans p
+      INNER JOIN services s ON s.id = p.service_id
+      WHERE p.id = $1
+      LIMIT 1
+    `,
+    [packagePlanId]
+  );
 
-  if (!rawRequestId) {
-    return res.status(400).json({
-      message: "Missing requestId",
-      code: "missing_request_id",
-    });
+  const packagePlan = result.rows[0];
+
+  if (!packagePlan) {
+    throw new YooKassaApiError(
+      404,
+      "package_plan_not_found",
+      "Пакет услуг не найден."
+    );
   }
 
+  if (!packagePlan.is_active || !packagePlan.service_is_active) {
+    throw new YooKassaApiError(
+      409,
+      "package_plan_inactive",
+      "Этот пакет услуг сейчас недоступен для покупки."
+    );
+  }
+
+  return packagePlan;
+}
+
+async function getClientPackageStatusInfo(clientPackageId: number) {
+  const result = await pool.query<ClientPackageStatusRow>(
+    `
+      SELECT
+        csp.code,
+        spp.title AS package_title,
+        s.title AS service_title,
+        spp.sessions_count
+      FROM client_service_packages csp
+      INNER JOIN service_package_plans spp ON spp.id = csp.package_plan_id
+      INNER JOIN services s ON s.id = spp.service_id
+      WHERE csp.id = $1
+      LIMIT 1
+    `,
+    [clientPackageId]
+  );
+
+  return result.rows[0] ?? null;
+}
+
+async function insertPayment(params: {
+  requestId: string;
+  providerPaymentId: string;
+  status: string;
+  amount: number;
+  currency: string;
+  paymentKind: PaymentKind;
+  bookingPayload: unknown | null;
+  packagePurchasePayload: unknown | null;
+}) {
+  await pool.query(
+    `
+      INSERT INTO payments (
+        request_id,
+        provider,
+        provider_payment_id,
+        status,
+        amount,
+        currency,
+        payment_kind,
+        booking_payload,
+        package_purchase_payload,
+        session_id,
+        client_package_id,
+        error_message
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NULL, NULL, NULL)
+      ON CONFLICT (request_id)
+      DO UPDATE SET
+        provider = EXCLUDED.provider,
+        provider_payment_id = EXCLUDED.provider_payment_id,
+        status = EXCLUDED.status,
+        amount = EXCLUDED.amount,
+        currency = EXCLUDED.currency,
+        payment_kind = EXCLUDED.payment_kind,
+        booking_payload = EXCLUDED.booking_payload,
+        package_purchase_payload = EXCLUDED.package_purchase_payload,
+        session_id = NULL,
+        client_package_id = NULL,
+        error_message = NULL,
+        updated_at = NOW()
+    `,
+    [
+      params.requestId,
+      "yookassa",
+      params.providerPaymentId,
+      params.status,
+      params.amount,
+      params.currency,
+      params.paymentKind,
+      params.bookingPayload,
+      params.packagePurchasePayload,
+    ]
+  );
+}
+
+async function handleCreateBookingPayment(
+  req: VercelRequest,
+  res: VercelResponse,
+  rawRequestId: string
+) {
   const payload = parsePublicBookingCreatePayload(req.body);
 
   if (!payload) {
@@ -453,6 +595,7 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
       amount: formatPaymentAmount(slotValidation.service.price),
       returnUrl,
       description: `Онлайн-запись #${rawRequestId}`,
+      paymentKind: "booking",
     });
 
     const confirmationUrl = payment.confirmation?.confirmation_url?.trim();
@@ -465,45 +608,109 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
       );
     }
 
-    await client.query(
-      `
-        INSERT INTO payments (
-          request_id,
-          provider,
-          provider_payment_id,
-          status,
-          amount,
-          currency,
-          booking_payload,
-          error_message
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NULL)
-        ON CONFLICT (request_id)
-        DO UPDATE SET
-          provider = EXCLUDED.provider,
-          provider_payment_id = EXCLUDED.provider_payment_id,
-          status = EXCLUDED.status,
-          amount = EXCLUDED.amount,
-          currency = EXCLUDED.currency,
-          booking_payload = EXCLUDED.booking_payload,
-          error_message = NULL,
-          updated_at = NOW()
-      `,
-      [
-        rawRequestId,
-        "yookassa",
-        payment.id,
-        mapProviderStatusToDbStatus(payment.status),
-        Number(payment.amount.value),
-        payment.amount.currency,
-        payload,
-      ]
-    );
+    await insertPayment({
+      requestId: rawRequestId,
+      providerPaymentId: payment.id,
+      status: mapProviderStatusToDbStatus(payment.status),
+      amount: Number(payment.amount.value),
+      currency: payment.amount.currency,
+      paymentKind: "booking",
+      bookingPayload: payload,
+      packagePurchasePayload: null,
+    });
 
     return res.status(200).json({
       requestId: rawRequestId,
       confirmationUrl,
     });
+  } finally {
+    client.release();
+  }
+}
+
+async function handleCreateServicePackagePayment(
+  req: VercelRequest,
+  res: VercelResponse,
+  rawRequestId: string
+) {
+  const payload = parseServicePackagePurchasePayload(req.body);
+
+  if (!payload) {
+    return res.status(400).json({
+      message: "Некорректные данные для покупки пакета.",
+      code: "invalid_package_purchase_payload",
+    });
+  }
+
+  const validationError = getServicePackagePurchaseValidationError(payload);
+
+  if (validationError) {
+    return res.status(400).json({
+      message: validationError,
+      code: "invalid_package_purchase_payload",
+    });
+  }
+
+  const packagePlan = await selectPackagePlanForPayment(payload.packagePlanId);
+
+  const returnUrl = `${getBaseUrl(req)}/payment-success?requestId=${encodeURIComponent(
+    rawRequestId
+  )}`;
+
+  const payment = await createYooKassaPayment({
+    requestId: rawRequestId,
+    amount: formatPaymentAmount(packagePlan.price),
+    returnUrl,
+    description: `Пакет услуг: ${packagePlan.title}`,
+    paymentKind: "service_package",
+  });
+
+  const confirmationUrl = payment.confirmation?.confirmation_url?.trim();
+
+  if (!confirmationUrl) {
+    throw new YooKassaApiError(
+      502,
+      "missing_confirmation_url",
+      "ЮKassa не вернула ссылку для подтверждения оплаты."
+    );
+  }
+
+  await insertPayment({
+    requestId: rawRequestId,
+    providerPaymentId: payment.id,
+    status: mapProviderStatusToDbStatus(payment.status),
+    amount: Number(payment.amount.value),
+    currency: payment.amount.currency,
+    paymentKind: "service_package",
+    bookingPayload: null,
+    packagePurchasePayload: payload,
+  });
+
+  return res.status(200).json({
+    requestId: rawRequestId,
+    confirmationUrl,
+  });
+}
+
+async function handleCreate(req: VercelRequest, res: VercelResponse) {
+  const rawRequestId =
+    typeof req.body?.requestId === "string" ? req.body.requestId.trim() : "";
+
+  if (!rawRequestId) {
+    return res.status(400).json({
+      message: "Missing requestId",
+      code: "missing_request_id",
+    });
+  }
+
+  try {
+    const paymentKind = getPaymentKind(req.body);
+
+    if (paymentKind === "service_package") {
+      return await handleCreateServicePackagePayment(req, res, rawRequestId);
+    }
+
+    return await handleCreateBookingPayment(req, res, rawRequestId);
   } catch (error) {
     if (error instanceof YooKassaApiError) {
       return res.status(error.status).json({
@@ -518,9 +725,33 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
       message: "Не удалось создать платёж.",
       code: "payment_create_failed",
     });
-  } finally {
-    client.release();
   }
+}
+
+async function loadPaymentRow(requestId: string): Promise<PaymentRow | null> {
+  const result = await pool.query<PaymentRow>(
+    `
+      SELECT
+        request_id,
+        payment_kind,
+        status,
+        provider_payment_id,
+        amount,
+        currency,
+        session_id,
+        client_package_id,
+        error_message,
+        paid_at,
+        booking_payload,
+        package_purchase_payload
+      FROM payments
+      WHERE request_id = $1
+      LIMIT 1
+    `,
+    [requestId]
+  );
+
+  return result.rows[0] ?? null;
 }
 
 async function handleStatus(req: VercelRequest, res: VercelResponse) {
@@ -535,26 +766,7 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    let result = await pool.query<PaymentRow>(
-      `
-        SELECT
-          request_id,
-          status,
-          provider_payment_id,
-          amount,
-          currency,
-          session_id,
-          error_message,
-          paid_at,
-          booking_payload
-        FROM payments
-        WHERE request_id = $1
-        LIMIT 1
-      `,
-      [requestId]
-    );
-
-    let payment = result.rows[0];
+    let payment = await loadPaymentRow(requestId);
 
     if (!payment) {
       return res.status(404).json({
@@ -589,42 +801,49 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
           );
         }
 
-        result = await pool.query<PaymentRow>(
-          `
-            SELECT
-              request_id,
-              status,
-              provider_payment_id,
-              amount,
-              currency,
-              session_id,
-              error_message,
-              paid_at,
-              booking_payload
-            FROM payments
-            WHERE request_id = $1
-            LIMIT 1
-          `,
-          [requestId]
-        );
+        const refreshedPayment = await loadPaymentRow(requestId);
 
-        payment = result.rows[0];
+        if (!refreshedPayment) {
+          return res.status(404).json({
+            message: "Payment not found",
+            code: "payment_not_found",
+          });
+        }
+
+        payment = refreshedPayment;
       } catch (providerStatusError) {
         console.error("Payment status verification error:", providerStatusError);
       }
     }
 
-    const bookingPayload = parseStoredBookingPayload(payment.booking_payload);
+    const currentPayment = payment;
+
+    const bookingPayload = parseStoredJson(currentPayment.booking_payload);
+    const packagePurchasePayload = parseStoredJson(
+      currentPayment.package_purchase_payload
+    );
     const timezone = await getBookingSettingsTimezone(pool);
+    const clientPackageId = currentPayment.client_package_id
+      ? Number(currentPayment.client_package_id)
+      : null;
+    const clientPackageInfo = clientPackageId
+      ? await getClientPackageStatusInfo(clientPackageId)
+      : null;
 
     return res.status(200).json({
-      requestId: payment.request_id,
-      status: mapDbStatusToPublicStatus(payment.status),
-      amount: Number(payment.amount),
-      currency: payment.currency,
-      sessionId: payment.session_id ? Number(payment.session_id) : null,
-      errorMessage: payment.error_message,
-      paidAt: payment.paid_at,
+      requestId: currentPayment.request_id,
+      paymentKind: getPaymentKind({
+        paymentKind: currentPayment.payment_kind,
+      }),
+      status: mapDbStatusToPublicStatus(currentPayment.status),
+      amount: Number(currentPayment.amount),
+      currency: currentPayment.currency,
+      sessionId: currentPayment.session_id
+        ? Number(currentPayment.session_id)
+        : null,
+      clientPackageId,
+      errorMessage: currentPayment.error_message,
+      paidAt: currentPayment.paid_at,
       timezone,
       booking: {
         startsAt:
@@ -644,6 +863,32 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
             ? bookingPayload.email
             : "",
       },
+      servicePackage: packagePurchasePayload
+        ? {
+          packagePlanId:
+            typeof packagePurchasePayload.packagePlanId === "number"
+              ? packagePurchasePayload.packagePlanId
+              : Number(packagePurchasePayload.packagePlanId) || null,
+          packageTitle: clientPackageInfo?.package_title ?? "",
+          serviceTitle: clientPackageInfo?.service_title ?? "",
+          sessionsCount: clientPackageInfo
+            ? Number(clientPackageInfo.sessions_count)
+            : null,
+          code: clientPackageInfo?.code ?? "",
+          firstName:
+            typeof packagePurchasePayload.firstName === "string"
+              ? packagePurchasePayload.firstName
+              : "",
+          lastName:
+            typeof packagePurchasePayload.lastName === "string"
+              ? packagePurchasePayload.lastName
+              : "",
+          email:
+            typeof packagePurchasePayload.email === "string"
+              ? packagePurchasePayload.email
+              : "",
+        }
+        : null,
     });
   } catch (error) {
     console.error("Payment status error:", error);
@@ -722,7 +967,10 @@ async function handleWebhook(req: VercelRequest, res: VercelResponse) {
           updated_at = NOW()
         WHERE request_id = $1
       `,
-      [storedPayment.request_id, mapProviderStatusToDbStatus(actualPayment.status)]
+      [
+        storedPayment.request_id,
+        mapProviderStatusToDbStatus(actualPayment.status),
+      ]
     );
 
     return res.status(200).json({ received: true, ignored: true });
