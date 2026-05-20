@@ -48,6 +48,10 @@ export type PublicBookingPackageInfo = {
   clientPackageId: number;
   clientId: number;
   clientName: string;
+  clientPhone: string;
+  clientEmail: string;
+  preferredContactMethod: PreferredContactMethod | "";
+  preferredContactValue: string;
   code: string;
   packageTitle: string;
   serviceId: number;

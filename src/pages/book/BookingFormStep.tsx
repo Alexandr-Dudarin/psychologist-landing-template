@@ -78,7 +78,9 @@ export function BookingFormStep({
               type="text"
               value={form.firstName}
               disabled={isLocked}
-              onChange={(event) => onFieldChange("firstName", event.target.value)}
+              onChange={(event) =>
+                onFieldChange("firstName", event.target.value)
+              }
               placeholder={bookingContent.placeholders.firstName}
             />
             {formErrors.firstName ? (
@@ -95,7 +97,9 @@ export function BookingFormStep({
               type="text"
               value={form.lastName}
               disabled={isLocked}
-              onChange={(event) => onFieldChange("lastName", event.target.value)}
+              onChange={(event) =>
+                onFieldChange("lastName", event.target.value)
+              }
               placeholder={bookingContent.placeholders.lastName}
             />
             {formErrors.lastName ? (
@@ -148,7 +152,8 @@ export function BookingFormStep({
                   onChange={(event) =>
                     onFieldChange(
                       "preferredContactMethod",
-                      event.target.value as BookingFormState["preferredContactMethod"]
+                      event.target
+                        .value as BookingFormState["preferredContactMethod"]
                     )
                   }
                 >
@@ -248,7 +253,9 @@ export function BookingFormStep({
           </div>
 
           {submitError ? (
-            <div className={`${pageStyles.stateBox} ${pageStyles.errorBox}`}>
+            <div
+              className={`${pageStyles.stateBox} ${pageStyles.errorBox} ${styles.submitError}`}
+            >
               {submitError}
             </div>
           ) : null}

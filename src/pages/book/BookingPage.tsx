@@ -216,6 +216,49 @@ function getServiceFromPackage(
   };
 }
 
+function splitClientName(fullName: string) {
+  const normalizedName = fullName.trim().replace(/\s+/g, " ");
+  const [firstName = "", ...rest] = normalizedName.split(" ");
+
+  return {
+    firstName,
+    lastName: rest.join(" "),
+  };
+}
+
+function getPreferredContactFallback(
+  packageInfo: PublicBookingPackageInfo,
+  packageContact: string
+): Pick<BookingFormState, "preferredContactMethod" | "preferredContactValue"> {
+  if (packageInfo.preferredContactMethod && packageInfo.preferredContactValue) {
+    return {
+      preferredContactMethod: packageInfo.preferredContactMethod,
+      preferredContactValue: packageInfo.preferredContactValue,
+    };
+  }
+
+  const trimmedContact = packageContact.trim();
+
+  if (!trimmedContact) {
+    return {
+      preferredContactMethod: "",
+      preferredContactValue: "",
+    };
+  }
+
+  if (trimmedContact.includes("@")) {
+    return {
+      preferredContactMethod: "email",
+      preferredContactValue: trimmedContact,
+    };
+  }
+
+  return {
+    preferredContactMethod: "whatsapp",
+    preferredContactValue: trimmedContact,
+  };
+}
+
 export function BookingPage() {
   const { language, t } = useLanguage();
   const navigate = useNavigate();
@@ -474,23 +517,25 @@ export function BookingPage() {
         contact: trimmedContact,
       });
 
+      const packageOwnerName = splitClientName(response.package.clientName);
+      const preferredContact = getPreferredContactFallback(
+        response.package,
+        trimmedContact
+      );
+
       setVerifiedPackage(response.package);
       setSelectedServiceId(response.package.serviceId);
       resetSelectionAfterServiceChange();
 
-      setForm((current) => {
-        if (trimmedContact.includes("@")) {
-          return {
-            ...current,
-            email: current.email || trimmedContact,
-          };
-        }
-
-        return {
-          ...current,
-          phone: current.phone || trimmedContact,
-        };
-      });
+      setForm((current) => ({
+        ...current,
+        firstName: packageOwnerName.firstName || current.firstName,
+        lastName: packageOwnerName.lastName || current.lastName,
+        phone: response.package.clientPhone || current.phone || trimmedContact,
+        email: response.package.clientEmail || current.email,
+        preferredContactMethod: preferredContact.preferredContactMethod,
+        preferredContactValue: preferredContact.preferredContactValue,
+      }));
 
       setPulseSummary(true);
       window.setTimeout(() => setPulseSummary(false), 400);
@@ -587,7 +632,11 @@ export function BookingPage() {
           ? form.preferredContactValue.trim()
           : "",
         clientPackageCode: verifiedPackage?.code ?? "",
-        clientPackageContact: verifiedPackage ? packageContact.trim() : "",
+        clientPackageContact: verifiedPackage
+          ? packageContact.trim() ||
+          verifiedPackage.clientEmail ||
+          verifiedPackage.clientPhone
+          : "",
         message: form.message.trim(),
         consent: form.consent,
       };

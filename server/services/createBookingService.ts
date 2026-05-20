@@ -87,11 +87,16 @@ export function isCreateBookingServiceError(
 
 function isSlotValidationError(
   result: Awaited<ReturnType<typeof validateBookableSlot>>
-): result is Extract<Awaited<ReturnType<typeof validateBookableSlot>>, { ok: false }> {
+): result is Extract<
+  Awaited<ReturnType<typeof validateBookableSlot>>,
+  { ok: false }
+> {
   return result.ok === false;
 }
 
-function mapSlotError(reason: SlotValidationErrorReason): CreateBookingServiceError {
+function mapSlotError(
+  reason: SlotValidationErrorReason
+): CreateBookingServiceError {
   if (reason === "invalid_service") {
     return new CreateBookingServiceError(
       400,
@@ -192,6 +197,39 @@ async function findExistingClientByContacts(
   return result.rows[0] ?? null;
 }
 
+async function updateClientPreferredContact(
+  db: Pick<PoolClient, "query">,
+  clientId: number,
+  payload: NormalizedPayload
+) {
+  const preferredContact = normalizePreferredContactForStorage({
+    preferredContactMethod: payload.preferredContactMethod ?? "",
+    preferredContactValue: payload.preferredContactValue ?? "",
+  });
+
+  if (
+    !preferredContact.preferredContactMethod ||
+    !preferredContact.preferredContactValue
+  ) {
+    return;
+  }
+
+  await db.query(
+    `
+      UPDATE clients
+      SET
+        preferred_contact_method = $2,
+        preferred_contact_value = $3
+      WHERE id = $1
+    `,
+    [
+      clientId,
+      preferredContact.preferredContactMethod,
+      preferredContact.preferredContactValue,
+    ]
+  );
+}
+
 async function ensureClient(
   db: Pick<PoolClient, "query">,
   payload: NormalizedPayload
@@ -207,25 +245,7 @@ async function ensureClient(
   );
 
   if (existingClient) {
-    if (
-      preferredContact.preferredContactMethod &&
-      preferredContact.preferredContactValue
-    ) {
-      await db.query(
-        `
-          UPDATE clients
-          SET
-            preferred_contact_method = $2,
-            preferred_contact_value = $3
-          WHERE id = $1
-        `,
-        [
-          existingClient.id,
-          preferredContact.preferredContactMethod,
-          preferredContact.preferredContactValue,
-        ]
-      );
-    }
+    await updateClientPreferredContact(db, Number(existingClient.id), payload);
 
     return {
       clientId: Number(existingClient.id),
@@ -332,18 +352,16 @@ async function lockBookingDate(db: Pick<PoolClient, "query">, startsAt: string) 
   );
 }
 
-async function findClientPackageByCodeAndContacts(
+async function findClientPackageByCodeAndContact(
   db: Pick<PoolClient, "query">,
   params: {
     code: string;
-    phone: string;
-    email: string;
     contact: string;
   }
 ): Promise<ResolvedClientPackage | null> {
   const normalizedCode = normalizePackageCode(params.code);
-  const normalizedPhone = normalizePhoneDigits(params.phone || params.contact);
-  const normalizedEmail = (params.email || params.contact).trim().toLowerCase();
+  const normalizedPhone = normalizePhoneDigits(params.contact);
+  const normalizedEmail = params.contact.trim().toLowerCase();
 
   const result = await db.query<ClientPackageRow>(
     `
@@ -377,6 +395,7 @@ async function findClientPackageByCodeAndContacts(
           OR LOWER(COALESCE(c.email, '')) = $3
         )
       LIMIT 1
+      FOR UPDATE OF csp
     `,
     [normalizedCode, normalizedPhone, normalizedEmail]
   );
@@ -401,12 +420,12 @@ async function resolveClientPackageForBooking(
   }
 
   const packageContact =
-    payload.clientPackageContact?.trim() || payload.email.trim() || payload.phone.trim();
+    payload.clientPackageContact?.trim() ||
+    payload.email.trim() ||
+    payload.phone.trim();
 
-  const clientPackage = await findClientPackageByCodeAndContacts(db, {
+  const clientPackage = await findClientPackageByCodeAndContact(db, {
     code: packageCode,
-    phone: payload.phone,
-    email: payload.email,
     contact: packageContact,
   });
 
@@ -414,7 +433,7 @@ async function resolveClientPackageForBooking(
     throw new CreateBookingServiceError(
       404,
       "invalid_package",
-      "Пакет не найден. Проверьте код и телефон/email."
+      "Пакет не найден. Убедитесь, что вводите телефон или email, который связан с вашим кодом доступа к пакету."
     );
   }
 
@@ -461,13 +480,18 @@ export async function createBookingService(
     name: buildFullName(payload.firstName, payload.lastName),
   };
 
-  const clientResult = await ensureClient(client, normalizedPayload);
+  const clientResult = clientPackage
+    ? {
+        clientId: clientPackage.clientId,
+        alreadyExisted: true,
+      }
+    : await ensureClient(client, normalizedPayload);
 
-  if (clientPackage && clientResult.clientId !== clientPackage.clientId) {
-    throw new CreateBookingServiceError(
-      400,
-      "invalid_package",
-      "Пакет принадлежит другому клиенту. Проверьте телефон и email."
+  if (clientPackage) {
+    await updateClientPreferredContact(
+      client,
+      clientPackage.clientId,
+      normalizedPayload
     );
   }
 
@@ -533,7 +557,7 @@ export async function createBookingService(
 
   const notificationPayload: SendBookingNotificationsPayload = {
     sessionId: response.booking.sessionId,
-    clientName: normalizedPayload.name,
+    clientName: clientPackage?.clientName ?? normalizedPayload.name,
     clientPhone: normalizedPayload.phone,
     clientEmail: normalizedPayload.email,
     preferredContact: formatPreferredContactDisplay(

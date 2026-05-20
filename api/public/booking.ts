@@ -18,6 +18,7 @@ import type {
   PublicBookingPackageInfo,
   PublicBookingPackageLookupPayload,
 } from "../../src/types/booking.js";
+import type { PreferredContactMethod } from "../../src/types/preferredContact.js";
 
 type AvailabilityErrorResult = Extract<
   Awaited<ReturnType<typeof getPublicBookingAvailabilityData>>,
@@ -28,6 +29,10 @@ type PackageLookupRow = {
   id: number | string;
   client_id: number | string;
   client_name: string;
+  client_phone: string | null;
+  client_email: string | null;
+  client_preferred_contact_method: PreferredContactMethod | null;
+  client_preferred_contact_value: string | null;
   code: string;
   package_title: string;
   service_id: number | string;
@@ -88,6 +93,10 @@ function mapPackageLookup(row: PackageLookupRow): PublicBookingPackageInfo {
     clientPackageId: Number(row.id),
     clientId: Number(row.client_id),
     clientName: row.client_name,
+    clientPhone: row.client_phone ?? "",
+    clientEmail: row.client_email ?? "",
+    preferredContactMethod: row.client_preferred_contact_method ?? "",
+    preferredContactValue: row.client_preferred_contact_value ?? "",
     code: row.code,
     packageTitle: row.package_title,
     serviceId: Number(row.service_id),
@@ -128,16 +137,22 @@ async function handleAvailability(req: any, res: any) {
       }
 
       if (result.reason === "service_not_found") {
-        return res.status(404).json({ error: "Услуга не найдена или отключена" });
+        return res
+          .status(404)
+          .json({ error: "Услуга не найдена или отключена" });
       }
 
-      return res.status(500).json({ error: "Не удалось загрузить настройки записи" });
+      return res
+        .status(500)
+        .json({ error: "Не удалось загрузить настройки записи" });
     }
 
     return res.status(200).json(result.payload);
   } catch (error) {
     console.error("Public booking availability error:", error);
-    return res.status(500).json({ error: "Не удалось загрузить доступные слоты" });
+    return res
+      .status(500)
+      .json({ error: "Не удалось загрузить доступные слоты" });
   }
 }
 
@@ -162,6 +177,10 @@ async function handleLookupPackage(req: any, res: any) {
           csp.id,
           csp.client_id,
           c.name AS client_name,
+          c.phone AS client_phone,
+          c.email AS client_email,
+          c.preferred_contact_method AS client_preferred_contact_method,
+          c.preferred_contact_value AS client_preferred_contact_value,
           csp.code,
           spp.title AS package_title,
           spp.service_id,
@@ -196,7 +215,8 @@ async function handleLookupPackage(req: any, res: any) {
 
     if (!row) {
       return res.status(404).json({
-        error: "Пакет не найден. Проверьте код и телефон/email.",
+        error:
+          "Пакет не найден. Убедитесь, что вводите телефон или email, который связан с вашим кодом доступа к пакету.",
         code: "package_not_found",
       });
     }
@@ -250,12 +270,14 @@ async function handleCreate(req: any, res: any) {
 
     await client.query("COMMIT");
 
-    void sendBookingNotificationsBounded(result.notificationPayload).catch((error) => {
-      console.error("Async booking notifications failed:", {
-        sessionId: result.notificationPayload.sessionId,
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    });
+    void sendBookingNotificationsBounded(result.notificationPayload).catch(
+      (error) => {
+        console.error("Async booking notifications failed:", {
+          sessionId: result.notificationPayload.sessionId,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    );
 
     return res.status(200).json(result.response);
   } catch (error) {
