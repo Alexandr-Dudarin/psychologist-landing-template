@@ -24,16 +24,22 @@ type PricingCard = {
   featured?: boolean;
 };
 
-type PackagePricingCard = {
+type PackagePricingOption = {
   id: string;
   packagePlanId: number;
   title: string;
-  price: string;
-  pricePerSession: string;
   description: string;
   sessionsCount: number;
+  price: string;
+  pricePerSession: string;
+};
+
+type PackagePricingGroup = {
+  id: string;
+  serviceId: number;
   serviceTitle: string;
   serviceDurationMinutes: number;
+  options: PackagePricingOption[];
   featured?: boolean;
 };
 
@@ -44,6 +50,7 @@ type PricingCopy = {
   durationLabel: string;
   packageSectionTitle: string;
   packageSectionDescription: string;
+  packageCardTitlePrefix: string;
   packageSessionsLabel: string;
   packageBaseServiceLabel: string;
   packagePerSessionLabel: string;
@@ -59,10 +66,11 @@ const pricingCopyByLanguage: Record<"ru" | "en", PricingCopy> = {
     packageSectionTitle: "Пакеты консультаций",
     packageSectionDescription:
       "Можно выбрать пакет из нескольких сессий по отдельной цене. После оплаты клиент получает код, по которому сможет записываться на консультации.",
-    packageSessionsLabel: "сессий в пакете",
+    packageCardTitlePrefix: "Пакеты:",
+    packageSessionsLabel: "сессий",
     packageBaseServiceLabel: "Базовая услуга",
     packagePerSessionLabel: "≈ за сессию",
-    packageButton: "Купить пакет",
+    packageButton: "Купить",
   },
   en: {
     loading: "Loading current services...",
@@ -72,10 +80,11 @@ const pricingCopyByLanguage: Record<"ru" | "en", PricingCopy> = {
     packageSectionTitle: "Consultation packages",
     packageSectionDescription:
       "Choose a multi-session package at a separate price. After payment, the client receives a code to book sessions with it.",
-    packageSessionsLabel: "sessions in package",
+    packageCardTitlePrefix: "Packages:",
+    packageSessionsLabel: "sessions",
     packageBaseServiceLabel: "Base service",
     packagePerSessionLabel: "≈ per session",
-    packageButton: "Buy package",
+    packageButton: "Buy",
   },
 };
 
@@ -105,27 +114,49 @@ function mapPricingCards(
   }));
 }
 
-function mapPackagePricingCards(
+function mapPackagePricingGroups(
   packagePlans: PublicPricingPackagePlan[],
   currentLanguage: "ru" | "en"
-): PackagePricingCard[] {
-  return packagePlans.map((item, index) => {
+): PackagePricingGroup[] {
+  const groupsByService = new Map<number, PackagePricingGroup>();
+
+  packagePlans.forEach((item) => {
+    const currentGroup = groupsByService.get(item.serviceId);
+
     const pricePerSession =
       item.sessionsCount > 0 ? item.price / item.sessionsCount : item.price;
 
-    return {
+    const option: PackagePricingOption = {
       id: item.id,
       packagePlanId: item.packagePlanId,
       title: item.title,
-      price: formatServicePrice(item.price, currentLanguage),
-      pricePerSession: formatServicePrice(pricePerSession, currentLanguage),
       description: item.description?.trim() || "",
       sessionsCount: item.sessionsCount,
+      price: formatServicePrice(item.price, currentLanguage),
+      pricePerSession: formatServicePrice(pricePerSession, currentLanguage),
+    };
+
+    if (currentGroup) {
+      currentGroup.options.push(option);
+      return;
+    }
+
+    groupsByService.set(item.serviceId, {
+      id: `service-package-group-${item.serviceId}`,
+      serviceId: item.serviceId,
       serviceTitle: item.serviceTitle,
       serviceDurationMinutes: item.serviceDurationMinutes,
-      featured: index === 0,
-    };
+      options: [option],
+    });
   });
+
+  return Array.from(groupsByService.values()).map((group, index) => ({
+    ...group,
+    featured: index === 0,
+    options: [...group.options].sort(
+      (first, second) => first.sessionsCount - second.sessionsCount
+    ),
+  }));
 }
 
 export function Pricing() {
@@ -143,10 +174,10 @@ export function Pricing() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const serviceCardsRef = useRef<HTMLElement[]>([]);
-  const packageCardsRef = useRef<HTMLElement[]>([]);
+  const packageGroupCardsRef = useRef<HTMLElement[]>([]);
 
   const pricingCards = mapPricingCards(services, currentLanguage);
-  const packagePricingCards = mapPackagePricingCards(
+  const packagePricingGroups = mapPackagePricingGroups(
     packagePlans,
     currentLanguage
   );
@@ -154,7 +185,7 @@ export function Pricing() {
   const canShowPackagePlans =
     siteSettings.servicePackages.enabled &&
     siteSettings.servicePackages.publicPricingEnabled &&
-    packagePricingCards.length > 0;
+    packagePricingGroups.length > 0;
 
   useEffect(() => {
     let isActive = true;
@@ -216,7 +247,7 @@ export function Pricing() {
 
     const observedCards = [
       ...serviceCardsRef.current,
-      ...packageCardsRef.current,
+      ...packageGroupCardsRef.current,
     ].filter(Boolean);
 
     observedCards.forEach((el) => {
@@ -294,50 +325,73 @@ export function Pricing() {
             </div>
 
             <div className={styles.packageGrid}>
-              {packagePricingCards.map((item, index) => (
+              {packagePricingGroups.map((group, index) => (
                 <article
-                  key={item.id}
+                  key={group.id}
                   ref={(el) => {
                     if (el) {
-                      packageCardsRef.current[index] = el;
+                      packageGroupCardsRef.current[index] = el;
                     }
                   }}
                   className={`${styles.card} ${styles.packageCard} ${
-                    item.featured ? styles.packageFeatured : ""
+                    group.featured ? styles.packageFeatured : ""
                   }`}
                 >
                   <div className={styles.cardTop}>
                     <div className={styles.packageBadge}>
-                      {item.sessionsCount} {copy.packageSessionsLabel}
+                      {copy.packageBaseServiceLabel}
                     </div>
 
-                    <h3 className={styles.cardTitle}>{item.title}</h3>
-
-                    <p className={styles.price}>{item.price}</p>
+                    <h3 className={styles.cardTitle}>
+                      {copy.packageCardTitlePrefix} {group.serviceTitle}
+                    </h3>
 
                     <p className={styles.duration}>
-                      {item.pricePerSession} {copy.packagePerSessionLabel}
+                      {group.serviceDurationMinutes} {copy.durationLabel}
                     </p>
                   </div>
 
-                  <div className={styles.packageMeta}>
-                    <span>
-                      {copy.packageBaseServiceLabel}: {item.serviceTitle}
-                    </span>
-                    <span>
-                      {item.serviceDurationMinutes} {copy.durationLabel}
-                    </span>
+                  <div className={styles.packageOptions}>
+                    {group.options.map((option) => (
+                      <div key={option.id} className={styles.packageOption}>
+                        <div className={styles.packageOptionText}>
+                          <strong className={styles.packageOptionTitle}>
+                            {option.sessionsCount} {copy.packageSessionsLabel}
+                          </strong>
+
+                          {option.description ? (
+                            <span className={styles.packageOptionDescription}>
+                              {option.description}
+                            </span>
+                          ) : (
+                            <span className={styles.packageOptionDescription}>
+                              {option.title}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className={styles.packageOptionBuy}>
+                          <div className={styles.packageOptionPrice}>
+                            <strong>{option.price}</strong>
+                            <span>
+                              {option.pricePerSession}{" "}
+                              {copy.packagePerSessionLabel}
+                            </span>
+                          </div>
+
+                          <Button
+                            href={getPackagePurchaseTarget(
+                              option.packagePlanId
+                            )}
+                            variant="premium"
+                            className={styles.packageOptionButton}
+                          >
+                            {copy.packageButton}
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-
-                  <p className={styles.description}>{item.description}</p>
-
-                  <Button
-                    href={getPackagePurchaseTarget(item.packagePlanId)}
-                    variant="premium"
-                    fullWidth
-                  >
-                    {copy.packageButton}
-                  </Button>
                 </article>
               ))}
             </div>

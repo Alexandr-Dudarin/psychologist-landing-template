@@ -20,7 +20,7 @@ export const siteSettings = {
 
   servicePackages: {
     enabled: true,
-    publicPricingEnabled: false,
+    publicPricingEnabled: true,
   },
 
   premiumModules: {

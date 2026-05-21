@@ -243,14 +243,80 @@
   font-weight: 700;
 }
 
-.packageMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  margin: -6px 0 18px;
+.packageOptions {
+  display: grid;
+  gap: 12px;
+}
+
+.packageOption {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 84%, transparent);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--color-surface) 82%, white);
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.packageOption:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 26%, var(--color-border));
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface));
+  transform: translateY(-1px);
+}
+
+.packageOptionText {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.packageOptionTitle {
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.packageOptionDescription {
   color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.packageOptionBuy {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+  min-width: 150px;
+}
+
+.packageOptionPrice {
+  display: grid;
+  gap: 2px;
+  text-align: right;
+}
+
+.packageOptionPrice strong {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.packageOptionPrice span {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.packageOptionButton {
+  min-height: 40px;
+  padding-inline: 18px;
   font-size: 14px;
-  line-height: 1.5;
 }
 
 @media (max-width: 1199px) {
@@ -290,6 +356,25 @@
 
   .packageSectionTitle {
     font-size: 26px;
+  }
+}
+
+@media (max-width: 720px) {
+  .packageOption {
+    grid-template-columns: 1fr;
+  }
+
+  .packageOptionBuy {
+    justify-items: stretch;
+    min-width: 0;
+  }
+
+  .packageOptionPrice {
+    text-align: left;
+  }
+
+  .packageOptionButton {
+    width: 100%;
   }
 }
 
@@ -393,5 +478,9 @@
 
   .packageSectionTitle {
     font-size: 24px;
+  }
+
+  .packageOption {
+    padding: 14px;
   }
 }
