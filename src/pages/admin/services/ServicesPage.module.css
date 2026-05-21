@@ -56,11 +56,14 @@
   line-height: 1.45;
 }
 
+.packagePlansSection {
+  margin-top: 28px;
+}
+
 .packagePlansHeader {
   display: grid;
   gap: 8px;
-  margin-top: 28px;
-  margin-bottom: 16px;
+  margin: 0 0 16px;
 }
 
 .packagePlansTitle {
@@ -75,6 +78,12 @@
   max-width: 780px;
   color: var(--admin-text-muted);
   line-height: 1.45;
+}
+
+.packageFeedbackStack {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
 }
 
 .actionCell {

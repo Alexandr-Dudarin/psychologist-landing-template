@@ -279,7 +279,17 @@ export function ServicesPage() {
     };
   }, [editingPackagePlanId]);
 
-  const resetMessages = () => {
+  const resetServiceMessages = () => {
+    if (error) {
+      setError("");
+    }
+
+    if (successMessage) {
+      setSuccessMessage("");
+    }
+  };
+
+  const resetPackageMessages = () => {
     if (error) {
       setError("");
     }
@@ -297,16 +307,6 @@ export function ServicesPage() {
     }
   };
 
-  const resetPackageMessages = () => {
-    if (packageError) {
-      setPackageError("");
-    }
-
-    if (packageSuccessMessage) {
-      setPackageSuccessMessage("");
-    }
-  };
-
   const handleCreateFormChange = (
     field: keyof ServiceForm,
     value: string | boolean
@@ -315,7 +315,7 @@ export function ServicesPage() {
       ...prev,
       [field]: value,
     }));
-    resetMessages();
+    resetServiceMessages();
   };
 
   const handleEditFormChange = (
@@ -326,7 +326,7 @@ export function ServicesPage() {
       ...prev,
       [field]: value,
     }));
-    resetMessages();
+    resetServiceMessages();
   };
 
   const handlePackagePlanCreateFormChange = (
@@ -433,12 +433,16 @@ export function ServicesPage() {
     const validationError = validatePackagePlanPayload(payload);
 
     if (validationError) {
+      setError("");
+      setSuccessMessage("");
       setPackageError(validationError);
       setPackageSuccessMessage("");
       return;
     }
 
     setIsPackagePlanCreating(true);
+    setError("");
+    setSuccessMessage("");
     setPackageError("");
     setPackageSuccessMessage("");
 
@@ -554,12 +558,16 @@ export function ServicesPage() {
     const validationError = validatePackagePlanPayload(payload);
 
     if (validationError) {
+      setError("");
+      setSuccessMessage("");
       setPackageError(validationError);
       setPackageSuccessMessage("");
       return;
     }
 
     setIsPackagePlanUpdating(true);
+    setError("");
+    setSuccessMessage("");
     setPackageError("");
     setPackageSuccessMessage("");
 
@@ -643,6 +651,8 @@ export function ServicesPage() {
     }
 
     setHidingPackagePlanId(packagePlan.id);
+    setError("");
+    setSuccessMessage("");
     setPackageError("");
     setPackageSuccessMessage("");
 
@@ -712,6 +722,8 @@ export function ServicesPage() {
     }
 
     setDeletingPackagePlanId(id);
+    setError("");
+    setSuccessMessage("");
     setPackageError("");
     setPackageSuccessMessage("");
 
@@ -783,7 +795,7 @@ export function ServicesPage() {
             setActivityFilter(
               event.target.value as "all" | "active" | "inactive"
             );
-            resetMessages();
+            resetServiceMessages();
           }}
           className={`${styles.input} ${styles.filterSelect}`}
         >
@@ -797,7 +809,7 @@ export function ServicesPage() {
           value={searchQuery}
           onChange={(event) => {
             setSearchQuery(event.target.value);
-            resetMessages();
+            resetServiceMessages();
           }}
           placeholder="Поиск по названию или описанию"
           className={`${styles.input} ${styles.searchInput}`}
@@ -826,84 +838,88 @@ export function ServicesPage() {
         </AdminRefreshableTableArea>
       )}
 
-      <div className={styles.packagePlansHeader}>
-        <h2 className={styles.packagePlansTitle}>Пакеты услуг</h2>
-        <p className={styles.packagePlansDescription}>
-          Здесь можно создать пакеты на основе обычных услуг: например 4, 8 или
-          12 разовых сессий по отдельной цене.
-        </p>
-      </div>
-
-      <ServicePackagePlanCreateForm
-        form={packagePlanCreateForm}
-        isCreating={isPackagePlanCreating}
-        services={activeServices}
-        onChange={handlePackagePlanCreateFormChange}
-        onSubmit={handleCreatePackagePlan}
-      />
-
-      {editingPackagePlanId !== null ? (
-        <div ref={editPackagePlanFormRef}>
-          <ServicePackagePlanEditForm
-            form={packagePlanEditForm}
-            isUpdating={isPackagePlanUpdating}
-            services={items}
-            onCancel={cancelPackagePlanEditing}
-            onChange={handlePackagePlanEditFormChange}
-            onSubmit={handleUpdatePackagePlan}
-          />
+      <section className={styles.packagePlansSection}>
+        <div className={styles.packagePlansHeader}>
+          <h2 className={styles.packagePlansTitle}>Пакеты услуг</h2>
+          <p className={styles.packagePlansDescription}>
+            Здесь можно создать пакеты на основе обычных услуг: например 4, 8
+            или 12 разовых сессий по отдельной цене.
+          </p>
         </div>
-      ) : null}
 
-      <AdminFeedback message={packageError} tone="error" />
-      <AdminFeedback message={packageSuccessMessage} tone="success" />
-
-      <AdminFiltersRow>
-        <select
-          value={packageActivityFilter}
-          onChange={(event) => {
-            setPackageActivityFilter(
-              event.target.value as "all" | "active" | "inactive"
-            );
-            resetPackageMessages();
-          }}
-          className={`${styles.input} ${styles.filterSelect}`}
-        >
-          <option value="all">все пакеты</option>
-          <option value="active">только активные</option>
-          <option value="inactive">только скрытые</option>
-        </select>
-
-        <input
-          type="text"
-          value={packageSearchQuery}
-          onChange={(event) => {
-            setPackageSearchQuery(event.target.value);
-            resetPackageMessages();
-          }}
-          placeholder="Поиск по названию, описанию или базовой услуге"
-          className={`${styles.input} ${styles.searchInput}`}
+        <ServicePackagePlanCreateForm
+          form={packagePlanCreateForm}
+          isCreating={isPackagePlanCreating}
+          services={activeServices}
+          onChange={handlePackagePlanCreateFormChange}
+          onSubmit={handleCreatePackagePlan}
         />
-      </AdminFiltersRow>
 
-      {isPackagePlansInitialLoading ? (
-        <p>Загрузка пакетов...</p>
-      ) : displayedPackagePlans.length === 0 ? (
-        <AdminRefreshableTableArea isRefreshing={isPackagePlansRefreshing}>
-          <p className={styles.empty}>{packagePlansEmptyMessage}</p>
-        </AdminRefreshableTableArea>
-      ) : (
-        <AdminRefreshableTableArea isRefreshing={isPackagePlansRefreshing}>
-          <ServicePackagePlansTable
-            items={displayedPackagePlans}
-            deletingId={deletingPackagePlanId}
-            hidingId={hidingPackagePlanId}
-            onEdit={startEditingPackagePlan}
-            onDelete={handleDeletePackagePlan}
-            onHide={handleHidePackagePlan}
+        {editingPackagePlanId !== null ? (
+          <div ref={editPackagePlanFormRef}>
+            <ServicePackagePlanEditForm
+              form={packagePlanEditForm}
+              isUpdating={isPackagePlanUpdating}
+              services={items}
+              onCancel={cancelPackagePlanEditing}
+              onChange={handlePackagePlanEditFormChange}
+              onSubmit={handleUpdatePackagePlan}
+            />
+          </div>
+        ) : null}
+
+        <div className={styles.packageFeedbackStack}>
+          <AdminFeedback message={packageError} tone="error" />
+          <AdminFeedback message={packageSuccessMessage} tone="success" />
+        </div>
+
+        <AdminFiltersRow>
+          <select
+            value={packageActivityFilter}
+            onChange={(event) => {
+              setPackageActivityFilter(
+                event.target.value as "all" | "active" | "inactive"
+              );
+              resetPackageMessages();
+            }}
+            className={`${styles.input} ${styles.filterSelect}`}
+          >
+            <option value="all">все пакеты</option>
+            <option value="active">только активные</option>
+            <option value="inactive">только скрытые</option>
+          </select>
+
+          <input
+            type="text"
+            value={packageSearchQuery}
+            onChange={(event) => {
+              setPackageSearchQuery(event.target.value);
+              resetPackageMessages();
+            }}
+            placeholder="Поиск по названию, описанию или базовой услуге"
+            className={`${styles.input} ${styles.searchInput}`}
           />
-        </AdminRefreshableTableArea>
-      )}
+        </AdminFiltersRow>
+
+        {isPackagePlansInitialLoading ? (
+          <p>Загрузка пакетов...</p>
+        ) : displayedPackagePlans.length === 0 ? (
+          <AdminRefreshableTableArea isRefreshing={isPackagePlansRefreshing}>
+            <p className={styles.empty}>{packagePlansEmptyMessage}</p>
+          </AdminRefreshableTableArea>
+        ) : (
+          <AdminRefreshableTableArea isRefreshing={isPackagePlansRefreshing}>
+            <ServicePackagePlansTable
+              items={displayedPackagePlans}
+              deletingId={deletingPackagePlanId}
+              hidingId={hidingPackagePlanId}
+              onEdit={startEditingPackagePlan}
+              onDelete={handleDeletePackagePlan}
+              onHide={handleHidePackagePlan}
+            />
+          </AdminRefreshableTableArea>
+        )}
+      </section>
     </main>
   );
 }
