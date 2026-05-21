@@ -18,6 +18,25 @@ import styles from "./PaymentSuccessPage.module.css";
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLL_ATTEMPTS = 7;
 
+function getPackageBookingTarget(params: {
+  code?: string;
+  email?: string;
+}): string {
+  const searchParams = new URLSearchParams();
+
+  searchParams.set("mode", "package");
+
+  if (params.code?.trim()) {
+    searchParams.set("packageCode", params.code.trim());
+  }
+
+  if (params.email?.trim()) {
+    searchParams.set("packageContact", params.email.trim());
+  }
+
+  return `/book?${searchParams.toString()}`;
+}
+
 export function PaymentSuccessPage() {
   const [searchParams] = useSearchParams();
   const [payment, setPayment] = useState<PaymentStatusResponse | null>(null);
@@ -134,6 +153,11 @@ export function PaymentSuccessPage() {
   const bookingStartsAt = payment?.booking.startsAt ?? "";
   const servicePackage = payment?.servicePackage ?? null;
 
+  const packageBookingTarget = getPackageBookingTarget({
+    code: servicePackage?.code,
+    email: servicePackage?.email,
+  });
+
   const isPending = payment?.status === "pending";
   const isCancelled = payment?.status === "cancelled";
   const isPaidBooking =
@@ -184,7 +208,7 @@ export function PaymentSuccessPage() {
                 Пожалуйста, подождите: мы проверяем статус оплаты.
               </p>
             ) : isPaidPackage && servicePackage ? (
-              <div className={styles.details}>
+              <div className={`${styles.details} ${styles.packageDetails}`}>
                 <p>
                   <strong>Пакет:</strong> {servicePackage.packageTitle}
                 </p>
@@ -303,7 +327,7 @@ export function PaymentSuccessPage() {
                 </div>
               ) : isPaidPackage ? (
                 <div className={styles.actionLinks}>
-                  <Button href="/book" variant="premium">
+                  <Button href={packageBookingTarget} variant="premium">
                     Записаться по пакету
                   </Button>
 

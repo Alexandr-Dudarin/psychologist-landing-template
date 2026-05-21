@@ -450,6 +450,27 @@ export function BookingPage() {
 
     const modeParam = searchParams.get("mode");
     const rawPackagePlanId = Number(searchParams.get("packagePlanId"));
+    const packageCodeFromUrl = searchParams.get("packageCode")?.trim() ?? "";
+    const packageContactFromUrl =
+      searchParams.get("packageContact")?.trim() ?? "";
+
+    if (modeParam === "package") {
+      hasAppliedInitialSearchParams.current = true;
+
+      setBookingMode("package");
+      setSelectedServiceId(null);
+      setSelectedPackagePlanId(null);
+      setSelectedDate("");
+      setSelectedSlot(null);
+      setSubmitError(null);
+      setSubmitSuccess(null);
+      setVerifiedPackage(null);
+      setPackageLookupError(null);
+      setPackageCode(packageCodeFromUrl);
+      setPackageContact(packageContactFromUrl);
+
+      return;
+    }
 
     if (modeParam === "buy-package" && isPackagePurchaseFeatureEnabled) {
       hasAppliedInitialSearchParams.current = true;
@@ -502,7 +523,7 @@ export function BookingPage() {
     };
   }, [copy.errorFallback]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (isLoading) {
       return;
     }

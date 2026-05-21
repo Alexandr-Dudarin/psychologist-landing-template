@@ -55,13 +55,25 @@ export function BookingSummary({
     clientPackage?.remainingSessions ??
     null;
 
-  useEffect(() => {
-    if (selectedService) setAnimateField("service");
-  }, [selectedService]);
+  const selectedServiceAnimationKey = selectedService
+    ? `${selectedService.id}:${selectedService.title}`
+    : "";
+
+  const packageAnimationKey = packageTitle
+    ? `${packageTitle}:${packageCode}:${packageRemaining ?? ""}`
+    : "";
 
   useEffect(() => {
-    if (packageTitle) setAnimateField("package");
-  }, [packageTitle]);
+    if (selectedServiceAnimationKey) {
+      setAnimateField("service");
+    }
+  }, [selectedServiceAnimationKey]);
+
+  useEffect(() => {
+    if (packageAnimationKey) {
+      setAnimateField("package");
+    }
+  }, [packageAnimationKey]);
 
   useEffect(() => {
     if (selectedDate) setAnimateField("date");

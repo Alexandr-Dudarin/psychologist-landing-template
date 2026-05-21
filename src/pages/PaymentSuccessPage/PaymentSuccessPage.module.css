@@ -74,9 +74,15 @@
   margin: 4px 0;
 }
 
+.packageDetails {
+  width: min(100%, 380px);
+}
+
 .codeBox {
-  margin: 18px 0 14px;
+  width: min(100%, 320px);
+  margin: 18px auto 14px;
   padding: 16px 18px;
+
   display: grid;
   gap: 6px;
 
@@ -99,13 +105,16 @@
 }
 
 .packageHint {
-  margin-top: 12px !important;
+  max-width: 340px;
+  margin: 12px auto 0 !important;
   color: var(--color-text-muted);
   font-size: 14px;
   line-height: 1.55;
+  text-align: center;
 }
 
 .note {
+  max-width: 360px;
   margin-top: 16px;
   color: var(--color-text-muted);
 }
