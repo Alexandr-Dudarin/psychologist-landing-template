@@ -1,4 +1,5 @@
-.grid {
+.grid,
+.packageGrid {
   margin-top: 40px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -170,16 +171,91 @@
   opacity: 0.8;
 }
 
-.card :global(button) {
+.card :global(button),
+.card :global(a) {
   transition: transform 0.2s ease;
 }
 
-.card:hover :global(button) {
+.card:hover :global(button),
+.card:hover :global(a) {
   transform: translateY(-1px);
 }
 
+.packageSection {
+  margin-top: 64px;
+}
+
+.packageSectionHeader {
+  max-width: 720px;
+}
+
+.packageSectionTitle {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.packageSectionDescription {
+  margin: 12px 0 0;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.packageCard {
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      color-mix(in srgb, var(--color-accent) 10%, transparent),
+      transparent 58%
+    ),
+    var(--color-surface);
+}
+
+.packageFeatured {
+  border-color: color-mix(in srgb, var(--color-accent) 46%, var(--color-border));
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      color-mix(in srgb, var(--color-accent) 16%, transparent),
+      transparent 62%
+    ),
+    var(--color-surface-strong);
+}
+
+.packageBadge {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  padding: 5px 12px;
+
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
+  color: var(--color-accent);
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.packageMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: -6px 0 18px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 @media (max-width: 1199px) {
-  .grid {
+  .grid,
+  .packageGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 20px;
   }
@@ -190,7 +266,8 @@
 }
 
 @media (max-width: 960px) {
-  .grid {
+  .grid,
+  .packageGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
   }
@@ -206,10 +283,20 @@
   .price {
     font-size: 28px;
   }
+
+  .packageSection {
+    margin-top: 52px;
+  }
+
+  .packageSectionTitle {
+    font-size: 26px;
+  }
 }
 
 @media (max-width: 640px) {
-  .grid {
+  .grid,
+  .packageGrid {
+    position: relative;
     display: flex;
     overflow-x: auto;
     gap: 14px;
@@ -219,10 +306,10 @@
     scroll-padding-left: 16px;
 
     -webkit-overflow-scrolling: touch;
-    position: relative;
   }
 
-  .grid::-webkit-scrollbar {
+  .grid::-webkit-scrollbar,
+  .packageGrid::-webkit-scrollbar {
     display: none;
   }
 
@@ -237,10 +324,20 @@
   .featured {
     transform: none;
   }
+
+  .packageSection {
+    margin-top: 44px;
+  }
+
+  .packageSectionDescription {
+    font-size: 15px;
+  }
 }
 
 .grid::before,
-.grid::after {
+.grid::after,
+.packageGrid::before,
+.packageGrid::after {
   content: "";
   position: absolute;
   top: 0;
@@ -250,7 +347,8 @@
   z-index: 2;
 }
 
-.grid::before {
+.grid::before,
+.packageGrid::before {
   left: 0;
   background: linear-gradient(
     to right,
@@ -259,7 +357,8 @@
   );
 }
 
-.grid::after {
+.grid::after,
+.packageGrid::after {
   right: 0;
   background: linear-gradient(
     to left,
@@ -269,7 +368,8 @@
 }
 
 @media (max-width: 420px) {
-  .grid {
+  .grid,
+  .packageGrid {
     gap: 12px;
   }
 
@@ -289,5 +389,9 @@
 
   .description {
     font-size: 15px;
+  }
+
+  .packageSectionTitle {
+    font-size: 24px;
   }
 }
