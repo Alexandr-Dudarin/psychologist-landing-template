@@ -14,6 +14,7 @@ export type BookingPageCopy = {
   bookingModeHint: string;
   regularBookingLabel: string;
   packageBookingLabel: string;
+  packagePurchaseLabel: string;
 
   packageLookupTitle: string;
   packageLookupHint: string;
@@ -30,6 +31,14 @@ export type BookingPageCopy = {
   packageService: string;
   packageReadOnlyHint: string;
   packageLookupRequiredError: string;
+
+  packagePurchaseTitle: string;
+  packagePurchaseHint: string;
+  packagePurchaseEmpty: string;
+  packagePurchaseButton: string;
+  packagePurchaseSelectedHint: string;
+  packageBaseService: string;
+  packageSessionsCount: string;
 
   serviceTitle: string;
   serviceHint: string;

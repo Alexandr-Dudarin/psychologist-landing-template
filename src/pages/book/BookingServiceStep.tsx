@@ -4,25 +4,30 @@ import type {
   PublicBookingPackageInfo,
   PublicBookingService,
 } from "../../types/booking";
+import type { PublicPricingPackagePlan } from "../../lib/services/getPublicPricingServices";
 import { formatPrice } from "./bookingPage.helpers";
 import type { BookingPageCopy } from "./bookingPage.types";
 import pageStyles from "./BookingPage.module.css";
 import styles from "./BookingServiceStep.module.css";
 
-type BookingMode = "regular" | "package";
+type BookingMode = "regular" | "package" | "buy-package";
 
 type BookingServiceStepProps = {
   copy: BookingPageCopy;
   currentLanguage: "ru" | "en";
   services: PublicBookingService[];
+  packagePlans: PublicPricingPackagePlan[];
   selectedServiceId: number | null;
+  selectedPackagePlanId: number | null;
   bookingMode: BookingMode;
+  showPackagePurchaseMode: boolean;
   packageCode: string;
   packageContact: string;
   packageInfo: PublicBookingPackageInfo | null;
   packageLookupError: string | null;
   isLookingUpPackage: boolean;
   onSelect: (serviceId: number) => void;
+  onPackagePlanSelect: (packagePlanId: number) => void;
   onBookingModeChange: (mode: BookingMode) => void;
   onPackageCodeChange: (value: string) => void;
   onPackageContactChange: (value: string) => void;
@@ -34,14 +39,18 @@ export function BookingServiceStep({
   copy,
   currentLanguage,
   services,
+  packagePlans,
   selectedServiceId,
+  selectedPackagePlanId,
   bookingMode,
+  showPackagePurchaseMode,
   packageCode,
   packageContact,
   packageInfo,
   packageLookupError,
   isLookingUpPackage,
   onSelect,
+  onPackagePlanSelect,
   onBookingModeChange,
   onPackageCodeChange,
   onPackageContactChange,
@@ -49,6 +58,7 @@ export function BookingServiceStep({
   onPackageReset,
 }: BookingServiceStepProps) {
   const isPackageMode = bookingMode === "package";
+  const isBuyPackageMode = bookingMode === "buy-package";
 
   return (
     <div className={pageStyles.section}>
@@ -66,6 +76,7 @@ export function BookingServiceStep({
         <div className={styles.modeControls} role="group">
           <button
             type="button"
+            aria-pressed={bookingMode === "regular"}
             className={`${styles.modeButton} ${
               bookingMode === "regular" ? styles.modeButtonActive : ""
             }`}
@@ -76,6 +87,7 @@ export function BookingServiceStep({
 
           <button
             type="button"
+            aria-pressed={bookingMode === "package"}
             className={`${styles.modeButton} ${
               bookingMode === "package" ? styles.modeButtonActive : ""
             }`}
@@ -83,6 +95,19 @@ export function BookingServiceStep({
           >
             {copy.packageBookingLabel}
           </button>
+
+          {showPackagePurchaseMode ? (
+            <button
+              type="button"
+              aria-pressed={bookingMode === "buy-package"}
+              className={`${styles.modeButton} ${
+                bookingMode === "buy-package" ? styles.modeButtonActive : ""
+              }`}
+              onClick={() => onBookingModeChange("buy-package")}
+            >
+              {copy.packagePurchaseLabel}
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -140,7 +165,9 @@ export function BookingServiceStep({
               </button>
 
               {packageLookupError ? (
-                <div className={`${pageStyles.stateBox} ${pageStyles.errorBox}`}>
+                <div
+                  className={`${pageStyles.stateBox} ${pageStyles.errorBox} ${styles.packageLookupError}`}
+                >
                   {packageLookupError}
                 </div>
               ) : null}
@@ -176,42 +203,123 @@ export function BookingServiceStep({
             </div>
           )}
         </div>
-      ) : services.length === 0 ? (
-        <div className={pageStyles.stateBox}>{copy.serviceEmpty}</div>
-      ) : (
-        <div className={styles.servicesGrid}>
-          {services.map((service) => {
-            const isActive = service.id === selectedServiceId;
+      ) : null}
 
-            return (
-              <button
-                key={service.id}
-                type="button"
-                className={`${styles.serviceCard} ${
-                  isActive ? styles.serviceCardActive : ""
-                }`}
-                onClick={() => onSelect(service.id)}
-              >
-                <h3 className={styles.serviceCardTitle}>{service.title}</h3>
-                <div className={styles.serviceCardMeta}>
-                  <span>
-                    {copy.duration}: {service.durationMinutes}{" "}
-                    {copy.durationUnit}
-                  </span>
-                  <span>
-                    {copy.price}: {formatPrice(service.price, currentLanguage)}
-                  </span>
-                </div>
-                {service.description ? (
-                  <p className={styles.serviceCardDescription}>
-                    {service.description}
-                  </p>
-                ) : null}
-              </button>
-            );
-          })}
+      {isBuyPackageMode ? (
+        <div className={styles.packageBox}>
+          <div className={styles.packageHeader}>
+            <div>
+              <h3 className={styles.packageTitle}>
+                {copy.packagePurchaseTitle}
+              </h3>
+              <p className={styles.packageHint}>{copy.packagePurchaseHint}</p>
+            </div>
+          </div>
+
+          {packagePlans.length === 0 ? (
+            <div className={pageStyles.stateBox}>
+              {copy.packagePurchaseEmpty}
+            </div>
+          ) : (
+            <div className={styles.packagePlansGrid}>
+              {packagePlans.map((packagePlan) => {
+                const isActive =
+                  packagePlan.packagePlanId === selectedPackagePlanId;
+
+                return (
+                  <button
+                    key={packagePlan.id}
+                    type="button"
+                    className={`${styles.packagePlanCard} ${
+                      isActive ? styles.packagePlanCardActive : ""
+                    }`}
+                    onClick={() =>
+                      onPackagePlanSelect(packagePlan.packagePlanId)
+                    }
+                  >
+                    <div className={styles.packagePlanTop}>
+                      <h3 className={styles.packagePlanTitle}>
+                        {packagePlan.title}
+                      </h3>
+
+                      <p className={styles.packagePlanPrice}>
+                        {formatPrice(packagePlan.price, currentLanguage)}
+                      </p>
+                    </div>
+
+                    <div className={styles.packagePlanMeta}>
+                      <span>
+                        {copy.packageSessionsCount}:{" "}
+                        {packagePlan.sessionsCount}
+                      </span>
+                      <span>
+                        {copy.packageBaseService}: {packagePlan.serviceTitle}
+                      </span>
+                      <span>
+                        {copy.duration}:{" "}
+                        {packagePlan.serviceDurationMinutes}{" "}
+                        {copy.durationUnit}
+                      </span>
+                    </div>
+
+                    {packagePlan.description ? (
+                      <p className={styles.packagePlanDescription}>
+                        {packagePlan.description}
+                      </p>
+                    ) : null}
+
+                    <span className={styles.packagePlanAction}>
+                      {isActive
+                        ? copy.packagePurchaseSelectedHint
+                        : copy.packagePurchaseButton}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
+      ) : null}
+
+      {!isPackageMode && !isBuyPackageMode ? (
+        services.length === 0 ? (
+          <div className={pageStyles.stateBox}>{copy.serviceEmpty}</div>
+        ) : (
+          <div className={styles.servicesGrid}>
+            {services.map((service) => {
+              const isActive = service.id === selectedServiceId;
+
+              return (
+                <button
+                  key={service.id}
+                  type="button"
+                  className={`${styles.serviceCard} ${
+                    isActive ? styles.serviceCardActive : ""
+                  }`}
+                  onClick={() => onSelect(service.id)}
+                >
+                  <h3 className={styles.serviceCardTitle}>{service.title}</h3>
+                  <div className={styles.serviceCardMeta}>
+                    <span>
+                      {copy.duration}: {service.durationMinutes}{" "}
+                      {copy.durationUnit}
+                    </span>
+                    <span>
+                      {copy.price}:{" "}
+                      {formatPrice(service.price, currentLanguage)}
+                    </span>
+                  </div>
+                  {service.description ? (
+                    <p className={styles.serviceCardDescription}>
+                      {service.description}
+                    </p>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        )
+      ) : null}
     </div>
   );
 }

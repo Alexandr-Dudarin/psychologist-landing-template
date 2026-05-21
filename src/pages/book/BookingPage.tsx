@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Container } from "../../components/Container/Container";
@@ -32,6 +32,10 @@ import { BookingServiceStep } from "./BookingServiceStep";
 import { BookingSlotsStep } from "./BookingSlotsStep";
 import { BookingSummary } from "./BookingSummary";
 import {
+  getPublicPricingPackagePlans,
+  type PublicPricingPackagePlan,
+} from "../../lib/services/getPublicPricingServices";
+import {
   initialFormState,
   type BookingFormErrors,
   type BookingFormState,
@@ -39,7 +43,7 @@ import {
 } from "./bookingPage.types";
 import styles from "./BookingPage.module.css";
 
-type BookingMode = "regular" | "package";
+type BookingMode = "regular" | "package" | "buy-package";
 
 const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
   ru: {
@@ -50,9 +54,10 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
 
     bookingModeTitle: "Как вы хотите записаться?",
     bookingModeHint:
-      "Можно выбрать обычную разовую запись или использовать уже выданный код пакета.",
+      "Можно выбрать обычную разовую запись, использовать уже выданный код пакета или купить новый пакет консультаций.",
     regularBookingLabel: "Обычная запись",
     packageBookingLabel: "По пакету",
+    packagePurchaseLabel: "Купить пакет",
 
     packageLookupTitle: "Запись по коду пакета",
     packageLookupHint:
@@ -71,6 +76,16 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     packageReadOnlyHint:
       "Услуга и длительность подтянуты из пакета. Запись по пакету не отправляется на оплату.",
     packageLookupRequiredError: "Введите код пакета и телефон или email.",
+
+    packagePurchaseTitle: "Купить пакет консультаций",
+    packagePurchaseHint:
+      "Выберите подходящий пакет. После оплаты вы получите код, по которому сможете записываться на консультации.",
+    packagePurchaseEmpty:
+      "Сейчас нет активных пакетов для публичной покупки.",
+    packagePurchaseButton: "Выбрать пакет",
+    packagePurchaseSelectedHint: "Пакет выбран",
+    packageBaseService: "Базовая услуга",
+    packageSessionsCount: "Сессий в пакете",
 
     serviceTitle: "1. Услуга",
     serviceHint: "Показываются только активные услуги из текущей CRM.",
@@ -131,9 +146,10 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
 
     bookingModeTitle: "How would you like to book?",
     bookingModeHint:
-      "Choose a regular one-time booking or use an existing package code.",
+      "Choose a regular one-time booking, use an existing package code, or buy a new package.",
     regularBookingLabel: "Regular booking",
     packageBookingLabel: "Use package",
+    packagePurchaseLabel: "Buy package",
 
     packageLookupTitle: "Book with a package code",
     packageLookupHint:
@@ -152,6 +168,16 @@ const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     packageReadOnlyHint:
       "Service and duration are taken from the package. Package bookings do not go to payment.",
     packageLookupRequiredError: "Enter the package code and phone or email.",
+
+    packagePurchaseTitle: "Buy a consultation package",
+    packagePurchaseHint:
+      "Choose a suitable package. After payment, you will receive a code to book sessions with it.",
+    packagePurchaseEmpty:
+      "There are no active packages available for public purchase right now.",
+    packagePurchaseButton: "Choose package",
+    packagePurchaseSelectedHint: "Package selected",
+    packageBaseService: "Base service",
+    packageSessionsCount: "Sessions in package",
 
     serviceTitle: "1. Service",
     serviceHint: "Only active services from the current CRM are shown here.",
@@ -216,6 +242,18 @@ function getServiceFromPackage(
   };
 }
 
+function getServiceFromPackagePlan(
+  packagePlan: PublicPricingPackagePlan
+): PublicBookingService {
+  return {
+    id: packagePlan.serviceId,
+    title: packagePlan.title,
+    description: packagePlan.description ?? "",
+    price: packagePlan.price,
+    durationMinutes: packagePlan.serviceDurationMinutes,
+  };
+}
+
 function splitClientName(fullName: string) {
   const normalizedName = fullName.trim().replace(/\s+/g, " ");
   const [firstName = "", ...rest] = normalizedName.split(" ");
@@ -262,6 +300,9 @@ function getPreferredContactFallback(
 export function BookingPage() {
   const { language, t } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const hasAppliedInitialSearchParams = useRef(false);
+
   const currentLanguage = language === "en" ? "en" : "ru";
   const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
   const weekStartsOn = currentLanguage === "ru" ? 1 : 0;
@@ -278,9 +319,15 @@ export function BookingPage() {
   const [data, setData] = useState<PublicBookingAvailabilityResponse | null>(
     null
   );
+  const [packagePlans, setPackagePlans] = useState<PublicPricingPackagePlan[]>(
+    []
+  );
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
     null
   );
+  const [selectedPackagePlanId, setSelectedPackagePlanId] = useState<
+    number | null
+  >(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [visibleMonth, setVisibleMonth] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<PublicBookingSlot | null>(
@@ -310,22 +357,78 @@ export function BookingPage() {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const isCompleted = Boolean(confirmedBooking);
+  const isPackagePurchaseMode = bookingMode === "buy-package";
+
+  const isPackagePurchaseFeatureEnabled =
+    siteSettings.servicePackages.enabled &&
+    siteSettings.servicePackages.publicPricingEnabled;
+
+  const isPackagePurchaseAvailable =
+    isPackagePurchaseFeatureEnabled && packagePlans.length > 0;
+
   const isPackageBooking = bookingMode === "package" && Boolean(verifiedPackage);
-  const shouldUsePayment = isPaymentEnabled && !isPackageBooking;
+  const shouldUsePayment =
+    isPaymentEnabled && bookingMode === "regular" && !isPackageBooking;
+  const shouldSubmitThroughPayment =
+    isPaymentEnabled && (bookingMode === "regular" || isPackagePurchaseMode);
 
   const baseCopy = copyByLanguage[currentLanguage];
   const copy: BookingPageCopy = {
     ...baseCopy,
-    submitIdle: shouldUsePayment
+    serviceTitle: isPackagePurchaseMode
+      ? currentLanguage === "ru"
+        ? "1. Пакет услуг"
+        : "1. Package"
+      : baseCopy.serviceTitle,
+    serviceHint: isPackagePurchaseMode
+      ? currentLanguage === "ru"
+        ? "Выберите пакет консультаций. После оплаты вы получите код для записи."
+        : "Choose a consultation package. After payment, you will receive a booking code."
+      : baseCopy.serviceHint,
+    formTitle: isPackagePurchaseMode
+      ? currentLanguage === "ru"
+        ? "2. Данные для покупки пакета"
+        : "2. Package purchase details"
+      : baseCopy.formTitle,
+    formHint: isPackagePurchaseMode
+      ? currentLanguage === "ru"
+        ? "Укажите данные клиента. После оплаты пакет будет привязан к этому клиенту, а код придёт на email."
+        : "Enter client details. After payment, the package will be linked to this client and the code will be sent by email."
+      : baseCopy.formHint,
+    formDisabled: isPackagePurchaseMode
+      ? currentLanguage === "ru"
+        ? "Выберите пакет, чтобы заполнить данные и перейти к оплате."
+        : "Choose a package to fill in your details and proceed to payment."
+      : baseCopy.formDisabled,
+    summaryFootnote: isPackagePurchaseMode
+      ? currentLanguage === "ru"
+        ? "После оплаты пакет будет создан в CRM, а код можно будет использовать для записи на консультации."
+        : "After payment, the package will be created in CRM and the code can be used for booking sessions."
+      : baseCopy.summaryFootnote,
+    submitIdle: shouldSubmitThroughPayment
       ? currentLanguage === "ru"
         ? "Перейти к оплате"
         : "Proceed to payment"
       : baseCopy.submitIdle,
-    submitLoading: shouldUsePayment
+    submitLoading: shouldSubmitThroughPayment
       ? currentLanguage === "ru"
         ? "Переходим к оплате..."
         : "Redirecting to payment..."
       : baseCopy.submitLoading,
+  };
+
+  const resetPackageState = () => {
+    setPackageCode("");
+    setPackageContact("");
+    setVerifiedPackage(null);
+    setPackageLookupError(null);
+  };
+
+  const resetSelectionAfterServiceChange = () => {
+    setSelectedDate("");
+    setSelectedSlot(null);
+    setSubmitError(null);
+    setSubmitSuccess(null);
   };
 
   useEffect(() => {
@@ -341,6 +444,27 @@ export function BookingPage() {
   }, [isRedirecting]);
 
   useEffect(() => {
+    if (hasAppliedInitialSearchParams.current) {
+      return;
+    }
+
+    const modeParam = searchParams.get("mode");
+    const rawPackagePlanId = Number(searchParams.get("packagePlanId"));
+
+    if (modeParam === "buy-package" && isPackagePurchaseFeatureEnabled) {
+      hasAppliedInitialSearchParams.current = true;
+      setBookingMode("buy-package");
+      setSelectedServiceId(null);
+      resetPackageState();
+      resetSelectionAfterServiceChange();
+
+      if (Number.isInteger(rawPackagePlanId) && rawPackagePlanId > 0) {
+        setSelectedPackagePlanId(rawPackagePlanId);
+      }
+    }
+  }, [isPackagePurchaseFeatureEnabled, searchParams]);
+
+  useEffect(() => {
     let isActive = true;
 
     async function loadInitialData() {
@@ -348,13 +472,17 @@ export function BookingPage() {
       setError(null);
 
       try {
-        const response = await getPublicBookingAvailability();
+        const [availabilityResponse, packagePlanItems] = await Promise.all([
+          getPublicBookingAvailability(),
+          getPublicPricingPackagePlans(),
+        ]);
 
         if (!isActive) return;
 
-        setData(response);
+        setData(availabilityResponse);
+        setPackagePlans(packagePlanItems);
         setVisibleMonth(
-          (current) => current || getInitialVisibleMonth(response, "")
+          (current) => current || getInitialVisibleMonth(availabilityResponse, "")
         );
       } catch (loadError) {
         if (!isActive) return;
@@ -373,6 +501,25 @@ export function BookingPage() {
       isActive = false;
     };
   }, [copy.errorFallback]);
+
+    useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    if (bookingMode !== "buy-package") {
+      return;
+    }
+
+    if (isPackagePurchaseAvailable) {
+      return;
+    }
+
+    setBookingMode("regular");
+    setSelectedPackagePlanId(null);
+    setSelectedServiceId(null);
+    resetSelectionAfterServiceChange();
+  }, [bookingMode, isLoading, isPackagePurchaseAvailable]);
 
   const resolvedVisibleMonth =
     visibleMonth || getInitialVisibleMonth(data, selectedDate);
@@ -429,32 +576,28 @@ export function BookingPage() {
   }, [copy.errorFallback, resolvedVisibleMonth, selectedDate, selectedServiceId]);
 
   const services = data?.services ?? [];
+  const selectedPackagePlan =
+    packagePlans.find((item) => item.packagePlanId === selectedPackagePlanId) ??
+    null;
   const selectedServiceFromList = getSelectedService(services, selectedServiceId);
   const selectedService =
     selectedServiceFromList ??
     (verifiedPackage && selectedServiceId === verifiedPackage.serviceId
       ? getServiceFromPackage(verifiedPackage)
       : null);
+  const selectedSummaryService =
+    selectedService ??
+    (isPackagePurchaseMode && selectedPackagePlan
+      ? getServiceFromPackagePlan(selectedPackagePlan)
+      : null);
   const slots = data?.slots ?? [];
   const monthAvailability = data?.monthAvailability ?? [];
-  const isFormEnabled = Boolean(selectedService && selectedDate && selectedSlot);
+  const isFormEnabled = isPackagePurchaseMode
+    ? Boolean(selectedPackagePlan)
+    : Boolean(selectedService && selectedDate && selectedSlot);
   const datesMeta = buildCalendarDatesMeta({ monthAvailability, copy });
   const bookingTimezone = data?.timezone ?? getDefaultBookingTimezone();
   const timezoneLabel = getTimezoneLabel(bookingTimezone, currentLanguage);
-
-  const resetPackageState = () => {
-    setPackageCode("");
-    setPackageContact("");
-    setVerifiedPackage(null);
-    setPackageLookupError(null);
-  };
-
-  const resetSelectionAfterServiceChange = () => {
-    setSelectedDate("");
-    setSelectedSlot(null);
-    setSubmitError(null);
-    setSubmitSuccess(null);
-  };
 
   const handleFormChange = <Field extends keyof BookingFormState>(
     field: Field,
@@ -474,14 +617,35 @@ export function BookingPage() {
 
     setBookingMode(mode);
     setSelectedServiceId(null);
+    setSelectedPackagePlanId(null);
     resetSelectionAfterServiceChange();
     setError(null);
     setSubmitError(null);
     setSubmitSuccess(null);
 
-    if (mode === "regular") {
+    if (mode !== "package") {
       resetPackageState();
     }
+  };
+
+  const handlePackagePlanSelect = (packagePlanId: number) => {
+    if (isCompleted) return;
+
+    setSelectedPackagePlanId(packagePlanId);
+    setSelectedServiceId(null);
+    resetSelectionAfterServiceChange();
+    setSubmitError(null);
+    setSubmitSuccess(null);
+
+    setPulseSummary(true);
+    window.setTimeout(() => setPulseSummary(false), 400);
+
+    window.setTimeout(() => {
+      formRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 120);
   };
 
   const handlePackageReset = () => {
@@ -585,11 +749,84 @@ export function BookingPage() {
     });
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const redirectToPayment = (confirmationUrl: string) => {
+    const target = new URL(confirmationUrl, window.location.origin);
 
-    if (isSubmitting) return;
+    setIsRedirecting(true);
 
+    if (target.origin === window.location.origin) {
+      navigate(`${target.pathname}${target.search}${target.hash}`);
+      return;
+    }
+
+    window.location.href = confirmationUrl;
+  };
+
+  const handleSubmitPackagePurchase = async () => {
+    if (!selectedPackagePlan) {
+      setSubmitError(copy.formDisabled);
+      return;
+    }
+
+    if (!isPaymentEnabled) {
+      setSubmitError(
+        currentLanguage === "ru"
+          ? "Оплата пакетов сейчас недоступна."
+          : "Package payments are currently unavailable."
+      );
+      return;
+    }
+
+    const validationErrors = validateForm(
+      form,
+      bookingContent,
+      preferredContactSettings
+    );
+    setFormErrors(validationErrors);
+    setSubmitError(null);
+    setSubmitSuccess(null);
+
+    if (Object.keys(validationErrors).length > 0) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const currentRequestId = requestId ?? crypto.randomUUID();
+      setRequestId(currentRequestId);
+
+      const payment = await createPayment({
+        requestId: currentRequestId,
+        paymentKind: "service_package",
+        packagePlanId: selectedPackagePlan.packagePlanId,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        preferredContactMethod: preferredContactSettings.enabled
+          ? form.preferredContactMethod
+          : "",
+        preferredContactValue: preferredContactSettings.enabled
+          ? form.preferredContactValue.trim()
+          : "",
+        consent: form.consent,
+      });
+
+      redirectToPayment(payment.confirmationUrl);
+    } catch (submitErrorValue) {
+      setIsRedirecting(false);
+
+      const publicError = submitErrorValue as Error & {
+        code?: string;
+        status?: number;
+      };
+
+      setSubmitError(publicError.message || copy.submitErrorFallback);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmitBooking = async () => {
     if (!selectedService || !selectedSlot) {
       setSubmitError(copy.formDisabled);
       return;
@@ -643,16 +880,7 @@ export function BookingPage() {
 
       if (shouldUsePayment) {
         const payment = await createPayment(payload);
-        const target = new URL(payment.confirmationUrl, window.location.origin);
-
-        setIsRedirecting(true);
-
-        if (target.origin === window.location.origin) {
-          navigate(`${target.pathname}${target.search}${target.hash}`);
-          return;
-        }
-
-        window.location.href = payment.confirmationUrl;
+        redirectToPayment(payment.confirmationUrl);
         return;
       }
 
@@ -703,6 +931,19 @@ export function BookingPage() {
     }
   };
 
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (isSubmitting) return;
+
+    if (isPackagePurchaseMode) {
+      await handleSubmitPackagePurchase();
+      return;
+    }
+
+    await handleSubmitBooking();
+  };
+
   return (
     <main className={styles.page}>
       <Container>
@@ -728,14 +969,18 @@ export function BookingPage() {
                   copy={copy}
                   currentLanguage={currentLanguage}
                   services={services}
+                  packagePlans={packagePlans}
                   selectedServiceId={selectedServiceId}
+                  selectedPackagePlanId={selectedPackagePlanId}
                   bookingMode={bookingMode}
+                  showPackagePurchaseMode={isPackagePurchaseAvailable}
                   packageCode={packageCode}
                   packageContact={packageContact}
                   packageInfo={verifiedPackage}
                   packageLookupError={packageLookupError}
                   isLookingUpPackage={isLookingUpPackage}
                   onBookingModeChange={handleBookingModeChange}
+                  onPackagePlanSelect={handlePackagePlanSelect}
                   onPackageCodeChange={(value) => {
                     setPackageCode(value);
                     setPackageLookupError(null);
@@ -749,6 +994,7 @@ export function BookingPage() {
                   onSelect={(serviceId) => {
                     if (isCompleted) return;
                     setSelectedServiceId(serviceId);
+                    setSelectedPackagePlanId(null);
                     resetPackageState();
                     resetSelectionAfterServiceChange();
 
@@ -762,89 +1008,100 @@ export function BookingPage() {
                 />
               </div>
 
-              <div
-                ref={dateRef}
-                className={!selectedService ? styles.stepDisabled : styles.stepActive}
-              >
-                <BookingDateStep
-                  copy={copy}
-                  selectedService={Boolean(selectedService)}
-                  selectedDate={selectedDate}
-                  visibleMonth={resolvedVisibleMonth}
-                  minDate={data?.dateBounds.min}
-                  maxDate={data?.dateBounds.max}
-                  datesMeta={datesMeta}
-                  isRefreshingSlots={isRefreshingSlots}
-                  error={error}
-                  locale={locale}
-                  weekStartsOn={weekStartsOn}
-                  onDateChange={(date) => {
-                    if (isCompleted) return;
-                    setSelectedDate(date);
-                    setVisibleMonth(date.slice(0, 7));
-                    setSelectedSlot(null);
-                    setSubmitError(null);
-                    setSubmitSuccess(null);
+              {!isPackagePurchaseMode ? (
+                <>
+                  <div
+                    ref={dateRef}
+                    className={
+                      !selectedService ? styles.stepDisabled : styles.stepActive
+                    }
+                  >
+                    <BookingDateStep
+                      copy={copy}
+                      selectedService={Boolean(selectedService)}
+                      selectedDate={selectedDate}
+                      visibleMonth={resolvedVisibleMonth}
+                      minDate={data?.dateBounds.min}
+                      maxDate={data?.dateBounds.max}
+                      datesMeta={datesMeta}
+                      isRefreshingSlots={isRefreshingSlots}
+                      error={error}
+                      locale={locale}
+                      weekStartsOn={weekStartsOn}
+                      onDateChange={(date) => {
+                        if (isCompleted) return;
+                        setSelectedDate(date);
+                        setVisibleMonth(date.slice(0, 7));
+                        setSelectedSlot(null);
+                        setSubmitError(null);
+                        setSubmitSuccess(null);
 
-                    setPulseSummary(true);
-                    setTimeout(() => setPulseSummary(false), 300);
+                        setPulseSummary(true);
+                        setTimeout(() => setPulseSummary(false), 300);
 
-                    setTimeout(() => {
-                      slotsRef.current?.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start",
-                      });
-                    }, 120);
-                  }}
-                  onVisibleMonthChange={setVisibleMonth}
-                />
-              </div>
-
-              <div
-                ref={slotsRef}
-                className={
-                  !selectedService || !selectedDate
-                    ? styles.stepDisabled
-                    : styles.stepActive
-                }
-              >
-                {selectedService && selectedDate ? (
-                  <div className={styles.timezoneNotice}>
-                    <span className={styles.timezoneIcon} aria-hidden="true">
-                      🕒
-                    </span>
-
-                    <span className={styles.timezoneNoticeText}>
-                      {currentLanguage === "ru"
-                        ? `Время указано по часовому поясу записи: ${timezoneLabel}. Пожалуйста, учитывайте это при выборе слота.`
-                        : `Times are shown in the booking timezone: ${timezoneLabel}. Please keep this in mind when choosing a slot.`}
-                    </span>
+                        setTimeout(() => {
+                          slotsRef.current?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                          });
+                        }, 120);
+                      }}
+                      onVisibleMonthChange={setVisibleMonth}
+                    />
                   </div>
-                ) : null}
 
-                <BookingSlotsStep
-                  copy={copy}
-                  error={error}
-                  selectedService={Boolean(selectedService)}
-                  selectedDate={selectedDate}
-                  isRefreshingSlots={isRefreshingSlots}
-                  slots={slots}
-                  selectedSlot={selectedSlot}
-                  onSelect={(slot) => {
-                    if (isCompleted) return;
-                    setSelectedSlot(slot);
-                    setSubmitError(null);
-                    setSubmitSuccess(null);
+                  <div
+                    ref={slotsRef}
+                    className={
+                      !selectedService || !selectedDate
+                        ? styles.stepDisabled
+                        : styles.stepActive
+                    }
+                  >
+                    {selectedService && selectedDate ? (
+                      <div className={styles.timezoneNotice}>
+                        <span
+                          className={styles.timezoneIcon}
+                          aria-hidden="true"
+                        >
+                          🕒
+                        </span>
 
-                    setPulseSummary(true);
-                    setTimeout(() => setPulseSummary(false), 400);
+                        <span className={styles.timezoneNoticeText}>
+                          {currentLanguage === "ru"
+                            ? `Время указано по часовому поясу записи: ${timezoneLabel}. Пожалуйста, учитывайте это при выборе слота.`
+                            : `Times are shown in the booking timezone: ${timezoneLabel}. Please keep this in mind when choosing a slot.`}
+                        </span>
+                      </div>
+                    ) : null}
 
-                    setTimeout(() => {
-                      formRef.current?.scrollIntoView({ behavior: "smooth" });
-                    }, 120);
-                  }}
-                />
-              </div>
+                    <BookingSlotsStep
+                      copy={copy}
+                      error={error}
+                      selectedService={Boolean(selectedService)}
+                      selectedDate={selectedDate}
+                      isRefreshingSlots={isRefreshingSlots}
+                      slots={slots}
+                      selectedSlot={selectedSlot}
+                      onSelect={(slot) => {
+                        if (isCompleted) return;
+                        setSelectedSlot(slot);
+                        setSubmitError(null);
+                        setSubmitSuccess(null);
+
+                        setPulseSummary(true);
+                        setTimeout(() => setPulseSummary(false), 400);
+
+                        setTimeout(() => {
+                          formRef.current?.scrollIntoView({
+                            behavior: "smooth",
+                          });
+                        }, 120);
+                      }}
+                    />
+                  </div>
+                </>
+              ) : null}
 
               <div
                 ref={formRef}
@@ -873,7 +1130,7 @@ export function BookingPage() {
                 className={pulseSummary ? styles.summaryPulse : ""}
                 copy={copy}
                 currentLanguage={currentLanguage}
-                selectedService={selectedService}
+                selectedService={selectedSummaryService}
                 selectedDate={selectedDate}
                 selectedSlot={selectedSlot}
                 confirmedBooking={confirmedBooking}
