@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Button } from "../../components/Button/Button";
@@ -353,7 +354,11 @@ export function Pricing() {
 
                   <div className={styles.packageOptions}>
                     {group.options.map((option) => (
-                      <div key={option.id} className={styles.packageOption}>
+                      <Link
+                        key={option.id}
+                        to={getPackagePurchaseTarget(option.packagePlanId)}
+                        className={styles.packageOption}
+                      >
                         <div className={styles.packageOptionText}>
                           <strong className={styles.packageOptionTitle}>
                             {option.sessionsCount} {copy.packageSessionsLabel}
@@ -379,17 +384,11 @@ export function Pricing() {
                             </span>
                           </div>
 
-                          <Button
-                            href={getPackagePurchaseTarget(
-                              option.packagePlanId
-                            )}
-                            variant="premium"
-                            className={styles.packageOptionButton}
-                          >
+                          <span className={styles.packageOptionButton}>
                             {copy.packageButton}
-                          </Button>
+                          </span>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 </article>
