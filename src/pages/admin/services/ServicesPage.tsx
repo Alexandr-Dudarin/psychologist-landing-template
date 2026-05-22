@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
-import { AdminButton } from "../../../components/admin/AdminButton";
+import { AdminCollapsibleCreateSection } from "../../../components/admin/AdminCollapsibleCreateSection";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import { AdminRefreshableTableArea } from "../../../components/admin/AdminRefreshableTableArea";
@@ -777,51 +777,25 @@ export function ServicesPage() {
     <main>
       <h1>Услуги</h1>
 
-      <div
-        className={`${styles.createToggleBar} ${
-          isServiceCreateFormOpen ? styles.createToggleBarOpen : ""
-        }`}
+      <AdminCollapsibleCreateSection
+        title="Создание услуги"
+        description="Форма скрыта по умолчанию, чтобы фильтры и список услуг были ближе к началу страницы."
+        isOpen={isServiceCreateFormOpen}
+        onToggle={() => {
+          setIsServiceCreateFormOpen((current) => !current);
+          resetServiceMessages();
+        }}
+        panelId={serviceCreateFormPanelId}
+        openLabel="Скрыть форму"
+        closedLabel="Создать услугу"
       >
-        <div className={styles.createToggleText}>
-          <h2 className={styles.createToggleTitle}>Создание услуги</h2>
-          <p className={styles.createToggleDescription}>
-            Форма скрыта по умолчанию, чтобы фильтры и список услуг были ближе к
-            началу страницы.
-          </p>
-        </div>
-
-        <AdminButton
-          type="button"
-          variant={isServiceCreateFormOpen ? "secondary" : "primary"}
-          aria-expanded={isServiceCreateFormOpen}
-          aria-controls={serviceCreateFormPanelId}
-          onClick={() => {
-            setIsServiceCreateFormOpen((current) => !current);
-            resetServiceMessages();
-          }}
-        >
-          {isServiceCreateFormOpen ? "Скрыть форму" : "Создать услугу"}
-        </AdminButton>
-      </div>
-
-      <div
-        id={serviceCreateFormPanelId}
-        className={`${styles.createPanel} ${
-          isServiceCreateFormOpen
-            ? styles.createPanelOpen
-            : styles.createPanelClosed
-        }`}
-        aria-hidden={!isServiceCreateFormOpen}
-      >
-        <div className={styles.createPanelInner}>
-          <ServiceCreateForm
-            form={createForm}
-            isCreating={isCreating}
-            onChange={handleCreateFormChange}
-            onSubmit={handleCreateService}
-          />
-        </div>
-      </div>
+        <ServiceCreateForm
+          form={createForm}
+          isCreating={isCreating}
+          onChange={handleCreateFormChange}
+          onSubmit={handleCreateService}
+        />
+      </AdminCollapsibleCreateSection>
 
       {editingServiceId !== null ? (
         <div ref={editServiceFormRef}>
@@ -890,57 +864,32 @@ export function ServicesPage() {
           <h2 className={styles.packagePlansTitle}>Пакеты услуг</h2>
           <p className={styles.packagePlansDescription}>
             Здесь можно создать пакеты на основе обычных услуг: например 4, 8
-            или 12 разовых сессий по отдельной цене. Пакеты созданные на базе одной и той же услуги -
-            образуют единую карточку пакета с услугами, с различным количеством сессий и ценой.
+            или 12 разовых сессий по отдельной цене. Пакеты созданные на базе
+            одной и той же услуги — образуют единую карточку пакета с услугами,
+            с различным количеством сессий и ценой.
           </p>
         </div>
 
-        <div
-          className={`${styles.createToggleBar} ${
-            isPackageCreateFormOpen ? styles.createToggleBarOpen : ""
-          }`}
+        <AdminCollapsibleCreateSection
+          title="Создание пакета услуг"
+          description="Форма скрыта по умолчанию, чтобы список пакетов был ближе к началу блока."
+          isOpen={isPackageCreateFormOpen}
+          onToggle={() => {
+            setIsPackageCreateFormOpen((current) => !current);
+            resetPackageMessages();
+          }}
+          panelId={packageCreateFormPanelId}
+          openLabel="Скрыть форму"
+          closedLabel="Создать пакет"
         >
-          <div className={styles.createToggleText}>
-            <h3 className={styles.createToggleTitle}>Создание пакета услуг</h3>
-            <p className={styles.createToggleDescription}>
-              Форма скрыта по умолчанию, чтобы список пакетов был ближе к началу
-              блока.
-            </p>
-          </div>
-
-          <AdminButton
-            type="button"
-            variant={isPackageCreateFormOpen ? "secondary" : "primary"}
-            aria-expanded={isPackageCreateFormOpen}
-            aria-controls={packageCreateFormPanelId}
-            onClick={() => {
-              setIsPackageCreateFormOpen((current) => !current);
-              resetPackageMessages();
-            }}
-          >
-            {isPackageCreateFormOpen ? "Скрыть форму" : "Создать пакет"}
-          </AdminButton>
-        </div>
-
-        <div
-          id={packageCreateFormPanelId}
-          className={`${styles.createPanel} ${
-            isPackageCreateFormOpen
-              ? styles.createPanelOpen
-              : styles.createPanelClosed
-          }`}
-          aria-hidden={!isPackageCreateFormOpen}
-        >
-          <div className={styles.createPanelInner}>
-            <ServicePackagePlanCreateForm
-              form={packagePlanCreateForm}
-              isCreating={isPackagePlanCreating}
-              services={activeServices}
-              onChange={handlePackagePlanCreateFormChange}
-              onSubmit={handleCreatePackagePlan}
-            />
-          </div>
-        </div>
+          <ServicePackagePlanCreateForm
+            form={packagePlanCreateForm}
+            isCreating={isPackagePlanCreating}
+            services={activeServices}
+            onChange={handlePackagePlanCreateFormChange}
+            onSubmit={handleCreatePackagePlan}
+          />
+        </AdminCollapsibleCreateSection>
 
         {editingPackagePlanId !== null ? (
           <div ref={editPackagePlanFormRef}>

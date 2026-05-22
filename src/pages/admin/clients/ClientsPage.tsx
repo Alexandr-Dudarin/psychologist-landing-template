@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../../../app/providers/LanguageProvider";
+import { AdminCollapsibleCreateSection } from "../../../components/admin/AdminCollapsibleCreateSection";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminRefreshableTableArea } from "../../../components/admin/AdminRefreshableTableArea";
@@ -489,58 +490,36 @@ export function ClientsPage() {
     <main>
       <h1>{t.admin.clients.title}</h1>
 
-      <div
-        className={`${styles.createToggleBar} ${isCreateFormOpen ? styles.createToggleBarOpen : ""
-          }`}
+      <AdminCollapsibleCreateSection
+        title="Создание клиента"
+        description="Форма скрыта по умолчанию, чтобы список клиентов и фильтры были ближе к началу страницы."
+        isOpen={isCreateFormOpen}
+        onToggle={() => {
+          setIsCreateFormOpen((current) => !current);
+          resetMessages();
+        }}
+        panelId={createFormPanelId}
+        openLabel="Скрыть форму"
+        closedLabel="Создать клиента вручную"
       >
-        <div className={styles.createToggleText}>
-          <h2 className={styles.createToggleTitle}>Создание клиента</h2>
-          <p className={styles.createToggleDescription}>
-            Форма скрыта по умолчанию, чтобы список клиентов и фильтры были
-            ближе к началу страницы.
-          </p>
-        </div>
-
-        <AdminButton
-          type="button"
-          variant={isCreateFormOpen ? "secondary" : "primary"}
-          aria-expanded={isCreateFormOpen}
-          aria-controls={createFormPanelId}
-          onClick={() => {
-            setIsCreateFormOpen((current) => !current);
-            resetMessages();
-          }}
-        >
-          {isCreateFormOpen ? "Скрыть форму" : "Создать клиента вручную"}
-        </AdminButton>
-      </div>
-
-      <div
-        id={createFormPanelId}
-        className={`${styles.createPanel} ${isCreateFormOpen ? styles.createPanelOpen : styles.createPanelClosed
-          }`}
-        aria-hidden={!isCreateFormOpen}
-      >
-        <div className={styles.createPanelInner}>
-          <ClientCreateForm
-            form={form}
-            lastName={lastName}
-            isCreating={isCreating}
-            showPreferredContact={preferredContactSettings.enabled}
-            onChange={handleFormChange}
-            onLastNameChange={setLastName}
-            onSubmit={handleCreateClient}
-            title={t.admin.clients.createForm.title}
-            namePlaceholder="Имя"
-            lastNamePlaceholder="Фамилия"
-            phonePlaceholder={t.admin.clients.createForm.phonePlaceholder}
-            emailPlaceholder={t.admin.clients.createForm.emailPlaceholder}
-            sourcePlaceholder={t.admin.clients.createForm.sourcePlaceholder}
-            submitLabel={t.admin.clients.createForm.submit}
-            submittingLabel={t.admin.clients.createForm.submitting}
-          />
-        </div>
-      </div>
+        <ClientCreateForm
+          form={form}
+          lastName={lastName}
+          isCreating={isCreating}
+          showPreferredContact={preferredContactSettings.enabled}
+          onChange={handleFormChange}
+          onLastNameChange={setLastName}
+          onSubmit={handleCreateClient}
+          title={t.admin.clients.createForm.title}
+          namePlaceholder="Имя"
+          lastNamePlaceholder="Фамилия"
+          phonePlaceholder={t.admin.clients.createForm.phonePlaceholder}
+          emailPlaceholder={t.admin.clients.createForm.emailPlaceholder}
+          sourcePlaceholder={t.admin.clients.createForm.sourcePlaceholder}
+          submitLabel={t.admin.clients.createForm.submit}
+          submittingLabel={t.admin.clients.createForm.submitting}
+        />
+      </AdminCollapsibleCreateSection>
 
       {editingClientId !== null ? (
         <div ref={editFormRef} className={styles.editFormAnchor}>

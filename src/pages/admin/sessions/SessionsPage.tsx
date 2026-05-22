@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
+import { AdminCollapsibleCreateSection } from "../../../components/admin/AdminCollapsibleCreateSection";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminRefreshableTableArea } from "../../../components/admin/AdminRefreshableTableArea";
 import {
@@ -1009,58 +1010,36 @@ export function SessionsPage() {
         />
       ) : null}
 
-      <div
-        className={`${styles.createToggleBar} ${isCreateFormOpen ? styles.createToggleBarOpen : ""
-          }`}
+      <AdminCollapsibleCreateSection
+        title="Создание сессии"
+        description="Форма скрыта по умолчанию, чтобы фильтры и список сессий были ближе к началу страницы."
+        isOpen={isCreateFormOpen}
+        onToggle={() => {
+          setIsCreateFormOpen((current) => !current);
+          resetFeedback();
+        }}
+        panelId={createFormPanelId}
+        openLabel="Скрыть форму"
+        closedLabel="Создать сессию вручную"
       >
-        <div className={styles.createToggleText}>
-          <h2 className={styles.createToggleTitle}>Создание сессии</h2>
-          <p className={styles.createToggleDescription}>
-            Форма скрыта по умолчанию, чтобы фильтры и список сессий были ближе к
-            началу страницы.
-          </p>
-        </div>
+        <SessionCreateForm
+          clients={clients}
+          activeServices={activeServices}
+          clientPackages={createClientPackages}
+          form={createForm}
+          timezone={scheduleTimezone}
+          isCreating={isCreating}
+          isPackagesLoading={isCreatePackagesLoading}
+          onFormChange={handleCreateFormChange}
+          onSubmit={handleCreateSession}
+        />
 
-        <AdminButton
-          type="button"
-          variant={isCreateFormOpen ? "secondary" : "primary"}
-          aria-expanded={isCreateFormOpen}
-          aria-controls={createFormPanelId}
-          onClick={() => {
-            setIsCreateFormOpen((current) => !current);
-            resetFeedback();
-          }}
-        >
-          {isCreateFormOpen ? "Скрыть форму" : "Создать сессию вручную"}
-        </AdminButton>
-      </div>
-
-      <div
-        id={createFormPanelId}
-        className={`${styles.createPanel} ${isCreateFormOpen ? styles.createPanelOpen : styles.createPanelClosed
-          }`}
-        aria-hidden={!isCreateFormOpen}
-      >
-        <div className={styles.createPanelInner}>
-          <SessionCreateForm
-            clients={clients}
-            activeServices={activeServices}
-            clientPackages={createClientPackages}
-            form={createForm}
-            timezone={scheduleTimezone}
-            isCreating={isCreating}
-            isPackagesLoading={isCreatePackagesLoading}
-            onFormChange={handleCreateFormChange}
-            onSubmit={handleCreateSession}
-          />
-
-          {createScheduleWarning ? (
-            <div className={styles.warningFeedback} role="status">
-              {createScheduleWarning}
-            </div>
-          ) : null}
-        </div>
-      </div>
+        {createScheduleWarning ? (
+          <div className={styles.warningFeedback} role="status">
+            {createScheduleWarning}
+          </div>
+        ) : null}
+      </AdminCollapsibleCreateSection>
 
       {editingSessionId !== null ? (
         <div ref={editFormRef} className={styles.editFormAnchor}>

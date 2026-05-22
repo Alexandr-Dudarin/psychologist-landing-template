@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { AdminButton } from "../../../components/admin/AdminButton";
+import { AdminCollapsibleCreateSection } from "../../../components/admin/AdminCollapsibleCreateSection";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminRefreshableTableArea } from "../../../components/admin/AdminRefreshableTableArea";
 import { getAdminClients } from "../../../lib/api/adminClients";
@@ -399,51 +399,27 @@ export function NotesPage() {
         />
       ) : null}
 
-      <div
-        className={`${styles.createToggleBar} ${
-          isCreateFormOpen ? styles.createToggleBarOpen : ""
-        }`}
+      <AdminCollapsibleCreateSection
+        title="Создание заметки"
+        description="Форма скрыта по умолчанию, чтобы фильтры и список заметок были ближе к началу страницы."
+        isOpen={isCreateFormOpen}
+        onToggle={() => {
+          setIsCreateFormOpen((current) => !current);
+          resetMessages();
+        }}
+        panelId={createFormPanelId}
+        openLabel="Скрыть форму"
+        closedLabel="Создать заметку"
       >
-        <div className={styles.createToggleText}>
-          <h2 className={styles.createToggleTitle}>Создание заметки</h2>
-          <p className={styles.createToggleDescription}>
-            Форма скрыта по умолчанию, чтобы фильтры и список заметок были ближе
-            к началу страницы.
-          </p>
-        </div>
-
-        <AdminButton
-          type="button"
-          variant={isCreateFormOpen ? "secondary" : "primary"}
-          aria-expanded={isCreateFormOpen}
-          aria-controls={createFormPanelId}
-          onClick={() => {
-            setIsCreateFormOpen((current) => !current);
-            resetMessages();
-          }}
-        >
-          {isCreateFormOpen ? "Скрыть форму" : "Создать заметку"}
-        </AdminButton>
-      </div>
-
-      <div
-        id={createFormPanelId}
-        className={`${styles.createPanel} ${
-          isCreateFormOpen ? styles.createPanelOpen : styles.createPanelClosed
-        }`}
-        aria-hidden={!isCreateFormOpen}
-      >
-        <div className={styles.createPanelInner}>
-          <NoteCreateForm
-            clients={clients}
-            availableSessions={availableCreateSessions}
-            form={createForm}
-            isCreating={isCreating}
-            onChange={handleCreateFormChange}
-            onSubmit={handleCreateNote}
-          />
-        </div>
-      </div>
+        <NoteCreateForm
+          clients={clients}
+          availableSessions={availableCreateSessions}
+          form={createForm}
+          isCreating={isCreating}
+          onChange={handleCreateFormChange}
+          onSubmit={handleCreateNote}
+        />
+      </AdminCollapsibleCreateSection>
 
       {editingNoteId !== null ? (
         <div ref={editFormRef}>
