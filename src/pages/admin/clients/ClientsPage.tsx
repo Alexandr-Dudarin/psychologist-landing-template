@@ -42,6 +42,8 @@ const clientSourceLabels: Record<string, string> = {
   website: "Сайт",
 };
 
+const createFormPanelId = "client-create-form-panel";
+
 export function ClientsPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -54,6 +56,7 @@ export function ClientsPage() {
   const [hasLoadedClientsOnce, setHasLoadedClientsOnce] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [favoriteUpdatingId, setFavoriteUpdatingId] = useState<number | null>(
     null
@@ -279,8 +282,8 @@ export function ClientsPage() {
     ) {
       setError(
         preferredContactErrors.preferredContactMethod ??
-          preferredContactErrors.preferredContactValue ??
-          ""
+        preferredContactErrors.preferredContactValue ??
+        ""
       );
       return;
     }
@@ -294,6 +297,7 @@ export function ClientsPage() {
 
       setForm(initialForm);
       setLastName("");
+      setIsCreateFormOpen(false);
 
       if (result.alreadyExisted) {
         setStatusFilter("all");
@@ -433,8 +437,8 @@ export function ClientsPage() {
     ) {
       setError(
         preferredContactErrors.preferredContactMethod ??
-          preferredContactErrors.preferredContactValue ??
-          ""
+        preferredContactErrors.preferredContactValue ??
+        ""
       );
       return;
     }
@@ -485,23 +489,58 @@ export function ClientsPage() {
     <main>
       <h1>{t.admin.clients.title}</h1>
 
-      <ClientCreateForm
-        form={form}
-        lastName={lastName}
-        isCreating={isCreating}
-        showPreferredContact={preferredContactSettings.enabled}
-        onChange={handleFormChange}
-        onLastNameChange={setLastName}
-        onSubmit={handleCreateClient}
-        title={t.admin.clients.createForm.title}
-        namePlaceholder="Имя"
-        lastNamePlaceholder="Фамилия"
-        phonePlaceholder={t.admin.clients.createForm.phonePlaceholder}
-        emailPlaceholder={t.admin.clients.createForm.emailPlaceholder}
-        sourcePlaceholder={t.admin.clients.createForm.sourcePlaceholder}
-        submitLabel={t.admin.clients.createForm.submit}
-        submittingLabel={t.admin.clients.createForm.submitting}
-      />
+      <div
+        className={`${styles.createToggleBar} ${isCreateFormOpen ? styles.createToggleBarOpen : ""
+          }`}
+      >
+        <div className={styles.createToggleText}>
+          <h2 className={styles.createToggleTitle}>Создание клиента</h2>
+          <p className={styles.createToggleDescription}>
+            Форма скрыта по умолчанию, чтобы список клиентов и фильтры были
+            ближе к началу страницы.
+          </p>
+        </div>
+
+        <AdminButton
+          type="button"
+          variant={isCreateFormOpen ? "secondary" : "primary"}
+          aria-expanded={isCreateFormOpen}
+          aria-controls={createFormPanelId}
+          onClick={() => {
+            setIsCreateFormOpen((current) => !current);
+            resetMessages();
+          }}
+        >
+          {isCreateFormOpen ? "Скрыть форму" : "Создать клиента вручную"}
+        </AdminButton>
+      </div>
+
+      <div
+        id={createFormPanelId}
+        className={`${styles.createPanel} ${isCreateFormOpen ? styles.createPanelOpen : styles.createPanelClosed
+          }`}
+        aria-hidden={!isCreateFormOpen}
+      >
+        <div className={styles.createPanelInner}>
+          <ClientCreateForm
+            form={form}
+            lastName={lastName}
+            isCreating={isCreating}
+            showPreferredContact={preferredContactSettings.enabled}
+            onChange={handleFormChange}
+            onLastNameChange={setLastName}
+            onSubmit={handleCreateClient}
+            title={t.admin.clients.createForm.title}
+            namePlaceholder="Имя"
+            lastNamePlaceholder="Фамилия"
+            phonePlaceholder={t.admin.clients.createForm.phonePlaceholder}
+            emailPlaceholder={t.admin.clients.createForm.emailPlaceholder}
+            sourcePlaceholder={t.admin.clients.createForm.sourcePlaceholder}
+            submitLabel={t.admin.clients.createForm.submit}
+            submittingLabel={t.admin.clients.createForm.submitting}
+          />
+        </div>
+      </div>
 
       {editingClientId !== null ? (
         <div ref={editFormRef} className={styles.editFormAnchor}>
