@@ -217,6 +217,35 @@
   text-align: center;
 }
 
+.packageStatusCell {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.packageTitleCell {
+  min-width: 150px;
+  max-width: 240px;
+}
+
+.packageServiceCell {
+  min-width: 140px;
+  max-width: 220px;
+}
+
+.packageSessionsCell,
+.packagePriceCell,
+.packageDurationCell {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.packageDescriptionCell {
+  min-width: 180px;
+  max-width: 280px;
+}
+
 .statusCell {
   width: 1%;
   white-space: nowrap;
@@ -333,7 +362,8 @@
 }
 
 @media (max-width: 1360px) {
-  .descriptionCell {
+  .descriptionCell,
+  .packageDescriptionCell {
     display: none;
   }
 
@@ -345,13 +375,24 @@
 
 @media (max-width: 1120px) {
   .createdCell,
-  .sessionsCell {
+  .sessionsCell,
+  .packageStatusCell {
     display: none;
   }
 
   .titleCell {
     min-width: 150px;
     max-width: 260px;
+  }
+
+  .packageTitleCell {
+    min-width: 150px;
+    max-width: 220px;
+  }
+
+  .packageServiceCell {
+    min-width: 130px;
+    max-width: 190px;
   }
 
   .actionCell {
@@ -368,6 +409,10 @@
   .durationCell {
     white-space: normal;
   }
+
+  .packageDurationCell {
+    display: none;
+  }
 }
 
 @media (max-width: 760px) {
@@ -378,6 +423,10 @@
   .statusBadge {
     min-width: 76px;
     font-size: 0.84rem;
+  }
+
+  .packageServiceCell {
+    display: none;
   }
 
   .actionCell {
@@ -398,12 +447,24 @@
     font-size: 0.84rem;
   }
 
-  .titleCell {
+  .titleCell,
+  .packageTitleCell {
     min-width: 118px;
   }
 
   .priceCell {
     display: none;
+  }
+
+  .packagePriceCell {
+    width: 82px;
+    min-width: 82px;
+    white-space: normal;
+  }
+
+  .packageSessionsCell {
+    width: 56px;
+    min-width: 56px;
   }
 
   .actionCell {

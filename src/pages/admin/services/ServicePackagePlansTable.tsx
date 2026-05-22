@@ -36,13 +36,29 @@ export function ServicePackagePlansTable({
     <AdminTable>
       <thead className={styles.tableHead}>
         <tr>
-          <th>Статус</th>
-          <th>Пакет</th>
-          <th>Базовая услуга</th>
-          <th>Сессий</th>
-          <th>Цена пакета</th>
-          <th>Длительность</th>
-          <th>Описание</th>
+          <th className={`${styles.statusCell} ${styles.packageStatusCell}`}>
+            Статус
+          </th>
+          <th className={`${styles.titleCell} ${styles.packageTitleCell}`}>
+            Пакет
+          </th>
+          <th className={`${styles.titleCell} ${styles.packageServiceCell}`}>
+            Базовая услуга
+          </th>
+          <th className={`${styles.compactCell} ${styles.packageSessionsCell}`}>
+            Сессий
+          </th>
+          <th className={`${styles.compactCell} ${styles.packagePriceCell}`}>
+            Цена пакета
+          </th>
+          <th className={`${styles.compactCell} ${styles.packageDurationCell}`}>
+            Длительность
+          </th>
+          <th
+            className={`${styles.descriptionCell} ${styles.packageDescriptionCell}`}
+          >
+            Описание
+          </th>
           <th className={styles.actionCell}>Действия</th>
         </tr>
       </thead>
@@ -59,13 +75,13 @@ export function ServicePackagePlansTable({
               key={item.id}
               className={isVisuallyInactive ? styles.inactiveRow : undefined}
             >
-              <td className={styles.statusCell}>
+              <td className={`${styles.statusCell} ${styles.packageStatusCell}`}>
                 <span className={getPackageStatusBadgeClassName(item)}>
                   {item.isActive && item.serviceIsActive ? "Активен" : "Скрыт"}
                 </span>
               </td>
 
-              <td className={styles.titleCell}>
+              <td className={`${styles.titleCell} ${styles.packageTitleCell}`}>
                 <span className={styles.primaryValue}>{item.title}</span>
 
                 {item.clientPackagesCount > 0 ? (
@@ -75,7 +91,7 @@ export function ServicePackagePlansTable({
                 ) : null}
               </td>
 
-              <td className={styles.titleCell}>
+              <td className={`${styles.titleCell} ${styles.packageServiceCell}`}>
                 <span className={styles.primaryValue}>{item.serviceTitle}</span>
 
                 {!item.serviceIsActive ? (
@@ -83,17 +99,25 @@ export function ServicePackagePlansTable({
                 ) : null}
               </td>
 
-              <td className={styles.compactCell}>{item.sessionsCount}</td>
+              <td
+                className={`${styles.compactCell} ${styles.packageSessionsCell}`}
+              >
+                {item.sessionsCount}
+              </td>
 
-              <td className={styles.compactCell}>
+              <td className={`${styles.compactCell} ${styles.packagePriceCell}`}>
                 {formatAdminPriceInput(item.price)} ₽
               </td>
 
-              <td className={styles.compactCell}>
+              <td
+                className={`${styles.compactCell} ${styles.packageDurationCell}`}
+              >
                 {item.serviceDurationMinutes} мин
               </td>
 
-              <td className={styles.descriptionCell}>
+              <td
+                className={`${styles.descriptionCell} ${styles.packageDescriptionCell}`}
+              >
                 {item.description ? (
                   <span className={styles.descriptionPreview}>
                     {item.description}
