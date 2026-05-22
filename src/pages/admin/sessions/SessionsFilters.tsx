@@ -16,12 +16,14 @@ type SessionsFiltersProps = {
   clientFilter: number | "all";
   clients: CrmClientRecord[];
   favoriteFilter: ClientFavoriteFilter;
+  searchQuery: string;
   serviceFilter: number | "all";
   services: CrmServiceRecord[];
   statusFilter: SessionStatus | "all";
   hasActiveFilters: boolean;
   onClientFilterChange: (value: number | "all") => void;
   onFavoriteFilterChange: (value: ClientFavoriteFilter) => void;
+  onSearchChange: (value: string) => void;
   onServiceFilterChange: (value: number | "all") => void;
   onStatusFilterChange: (value: SessionStatus | "all") => void;
   onResetFilters: () => void;
@@ -61,12 +63,14 @@ export function SessionsFilters({
   clientFilter,
   clients,
   favoriteFilter,
+  searchQuery,
   serviceFilter,
   services,
   statusFilter,
   hasActiveFilters,
   onClientFilterChange,
   onFavoriteFilterChange,
+  onSearchChange,
   onServiceFilterChange,
   onStatusFilterChange,
   onResetFilters,
@@ -218,6 +222,14 @@ export function SessionsFilters({
         />
         <span>Только избранные</span>
       </label>
+
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(event) => onSearchChange(event.target.value)}
+        placeholder="Поиск по клиенту, услуге или заметке"
+        className={`${styles.input} ${styles.searchInput}`}
+      />
 
       <select
         value={statusFilter}

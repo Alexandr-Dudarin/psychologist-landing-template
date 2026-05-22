@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { AdminButton } from "../../../components/admin/AdminButton";
-import { AdminCollapsibleCreateSection } from "../../../components/admin/AdminCollapsibleCreateSection";
-import { AdminFeedback } from "../../../components/admin/AdminFeedback";
-import { AdminRefreshableTableArea } from "../../../components/admin/AdminRefreshableTableArea";
 import {
   getDefaultBookingTimezone,
   resolveBookingTimezone,
@@ -29,255 +25,28 @@ import type {
 import type { CrmServiceRecord } from "../../../types/service";
 import type { CrmSessionRecord, SessionStatus } from "../../../types/session";
 import type { AdminScheduleRecord } from "../../../types/schedule";
-import { SessionCreateForm } from "./SessionCreateForm";
-import { SessionEditForm } from "./SessionEditForm";
 import {
   initialCreateForm,
   initialEditForm,
   type SessionForm,
 } from "./sessionForm";
-import { SessionsFilters } from "./SessionsFilters";
+import { SessionsFormBlock } from "./SessionsFormBlock";
 import {
   buildCreateSessionPayload,
   buildEditSessionForm,
   buildUpdateSessionPayload,
+  filterSessionsByFavoriteClients,
+  getManualSessionScheduleWarning,
+  getParsedClientId,
+  isArchivedStatus,
   updateSessionFormField,
 } from "./sessionsPageHelpers";
 import {
   validateCreateSessionPayload,
   validateUpdateSessionPayload,
 } from "./sessionsPageValidation";
+import { SessionsListBlock } from "./SessionsListBlock";
 import { SessionsQuickViewBanner } from "./SessionsQuickViewBanner";
-import { SessionsTable } from "./SessionsTable";
-import styles from "./SessionsPage.module.css";
-
-function isArchivedStatus(status: SessionStatus | "all") {
-  return status === "completed" || status === "cancelled" || status === "no_show";
-}
-
-function getParsedClientId(value: string): number | null {
-  const clientId = Number(value);
-
-  return Number.isInteger(clientId) && clientId > 0 ? clientId : null;
-}
-
-type TimeRangeMinutes = {
-  start: number;
-  end: number;
-};
-
-function parseDateTimeLocalParts(
-  value: string
-): { dateKey: string; time: string } | null {
-  if (!value.includes("T")) {
-    return null;
-  }
-
-  const dateKey = value.slice(0, 10);
-  const time = value.slice(11, 16);
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey) || !/^\d{2}:\d{2}$/.test(time)) {
-    return null;
-  }
-
-  return { dateKey, time };
-}
-
-function getMinutesFromTime(value: string): number | null {
-  const match = /^(\d{2}):(\d{2})$/.exec(value.slice(0, 5));
-
-  if (!match) {
-    return null;
-  }
-
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-
-  if (
-    !Number.isInteger(hours) ||
-    !Number.isInteger(minutes) ||
-    hours < 0 ||
-    hours > 23 ||
-    minutes < 0 ||
-    minutes > 59
-  ) {
-    return null;
-  }
-
-  return hours * 60 + minutes;
-}
-
-function getWeekdayFromDateKey(dateKey: string): number | null {
-  const [year, month, day] = dateKey.split("-").map(Number);
-
-  if (!year || !month || !day) {
-    return null;
-  }
-
-  const date = new Date(year, month - 1, day);
-
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  const weekday = date.getDay();
-
-  return weekday === 0 ? 7 : weekday;
-}
-
-function rangesOverlap(first: TimeRangeMinutes, second: TimeRangeMinutes) {
-  return first.start < second.end && second.start < first.end;
-}
-
-function getTimeRange(startTime: string, endTime: string): TimeRangeMinutes | null {
-  const start = getMinutesFromTime(startTime);
-  const end = getMinutesFromTime(endTime);
-
-  if (start === null || end === null || start >= end) {
-    return null;
-  }
-
-  return { start, end };
-}
-
-function getScheduleWorkingRange(
-  dateKey: string,
-  rules: AdminScheduleRecord["rules"],
-  overrides: AdminScheduleRecord["overrides"]
-): TimeRangeMinutes | null {
-  const override = overrides.find(
-    (item) => item.date.slice(0, 10) === dateKey
-  );
-
-  if (override) {
-    if (!override.isWorkingDay || !override.startTime || !override.endTime) {
-      return null;
-    }
-
-    return getTimeRange(override.startTime, override.endTime);
-  }
-
-  const weekday = getWeekdayFromDateKey(dateKey);
-
-  if (weekday === null) {
-    return null;
-  }
-
-  const rule = rules.find((item) => item.weekday === weekday);
-
-  if (!rule || !rule.isEnabled) {
-    return null;
-  }
-
-  return getTimeRange(rule.startTime, rule.endTime);
-}
-
-function isNonWorkingDay(
-  dateKey: string,
-  rules: AdminScheduleRecord["rules"],
-  overrides: AdminScheduleRecord["overrides"]
-): boolean {
-  const override = overrides.find(
-    (item) => item.date.slice(0, 10) === dateKey
-  );
-
-  if (override) {
-    return !override.isWorkingDay || !override.startTime || !override.endTime;
-  }
-
-  const weekday = getWeekdayFromDateKey(dateKey);
-
-  if (weekday === null) {
-    return false;
-  }
-
-  const rule = rules.find((item) => item.weekday === weekday);
-
-  return !rule || !rule.isEnabled;
-}
-
-function getManualSessionScheduleWarning(
-  form: SessionForm,
-  rules: AdminScheduleRecord["rules"],
-  overrides: AdminScheduleRecord["overrides"],
-  blockedSlots: AdminScheduleRecord["blockedSlots"]
-): string | null {
-  const dateTimeParts = parseDateTimeLocalParts(form.scheduledAt);
-
-  if (!dateTimeParts) {
-    return null;
-  }
-
-  const startMinutes = getMinutesFromTime(dateTimeParts.time);
-  const durationMinutes = Number(form.durationMinutes);
-
-  if (
-    startMinutes === null ||
-    !Number.isInteger(durationMinutes) ||
-    durationMinutes <= 0
-  ) {
-    return null;
-  }
-
-  const sessionRange = {
-    start: startMinutes,
-    end: startMinutes + durationMinutes,
-  };
-  const warnings: string[] = [];
-
-  if (isNonWorkingDay(dateTimeParts.dateKey, rules, overrides)) {
-    warnings.push(
-      "Вы выбрали день, который сейчас отмечен в расписании как выходной. Сессию всё равно можно создать вручную, если это осознанное исключение."
-    );
-  } else {
-    const workingRange = getScheduleWorkingRange(
-      dateTimeParts.dateKey,
-      rules,
-      overrides
-    );
-
-    if (
-      workingRange &&
-      (sessionRange.start < workingRange.start || sessionRange.end > workingRange.end)
-    ) {
-      warnings.push(
-        "Выбранное время выходит за рабочие часы в расписании. Сессию всё равно можно создать вручную, если это осознанное исключение."
-      );
-    }
-  }
-
-  const blockedSlot = blockedSlots.find((item) => {
-    if (item.blockedDate.slice(0, 10) !== dateTimeParts.dateKey) {
-      return false;
-    }
-
-    const blockedRange = getTimeRange(item.startTime, item.endTime);
-
-    return blockedRange ? rangesOverlap(sessionRange, blockedRange) : false;
-  });
-
-  if (blockedSlot) {
-    warnings.push(
-      blockedSlot.reason
-        ? `На это время есть блокировка записи: ${blockedSlot.reason}. Сессию всё равно можно создать вручную, если это осознанное исключение.`
-        : "На это время есть блокировка записи. Сессию всё равно можно создать вручную, если это осознанное исключение."
-    );
-  }
-
-  return warnings.length > 0 ? warnings.join(" ") : null;
-}
-
-function filterSessionsByFavoriteClients(
-  sessions: CrmSessionRecord[],
-  favoriteClientIds: Set<number>,
-  favoriteFilter: ClientFavoriteFilter
-): CrmSessionRecord[] {
-  if (favoriteFilter !== "favorites") {
-    return sessions;
-  }
-
-  return sessions.filter((session) => favoriteClientIds.has(session.clientId));
-}
 
 const createFormPanelId = "session-create-form-panel";
 
@@ -1010,131 +779,73 @@ export function SessionsPage() {
         />
       ) : null}
 
-      <AdminCollapsibleCreateSection
-        title="Создание сессии"
-        description="Форма скрыта по умолчанию, чтобы фильтры и список сессий были ближе к началу страницы."
-        isOpen={isCreateFormOpen}
-        onToggle={() => {
+      <SessionsFormBlock
+        activeServices={activeServices}
+        clients={clients}
+        createClientPackages={createClientPackages}
+        createForm={createForm}
+        createFormPanelId={createFormPanelId}
+        createScheduleWarning={createScheduleWarning}
+        editClientPackages={editClientPackages}
+        editForm={editForm}
+        editFormRef={editFormRef}
+        editingSessionId={editingSessionId}
+        isCreateFormOpen={isCreateFormOpen}
+        isCreatePackagesLoading={isCreatePackagesLoading}
+        isCreating={isCreating}
+        isEditPackagesLoading={isEditPackagesLoading}
+        isUpdating={isUpdating}
+        scheduleTimezone={scheduleTimezone}
+        onCancelEditing={cancelEditing}
+        onCreateFormChange={handleCreateFormChange}
+        onCreateSession={handleCreateSession}
+        onEditFormChange={handleEditFormChange}
+        onToggleCreateForm={() => {
           setIsCreateFormOpen((current) => !current);
           resetFeedback();
         }}
-        panelId={createFormPanelId}
-        openLabel="Скрыть форму"
-        closedLabel="Создать сессию вручную"
-      >
-        <SessionCreateForm
-          clients={clients}
-          activeServices={activeServices}
-          clientPackages={createClientPackages}
-          form={createForm}
-          timezone={scheduleTimezone}
-          isCreating={isCreating}
-          isPackagesLoading={isCreatePackagesLoading}
-          onFormChange={handleCreateFormChange}
-          onSubmit={handleCreateSession}
-        />
-
-        {createScheduleWarning ? (
-          <div className={styles.warningFeedback} role="status">
-            {createScheduleWarning}
-          </div>
-        ) : null}
-      </AdminCollapsibleCreateSection>
-
-      {editingSessionId !== null ? (
-        <div ref={editFormRef} className={styles.editFormAnchor}>
-          <SessionEditForm
-            clients={clients}
-            activeServices={activeServices}
-            clientPackages={editClientPackages}
-            form={editForm}
-            timezone={scheduleTimezone}
-            isUpdating={isUpdating}
-            isPackagesLoading={isEditPackagesLoading}
-            onFormChange={handleEditFormChange}
-            onSubmit={handleUpdateSession}
-            onCancel={cancelEditing}
-          />
-        </div>
-      ) : null}
-
-      <SessionsFilters
-        clientFilter={clientFilter}
-        clients={clients}
-        favoriteFilter={favoriteFilter}
-        serviceFilter={serviceFilter}
-        services={services}
-        statusFilter={statusFilter}
-        hasActiveFilters={hasActiveFilters}
-        onClientFilterChange={handleClientFilterChange}
-        onFavoriteFilterChange={handleFavoriteFilterChange}
-        onServiceFilterChange={handleServiceFilterChange}
-        onStatusFilterChange={handleStatusFilterChange}
-        onResetFilters={handleResetView}
+        onUpdateSession={handleUpdateSession}
       />
 
-      <AdminFeedback message={error} tone="error" />
-      <AdminFeedback message={successMessage} tone="success" />
-
-      {shouldLoadActiveSessions ? (
-        <AdminRefreshableTableArea isRefreshing={isActiveSessionsRefreshing}>
-          <SessionsTable
-            items={displayedActiveItems}
-            isLoading={isActiveSessionsInitialLoading}
-            deletingId={deletingId}
-            timezone={scheduleTimezone}
-            highlightedSessionId={highlightedSessionId}
-            emptyMessage="Запланированных сессий пока нет."
-            onEdit={startEditing}
-            onDelete={handleDeleteSession}
-          />
-        </AdminRefreshableTableArea>
-      ) : null}
-
-      {shouldShowArchivedPanel ? (
-        <section className={styles.archivedSessionsPanel}>
-          <div className={styles.archivedSessionsText}>
-            <h2 className={styles.archivedSessionsTitle}>
-              Завершённые сессии
-            </h2>
-            <p className={styles.archivedSessionsHint}>
-              Проведённые, отменённые сессии и неявки загружаются отдельно.
-              Фильтр по клиенту и поиск применяются и к этому списку тоже.
-            </p>
-          </div>
-
-          {canToggleArchivedSessions ? (
-            <AdminButton
-              type="button"
-              variant="secondary"
-              onClick={
-                showArchivedSessions
-                  ? handleHideArchivedSessions
-                  : handleShowArchivedSessions
-              }
-            >
-              {showArchivedSessions
-                ? "Скрыть завершённые"
-                : "Показать завершённые"}
-            </AdminButton>
-          ) : null}
-        </section>
-      ) : null}
-
-      {shouldDisplayArchivedSessions ? (
-        <AdminRefreshableTableArea isRefreshing={isArchivedSessionsRefreshing}>
-          <SessionsTable
-            items={displayedArchivedItems}
-            isLoading={isArchivedSessionsInitialLoading}
-            deletingId={deletingId}
-            timezone={scheduleTimezone}
-            highlightedSessionId={highlightedSessionId}
-            emptyMessage="Завершённых сессий пока нет."
-            onEdit={startEditing}
-            onDelete={handleDeleteSession}
-          />
-        </AdminRefreshableTableArea>
-      ) : null}
+      <SessionsListBlock
+        canToggleArchivedSessions={canToggleArchivedSessions}
+        clientFilter={clientFilter}
+        clients={clients}
+        deletingId={deletingId}
+        displayedActiveItems={displayedActiveItems}
+        displayedArchivedItems={displayedArchivedItems}
+        error={error}
+        favoriteFilter={favoriteFilter}
+        hasActiveFilters={hasActiveFilters}
+        highlightedSessionId={highlightedSessionId}
+        isActiveSessionsInitialLoading={isActiveSessionsInitialLoading}
+        isActiveSessionsRefreshing={isActiveSessionsRefreshing}
+        isArchivedSessionsInitialLoading={isArchivedSessionsInitialLoading}
+        isArchivedSessionsRefreshing={isArchivedSessionsRefreshing}
+        scheduleTimezone={scheduleTimezone}
+        searchQuery={searchQuery}
+        serviceFilter={serviceFilter}
+        services={services}
+        shouldDisplayArchivedSessions={shouldDisplayArchivedSessions}
+        shouldLoadActiveSessions={shouldLoadActiveSessions}
+        shouldShowArchivedPanel={shouldShowArchivedPanel}
+        showArchivedSessions={showArchivedSessions}
+        statusFilter={statusFilter}
+        successMessage={successMessage}
+        onClientFilterChange={handleClientFilterChange}
+        onDeleteSession={handleDeleteSession}
+        onEditSession={startEditing}
+        onFavoriteFilterChange={handleFavoriteFilterChange}
+        onHideArchivedSessions={handleHideArchivedSessions}
+        onResetView={handleResetView}
+        onSearchChange={(value) => {
+          setSearchQuery(value);
+          resetFeedback();
+        }}
+        onServiceFilterChange={handleServiceFilterChange}
+        onShowArchivedSessions={handleShowArchivedSessions}
+        onStatusFilterChange={handleStatusFilterChange}
+      />
     </main>
   );
 }
