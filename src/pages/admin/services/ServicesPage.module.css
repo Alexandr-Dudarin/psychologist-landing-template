@@ -139,6 +139,10 @@
   width: 100%;
 }
 
+.actionLabelShort {
+  display: none;
+}
+
 .success {
   color: var(--admin-success);
 }
@@ -324,16 +328,29 @@
   opacity: 0.78;
 }
 
-.hideButton {
-  border-color: color-mix(in srgb, var(--admin-danger) 30%, white);
-  background: color-mix(in srgb, var(--admin-danger) 10%, white);
+.hideButton.hideButton {
+  border-color: color-mix(in srgb, var(--admin-danger) 42%, white);
+  background: color-mix(in srgb, var(--admin-danger-soft) 72%, white);
   color: var(--admin-danger);
+  box-shadow: 0 6px 16px rgba(154, 75, 75, 0.1);
 }
 
-.hideButton:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--admin-danger) 46%, white);
-  background: color-mix(in srgb, var(--admin-danger) 16%, white);
-  color: var(--admin-danger);
+.hideButton.hideButton:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--admin-danger) 58%, white);
+  background: color-mix(
+    in srgb,
+    var(--admin-danger-soft) 58%,
+    var(--admin-danger) 10%
+  );
+  color: #7f3d3d;
+  box-shadow: 0 8px 20px rgba(154, 75, 75, 0.14);
+}
+
+.hideButton.hideButton:disabled {
+  border-color: color-mix(in srgb, var(--admin-danger) 24%, white);
+  background: color-mix(in srgb, var(--admin-danger-soft) 56%, white);
+  color: color-mix(in srgb, var(--admin-danger) 72%, var(--admin-text-muted));
+  opacity: 0.75;
 }
 
 .hiddenButton {
@@ -447,6 +464,11 @@
     font-size: 0.84rem;
   }
 
+  .statusCell,
+  .packageStatusCell {
+    display: none;
+  }
+
   .titleCell,
   .packageTitleCell {
     min-width: 118px;
@@ -468,12 +490,60 @@
   }
 
   .actionCell {
-    width: 112px;
-    min-width: 112px;
+    width: 92px;
+    min-width: 92px;
   }
 
   .actionsRow > * {
     min-width: 0;
+    min-height: 34px;
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 0.88rem;
     white-space: normal;
+  }
+
+  .actionLabelFull {
+    display: none;
+  }
+
+  .actionLabelShort {
+    display: inline;
+  }
+}
+
+@media (max-width: 480px) {
+  .packageSessionsCell {
+    display: none;
+  }
+
+  .packageTitleCell.packageTitleCell {
+    min-width: 0;
+    max-width: none;
+  }
+
+  .packagePriceCell {
+    width: 76px;
+    min-width: 76px;
+    font-size: 0.88rem;
+  }
+
+  .actionCell {
+    width: 78px;
+    min-width: 78px;
+  }
+
+  .actionsRow > * {
+    min-height: 32px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 0.84rem;
+  }
+
+  .hiddenButton {
+    min-height: 32px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 0.84rem;
   }
 }

@@ -135,7 +135,8 @@ export function ServicePackagePlansTable({
                     size="sm"
                     variant="secondary"
                   >
-                    Редактировать
+                    <span className={styles.actionLabelFull}>Редактировать</span>
+                    <span className={styles.actionLabelShort}>Ред.</span>
                   </AdminButton>
 
                   {isUsed ? (
@@ -148,7 +149,14 @@ export function ServicePackagePlansTable({
                         variant="secondary"
                         className={styles.hideButton}
                       >
-                        {isHiding ? "Скрываем..." : "Скрыть из записи"}
+                        {isHiding ? (
+                          "Скрываем..."
+                        ) : (
+                          <>
+                            <span className={styles.actionLabelFull}>Скрыть из записи</span>
+                            <span className={styles.actionLabelShort}>Скрыть</span>
+                          </>
+                        )}
                       </AdminButton>
                     ) : (
                       <span
