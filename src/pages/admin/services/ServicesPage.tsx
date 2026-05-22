@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import { AdminRefreshableTableArea } from "../../../components/admin/AdminRefreshableTableArea";
@@ -40,6 +41,9 @@ import {
 } from "./servicePackagePlanForm";
 import styles from "./ServicesPage.module.css";
 import { ServicesTable } from "./ServicesTable";
+
+const serviceCreateFormPanelId = "service-create-form-panel";
+const packageCreateFormPanelId = "service-package-create-form-panel";
 
 function validateServicePayload(
   payload: CreateServicePayload | UpdateServicePayload
@@ -122,7 +126,9 @@ export function ServicesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPackagePlansLoading, setIsPackagePlansLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isServiceCreateFormOpen, setIsServiceCreateFormOpen] = useState(false);
   const [isPackagePlanCreating, setIsPackagePlanCreating] = useState(false);
+  const [isPackageCreateFormOpen, setIsPackageCreateFormOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isPackagePlanUpdating, setIsPackagePlanUpdating] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -406,6 +412,7 @@ export function ServicesPage() {
       await createAdminService(payload);
       await reloadServices();
       setCreateForm(initialCreateForm);
+      setIsServiceCreateFormOpen(false);
       setSuccessMessage("Услуга создана.");
     } catch (createError) {
       setError(
@@ -450,6 +457,7 @@ export function ServicesPage() {
       await createAdminServicePackagePlan(payload);
       await reloadPackagePlans();
       setPackagePlanCreateForm(initialPackagePlanCreateForm);
+      setIsPackageCreateFormOpen(false);
       setPackageSuccessMessage("Пакет услуг создан.");
     } catch (createError) {
       setPackageError(
@@ -769,12 +777,51 @@ export function ServicesPage() {
     <main>
       <h1>Услуги</h1>
 
-      <ServiceCreateForm
-        form={createForm}
-        isCreating={isCreating}
-        onChange={handleCreateFormChange}
-        onSubmit={handleCreateService}
-      />
+      <div
+        className={`${styles.createToggleBar} ${
+          isServiceCreateFormOpen ? styles.createToggleBarOpen : ""
+        }`}
+      >
+        <div className={styles.createToggleText}>
+          <h2 className={styles.createToggleTitle}>Создание услуги</h2>
+          <p className={styles.createToggleDescription}>
+            Форма скрыта по умолчанию, чтобы фильтры и список услуг были ближе к
+            началу страницы.
+          </p>
+        </div>
+
+        <AdminButton
+          type="button"
+          variant={isServiceCreateFormOpen ? "secondary" : "primary"}
+          aria-expanded={isServiceCreateFormOpen}
+          aria-controls={serviceCreateFormPanelId}
+          onClick={() => {
+            setIsServiceCreateFormOpen((current) => !current);
+            resetServiceMessages();
+          }}
+        >
+          {isServiceCreateFormOpen ? "Скрыть форму" : "Создать услугу"}
+        </AdminButton>
+      </div>
+
+      <div
+        id={serviceCreateFormPanelId}
+        className={`${styles.createPanel} ${
+          isServiceCreateFormOpen
+            ? styles.createPanelOpen
+            : styles.createPanelClosed
+        }`}
+        aria-hidden={!isServiceCreateFormOpen}
+      >
+        <div className={styles.createPanelInner}>
+          <ServiceCreateForm
+            form={createForm}
+            isCreating={isCreating}
+            onChange={handleCreateFormChange}
+            onSubmit={handleCreateService}
+          />
+        </div>
+      </div>
 
       {editingServiceId !== null ? (
         <div ref={editServiceFormRef}>
@@ -847,13 +894,52 @@ export function ServicesPage() {
           </p>
         </div>
 
-        <ServicePackagePlanCreateForm
-          form={packagePlanCreateForm}
-          isCreating={isPackagePlanCreating}
-          services={activeServices}
-          onChange={handlePackagePlanCreateFormChange}
-          onSubmit={handleCreatePackagePlan}
-        />
+        <div
+          className={`${styles.createToggleBar} ${
+            isPackageCreateFormOpen ? styles.createToggleBarOpen : ""
+          }`}
+        >
+          <div className={styles.createToggleText}>
+            <h3 className={styles.createToggleTitle}>Создание пакета услуг</h3>
+            <p className={styles.createToggleDescription}>
+              Форма скрыта по умолчанию, чтобы список пакетов был ближе к началу
+              блока.
+            </p>
+          </div>
+
+          <AdminButton
+            type="button"
+            variant={isPackageCreateFormOpen ? "secondary" : "primary"}
+            aria-expanded={isPackageCreateFormOpen}
+            aria-controls={packageCreateFormPanelId}
+            onClick={() => {
+              setIsPackageCreateFormOpen((current) => !current);
+              resetPackageMessages();
+            }}
+          >
+            {isPackageCreateFormOpen ? "Скрыть форму" : "Создать пакет"}
+          </AdminButton>
+        </div>
+
+        <div
+          id={packageCreateFormPanelId}
+          className={`${styles.createPanel} ${
+            isPackageCreateFormOpen
+              ? styles.createPanelOpen
+              : styles.createPanelClosed
+          }`}
+          aria-hidden={!isPackageCreateFormOpen}
+        >
+          <div className={styles.createPanelInner}>
+            <ServicePackagePlanCreateForm
+              form={packagePlanCreateForm}
+              isCreating={isPackagePlanCreating}
+              services={activeServices}
+              onChange={handlePackagePlanCreateFormChange}
+              onSubmit={handleCreatePackagePlan}
+            />
+          </div>
+        </div>
 
         {editingPackagePlanId !== null ? (
           <div ref={editPackagePlanFormRef}>

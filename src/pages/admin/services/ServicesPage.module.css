@@ -6,6 +6,42 @@
   margin-bottom: 24px;
 }
 
+.createToggleBar {
+  composes: createToggleBar from "../../../components/admin/adminUi.module.css";
+}
+
+.createToggleText {
+  composes: createToggleText from "../../../components/admin/adminUi.module.css";
+}
+
+.createToggleTitle {
+  composes: createToggleTitle from "../../../components/admin/adminUi.module.css";
+}
+
+.createToggleDescription {
+  composes: createToggleDescription from "../../../components/admin/adminUi.module.css";
+}
+
+.createToggleBarOpen {
+  composes: createToggleBarOpen from "../../../components/admin/adminUi.module.css";
+}
+
+.createPanel {
+  composes: createPanel from "../../../components/admin/adminUi.module.css";
+}
+
+.createPanelOpen {
+  composes: createPanelOpen from "../../../components/admin/adminUi.module.css";
+}
+
+.createPanelClosed {
+  composes: createPanelClosed from "../../../components/admin/adminUi.module.css";
+}
+
+.createPanelInner {
+  composes: createPanelInner from "../../../components/admin/adminUi.module.css";
+}
+
 .form {
   composes: sectionForm from "../../../components/admin/adminUi.module.css";
   max-width: 720px;
