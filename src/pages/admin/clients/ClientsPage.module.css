@@ -3,104 +3,39 @@
 }
 
 .createToggleBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 0 0 14px;
-  padding: 16px 18px;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-lg);
-  background: var(--admin-surface);
-}
-
-.createToggleBarOpen > button {
-  border-color: color-mix(in srgb, var(--admin-accent) 52%, white);
-  background: color-mix(
-    in srgb,
-    var(--admin-accent-soft) 62%,
-    var(--admin-accent) 16%
-  );
-  color: var(--admin-accent);
-  box-shadow: 0 8px 22px rgba(47, 93, 120, 0.16);
-}
-
-.createToggleBarOpen > button:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--admin-accent) 66%, white);
-  background: color-mix(
-    in srgb,
-    var(--admin-accent-soft) 52%,
-    var(--admin-accent) 24%
-  );
-  color: var(--admin-accent);
-  box-shadow: 0 10px 26px rgba(47, 93, 120, 0.2);
-}
-
-.createToggleBarOpen > button:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--admin-accent) 52%, white);
-  background: color-mix(in srgb, var(--admin-accent-soft) 78%, var(--admin-accent) 8%);
-  color: var(--admin-accent);
+  composes: createToggleBar from "../../../components/admin/adminUi.module.css";
 }
 
 .createToggleText {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
+  composes: createToggleText from "../../../components/admin/adminUi.module.css";
 }
 
 .createToggleTitle {
-  margin: 0;
-  color: var(--admin-text);
-  font-size: 1.08rem;
-  line-height: 1.25;
+  composes: createToggleTitle from "../../../components/admin/adminUi.module.css";
 }
 
 .createToggleDescription {
-  margin: 0;
-  color: var(--admin-text-muted);
-  font-size: 0.94rem;
-  line-height: 1.45;
+  composes: createToggleDescription from "../../../components/admin/adminUi.module.css";
+}
+
+.createToggleBarOpen {
+  composes: createToggleBarOpen from "../../../components/admin/adminUi.module.css";
 }
 
 .createPanel {
-  display: grid;
-  overflow: hidden;
-  grid-template-rows: 0fr;
-  margin-bottom: 0;
-  opacity: 0;
-  transform: translateY(-6px);
-  visibility: hidden;
-  pointer-events: none;
-  transition:
-    grid-template-rows 260ms ease,
-    margin-bottom 260ms ease,
-    opacity 220ms ease,
-    transform 220ms ease,
-    visibility 0s linear 260ms;
+  composes: createPanel from "../../../components/admin/adminUi.module.css";
 }
 
 .createPanelOpen {
-  grid-template-rows: 1fr;
-  margin-bottom: 24px;
-  opacity: 1;
-  transform: translateY(0);
-  visibility: visible;
-  pointer-events: auto;
-  transition:
-    grid-template-rows 260ms ease,
-    margin-bottom 260ms ease,
-    opacity 220ms ease,
-    transform 220ms ease,
-    visibility 0s linear 0s;
+  composes: createPanelOpen from "../../../components/admin/adminUi.module.css";
 }
 
 .createPanelClosed {
-  grid-template-rows: 0fr;
+  composes: createPanelClosed from "../../../components/admin/adminUi.module.css";
 }
 
 .createPanelInner {
-  min-height: 0;
-  overflow: hidden;
+  composes: createPanelInner from "../../../components/admin/adminUi.module.css";
 }
 
 .form {
@@ -1226,23 +1161,6 @@
     padding-right: 6px;
     font-size: 0.88rem;
     white-space: normal;
-  }
-
-    .createToggleBar {
-    align-items: stretch;
-    flex-direction: column;
-    padding: 14px;
-  }
-
-  .createToggleBar > button {
-    width: 100%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .createPanel,
-  .createPanelOpen {
-    transition: none;
   }
 }
 
