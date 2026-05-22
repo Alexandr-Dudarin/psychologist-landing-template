@@ -278,6 +278,8 @@ function filterSessionsByFavoriteClients(
   return sessions.filter((session) => favoriteClientIds.has(session.clientId));
 }
 
+const createFormPanelId = "session-create-form-panel";
+
 export function SessionsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -324,6 +326,7 @@ export function SessionsPage() {
   const [isArchivedLoading, setIsArchivedLoading] = useState(false);
   const [showArchivedSessions, setShowArchivedSessions] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState("");
@@ -478,12 +481,12 @@ export function SessionsPage() {
         const activeSessionsPromise: Promise<CrmSessionRecord[] | null> =
           shouldLoadActiveSessions
             ? getAdminSessions({
-                scope: "active",
-                status: statusFilter,
-                clientId: clientFilter,
-                serviceId: serviceFilter,
-                search: searchQuery,
-              })
+              scope: "active",
+              status: statusFilter,
+              clientId: clientFilter,
+              serviceId: serviceFilter,
+              search: searchQuery,
+            })
             : Promise.resolve(null);
 
         const [sessionsData, clientsData, servicesData, scheduleData] =
@@ -700,21 +703,21 @@ export function SessionsPage() {
     const [sessionsData, archivedSessionsData] = await Promise.all([
       shouldLoadActiveSessions
         ? getAdminSessions({
-            scope: "active",
-            status: statusFilter,
-            clientId: clientFilter,
-            serviceId: serviceFilter,
-            search: searchQuery,
-          })
+          scope: "active",
+          status: statusFilter,
+          clientId: clientFilter,
+          serviceId: serviceFilter,
+          search: searchQuery,
+        })
         : Promise.resolve(null),
       shouldDisplayArchivedSessions
         ? getAdminSessions({
-            scope: "archived",
-            status: statusFilter,
-            clientId: clientFilter,
-            serviceId: serviceFilter,
-            search: searchQuery,
-          })
+          scope: "archived",
+          status: statusFilter,
+          clientId: clientFilter,
+          serviceId: serviceFilter,
+          search: searchQuery,
+        })
         : Promise.resolve(null),
     ]);
 
@@ -818,6 +821,7 @@ export function SessionsPage() {
       await reloadSessions();
       setCreateForm(initialCreateForm);
       setCreateClientPackages([]);
+      setIsCreateFormOpen(false);
       setSuccessMessage(
         payload.clientPackageId
           ? "Сессия создана и связана с пакетом клиента."
@@ -1005,23 +1009,58 @@ export function SessionsPage() {
         />
       ) : null}
 
-      <SessionCreateForm
-        clients={clients}
-        activeServices={activeServices}
-        clientPackages={createClientPackages}
-        form={createForm}
-        timezone={scheduleTimezone}
-        isCreating={isCreating}
-        isPackagesLoading={isCreatePackagesLoading}
-        onFormChange={handleCreateFormChange}
-        onSubmit={handleCreateSession}
-      />
-
-      {createScheduleWarning ? (
-        <div className={styles.warningFeedback} role="status">
-          {createScheduleWarning}
+      <div
+        className={`${styles.createToggleBar} ${isCreateFormOpen ? styles.createToggleBarOpen : ""
+          }`}
+      >
+        <div className={styles.createToggleText}>
+          <h2 className={styles.createToggleTitle}>Создание сессии</h2>
+          <p className={styles.createToggleDescription}>
+            Форма скрыта по умолчанию, чтобы фильтры и список сессий были ближе к
+            началу страницы.
+          </p>
         </div>
-      ) : null}
+
+        <AdminButton
+          type="button"
+          variant={isCreateFormOpen ? "secondary" : "primary"}
+          aria-expanded={isCreateFormOpen}
+          aria-controls={createFormPanelId}
+          onClick={() => {
+            setIsCreateFormOpen((current) => !current);
+            resetFeedback();
+          }}
+        >
+          {isCreateFormOpen ? "Скрыть форму" : "Создать сессию вручную"}
+        </AdminButton>
+      </div>
+
+      <div
+        id={createFormPanelId}
+        className={`${styles.createPanel} ${isCreateFormOpen ? styles.createPanelOpen : styles.createPanelClosed
+          }`}
+        aria-hidden={!isCreateFormOpen}
+      >
+        <div className={styles.createPanelInner}>
+          <SessionCreateForm
+            clients={clients}
+            activeServices={activeServices}
+            clientPackages={createClientPackages}
+            form={createForm}
+            timezone={scheduleTimezone}
+            isCreating={isCreating}
+            isPackagesLoading={isCreatePackagesLoading}
+            onFormChange={handleCreateFormChange}
+            onSubmit={handleCreateSession}
+          />
+
+          {createScheduleWarning ? (
+            <div className={styles.warningFeedback} role="status">
+              {createScheduleWarning}
+            </div>
+          ) : null}
+        </div>
+      </div>
 
       {editingSessionId !== null ? (
         <div ref={editFormRef} className={styles.editFormAnchor}>
