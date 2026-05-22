@@ -1,9 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
-import { AdminCollapsibleCreateSection } from "../../../components/admin/AdminCollapsibleCreateSection";
-import { AdminFeedback } from "../../../components/admin/AdminFeedback";
-import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
-import { AdminRefreshableTableArea } from "../../../components/admin/AdminRefreshableTableArea";
 import {
   createAdminService,
   createAdminServicePackagePlan,
@@ -23,11 +19,7 @@ import type {
   UpdateServicePackagePlanPayload,
   UpdateServicePayload,
 } from "../../../types/service";
-import { ServiceCreateForm } from "./ServiceCreateForm";
-import { ServiceEditForm } from "./ServiceEditForm";
-import { ServicePackagePlanCreateForm } from "./ServicePackagePlanCreateForm";
-import { ServicePackagePlanEditForm } from "./ServicePackagePlanEditForm";
-import { ServicePackagePlansTable } from "./ServicePackagePlansTable";
+import { ServicePackagePlansManagementBlock } from "./ServicePackagePlansManagementBlock";
 import {
   initialCreateForm,
   initialEditForm,
@@ -39,75 +31,17 @@ import {
   mapPackagePlanToForm,
   type ServicePackagePlanForm,
 } from "./servicePackagePlanForm";
-import styles from "./ServicesPage.module.css";
-import { ServicesTable } from "./ServicesTable";
+import {
+  doesPackagePlanMatchSearch,
+  type PackageActivityFilter,
+  type ServiceActivityFilter,
+  validatePackagePlanPayload,
+  validateServicePayload,
+} from "./servicesPageHelpers";
+import { ServicesManagementBlock } from "./ServicesManagementBlock";
 
 const serviceCreateFormPanelId = "service-create-form-panel";
 const packageCreateFormPanelId = "service-package-create-form-panel";
-
-function validateServicePayload(
-  payload: CreateServicePayload | UpdateServicePayload
-): string | null {
-  if (!payload.title) {
-    return "Название услуги обязательно.";
-  }
-
-  if (!Number.isFinite(payload.price) || payload.price < 0) {
-    return "Укажите корректную цену.";
-  }
-
-  if (
-    !Number.isInteger(payload.durationMinutes) ||
-    payload.durationMinutes <= 0
-  ) {
-    return "Укажите корректную длительность в минутах.";
-  }
-
-  return null;
-}
-
-function validatePackagePlanPayload(
-  payload: CreateServicePackagePlanPayload | UpdateServicePackagePlanPayload
-): string | null {
-  if (!Number.isInteger(payload.serviceId) || payload.serviceId <= 0) {
-    return "Выберите базовую услугу для пакета.";
-  }
-
-  if (!payload.title) {
-    return "Название пакета обязательно.";
-  }
-
-  if (!Number.isInteger(payload.sessionsCount) || payload.sessionsCount <= 0) {
-    return "Укажите корректное количество сессий в пакете.";
-  }
-
-  if (!Number.isFinite(payload.price) || payload.price < 0) {
-    return "Укажите корректную цену пакета.";
-  }
-
-  return null;
-}
-
-function normalizeSearchValue(value: string): string {
-  return value.trim().toLowerCase();
-}
-
-function doesPackagePlanMatchSearch(
-  packagePlan: CrmServicePackagePlanRecord,
-  searchQuery: string
-): boolean {
-  const normalizedQuery = normalizeSearchValue(searchQuery);
-
-  if (!normalizedQuery) {
-    return true;
-  }
-
-  return [
-    packagePlan.title,
-    packagePlan.description,
-    packagePlan.serviceTitle,
-  ].some((value) => value.toLowerCase().includes(normalizedQuery));
-}
 
 export function ServicesPage() {
   const [items, setItems] = useState<CrmServiceRecord[]>([]);
@@ -143,12 +77,10 @@ export function ServicesPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [packageError, setPackageError] = useState("");
   const [packageSuccessMessage, setPackageSuccessMessage] = useState("");
-  const [activityFilter, setActivityFilter] = useState<
-    "all" | "active" | "inactive"
-  >("all");
-  const [packageActivityFilter, setPackageActivityFilter] = useState<
-    "all" | "active" | "inactive"
-  >("all");
+  const [activityFilter, setActivityFilter] =
+    useState<ServiceActivityFilter>("all");
+  const [packageActivityFilter, setPackageActivityFilter] =
+    useState<PackageActivityFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [packageSearchQuery, setPackageSearchQuery] = useState("");
   const [createForm, setCreateForm] = useState<ServiceForm>(initialCreateForm);
@@ -777,185 +709,88 @@ export function ServicesPage() {
     <main>
       <h1>Услуги</h1>
 
-      <AdminCollapsibleCreateSection
-        title="Создание услуги"
-        description="Форма скрыта по умолчанию, чтобы фильтры и список услуг были ближе к началу страницы."
-        isOpen={isServiceCreateFormOpen}
-        onToggle={() => {
+      <ServicesManagementBlock
+        activityFilter={activityFilter}
+        createForm={createForm}
+        deletingId={deletingId}
+        displayedItems={displayedItems}
+        editForm={editForm}
+        editServiceFormRef={editServiceFormRef}
+        editingServiceId={editingServiceId}
+        error={error}
+        hidingId={hidingId}
+        isCreating={isCreating}
+        isServiceCreateFormOpen={isServiceCreateFormOpen}
+        isServicesInitialLoading={isServicesInitialLoading}
+        isServicesRefreshing={isServicesRefreshing}
+        isUpdating={isUpdating}
+        searchQuery={searchQuery}
+        serviceCreateFormPanelId={serviceCreateFormPanelId}
+        successMessage={successMessage}
+        onActivityFilterChange={(value) => {
+          setActivityFilter(value);
+          resetServiceMessages();
+        }}
+        onCancelEditing={cancelEditing}
+        onCreateFormChange={handleCreateFormChange}
+        onCreateService={handleCreateService}
+        onDeleteService={handleDeleteService}
+        onEditFormChange={handleEditFormChange}
+        onEditService={startEditing}
+        onHideService={handleHideService}
+        onSearchQueryChange={(value) => {
+          setSearchQuery(value);
+          resetServiceMessages();
+        }}
+        onToggleCreateForm={() => {
           setIsServiceCreateFormOpen((current) => !current);
           resetServiceMessages();
         }}
-        panelId={serviceCreateFormPanelId}
-        openLabel="Скрыть форму"
-        closedLabel="Создать услугу"
-      >
-        <ServiceCreateForm
-          form={createForm}
-          isCreating={isCreating}
-          onChange={handleCreateFormChange}
-          onSubmit={handleCreateService}
-        />
-      </AdminCollapsibleCreateSection>
+        onUpdateService={handleUpdateService}
+      />
 
-      {editingServiceId !== null ? (
-        <div ref={editServiceFormRef}>
-          <ServiceEditForm
-            form={editForm}
-            isUpdating={isUpdating}
-            onCancel={cancelEditing}
-            onChange={handleEditFormChange}
-            onSubmit={handleUpdateService}
-          />
-        </div>
-      ) : null}
-
-      <AdminFiltersRow>
-        <select
-          value={activityFilter}
-          onChange={(event) => {
-            setActivityFilter(
-              event.target.value as "all" | "active" | "inactive"
-            );
-            resetServiceMessages();
-          }}
-          className={`${styles.input} ${styles.filterSelect}`}
-        >
-          <option value="all">все услуги</option>
-          <option value="active">только активные</option>
-          <option value="inactive">только неактивные</option>
-        </select>
-
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(event) => {
-            setSearchQuery(event.target.value);
-            resetServiceMessages();
-          }}
-          placeholder="Поиск по названию или описанию"
-          className={`${styles.input} ${styles.searchInput}`}
-        />
-      </AdminFiltersRow>
-
-      <AdminFeedback message={error} tone="error" />
-      <AdminFeedback message={successMessage} tone="success" />
-
-      {isServicesInitialLoading ? (
-        <p>Загрузка...</p>
-      ) : displayedItems.length === 0 ? (
-        <AdminRefreshableTableArea isRefreshing={isServicesRefreshing}>
-          <p>Услуг пока нет.</p>
-        </AdminRefreshableTableArea>
-      ) : (
-        <AdminRefreshableTableArea isRefreshing={isServicesRefreshing}>
-          <ServicesTable
-            items={displayedItems}
-            deletingId={deletingId}
-            hidingId={hidingId}
-            onEdit={startEditing}
-            onDelete={handleDeleteService}
-            onHide={handleHideService}
-          />
-        </AdminRefreshableTableArea>
-      )}
-
-      <section className={styles.packagePlansSection}>
-        <div className={styles.packagePlansHeader}>
-          <h2 className={styles.packagePlansTitle}>Пакеты услуг</h2>
-          <p className={styles.packagePlansDescription}>
-            Здесь можно создать пакеты на основе обычных услуг: например 4, 8
-            или 12 разовых сессий по отдельной цене. Пакеты созданные на базе
-            одной и той же услуги — образуют единую карточку пакета с услугами,
-            с различным количеством сессий и ценой.
-          </p>
-        </div>
-
-        <AdminCollapsibleCreateSection
-          title="Создание пакета услуг"
-          description="Форма скрыта по умолчанию, чтобы список пакетов был ближе к началу блока."
-          isOpen={isPackageCreateFormOpen}
-          onToggle={() => {
-            setIsPackageCreateFormOpen((current) => !current);
-            resetPackageMessages();
-          }}
-          panelId={packageCreateFormPanelId}
-          openLabel="Скрыть форму"
-          closedLabel="Создать пакет"
-        >
-          <ServicePackagePlanCreateForm
-            form={packagePlanCreateForm}
-            isCreating={isPackagePlanCreating}
-            services={activeServices}
-            onChange={handlePackagePlanCreateFormChange}
-            onSubmit={handleCreatePackagePlan}
-          />
-        </AdminCollapsibleCreateSection>
-
-        {editingPackagePlanId !== null ? (
-          <div ref={editPackagePlanFormRef}>
-            <ServicePackagePlanEditForm
-              form={packagePlanEditForm}
-              isUpdating={isPackagePlanUpdating}
-              services={items}
-              onCancel={cancelPackagePlanEditing}
-              onChange={handlePackagePlanEditFormChange}
-              onSubmit={handleUpdatePackagePlan}
-            />
-          </div>
-        ) : null}
-
-        <div className={styles.packageFeedbackStack}>
-          <AdminFeedback message={packageError} tone="error" />
-          <AdminFeedback message={packageSuccessMessage} tone="success" />
-        </div>
-
-        <AdminFiltersRow>
-          <select
-            value={packageActivityFilter}
-            onChange={(event) => {
-              setPackageActivityFilter(
-                event.target.value as "all" | "active" | "inactive"
-              );
-              resetPackageMessages();
-            }}
-            className={`${styles.input} ${styles.filterSelect}`}
-          >
-            <option value="all">все пакеты</option>
-            <option value="active">только активные</option>
-            <option value="inactive">только скрытые</option>
-          </select>
-
-          <input
-            type="text"
-            value={packageSearchQuery}
-            onChange={(event) => {
-              setPackageSearchQuery(event.target.value);
-              resetPackageMessages();
-            }}
-            placeholder="Поиск по названию, описанию или базовой услуге"
-            className={`${styles.input} ${styles.searchInput}`}
-          />
-        </AdminFiltersRow>
-
-        {isPackagePlansInitialLoading ? (
-          <p>Загрузка пакетов...</p>
-        ) : displayedPackagePlans.length === 0 ? (
-          <AdminRefreshableTableArea isRefreshing={isPackagePlansRefreshing}>
-            <p className={styles.empty}>{packagePlansEmptyMessage}</p>
-          </AdminRefreshableTableArea>
-        ) : (
-          <AdminRefreshableTableArea isRefreshing={isPackagePlansRefreshing}>
-            <ServicePackagePlansTable
-              items={displayedPackagePlans}
-              deletingId={deletingPackagePlanId}
-              hidingId={hidingPackagePlanId}
-              onEdit={startEditingPackagePlan}
-              onDelete={handleDeletePackagePlan}
-              onHide={handleHidePackagePlan}
-            />
-          </AdminRefreshableTableArea>
-        )}
-      </section>
+      <ServicePackagePlansManagementBlock
+        activeServices={activeServices}
+        deletingPackagePlanId={deletingPackagePlanId}
+        displayedPackagePlans={displayedPackagePlans}
+        editPackagePlanFormRef={editPackagePlanFormRef}
+        editingPackagePlanId={editingPackagePlanId}
+        hidingPackagePlanId={hidingPackagePlanId}
+        isPackageCreateFormOpen={isPackageCreateFormOpen}
+        isPackagePlanCreating={isPackagePlanCreating}
+        isPackagePlansInitialLoading={isPackagePlansInitialLoading}
+        isPackagePlansRefreshing={isPackagePlansRefreshing}
+        isPackagePlanUpdating={isPackagePlanUpdating}
+        packageActivityFilter={packageActivityFilter}
+        packageCreateFormPanelId={packageCreateFormPanelId}
+        packageError={packageError}
+        packagePlanCreateForm={packagePlanCreateForm}
+        packagePlanEditForm={packagePlanEditForm}
+        packagePlansEmptyMessage={packagePlansEmptyMessage}
+        packageSearchQuery={packageSearchQuery}
+        packageSuccessMessage={packageSuccessMessage}
+        services={items}
+        onCancelPackagePlanEditing={cancelPackagePlanEditing}
+        onCreatePackagePlan={handleCreatePackagePlan}
+        onDeletePackagePlan={handleDeletePackagePlan}
+        onEditPackagePlan={startEditingPackagePlan}
+        onHidePackagePlan={handleHidePackagePlan}
+        onPackageActivityFilterChange={(value) => {
+          setPackageActivityFilter(value);
+          resetPackageMessages();
+        }}
+        onPackagePlanCreateFormChange={handlePackagePlanCreateFormChange}
+        onPackagePlanEditFormChange={handlePackagePlanEditFormChange}
+        onPackageSearchQueryChange={(value) => {
+          setPackageSearchQuery(value);
+          resetPackageMessages();
+        }}
+        onTogglePackageCreateForm={() => {
+          setIsPackageCreateFormOpen((current) => !current);
+          resetPackageMessages();
+        }}
+        onUpdatePackagePlan={handleUpdatePackagePlan}
+      />
     </main>
   );
 }

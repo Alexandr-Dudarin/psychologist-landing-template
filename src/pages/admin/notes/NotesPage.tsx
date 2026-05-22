@@ -41,7 +41,6 @@ import {
 } from "./notesPageHelpers";
 import { NotesQuickViewBanner } from "./NotesQuickViewBanner";
 import { NotesTable } from "./NotesTable";
-import styles from "./NotesPage.module.css";
 
 const createFormPanelId = "note-create-form-panel";
 

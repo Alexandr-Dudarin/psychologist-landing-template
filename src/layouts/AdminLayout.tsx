@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import { useLanguage } from "../app/providers/LanguageProvider";
 import { AdminButton } from "../components/admin/AdminButton";
@@ -207,17 +213,6 @@ export function AdminLayout() {
           </div>
 
           <div className={styles.mobileActions}>
-            <AdminButton
-              type="button"
-              variant="danger"
-              size="sm"
-              className={styles.mobileLogoutButton}
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-            >
-              {isLoggingOut ? "..." : "Выйти"}
-            </AdminButton>
-
             <button
               type="button"
               className={`${styles.menuButton} ${
@@ -245,34 +240,48 @@ export function AdminLayout() {
             isMobileMenuOpen ? styles.mobileMenuOpen : ""
           }`}
         >
-          <nav className={styles.mobileNav} aria-label="Навигация админки">
-            {navItems.map((item) =>
-              item.isBackToSite ? (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={styles.mobileNavLink}
-                  onClick={handleCloseMobileMenu}
-                >
-                  {item.label}
-                </Link>
-              ) : (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  className={({ isActive }) =>
-                    `${styles.mobileNavLink} ${
-                      isActive ? styles.mobileNavLinkActive : ""
-                    }`
-                  }
-                  onClick={handleCloseMobileMenu}
-                >
-                  {item.label}
-                </NavLink>
-              )
-            )}
-          </nav>
+          <div className={styles.mobileMenuInner}>
+            <nav className={styles.mobileNav} aria-label="Навигация админки">
+              {navItems.map((item) =>
+                item.isBackToSite ? (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={styles.mobileNavLink}
+                    onClick={handleCloseMobileMenu}
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) =>
+                      `${styles.mobileNavLink} ${
+                        isActive ? styles.mobileNavLinkActive : ""
+                      }`
+                    }
+                    onClick={handleCloseMobileMenu}
+                  >
+                    {item.label}
+                  </NavLink>
+                )
+              )}
+            </nav>
+
+            <div className={styles.mobileMenuFooter}>
+              <AdminButton
+                type="button"
+                variant="danger"
+                className={styles.mobileMenuLogoutButton}
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+              >
+                {isLoggingOut ? "Выходим..." : "Выйти из админки"}
+              </AdminButton>
+            </div>
+          </div>
         </div>
       </div>
 

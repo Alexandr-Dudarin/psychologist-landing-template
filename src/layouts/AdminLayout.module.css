@@ -132,12 +132,6 @@
   flex-shrink: 0;
 }
 
-.mobileLogoutButton.mobileLogoutButton {
-  border-color: color-mix(in srgb, var(--admin-danger) 34%, white);
-  background: var(--admin-danger-soft);
-  color: var(--admin-danger);
-}
-
 .menuButton {
   display: inline-grid;
   place-items: center;
@@ -236,6 +230,8 @@
     overflow: hidden;
     grid-template-rows: 0fr;
 
+    max-height: min(calc(100dvh - 116px), 560px);
+
     border: 1px solid transparent;
     border-radius: var(--admin-radius-lg);
     background: color-mix(in srgb, var(--admin-surface) 96%, white);
@@ -262,10 +258,17 @@
     pointer-events: auto;
   }
 
+  .mobileMenuInner {
+    display: grid;
+    min-height: 0;
+    max-height: inherit;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
   .mobileNav {
     display: grid;
     min-height: 0;
-    overflow: hidden;
     gap: 6px;
     padding: 12px;
   }
@@ -296,6 +299,28 @@
     box-shadow: inset 3px 0 0 var(--admin-nav-active);
   }
 
+  .mobileMenuFooter {
+    display: grid;
+    min-height: 0;
+    padding: 0 12px 12px;
+  }
+
+  .mobileMenuLogoutButton.mobileMenuLogoutButton {
+    width: 100%;
+    min-height: 42px;
+    border-color: color-mix(in srgb, var(--admin-danger) 36%, white);
+    background: color-mix(in srgb, var(--admin-danger-soft) 76%, white);
+    color: var(--admin-danger);
+    box-shadow: 0 8px 20px rgba(154, 75, 75, 0.12);
+  }
+
+  .mobileMenuLogoutButton.mobileMenuLogoutButton:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--admin-danger) 52%, white);
+    background: #fceeee;
+    color: #7f3d3d;
+    box-shadow: 0 10px 24px rgba(154, 75, 75, 0.16);
+  }
+
   .overlay {
     position: fixed;
     inset: 0;
@@ -310,6 +335,26 @@
   .overlayVisible {
     background: rgba(20, 16, 12, 0.22);
     pointer-events: auto;
+  }
+}
+
+@media (max-width: 1024px) and (max-height: 700px) {
+  .mobileMenu {
+    max-height: calc(100dvh - 104px);
+  }
+
+  .mobileNav {
+    gap: 2px;
+    padding: 10px 12px;
+  }
+
+  .mobileNavLink {
+    min-height: 38px;
+    padding-block: 7px;
+  }
+
+  .mobileMenuFooter {
+    padding: 0 12px 10px;
   }
 }
 
@@ -330,11 +375,6 @@
     gap: 8px;
   }
 
-  .mobileLogoutButton.mobileLogoutButton {
-    min-height: 38px;
-    padding-inline: 10px;
-  }
-
   .menuButton {
     width: 40px;
     height: 40px;
@@ -344,10 +384,6 @@
 @media (max-width: 380px) {
   .layout {
     padding: 14px;
-  }
-
-  .mobileLogoutButton.mobileLogoutButton {
-    display: none;
   }
 }
 
