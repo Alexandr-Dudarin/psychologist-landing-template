@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminRefreshableTableArea } from "../../../components/admin/AdminRefreshableTableArea";
 import { getAdminClients } from "../../../lib/api/adminClients";
@@ -40,6 +41,9 @@ import {
 } from "./notesPageHelpers";
 import { NotesQuickViewBanner } from "./NotesQuickViewBanner";
 import { NotesTable } from "./NotesTable";
+import styles from "./NotesPage.module.css";
+
+const createFormPanelId = "note-create-form-panel";
 
 function getNotesFilteredByFavoriteClients(
   notes: CrmNoteRecord[],
@@ -67,6 +71,7 @@ export function NotesPage() {
   const [sessions, setSessions] = useState<CrmSessionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState("");
@@ -262,6 +267,7 @@ export function NotesPage() {
       await createAdminNote(payload);
       await reloadNotes();
       setCreateForm(initialCreateForm);
+      setIsCreateFormOpen(false);
       setSuccessMessage("Заметка создана.");
     } catch (createError) {
       setError(
@@ -393,14 +399,51 @@ export function NotesPage() {
         />
       ) : null}
 
-      <NoteCreateForm
-        clients={clients}
-        availableSessions={availableCreateSessions}
-        form={createForm}
-        isCreating={isCreating}
-        onChange={handleCreateFormChange}
-        onSubmit={handleCreateNote}
-      />
+      <div
+        className={`${styles.createToggleBar} ${
+          isCreateFormOpen ? styles.createToggleBarOpen : ""
+        }`}
+      >
+        <div className={styles.createToggleText}>
+          <h2 className={styles.createToggleTitle}>Создание заметки</h2>
+          <p className={styles.createToggleDescription}>
+            Форма скрыта по умолчанию, чтобы фильтры и список заметок были ближе
+            к началу страницы.
+          </p>
+        </div>
+
+        <AdminButton
+          type="button"
+          variant={isCreateFormOpen ? "secondary" : "primary"}
+          aria-expanded={isCreateFormOpen}
+          aria-controls={createFormPanelId}
+          onClick={() => {
+            setIsCreateFormOpen((current) => !current);
+            resetMessages();
+          }}
+        >
+          {isCreateFormOpen ? "Скрыть форму" : "Создать заметку"}
+        </AdminButton>
+      </div>
+
+      <div
+        id={createFormPanelId}
+        className={`${styles.createPanel} ${
+          isCreateFormOpen ? styles.createPanelOpen : styles.createPanelClosed
+        }`}
+        aria-hidden={!isCreateFormOpen}
+      >
+        <div className={styles.createPanelInner}>
+          <NoteCreateForm
+            clients={clients}
+            availableSessions={availableCreateSessions}
+            form={createForm}
+            isCreating={isCreating}
+            onChange={handleCreateFormChange}
+            onSubmit={handleCreateNote}
+          />
+        </div>
+      </div>
 
       {editingNoteId !== null ? (
         <div ref={editFormRef}>
