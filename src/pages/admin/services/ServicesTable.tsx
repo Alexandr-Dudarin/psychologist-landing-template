@@ -33,13 +33,17 @@ export function ServicesTable({
     <AdminTable>
       <thead className={styles.tableHead}>
         <tr>
-          <th>Создана</th>
-          <th>Название</th>
-          <th>Цена</th>
-          <th>Длительность</th>
-          <th>Статус</th>
-          <th>Записи</th>
-          <th>Описание</th>
+          <th className={styles.createdCell}>Создана</th>
+          <th className={styles.titleCell}>Название</th>
+          <th className={`${styles.compactCell} ${styles.priceCell}`}>Цена</th>
+          <th className={`${styles.compactCell} ${styles.durationCell}`}>
+            Длительность
+          </th>
+          <th className={styles.statusCell}>Статус</th>
+          <th className={`${styles.compactCell} ${styles.sessionsCell}`}>
+            Записи
+          </th>
+          <th className={styles.descriptionCell}>Описание</th>
           <th className={styles.actionCell}>Действия</th>
         </tr>
       </thead>
@@ -63,11 +67,11 @@ export function ServicesTable({
                 <span className={styles.primaryValue}>{item.title}</span>
               </td>
 
-              <td className={styles.compactCell}>
+              <td className={`${styles.compactCell} ${styles.priceCell}`}>
                 {formatAdminPriceInput(item.price)} ₽
               </td>
 
-              <td className={styles.compactCell}>
+              <td className={`${styles.compactCell} ${styles.durationCell}`}>
                 {item.durationMinutes} мин
               </td>
 
@@ -77,7 +81,9 @@ export function ServicesTable({
                 </span>
               </td>
 
-              <td className={styles.compactCell}>{item.sessionsCount}</td>
+              <td className={`${styles.compactCell} ${styles.sessionsCell}`}>
+                {item.sessionsCount}
+              </td>
 
               <td className={styles.descriptionCell}>
                 {item.description ? (

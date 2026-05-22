@@ -203,6 +203,20 @@
   text-align: center;
 }
 
+.priceCell {
+  white-space: nowrap;
+}
+
+.durationCell {
+  white-space: nowrap;
+}
+
+.sessionsCell {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
+}
+
 .statusCell {
   width: 1%;
   white-space: nowrap;
@@ -329,13 +343,30 @@
   }
 }
 
-@media (max-width: 980px) {
-  .createdCell {
+@media (max-width: 1120px) {
+  .createdCell,
+  .sessionsCell {
     display: none;
   }
 
   .titleCell {
+    min-width: 150px;
+    max-width: 260px;
+  }
+
+  .actionCell {
+    width: 132px;
+    min-width: 132px;
+  }
+}
+
+@media (max-width: 980px) {
+  .titleCell {
     min-width: 140px;
+  }
+
+  .durationCell {
+    white-space: normal;
   }
 }
 
@@ -369,6 +400,10 @@
 
   .titleCell {
     min-width: 118px;
+  }
+
+  .priceCell {
+    display: none;
   }
 
   .actionCell {
