@@ -7,6 +7,7 @@ import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import styles from "./SchedulePage.module.css";
 import { weekdayLabels } from "./schedulePage.shared";
+import { AdminTimeSelect } from "../../../components/admin/AdminTimeSelect";
 
 type ScheduleRulesTableProps = {
   isSaving: boolean;
@@ -61,25 +62,25 @@ export function ScheduleRulesTable({
                   />
                 </td>
                 <td>
-                  <input
-                    type="time"
+                  <AdminTimeSelect
                     value={rule.startTime}
-                    onChange={(event) =>
-                      onRuleChange(rule.weekday, "startTime", event.target.value)
+                    onChange={(nextTime) =>
+                      onRuleChange(rule.weekday, "startTime", nextTime)
                     }
+                    ariaLabel={`Начало рабочего дня: ${weekdayLabels[rule.weekday]}`}
                     disabled={!rule.isEnabled}
-                    className={styles.input}
+                    className={styles.timeSelect}
                   />
                 </td>
                 <td>
-                  <input
-                    type="time"
+                  <AdminTimeSelect
                     value={rule.endTime}
-                    onChange={(event) =>
-                      onRuleChange(rule.weekday, "endTime", event.target.value)
+                    onChange={(nextTime) =>
+                      onRuleChange(rule.weekday, "endTime", nextTime)
                     }
+                    ariaLabel={`Окончание рабочего дня: ${weekdayLabels[rule.weekday]}`}
                     disabled={!rule.isEnabled}
-                    className={styles.input}
+                    className={styles.timeSelect}
                   />
                 </td>
               </tr>

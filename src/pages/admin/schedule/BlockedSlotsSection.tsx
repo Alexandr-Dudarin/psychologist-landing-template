@@ -6,6 +6,7 @@ import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import { AdminScheduleDatePicker } from "./AdminScheduleDatePicker";
+import { AdminTimeSelect } from "../../../components/admin/AdminTimeSelect";
 import styles from "./SchedulePage.module.css";
 import {
   formatDate,
@@ -86,21 +87,21 @@ export function BlockedSlotsSection({
         <div className={styles.grid}>
           <label className={styles.field}>
             <span>Начало</span>
-            <input
-              type="time"
+            <AdminTimeSelect
               value={blockedSlotForm.startTime}
-              onChange={(event) => onFormChange("startTime", event.target.value)}
-              className={styles.input}
+              onChange={(nextTime) => onFormChange("startTime", nextTime)}
+              ariaLabel="Начало блокировки слота"
+              className={styles.timeSelect}
             />
           </label>
 
           <label className={styles.field}>
             <span>Окончание</span>
-            <input
-              type="time"
+            <AdminTimeSelect
               value={blockedSlotForm.endTime}
-              onChange={(event) => onFormChange("endTime", event.target.value)}
-              className={styles.input}
+              onChange={(nextTime) => onFormChange("endTime", nextTime)}
+              ariaLabel="Окончание блокировки слота"
+              className={styles.timeSelect}
             />
           </label>
         </div>

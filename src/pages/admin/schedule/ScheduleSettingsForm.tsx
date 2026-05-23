@@ -9,6 +9,10 @@ import {
   type FeedbackState,
   type SettingsForm,
 } from "./schedulePage.shared";
+import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
 
 type ScheduleSettingsFormProps = {
   feedback: FeedbackState;
@@ -80,21 +84,15 @@ export function ScheduleSettingsForm({
 
           <label className={`${styles.field} ${styles.wideField}`}>
             <span className={styles.fieldLabel}>Часовой пояс записи</span>
-            <select
+            <CustomSelect
               value={settingsForm.timezone}
-              onChange={(event) => onTextChange("timezone", event.target.value)}
-              className={styles.input}
-            >
-              {bookingTimezoneOptionGroups.map((group) => (
-                <optgroup key={group.label} label={group.label}>
-                  {group.options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+              options={timezoneOptions}
+              onChange={(nextTimezone) => onTextChange("timezone", nextTimezone)}
+              ariaLabel="Часовой пояс записи"
+              variant="admin"
+              layout="full"
+              className={styles.timezoneSelect}
+            />
 
             <span className={styles.fieldHint}>
               Этот часовой пояс используется для онлайн-записи ваших клиентов, и
@@ -138,3 +136,17 @@ export function ScheduleSettingsForm({
     </form>
   );
 }
+
+const timezoneOptions: CustomSelectOption[] = bookingTimezoneOptionGroups.flatMap(
+  (group) => [
+    {
+      value: `__group_${group.label}`,
+      label: group.label,
+      disabled: true,
+    },
+    ...group.options.map((option) => ({
+      value: option.value,
+      label: option.label,
+    })),
+  ]
+);

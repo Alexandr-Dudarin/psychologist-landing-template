@@ -6,6 +6,7 @@ import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import { AdminScheduleDatePicker } from "./AdminScheduleDatePicker";
+import { AdminTimeSelect } from "../../../components/admin/AdminTimeSelect";
 import styles from "./SchedulePage.module.css";
 import {
   formatDate,
@@ -85,23 +86,23 @@ export function ScheduleOverridesSection({
         <div className={styles.grid}>
           <label className={styles.field}>
             <span>Начало</span>
-            <input
-              type="time"
+            <AdminTimeSelect
               value={form.startTime}
-              onChange={(event) => onFormChange("startTime", event.target.value)}
+              onChange={(nextTime) => onFormChange("startTime", nextTime)}
+              ariaLabel="Начало исключения по дате"
               disabled={!form.isWorkingDay}
-              className={styles.input}
+              className={styles.timeSelect}
             />
           </label>
 
           <label className={styles.field}>
             <span>Окончание</span>
-            <input
-              type="time"
+            <AdminTimeSelect
               value={form.endTime}
-              onChange={(event) => onFormChange("endTime", event.target.value)}
+              onChange={(nextTime) => onFormChange("endTime", nextTime)}
+              ariaLabel="Окончание исключения по дате"
               disabled={!form.isWorkingDay}
-              className={styles.input}
+              className={styles.timeSelect}
             />
           </label>
         </div>
