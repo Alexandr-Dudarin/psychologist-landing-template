@@ -1,0 +1,280 @@
+.root {
+  position: relative;
+  min-width: 0;
+}
+
+.rootOpen {
+  z-index: 70;
+}
+
+.rootFilter {
+  flex: 0 0 220px;
+  min-width: 220px;
+  max-width: 280px;
+}
+
+.rootForm,
+.rootFull {
+  width: 100%;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0 12px;
+
+  border: 1px solid transparent;
+  border-radius: 12px;
+
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
+}
+
+.rootAdmin .trigger {
+  border-color: var(--admin-border);
+  background: var(--admin-surface);
+  color: var(--admin-text);
+}
+
+.rootPublic .trigger {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.trigger:hover:not(:disabled) {
+  box-shadow: 0 8px 20px rgba(20, 30, 40, 0.06);
+}
+
+.rootAdmin .trigger:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--admin-accent) 28%, white);
+  background: color-mix(in srgb, var(--admin-surface) 88%, white);
+}
+
+.rootPublic .trigger:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--color-accent) 34%, transparent);
+  background: color-mix(in srgb, var(--color-surface-strong) 86%, transparent);
+}
+
+.trigger:focus-visible {
+  outline: none;
+}
+
+.rootAdmin .trigger:focus-visible,
+.rootAdmin.rootOpen .trigger {
+  border-color: color-mix(in srgb, var(--admin-accent) 42%, white);
+  box-shadow: 0 0 0 3px rgba(47, 93, 120, 0.14);
+}
+
+.rootPublic .trigger:focus-visible,
+.rootPublic.rootOpen .trigger {
+  border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 16%, transparent);
+}
+
+.trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.triggerLabel {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rootAdmin .triggerPlaceholder {
+  color: var(--admin-text-muted);
+}
+
+.rootPublic .triggerPlaceholder {
+  color: var(--color-text-muted);
+}
+
+.chevron {
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  line-height: 1;
+  opacity: 0.72;
+  transition: transform 0.18s ease;
+}
+
+.rootOpen .chevron {
+  transform: rotate(180deg);
+}
+
+.dropdown {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 6px);
+  left: 0;
+
+  width: min(420px, 92vw);
+  min-width: 100%;
+  max-height: 310px;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  border: 1px solid transparent;
+  border-radius: 14px;
+
+  animation: customSelectDropdownIn 0.16s ease both;
+}
+
+.rootAdmin .dropdown {
+  border-color: var(--admin-border);
+  background: color-mix(in srgb, var(--admin-surface) 96%, white);
+  box-shadow: 0 18px 42px rgba(20, 30, 40, 0.18);
+}
+
+.rootPublic .dropdown {
+  border-color: var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 96%, white);
+  box-shadow: 0 18px 42px rgba(30, 20, 16, 0.16);
+}
+
+.option {
+  display: grid;
+  width: 100%;
+  gap: 3px;
+  padding: 10px 12px;
+
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+
+  font: inherit;
+  line-height: 1.25;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.rootAdmin .option {
+  border-bottom-color: color-mix(in srgb, var(--admin-border) 72%, transparent);
+  color: var(--admin-text);
+}
+
+.rootPublic .option {
+  border-bottom-color: color-mix(in srgb, var(--color-border) 72%, transparent);
+  color: var(--color-text);
+}
+
+.option:last-child {
+  border-bottom: 0;
+}
+
+.rootAdmin .option:hover:not(:disabled),
+.rootAdmin .optionHighlighted {
+  background: var(--admin-accent-soft);
+}
+
+.rootPublic .option:hover:not(:disabled),
+.rootPublic .optionHighlighted {
+  background: var(--color-accent-soft);
+}
+
+.rootAdmin .optionSelected {
+  background: color-mix(in srgb, var(--admin-accent-soft) 82%, white);
+  color: var(--admin-accent);
+  font-weight: 700;
+}
+
+.rootPublic .optionSelected {
+  background: color-mix(in srgb, var(--color-accent-soft) 82%, white);
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.option:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.optionLabel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.optionDescription {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.rootAdmin .optionDescription {
+  color: var(--admin-text-muted);
+}
+
+.rootPublic .optionDescription {
+  color: var(--color-text-muted);
+}
+
+.emptyOption {
+  padding: 12px;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.rootAdmin .emptyOption {
+  color: var(--admin-text-muted);
+}
+
+.rootPublic .emptyOption {
+  color: var(--color-text-muted);
+}
+
+@keyframes customSelectDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .rootFilter {
+    flex-basis: 100%;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .dropdown {
+    width: 100%;
+    max-width: none;
+    max-height: 280px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron,
+  .trigger,
+  .dropdown {
+    transition: none;
+    animation: none;
+  }
+}

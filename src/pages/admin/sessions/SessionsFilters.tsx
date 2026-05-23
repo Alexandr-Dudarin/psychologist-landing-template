@@ -2,6 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
+import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
 import type {
   ClientFavoriteFilter,
   CrmClientRecord,
@@ -103,6 +107,28 @@ export function SessionsFilters({
   const serviceOptions = useMemo(
     () => getSortedServiceOptions(services),
     [services]
+  );
+
+  const statusSelectOptions = useMemo<CustomSelectOption[]>(
+    () => [
+      { value: "all", label: "Все статусы" },
+      ...sessionStatuses.map((status) => ({
+        value: status,
+        label: sessionStatusLabels[status],
+      })),
+    ],
+    []
+  );
+
+  const serviceSelectOptions = useMemo<CustomSelectOption[]>(
+    () => [
+      { value: "all", label: "Все услуги" },
+      ...serviceOptions.map((service) => ({
+        value: String(service.id),
+        label: service.isActive ? service.title : `${service.title} — скрыта`,
+      })),
+    ],
+    [serviceOptions]
   );
 
   useEffect(() => {
@@ -231,37 +257,28 @@ export function SessionsFilters({
         className={`${styles.input} ${styles.searchInput}`}
       />
 
-      <select
+      <CustomSelect
         value={statusFilter}
-        onChange={(event) =>
-          onStatusFilterChange(event.target.value as SessionStatus | "all")
+        options={statusSelectOptions}
+        ariaLabel="Фильтр по статусу сессии"
+        variant="admin"
+        layout="filter"
+        onChange={(value) =>
+          onStatusFilterChange(value as SessionStatus | "all")
         }
-        className={`${styles.input} ${styles.filterSelect}`}
-      >
-        <option value="all">Все статусы</option>
-        {sessionStatuses.map((status) => (
-          <option key={status} value={status}>
-            {sessionStatusLabels[status]}
-          </option>
-        ))}
-      </select>
+      />
 
-      <select
-        value={serviceFilter}
-        onChange={(event) =>
-          onServiceFilterChange(
-            event.target.value === "all" ? "all" : Number(event.target.value)
-          )
+      <CustomSelect
+        value={serviceFilter === "all" ? "all" : String(serviceFilter)}
+        options={serviceSelectOptions}
+        ariaLabel="Фильтр по услуге"
+        variant="admin"
+        layout="filter"
+        className={styles.serviceFilterSelect}
+        onChange={(value) =>
+          onServiceFilterChange(value === "all" ? "all" : Number(value))
         }
-        className={`${styles.input} ${styles.filterSelect} ${styles.serviceFilterSelect}`}
-      >
-        <option value="all">Все услуги</option>
-        {serviceOptions.map((service) => (
-          <option key={service.id} value={service.id}>
-            {service.isActive ? service.title : `${service.title} — скрыта`}
-          </option>
-        ))}
-      </select>
+      />
 
       {hasActiveFilters ? (
         <AdminButton
