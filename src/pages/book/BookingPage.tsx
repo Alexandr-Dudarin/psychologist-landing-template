@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../../app/providers/LanguageProvider";
-import { Container } from "../../components/Container/Container";
 import {
   createPublicBooking,
   getPublicBookingAvailability,
@@ -16,8 +15,6 @@ import type {
 } from "../../types/booking";
 import { createPayment } from "../../lib/api/payment";
 import { siteSettings } from "../../data/siteSettings";
-import { BookingDateStep } from "./BookingDateStep";
-import { BookingFormStep } from "./BookingFormStep";
 import {
   buildCalendarDatesMeta,
   getPreferredContactFallback,
@@ -31,10 +28,8 @@ import {
 import { copyByLanguage } from "./bookingPage.copy";
 import { getDefaultBookingTimezone } from "../../lib/booking/bookingTimezones";
 import { getTimezoneLabel } from "../../lib/booking/getTimezoneLabel";
-import { BookingPageSkeleton } from "./BookingPageSkeleton";
-import { BookingServiceStep } from "./BookingServiceStep";
-import { BookingSlotsStep } from "./BookingSlotsStep";
-import { BookingSummary } from "./BookingSummary";
+import { BookingPageContent } from "./BookingPageContent";
+import { BookingRedirectOverlay } from "./BookingRedirectOverlay";
 import {
   getPublicPricingPackagePlans,
   type PublicPricingPackagePlan,
@@ -428,6 +423,66 @@ export function BookingPage() {
     resetSelectionAfterServiceChange();
   };
 
+  const handlePackageCodeChange = (value: string) => {
+    setPackageCode(value);
+    setPackageLookupError(null);
+  };
+
+  const handlePackageContactChange = (value: string) => {
+    setPackageContact(value);
+    setPackageLookupError(null);
+  };
+
+  const handleServiceSelect = (serviceId: number) => {
+    if (isCompleted) return;
+    setSelectedServiceId(serviceId);
+    setSelectedPackagePlanId(null);
+    resetPackageState();
+    resetSelectionAfterServiceChange();
+
+    setPulseSummary(true);
+    setTimeout(() => setPulseSummary(false), 300);
+
+    setTimeout(() => {
+      dateRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 120);
+  };
+
+  const handleDateChange = (date: string) => {
+    if (isCompleted) return;
+    setSelectedDate(date);
+    setVisibleMonth(date.slice(0, 7));
+    setSelectedSlot(null);
+    setSubmitError(null);
+    setSubmitSuccess(null);
+
+    setPulseSummary(true);
+    setTimeout(() => setPulseSummary(false), 300);
+
+    setTimeout(() => {
+      slotsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 120);
+  };
+
+  const handleSlotSelect = (slot: PublicBookingSlot) => {
+    if (isCompleted) return;
+    setSelectedSlot(slot);
+    setSubmitError(null);
+    setSubmitSuccess(null);
+
+    setPulseSummary(true);
+    setTimeout(() => setPulseSummary(false), 400);
+
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({
+        behavior: "smooth",
+      });
+    }, 120);
+  };
+
   const handlePackageLookup = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -718,207 +773,69 @@ export function BookingPage() {
 
   return (
     <main className={styles.page}>
-      <Container>
-        <div className={styles.topbar}>
-          <Link to="/" className={styles.backLink}>
-            {currentLanguage === "ru" ? "← Вернуться на сайт" : "← Back to site"}
-          </Link>
-        </div>
-
-        <div className={styles.hero}>
-          <p className={styles.eyebrow}>{copy.eyebrow}</p>
-          <h1 className={styles.title}>{copy.title}</h1>
-          <p className={styles.description}>{copy.description}</p>
-        </div>
-
-        {isLoading ? (
-          <BookingPageSkeleton copy={copy} />
-        ) : (
-          <div className={styles.layout}>
-            <section className={styles.panel}>
-              <div className={styles.stepActive}>
-                <BookingServiceStep
-                  copy={copy}
-                  currentLanguage={currentLanguage}
-                  services={services}
-                  packagePlans={packagePlans}
-                  selectedServiceId={selectedServiceId}
-                  selectedPackagePlanId={selectedPackagePlanId}
-                  bookingMode={bookingMode}
-                  showPackagePurchaseMode={isPackagePurchaseAvailable}
-                  packageCode={packageCode}
-                  packageContact={packageContact}
-                  packageInfo={verifiedPackage}
-                  packageLookupError={packageLookupError}
-                  isLookingUpPackage={isLookingUpPackage}
-                  onBookingModeChange={handleBookingModeChange}
-                  onPackagePlanSelect={handlePackagePlanSelect}
-                  onPackageCodeChange={(value) => {
-                    setPackageCode(value);
-                    setPackageLookupError(null);
-                  }}
-                  onPackageContactChange={(value) => {
-                    setPackageContact(value);
-                    setPackageLookupError(null);
-                  }}
-                  onPackageLookup={handlePackageLookup}
-                  onPackageReset={handlePackageReset}
-                  onSelect={(serviceId) => {
-                    if (isCompleted) return;
-                    setSelectedServiceId(serviceId);
-                    setSelectedPackagePlanId(null);
-                    resetPackageState();
-                    resetSelectionAfterServiceChange();
-
-                    setPulseSummary(true);
-                    setTimeout(() => setPulseSummary(false), 300);
-
-                    setTimeout(() => {
-                      dateRef.current?.scrollIntoView({ behavior: "smooth" });
-                    }, 120);
-                  }}
-                />
-              </div>
-
-              {!isPackagePurchaseMode ? (
-                <>
-                  <div
-                    ref={dateRef}
-                    className={
-                      !selectedService ? styles.stepDisabled : styles.stepActive
-                    }
-                  >
-                    <BookingDateStep
-                      copy={copy}
-                      selectedService={Boolean(selectedService)}
-                      selectedDate={selectedDate}
-                      visibleMonth={resolvedVisibleMonth}
-                      minDate={data?.dateBounds.min}
-                      maxDate={data?.dateBounds.max}
-                      datesMeta={datesMeta}
-                      isRefreshingSlots={isRefreshingSlots}
-                      error={error}
-                      locale={locale}
-                      weekStartsOn={weekStartsOn}
-                      onDateChange={(date) => {
-                        if (isCompleted) return;
-                        setSelectedDate(date);
-                        setVisibleMonth(date.slice(0, 7));
-                        setSelectedSlot(null);
-                        setSubmitError(null);
-                        setSubmitSuccess(null);
-
-                        setPulseSummary(true);
-                        setTimeout(() => setPulseSummary(false), 300);
-
-                        setTimeout(() => {
-                          slotsRef.current?.scrollIntoView({
-                            behavior: "smooth",
-                            block: "start",
-                          });
-                        }, 120);
-                      }}
-                      onVisibleMonthChange={setVisibleMonth}
-                    />
-                  </div>
-
-                  <div
-                    ref={slotsRef}
-                    className={
-                      !selectedService || !selectedDate
-                        ? styles.stepDisabled
-                        : styles.stepActive
-                    }
-                  >
-                    {selectedService && selectedDate ? (
-                      <div className={styles.timezoneNotice}>
-                        <span
-                          className={styles.timezoneIcon}
-                          aria-hidden="true"
-                        >
-                          🕒
-                        </span>
-
-                        <span className={styles.timezoneNoticeText}>
-                          {currentLanguage === "ru"
-                            ? `Время указано по часовому поясу записи: ${timezoneLabel}. Пожалуйста, учитывайте это при выборе слота.`
-                            : `Times are shown in the booking timezone: ${timezoneLabel}. Please keep this in mind when choosing a slot.`}
-                        </span>
-                      </div>
-                    ) : null}
-
-                    <BookingSlotsStep
-                      copy={copy}
-                      error={error}
-                      selectedService={Boolean(selectedService)}
-                      selectedDate={selectedDate}
-                      isRefreshingSlots={isRefreshingSlots}
-                      slots={slots}
-                      selectedSlot={selectedSlot}
-                      onSelect={(slot) => {
-                        if (isCompleted) return;
-                        setSelectedSlot(slot);
-                        setSubmitError(null);
-                        setSubmitSuccess(null);
-
-                        setPulseSummary(true);
-                        setTimeout(() => setPulseSummary(false), 400);
-
-                        setTimeout(() => {
-                          formRef.current?.scrollIntoView({
-                            behavior: "smooth",
-                          });
-                        }, 120);
-                      }}
-                    />
-                  </div>
-                </>
-              ) : null}
-
-              <div
-                ref={formRef}
-                className={!isFormEnabled ? styles.stepDisabled : styles.stepActive}
-              >
-                <BookingFormStep
-                  copy={copy}
-                  bookingContent={bookingContent}
-                  privacyLinkText={privacyLinkText}
-                  isFormEnabled={isFormEnabled}
-                  form={form}
-                  isCompleted={isCompleted}
-                  showPreferredContact={preferredContactSettings.enabled}
-                  formErrors={formErrors}
-                  isSubmitting={isSubmitting}
-                  submitError={submitError}
-                  submitSuccess={submitSuccess}
-                  onSubmit={handleSubmit}
-                  onFieldChange={handleFormChange}
-                />
-              </div>
-            </section>
-
-            <div className={styles.summaryWrapper}>
-              <BookingSummary
-                className={pulseSummary ? styles.summaryPulse : ""}
-                copy={copy}
-                currentLanguage={currentLanguage}
-                selectedService={selectedSummaryService}
-                selectedDate={selectedDate}
-                selectedSlot={selectedSlot}
-                confirmedBooking={confirmedBooking}
-                clientPackage={verifiedPackage}
-                timezone={bookingTimezone}
-              />
-            </div>
-          </div>
-        )}
-      </Container>
+      <BookingPageContent
+        copy={copy}
+        currentLanguage={currentLanguage}
+        locale={locale}
+        weekStartsOn={weekStartsOn}
+        bookingContent={bookingContent}
+        privacyLinkText={privacyLinkText}
+        isLoading={isLoading}
+        services={services}
+        packagePlans={packagePlans}
+        selectedServiceId={selectedServiceId}
+        selectedPackagePlanId={selectedPackagePlanId}
+        bookingMode={bookingMode}
+        showPackagePurchaseMode={isPackagePurchaseAvailable}
+        packageCode={packageCode}
+        packageContact={packageContact}
+        packageInfo={verifiedPackage}
+        packageLookupError={packageLookupError}
+        isLookingUpPackage={isLookingUpPackage}
+        isPackagePurchaseMode={isPackagePurchaseMode}
+        selectedService={selectedService}
+        selectedDate={selectedDate}
+        visibleMonth={resolvedVisibleMonth}
+        minDate={data?.dateBounds.min}
+        maxDate={data?.dateBounds.max}
+        datesMeta={datesMeta}
+        isRefreshingSlots={isRefreshingSlots}
+        error={error}
+        timezoneLabel={timezoneLabel}
+        slots={slots}
+        selectedSlot={selectedSlot}
+        isFormEnabled={isFormEnabled}
+        form={form}
+        isCompleted={isCompleted}
+        showPreferredContact={preferredContactSettings.enabled}
+        formErrors={formErrors}
+        isSubmitting={isSubmitting}
+        submitError={submitError}
+        submitSuccess={submitSuccess}
+        pulseSummary={pulseSummary}
+        selectedSummaryService={selectedSummaryService}
+        confirmedBooking={confirmedBooking}
+        clientPackage={verifiedPackage}
+        bookingTimezone={bookingTimezone}
+        dateRef={dateRef}
+        slotsRef={slotsRef}
+        formRef={formRef}
+        onBookingModeChange={handleBookingModeChange}
+        onPackagePlanSelect={handlePackagePlanSelect}
+        onPackageCodeChange={handlePackageCodeChange}
+        onPackageContactChange={handlePackageContactChange}
+        onPackageLookup={handlePackageLookup}
+        onPackageReset={handlePackageReset}
+        onServiceSelect={handleServiceSelect}
+        onDateChange={handleDateChange}
+        onVisibleMonthChange={setVisibleMonth}
+        onSlotSelect={handleSlotSelect}
+        onSubmit={handleSubmit}
+        onFieldChange={handleFormChange}
+      />
 
       {isRedirecting ? (
-        <div className={styles.redirectOverlay}>
-          <div className={styles.loader} />
-          <p>{copy.submitLoading}</p>
-        </div>
+        <BookingRedirectOverlay label={copy.submitLoading} />
       ) : null}
     </main>
   );
