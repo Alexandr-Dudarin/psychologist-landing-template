@@ -1,10 +1,15 @@
+import { useMemo } from "react";
+
+import { AdminButton } from "../../../components/admin/AdminButton";
+import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
+import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
 import type {
   ClientFavoriteFilter,
   ClientStatus,
 } from "../../../types/client";
-
-import { AdminButton } from "../../../components/admin/AdminButton";
-import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import styles from "./ClientsPage.module.css";
 
 type StatusOption = {
@@ -41,22 +46,30 @@ export function ClientsFilters({
 }: ClientsFiltersProps) {
   const showFavoritesOnly = favoriteFilter === "favorites";
 
+  const statusSelectOptions = useMemo<CustomSelectOption[]>(
+    () => [
+      {
+        value: "all",
+        label: allStatusesLabel,
+      },
+      ...statusOptions.map((status) => ({
+        value: status.value,
+        label: status.label,
+      })),
+    ],
+    [allStatusesLabel, statusOptions]
+  );
+
   return (
     <AdminFiltersRow>
-      <select
+      <CustomSelect
         value={statusFilter}
-        onChange={(event) =>
-          onStatusChange(event.target.value as ClientStatus | "all")
-        }
-        className={`${styles.input} ${styles.select}`}
-      >
-        <option value="all">{allStatusesLabel}</option>
-        {statusOptions.map((status) => (
-          <option key={status.value} value={status.value}>
-            {status.label}
-          </option>
-        ))}
-      </select>
+        options={statusSelectOptions}
+        onChange={(value) => onStatusChange(value as ClientStatus | "all")}
+        ariaLabel="Фильтр по статусу клиента"
+        variant="admin"
+        layout="filter"
+      />
 
       <label className={styles.favoriteFilterToggle}>
         <input
