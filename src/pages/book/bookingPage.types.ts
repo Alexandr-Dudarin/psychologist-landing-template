@@ -103,6 +103,8 @@ export type BookingFormErrors = {
 
 export type BookingContent = LocaleData["content"]["booking"];
 
+export type BookingMode = "regular" | "package" | "buy-package";
+
 export const initialFormState: BookingFormState = {
   firstName: "",
   lastName: "",

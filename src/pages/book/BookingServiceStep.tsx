@@ -6,11 +6,9 @@ import type {
 } from "../../types/booking";
 import type { PublicPricingPackagePlan } from "../../lib/services/getPublicPricingServices";
 import { formatPrice } from "./bookingPage.helpers";
-import type { BookingPageCopy } from "./bookingPage.types";
+import type { BookingMode, BookingPageCopy } from "./bookingPage.types";
 import pageStyles from "./BookingPage.module.css";
 import styles from "./BookingServiceStep.module.css";
-
-type BookingMode = "regular" | "package" | "buy-package";
 
 type BookingServiceStepProps = {
   copy: BookingPageCopy;

@@ -2,6 +2,7 @@ import type { CalendarDateMeta } from "../../components/calendar/calendar.types"
 import type {
   PublicBookingAvailabilityResponse,
   PublicBookingMonthDayAvailability,
+  PublicBookingPackageInfo,
   PublicBookingService,
 } from "../../types/booking";
 import type {
@@ -11,6 +12,7 @@ import type {
   BookingPageCopy,
 } from "./bookingPage.types";
 import { validatePreferredContactFields } from "../../lib/preferredContact";
+import type { PublicPricingPackagePlan } from "../../lib/services/getPublicPricingServices";
 
 export function formatDateLabel(value: string, language: "ru" | "en") {
   const [year, month, day] = value.split("-").map(Number);
@@ -165,4 +167,71 @@ export function buildCalendarDatesMeta(params: {
       hint: copy.calendarDisabledHint,
     };
   });
+}
+
+export function getServiceFromPackage(
+  packageInfo: PublicBookingPackageInfo
+): PublicBookingService {
+  return {
+    id: packageInfo.serviceId,
+    title: packageInfo.serviceTitle,
+    description: "",
+    price: 0,
+    durationMinutes: packageInfo.serviceDurationMinutes,
+  };
+}
+
+export function getServiceFromPackagePlan(
+  packagePlan: PublicPricingPackagePlan
+): PublicBookingService {
+  return {
+    id: packagePlan.serviceId,
+    title: packagePlan.title,
+    description: packagePlan.description ?? "",
+    price: packagePlan.price,
+    durationMinutes: packagePlan.serviceDurationMinutes,
+  };
+}
+
+export function splitClientName(fullName: string) {
+  const normalizedName = fullName.trim().replace(/\s+/g, " ");
+  const [firstName = "", ...rest] = normalizedName.split(" ");
+
+  return {
+    firstName,
+    lastName: rest.join(" "),
+  };
+}
+
+export function getPreferredContactFallback(
+  packageInfo: PublicBookingPackageInfo,
+  packageContact: string
+): Pick<BookingFormState, "preferredContactMethod" | "preferredContactValue"> {
+  if (packageInfo.preferredContactMethod && packageInfo.preferredContactValue) {
+    return {
+      preferredContactMethod: packageInfo.preferredContactMethod,
+      preferredContactValue: packageInfo.preferredContactValue,
+    };
+  }
+
+  const trimmedContact = packageContact.trim();
+
+  if (!trimmedContact) {
+    return {
+      preferredContactMethod: "",
+      preferredContactValue: "",
+    };
+  }
+
+  if (trimmedContact.includes("@")) {
+    return {
+      preferredContactMethod: "email",
+      preferredContactValue: trimmedContact,
+    };
+  }
+
+  return {
+    preferredContactMethod: "whatsapp",
+    preferredContactValue: trimmedContact,
+  };
 }
