@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { BaseCalendar } from "../../../components/calendar/BaseCalendar";
+import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
 import { getTodayDateKeyInTimeZone } from "../../../lib/datetime/practiceTimezone";
 import {
   buildDateTimeLocalValue,
@@ -57,7 +61,25 @@ export function SessionDateTimeField({
   const [visibleMonth, setVisibleMonth] = useState(() =>
     getInitialVisibleMonth(selectedDate, timezone)
   );
-  const timeOptions = useMemo(() => buildTimeOptions(selectedTime), [selectedTime]);
+
+  const timeOptions = useMemo(
+    () => buildTimeOptions(selectedTime),
+    [selectedTime]
+  );
+
+  const timeSelectOptions = useMemo<CustomSelectOption[]>(
+    () => [
+      {
+        value: "",
+        label: "Выберите время",
+      },
+      ...timeOptions.map((time) => ({
+        value: time,
+        label: time,
+      })),
+    ],
+    [timeOptions]
+  );
 
   useEffect(() => {
     if (!selectedDate) {
@@ -82,6 +104,7 @@ export function SessionDateTimeField({
           <span className={styles.dateTimeFieldLabel}>Дата и время сессии</span>
           <p className={styles.dateTimeFieldHint}>{hint}</p>
         </div>
+
         <div className={styles.dateTimeFieldValue}>
           {formatDateTimeLocalSummary(value, timezone)}
         </div>
@@ -106,21 +129,20 @@ export function SessionDateTimeField({
         <div className={styles.timePickerPanel}>
           <label className={styles.timePickerField}>
             <span className={styles.timePickerLabel}>Время начала</span>
-            <select
+
+            <CustomSelect
               value={selectedTime}
-              onChange={(event) =>
-                onChange(buildDateTimeLocalValue(selectedDate, event.target.value))
+              options={timeSelectOptions}
+              onChange={(nextTime) =>
+                onChange(buildDateTimeLocalValue(selectedDate, nextTime))
               }
-              className={styles.input}
+              ariaLabel="Время начала сессии"
               disabled={!selectedDate}
-            >
-              <option value="">Выберите время</option>
-              {timeOptions.map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
+              variant="admin"
+              layout="form"
+              dropdownWidth="trigger"
+              className={styles.timeSelect}
+            />
           </label>
 
           <p className={styles.timePickerHint}>

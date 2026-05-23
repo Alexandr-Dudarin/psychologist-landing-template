@@ -43,7 +43,7 @@
   width: 100%;
 }
 
-.form > * {
+.form>* {
   min-width: 0;
 }
 
@@ -326,6 +326,14 @@
   line-height: 1.4;
 }
 
+.timeSelect.timeSelect {
+  width: min(220px, 100%);
+  max-width: 220px;
+  min-width: 180px;
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+
 .editActionButton,
 .deleteActionButton {
   width: 100%;
@@ -538,19 +546,15 @@
 }
 
 .pastScheduledRow td {
-  background: color-mix(
-    in srgb,
-    var(--admin-highlight) 18%,
-    var(--admin-surface)
-  );
+  background: color-mix(in srgb,
+      var(--admin-highlight) 18%,
+      var(--admin-surface));
 }
 
 .pastScheduledRow:hover td {
-  background: color-mix(
-    in srgb,
-    var(--admin-highlight) 26%,
-    var(--admin-surface)
-  );
+  background: color-mix(in srgb,
+      var(--admin-highlight) 26%,
+      var(--admin-surface));
 }
 
 .finalSessionRow td {
@@ -559,8 +563,7 @@
 }
 
 .finalSessionRow td:first-child {
-  box-shadow: inset 4px 0 0
-    color-mix(in srgb, var(--admin-text-muted) 34%, white);
+  box-shadow: inset 4px 0 0 color-mix(in srgb, var(--admin-text-muted) 34%, white);
 }
 
 .finalSessionRow:hover td {
@@ -816,8 +819,7 @@
   }
 
   .finalSessionRow {
-    box-shadow: inset 4px 0 0
-      color-mix(in srgb, var(--admin-text-muted) 34%, white);
+    box-shadow: inset 4px 0 0 color-mix(in srgb, var(--admin-text-muted) 34%, white);
   }
 
   .finalSessionRow td:first-child {

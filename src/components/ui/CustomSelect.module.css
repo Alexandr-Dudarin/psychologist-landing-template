@@ -18,6 +18,12 @@
   width: 100%;
 }
 
+.dropdownMatchTrigger {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .trigger {
   display: inline-flex;
   align-items: center;
@@ -136,6 +142,12 @@
   border-radius: 14px;
 
   animation: customSelectDropdownIn 0.16s ease both;
+}
+
+.dropdownMatchTrigger {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .dropdownEnd {

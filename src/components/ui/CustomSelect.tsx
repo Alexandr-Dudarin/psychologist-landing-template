@@ -19,6 +19,7 @@ export type CustomSelectOption = {
 type CustomSelectVariant = "admin" | "public";
 type CustomSelectLayout = "filter" | "form" | "full";
 type CustomSelectDropdownAlign = "start" | "end";
+type CustomSelectDropdownWidth = "default" | "trigger";
 
 type CustomSelectProps = {
   value: string;
@@ -31,6 +32,7 @@ type CustomSelectProps = {
   variant?: CustomSelectVariant;
   layout?: CustomSelectLayout;
   dropdownAlign?: CustomSelectDropdownAlign;
+  dropdownWidth?: CustomSelectDropdownWidth;
 };
 
 const variantClassNames: Record<CustomSelectVariant, string> = {
@@ -102,6 +104,7 @@ export function CustomSelect({
   variant = "admin",
   layout = "filter",
   dropdownAlign = "start",
+  dropdownWidth = "default",
 }: CustomSelectProps) {
   const generatedId = useId();
   const triggerId = `${generatedId}-trigger`;
@@ -137,6 +140,7 @@ export function CustomSelect({
   const dropdownClassName = [
     styles.dropdown,
     dropdownAlign === "end" ? styles.dropdownEnd : "",
+    dropdownWidth === "trigger" ? styles.dropdownMatchTrigger : "",
   ]
     .filter(Boolean)
     .join(" ");
