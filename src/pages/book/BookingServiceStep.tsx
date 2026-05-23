@@ -57,6 +57,8 @@ export function BookingServiceStep({
 }: BookingServiceStepProps) {
   const isPackageMode = bookingMode === "package";
   const isBuyPackageMode = bookingMode === "buy-package";
+  const packageBookingMobileLabel =
+    currentLanguage === "ru" ? "Запись по пакету" : copy.packageBookingLabel;
 
   return (
     <div className={pageStyles.section}>
@@ -75,9 +77,8 @@ export function BookingServiceStep({
           <button
             type="button"
             aria-pressed={bookingMode === "regular"}
-            className={`${styles.modeButton} ${
-              bookingMode === "regular" ? styles.modeButtonActive : ""
-            }`}
+            className={`${styles.modeButton} ${bookingMode === "regular" ? styles.modeButtonActive : ""
+              }`}
             onClick={() => onBookingModeChange("regular")}
           >
             {copy.regularBookingLabel}
@@ -86,21 +87,24 @@ export function BookingServiceStep({
           <button
             type="button"
             aria-pressed={bookingMode === "package"}
-            className={`${styles.modeButton} ${
-              bookingMode === "package" ? styles.modeButtonActive : ""
-            }`}
+            className={`${styles.modeButton} ${bookingMode === "package" ? styles.modeButtonActive : ""
+              }`}
             onClick={() => onBookingModeChange("package")}
           >
-            {copy.packageBookingLabel}
+            <span className={styles.packageBookingLabelDefault}>
+              {copy.packageBookingLabel}
+            </span>
+            <span className={styles.packageBookingLabelMobile}>
+              {packageBookingMobileLabel}
+            </span>
           </button>
 
           {showPackagePurchaseMode ? (
             <button
               type="button"
               aria-pressed={bookingMode === "buy-package"}
-              className={`${styles.modeButton} ${
-                bookingMode === "buy-package" ? styles.modeButtonActive : ""
-              }`}
+              className={`${styles.modeButton} ${bookingMode === "buy-package" ? styles.modeButtonActive : ""
+                }`}
               onClick={() => onBookingModeChange("buy-package")}
             >
               {copy.packagePurchaseLabel}
@@ -228,9 +232,8 @@ export function BookingServiceStep({
                   <button
                     key={packagePlan.id}
                     type="button"
-                    className={`${styles.packagePlanCard} ${
-                      isActive ? styles.packagePlanCardActive : ""
-                    }`}
+                    className={`${styles.packagePlanCard} ${isActive ? styles.packagePlanCardActive : ""
+                      }`}
                     onClick={() =>
                       onPackagePlanSelect(packagePlan.packagePlanId)
                     }
@@ -291,9 +294,8 @@ export function BookingServiceStep({
                 <button
                   key={service.id}
                   type="button"
-                  className={`${styles.serviceCard} ${
-                    isActive ? styles.serviceCardActive : ""
-                  }`}
+                  className={`${styles.serviceCard} ${isActive ? styles.serviceCardActive : ""
+                    }`}
                   onClick={() => onSelect(service.id)}
                 >
                   <h3 className={styles.serviceCardTitle}>{service.title}</h3>

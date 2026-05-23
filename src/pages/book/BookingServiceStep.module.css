@@ -30,6 +30,7 @@
   display: inline-flex;
   gap: 8px;
   padding: 4px;
+  overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   background: var(--color-surface);
@@ -62,7 +63,11 @@
 .modeButtonActive {
   background: var(--color-accent-soft);
   color: var(--color-accent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+.packageBookingLabelMobile {
+  display: none;
 }
 
 .packageBox {
@@ -441,6 +446,23 @@
   .modeControls {
     display: grid;
     grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 20px;
+  }
+
+  .modeButton {
+    flex: 1 1 0;
+    min-height: 42px;
+    border-radius: 18px;
+  }
+
+  .packageBookingLabelDefault {
+    display: none;
+  }
+
+  .packageBookingLabelMobile {
+    display: inline;
   }
 
   .servicesGrid,
