@@ -2,6 +2,10 @@ import type { FormEvent } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
+import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
 import { getTimezoneLabel } from "../../../lib/booking/getTimezoneLabel";
 import {
   formatAdminPriceInput,
@@ -67,64 +71,84 @@ export function SessionEditForm({
     form.clientPackageId
   );
 
+  const clientOptions: CustomSelectOption[] = [
+    {
+      value: "",
+      label: "Выберите клиента",
+    },
+    ...clients.map((client) => ({
+      value: String(client.id),
+      label: `${client.name} — ${client.phone || client.email || client.id}`,
+    })),
+  ];
+
+  const serviceOptions: CustomSelectOption[] = [
+    {
+      value: "",
+      label: "Выберите услугу",
+    },
+    ...activeServices.map((service) => ({
+      value: String(service.id),
+      label: `${service.title} — ${formatAdminPriceInput(service.price)} ₽ / ${
+        service.durationMinutes
+      } мин`,
+    })),
+  ];
+
+  const clientPackageOptions: CustomSelectOption[] = [
+    {
+      value: "",
+      label: hasClient ? "Без пакета" : "Сначала выберите клиента",
+    },
+    ...packageOptions.map((item) => ({
+      value: String(item.id),
+      label: getPackageOptionLabel(item),
+      disabled:
+        String(item.id) !== form.clientPackageId &&
+        (item.status !== "active" || item.remainingSessions <= 0),
+    })),
+  ];
+
+  const statusOptions: CustomSelectOption[] = sessionStatuses.map((status) => ({
+    value: status,
+    label: sessionStatusLabels[status],
+  }));
+
   return (
     <AdminSection title="Редактировать сессию">
       <form onSubmit={onSubmit} className={styles.form}>
-        <select
+        <CustomSelect
           value={form.clientId}
-          onChange={(e) => onFormChange("clientId", e.target.value)}
-          className={styles.input}
-        >
-          <option value="">Выберите клиента</option>
-          {clients.map((client) => (
-            <option key={client.id} value={client.id}>
-              {client.name} — {client.phone || client.email || client.id}
-            </option>
-          ))}
-        </select>
+          options={clientOptions}
+          onChange={(value) => onFormChange("clientId", value)}
+          ariaLabel="Клиент сессии"
+          variant="admin"
+          layout="full"
+        />
 
-        <select
+        <CustomSelect
           value={form.serviceId}
-          onChange={(e) => onFormChange("serviceId", e.target.value)}
-          className={styles.input}
-        >
-          <option value="">Выберите услугу</option>
-          {activeServices.map((service) => (
-            <option key={service.id} value={service.id}>
-              {service.title} — {formatAdminPriceInput(service.price)} ₽ /{" "}
-              {service.durationMinutes} мин
-            </option>
-          ))}
-        </select>
+          options={serviceOptions}
+          onChange={(value) => onFormChange("serviceId", value)}
+          ariaLabel="Услуга сессии"
+          variant="admin"
+          layout="full"
+        />
 
         <label className={styles.packageField}>
           <span className={styles.packageFieldLabel}>
             Пакет клиента, если запись идёт из пакета
           </span>
 
-          <select
+          <CustomSelect
             value={form.clientPackageId}
-            onChange={(e) => onFormChange("clientPackageId", e.target.value)}
-            className={styles.input}
+            options={clientPackageOptions}
+            onChange={(value) => onFormChange("clientPackageId", value)}
+            ariaLabel="Пакет клиента для сессии"
             disabled={!hasClient || isPackagesLoading}
-          >
-            <option value="">
-              {hasClient ? "Без пакета" : "Сначала выберите клиента"}
-            </option>
-
-            {packageOptions.map((item) => (
-              <option
-                key={item.id}
-                value={item.id}
-                disabled={
-                  String(item.id) !== form.clientPackageId &&
-                  (item.status !== "active" || item.remainingSessions <= 0)
-                }
-              >
-                {getPackageOptionLabel(item)}
-              </option>
-            ))}
-          </select>
+            variant="admin"
+            layout="full"
+          />
 
           <span className={styles.packageFieldHint}>
             {isPackagesLoading
@@ -166,17 +190,14 @@ export function SessionEditForm({
           disabled={hasClientPackage}
         />
 
-        <select
+        <CustomSelect
           value={form.status}
-          onChange={(e) => onFormChange("status", e.target.value as SessionStatus)}
-          className={styles.input}
-        >
-          {sessionStatuses.map((status) => (
-            <option key={status} value={status}>
-              {sessionStatusLabels[status]}
-            </option>
-          ))}
-        </select>
+          options={statusOptions}
+          onChange={(value) => onFormChange("status", value as SessionStatus)}
+          ariaLabel="Статус сессии"
+          variant="admin"
+          layout="full"
+        />
 
         <textarea
           value={form.notes}
