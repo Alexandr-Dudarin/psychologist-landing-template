@@ -18,6 +18,7 @@ export type CustomSelectOption = {
 
 type CustomSelectVariant = "admin" | "public";
 type CustomSelectLayout = "filter" | "form" | "full";
+type CustomSelectDropdownAlign = "start" | "end";
 
 type CustomSelectProps = {
   value: string;
@@ -29,6 +30,7 @@ type CustomSelectProps = {
   className?: string;
   variant?: CustomSelectVariant;
   layout?: CustomSelectLayout;
+  dropdownAlign?: CustomSelectDropdownAlign;
 };
 
 const variantClassNames: Record<CustomSelectVariant, string> = {
@@ -99,6 +101,7 @@ export function CustomSelect({
   className = "",
   variant = "admin",
   layout = "filter",
+  dropdownAlign = "start",
 }: CustomSelectProps) {
   const generatedId = useId();
   const triggerId = `${generatedId}-trigger`;
@@ -127,6 +130,13 @@ export function CustomSelect({
     isOpen ? styles.rootOpen : "",
     disabled ? styles.rootDisabled : "",
     className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const dropdownClassName = [
+    styles.dropdown,
+    dropdownAlign === "end" ? styles.dropdownEnd : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -324,7 +334,7 @@ export function CustomSelect({
       {isOpen ? (
         <div
           id={listboxId}
-          className={styles.dropdown}
+          className={dropdownClassName}
           role="listbox"
           aria-labelledby={triggerId}
         >

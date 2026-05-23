@@ -274,6 +274,7 @@ export function SessionsFilters({
         ariaLabel="Фильтр по услуге"
         variant="admin"
         layout="filter"
+        dropdownAlign="end"
         className={styles.serviceFilterSelect}
         onChange={(value) =>
           onServiceFilterChange(value === "all" ? "all" : Number(value))

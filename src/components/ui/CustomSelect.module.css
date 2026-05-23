@@ -138,6 +138,11 @@
   animation: customSelectDropdownIn 0.16s ease both;
 }
 
+.dropdownEnd {
+  right: 0;
+  left: auto;
+}
+
 .rootAdmin .dropdown {
   border-color: var(--admin-border);
   background: color-mix(in srgb, var(--admin-surface) 96%, white);
@@ -264,6 +269,8 @@
   }
 
   .dropdown {
+    right: auto;
+    left: 0;
     width: 100%;
     max-width: none;
     max-height: 280px;
