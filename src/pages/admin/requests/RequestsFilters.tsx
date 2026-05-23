@@ -1,6 +1,11 @@
-import type { RequestStatus } from "../../../types/request";
+import { useMemo } from "react";
 
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
+import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
+import type { RequestStatus } from "../../../types/request";
 import styles from "./RequestsPage.module.css";
 
 type StatusOption = {
@@ -27,22 +32,30 @@ export function RequestsFilters({
   onSearchChange,
   onStatusChange,
 }: RequestsFiltersProps) {
+  const requestStatusOptions = useMemo<CustomSelectOption[]>(
+    () => [
+      {
+        value: "all",
+        label: allStatusesLabel,
+      },
+      ...statusOptions.map((status) => ({
+        value: status.value,
+        label: status.label,
+      })),
+    ],
+    [allStatusesLabel, statusOptions]
+  );
+
   return (
     <AdminFiltersRow>
-      <select
+      <CustomSelect
         value={statusFilter}
-        onChange={(event) =>
-          onStatusChange(event.target.value as RequestStatus | "all")
-        }
-        className={styles.select}
-      >
-        <option value="all">{allStatusesLabel}</option>
-        {statusOptions.map((status) => (
-          <option key={status.value} value={status.value}>
-            {status.label}
-          </option>
-        ))}
-      </select>
+        options={requestStatusOptions}
+        onChange={(value) => onStatusChange(value as RequestStatus | "all")}
+        ariaLabel="Фильтр по статусу заявки"
+        variant="admin"
+        layout="filter"
+      />
 
       <input
         type="text"

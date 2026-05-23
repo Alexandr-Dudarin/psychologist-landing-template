@@ -20,7 +20,8 @@
 }
 
 .statusSelect {
-  composes: controlBase from "../../../components/admin/adminUi.module.css";
+  width: 180px;
+  max-width: 100%;
   min-width: 180px;
 }
 

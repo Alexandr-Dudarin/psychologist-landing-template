@@ -1,8 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
 import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
 import styles from "./RequestsPage.module.css";
 
@@ -54,6 +58,15 @@ export function RequestsTable({
 }: RequestsTableProps) {
   const highlightedRowRef = useRef<HTMLTableRowElement | null>(null);
 
+  const requestStatusOptions = useMemo<CustomSelectOption[]>(
+    () =>
+      statusOptions.map((status) => ({
+        value: status.value,
+        label: status.label,
+      })),
+    [statusOptions]
+  );
+
   useEffect(() => {
     if (!highlightedRequestId) {
       return;
@@ -101,20 +114,19 @@ export function RequestsTable({
               <td>{item.email}</td>
               <td>{item.message || "-"}</td>
               <td>
-                <select
+                <CustomSelect
                   value={item.status}
-                  onChange={(event) =>
-                    onStatusChange(item.id, event.target.value as RequestStatus)
+                  options={requestStatusOptions}
+                  onChange={(value) =>
+                    onStatusChange(item.id, value as RequestStatus)
                   }
+                  ariaLabel={`Статус заявки: ${item.name}`}
                   disabled={savingId === item.id}
+                  variant="admin"
+                  layout="form"
                   className={styles.statusSelect}
-                >
-                  {statusOptions.map((status) => (
-                    <option key={status.value} value={status.value}>
-                      {status.label}
-                    </option>
-                  ))}
-                </select>
+                />
+
                 {savingId === item.id ? (
                   <div className={styles.savingText}>{actionsSavingLabel}</div>
                 ) : null}
