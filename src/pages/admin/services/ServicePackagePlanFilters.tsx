@@ -1,4 +1,8 @@
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
+import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
 import styles from "./ServicesPage.module.css";
 import type { PackageActivityFilter } from "./servicesPageHelpers";
 
@@ -9,6 +13,21 @@ type ServicePackagePlanFiltersProps = {
   onSearchQueryChange: (value: string) => void;
 };
 
+const packageActivityFilterOptions: CustomSelectOption[] = [
+  {
+    value: "all",
+    label: "все пакеты",
+  },
+  {
+    value: "active",
+    label: "только активные",
+  },
+  {
+    value: "inactive",
+    label: "только скрытые",
+  },
+];
+
 export function ServicePackagePlanFilters({
   activityFilter,
   searchQuery,
@@ -17,17 +36,16 @@ export function ServicePackagePlanFilters({
 }: ServicePackagePlanFiltersProps) {
   return (
     <AdminFiltersRow>
-      <select
+      <CustomSelect
         value={activityFilter}
-        onChange={(event) => {
-          onActivityFilterChange(event.target.value as PackageActivityFilter);
+        options={packageActivityFilterOptions}
+        ariaLabel="Фильтр активности пакетов услуг"
+        variant="admin"
+        layout="filter"
+        onChange={(value) => {
+          onActivityFilterChange(value as PackageActivityFilter);
         }}
-        className={`${styles.input} ${styles.filterSelect}`}
-      >
-        <option value="all">все пакеты</option>
-        <option value="active">только активные</option>
-        <option value="inactive">только скрытые</option>
-      </select>
+      />
 
       <input
         type="text"
