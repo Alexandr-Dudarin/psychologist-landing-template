@@ -23,7 +23,12 @@ It has since evolved into a more product-oriented foundation that combines:
 - lead capture and contact integrations
 - an internal admin / CRM layer
 - a public booking flow
-- schedule management and planner foundations
+- schedule management
+- package / multi-session service foundations
+- planner / scheduler groundwork
+
+The goal of the project is not only to build a strong landing page, foundations
+- planner / scheduler groundwork
 
 The goal of the project is not only to build a strong landing page, but also to create a reusable base that can later be adapted for real client projects and extended into a more advanced booking / CRM product.
 
@@ -35,7 +40,7 @@ The project currently includes three major parts:
 
 ### 1. Public Website
 
-A reusable landing page for specialists with configurable content, sections, SEO, and contact / booking entry points.
+A reusable landing page for specialists with configurable content, sections, SEO, contact blocks, and booking entry points.
 
 ### 2. Admin / CRM Foundation
 
@@ -44,17 +49,22 @@ An internal admin area for managing:
 - requests
 - clients
 - services
+- service package plans
 - sessions
 - notes
 - booking settings / schedule rules
 - date overrides
 - blocked time slots
+- admin help / instructions
 
 ### 3. Booking / Planner Foundation
 
 A growing booking and schedule system that includes:
 
 - public booking entry modes
+- regular service booking
+- package-code booking mode
+- package purchase flow foundation
 - service/date/slot selection
 - booking settings
 - schedule rules
@@ -73,6 +83,8 @@ This makes the project closer to a **landing + CRM template**, not just a static
 - Includes a growing admin / CRM layer
 - Includes public booking flow through `/book`
 - Includes schedule configuration and planner groundwork
+- Includes package / multi-session service foundations
+- Includes reusable admin UI primitives
 - Configurable through centralized data files and feature flags
 - Prepared for Vercel deployment
 - Designed with reusability and future expansion in mind
@@ -112,15 +124,37 @@ A simpler lead / request form embedded directly into the landing page.
 A dedicated `/book` page with:
 
 - service selection
+- booking mode selection
+- regular booking mode
+- booking by existing package code
+- package purchase mode foundation
 - date selection
 - available slot selection
 - booking details form
+- preferred contact method support
 - summary sidebar
 - success / conflict / error states
 - skeleton loading state
 - booking timezone display
 
 This allows the template to support both simpler low-cost versions and more advanced CRM-connected versions.
+
+## Package / Multi-session Foundations
+
+The project includes foundations for selling and managing multi-session packages.
+
+Current package-related direction includes:
+
+- service package plans
+- package plans based on a regular service
+- configurable session count and package price
+- active / hidden package plans
+- package usage through public booking code
+- package-related session linking
+- package purchase flow foundation
+- package-aware CRM and booking logic
+
+The intended product logic is that a package is not one long service, but a separate entity containing multiple future sessions.
 
 ## Schedule / Planner Features
 
@@ -135,6 +169,8 @@ The project already includes booking-related admin foundations:
 - weekly working rules
 - per-date schedule overrides
 - blocked time slots
+- reusable calendar/date picker UI for admin schedule forms
+- reusable admin time select foundation
 
 The project also includes a planner / scheduler foundation with multiple view modes and timeline-based rendering groundwork.
 
@@ -147,8 +183,13 @@ Current admin functionality includes:
 - client creation from requests
 - manual client creation
 - client list with filtering
+- favorite clients
+- preferred contact method support
+- client package indicators / package-related CRM groundwork
 - services CRUD foundation
+- service package plan management
 - sessions CRUD foundation
+- package-aware sessions foundation
 - notes CRUD foundation
 - booking settings management
 - weekly schedule rules
@@ -161,8 +202,30 @@ The admin area has also gone through structural refactoring:
 
 - large pages were split into smaller components where appropriate
 - shared admin UI primitives were introduced
+- shared collapsible create sections were introduced
+- shared refreshable table areas were introduced
+- shared custom select UI was introduced
+- reusable admin time select foundation was introduced
 - part of admin UI localization has already been added
 - the codebase was prepared for further reuse and scaling
+
+## Recent Refactoring / UI Improvements
+
+Recent maintenance and polish work included:
+
+- decomposition of large admin pages into smaller blocks
+- decomposition of the public booking page into smaller presentation/helper modules
+- improved admin mobile menu behavior
+- moving logout action into the mobile admin menu
+- more consistent admin create sections
+- more consistent admin table actions
+- cleaner active navigation state in the admin header
+- reusable custom select component for admin filters
+- reusable admin time select foundation
+- custom select usage in parts of sessions, requests, clients, services, notes, and schedule flows
+- safer date handling in schedule-related forms
+- booking page copy/helpers/types extraction
+- preservation of existing UI, colors, icons, and business logic during refactoring
 
 ## Tech Stack
 
@@ -184,6 +247,7 @@ The admin area has also gone through structural refactoring:
 - Building a lightweight CRM / admin layer for service businesses
 - Working with production-oriented form delivery flows
 - Building a public booking and schedule foundation
+- Supporting package / multi-session service logic
 - Improving maintainability through bounded refactoring and shared UI primitives
 - Preparing a project for deployment, SEO, and social preview sharing
 
@@ -196,6 +260,7 @@ src/
   components/
     admin/
     calendar/
+    ui/
   data/
     config.ts
     config.en.ts
@@ -211,10 +276,23 @@ src/
   lib/
     api/
     booking/
+    datetime/
+    services/
   pages/
     admin/
+      clients/
+      dashboard/
+      help/
+      login/
+      notes/
+      requests/
+      schedule/
+      scheduler/
+      services/
+      sessions/
     book/
     landing/
+    PaymentSuccessPage/
   sections/
   styles/
   types/
@@ -227,6 +305,12 @@ api/
 
 server/
   db/
+  payment/
+  publicBooking/
+  reminders/
+  requests/
+  services/
+  utils/
 
 database/
   migrations/
@@ -236,6 +320,7 @@ public/
   images/
 
 docs/
+handoffs/
 ```
 
 ## Important Areas
@@ -266,6 +351,8 @@ Public booking behavior is controlled through:
 
 - `src/data/siteSettings.ts`
 - `src/lib/booking/`
+- `src/pages/book/`
+- `api/public/`
 
 This is important because the template supports both:
 
@@ -294,6 +381,25 @@ Reusable admin UI primitives and helpers live in:
 - `src/components/admin/`
 
 This layer is used to reduce duplication across admin pages and improve consistency.
+
+Examples include:
+
+- admin buttons
+- admin feedback blocks
+- admin tables
+- admin sections
+- admin filters row
+- collapsible create sections
+- refreshable table areas
+- admin time select
+
+### Shared UI Components
+
+Reusable non-admin-specific UI components live in:
+
+- `src/components/ui/`
+
+This currently includes the reusable custom select foundation that can be styled for admin or public contexts.
 
 ### API Layer
 
@@ -356,6 +462,10 @@ A large part of the template is controlled through `siteSettings`, including:
 - booking mode
 - floating booking CTA
 - optional public blocks
+- public contact method buttons
+- preferred contact method
+- pricing / services source strategy
+- CRM availability
 - premium modules
 
 This allows the project to support different product tiers, for example:
@@ -364,6 +474,7 @@ This allows the project to support different product tiers, for example:
 - landing + optional paid add-ons
 - landing + CRM
 - landing + CRM + public booking
+- landing + CRM + booking + premium planner / scheduler
 
 ## Important Booking Note
 
@@ -395,6 +506,8 @@ The project is moving toward a reusable services source strategy where pricing a
 
 This is important for keeping the landing, booking flow, and CRM versions aligned across different product tiers.
 
+The long-term goal is that the public pricing block, `/book`, and CRM services stay consistent and do not drift apart.
+
 ## Form Handling
 
 The public contact form sends requests through:
@@ -417,8 +530,12 @@ The project includes a payment integration foundation through:
 
 - `api/payment.ts`
 - client-side payment helpers
+- payment success page
+- package purchase flow foundation
 
 This currently acts as a reusable architecture layer and mock / extensible integration point for future real client projects.
+
+The payment layer is intended to be extended later with a real payment provider, webhook confirmation, idempotency, and safe booking / package creation after payment confirmation.
 
 ## Analytics
 
@@ -431,6 +548,7 @@ Depending on project configuration, tracked goals / events may include:
 - Telegram click
 - phone click
 - scroll depth
+- booking-related actions
 
 Analytics can be enabled or disabled through template settings, which makes this feature suitable as an optional paid add-on for client projects.
 
@@ -492,31 +610,51 @@ npm install
 npm run dev
 ```
 
-### Front-end only on explicit local host / custom port
+### Full local development with Vite + Vercel functions
+
+For the current local workflow, especially when VPN interferes with direct `vercel dev` browser access, use two terminals.
+
+Terminal 1:
 
 ```bash
-npm run dev -- --host 127.0.0.1 --port 5174
+npm run dev
 ```
 
-### Full local development with Vercel serverless routes
+Terminal 2:
+
+```bash
+npx vercel dev --listen 127.0.0.1:3002
+```
+
+Open the site through Vite:
+
+```text
+http://127.0.0.1:3001
+```
+
+Example admin login route:
+
+```text
+http://127.0.0.1:3001/admin/login
+```
+
+In this mode, Vite serves the frontend and proxies `/api` requests to Vercel dev on port `3002`.
+
+### Alternative full local development with Vercel
 
 ```bash
 npx vercel dev
 ```
 
-Example with explicit local address:
-
-```bash
-npx vercel dev --listen 127.0.0.1:3010
-```
-
-Use `vercel dev` when you need the full local flow with API routes and environment variables.
+Use `vercel dev` when you need the full local flow with API routes and environment variables and when it works correctly in your local network / browser setup.
 
 ## Production Build
 
 ```bash
 npm run build
 ```
+
+The project may show a Vite chunk-size warning after a successful build. This is not the same as a TypeScript or runtime error. Future code splitting can be considered later if needed.
 
 ## Deployment
 
@@ -555,6 +693,8 @@ This makes the project suitable for multiple product levels:
 - landing + optional features
 - landing + CRM
 - landing + CRM + public booking
+- landing + CRM + booking + paid packages
+- landing + CRM + booking + premium planner / scheduler
 
 ## Server Runtime Note
 
@@ -576,6 +716,8 @@ The project is gradually moving toward a more reusable product structure with:
 - configurable content / data
 - optional feature modules
 - reusable admin UI
+- reusable booking UI
+- reusable calendar / schedule pieces
 - future support for different product tiers
 
 This is especially important for adapting the template not only for psychologists, but also for other specialists and service businesses.
@@ -590,7 +732,12 @@ Some parts of the project have already gone through focused polish / refactor pa
 - reviews
 - `/book`
 - booking skeleton
-- parts of admin pages
+- booking page decomposition
+- services admin page decomposition
+- sessions admin page decomposition
+- parts of notes / requests / clients admin UI
+- shared custom select foundation
+- schedule form select/time-select improvements
 - parts of planner / scheduler groundwork
 
 The project also uses bounded refactoring where it improves maintainability without rewriting stable logic.
@@ -604,16 +751,20 @@ Planned / possible future directions include:
 - better admin authentication
 - more complete admin localization
 - client archive / unarchive flow improvements
-- duplicate prevention for clients
+- stronger duplicate prevention for clients
 - reminders and notifications
-- payment integration
-- package / multi-session purchase logic
-- preferred contact method support
+- real payment provider integration
+- complete package / multi-session purchase logic
+- preferred contact method polish across all notifications
 - QR code entry point for real projects
 - better multi-page SEO support
 - more reusable modules for other specialist niches
 - premium scheduler layer
 - premium animated CTA options
+- runtime control of safe public site settings from admin
+- stronger documentation for feature flags and setup
+- final responsive audit across desktop, tablet, and mobile sizes
+- premium Cyrillic-compatible font selection
 
 ## Why I Built This
 
@@ -621,7 +772,7 @@ This project was created as a reusable commercial template for real client work.
 
 The original goal was to build a flexible and production-ready landing page for psychologists and similar specialists.
 
-Over time, the project evolved into a broader product foundation with CRM / admin functionality, booking, and schedule management, because a stronger reusable template is more valuable than a one-off landing page.
+Over time, the project evolved into a broader product foundation with CRM / admin functionality, booking, packages, and schedule management, because a stronger reusable template is more valuable than a one-off landing page.
 
 It also serves as a portfolio-quality project that demonstrates both product thinking and maintainable front-end / full-stack architecture.
 

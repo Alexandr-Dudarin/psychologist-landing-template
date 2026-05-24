@@ -206,14 +206,14 @@
 
 .rootAdmin .optionGroup {
   border-bottom-color: color-mix(in srgb, var(--admin-border) 72%, transparent);
-  background: color-mix(in srgb, var(--admin-accent-soft) 70%, white);
-  color: var(--admin-accent);
+  background: color-mix(in srgb, var(--admin-border) 34%, white);
+  color: var(--admin-text);
 }
 
 .rootPublic .optionGroup {
   border-bottom-color: color-mix(in srgb, var(--color-border) 72%, transparent);
-  background: color-mix(in srgb, var(--color-accent-soft) 70%, white);
-  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-border) 34%, white);
+  color: var(--color-text);
 }
 
 .optionGroupLabel {
