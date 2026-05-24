@@ -73,7 +73,7 @@
 
 .imageCard {
   width: 100%;
-  max-width: 500px;
+  max-width: 460px;
   padding: 16px;
   border: 1px solid var(--color-border);
   border-radius: 32px;
@@ -83,14 +83,17 @@
 }
 
 .image {
+  display: block;
   width: 100%;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
+  height: auto;
+  aspect-ratio: auto;
+  object-fit: contain;
   object-position: center;
   border-radius: 24px;
 }
 
-@media (max-width: 1100px), (max-height: 720px) and (min-width: 961px) {
+@media (max-width: 1100px),
+(max-height: 720px) and (min-width: 961px) {
   .hero {
     padding: 12px 0 72px;
   }
@@ -145,9 +148,10 @@
   }
 
   .image {
-    aspect-ratio: 4 / 5.35;
-    object-fit: cover;
-    object-position: center 24%;
+    height: auto;
+    aspect-ratio: auto;
+    object-fit: contain;
+    object-position: center;
     border-radius: 18px;
   }
 }
@@ -201,18 +205,18 @@
     align-items: stretch;
   }
 
-  .actions > * {
+  .actions>* {
     width: 100%;
   }
 }
 
 @media (max-width: 640px) {
   .hero {
-    padding: 4px 0 64px;
+    padding: 0 0 64px;
   }
 
   .grid {
-    gap: 16px;
+    gap: clamp(10px, 2svh, 16px);
   }
 
   .imageWrapper {
@@ -220,12 +224,14 @@
   }
 
   .imageCard {
-    max-width: 340px;
+    width: min(72vw, 310px);
+    max-width: none;
     padding: 8px;
     border-radius: 20px;
   }
 
   .image {
+    display: block;
     width: 100%;
     height: auto;
     aspect-ratio: auto;
@@ -239,42 +245,42 @@
   }
 
   .eyebrow {
-    margin-bottom: 12px;
-    font-size: 13px;
-    letter-spacing: 0.18em;
-    line-height: 1.4;
+    margin-bottom: 10px;
+    font-size: 12px;
+    letter-spacing: 0.17em;
+    line-height: 1.35;
   }
 
   .title {
-    font-size: clamp(32px, 10.5vw, 46px);
-    line-height: 0.95;
+    font-size: clamp(31px, 9.8vw, 44px);
+    line-height: 0.96;
   }
 
   .description {
-    margin: 16px auto 0;
+    margin: 12px auto 0;
     max-width: 30ch;
-    font-size: 15px;
-    line-height: 1.55;
+    font-size: 14.5px;
+    line-height: 1.48;
   }
 
   .tags {
     justify-content: center;
-    gap: 8px;
-    margin-top: 20px;
+    gap: 7px;
+    margin-top: 15px;
   }
 
   .tags span {
-    min-height: 34px;
-    padding: 8px 12px;
-    font-size: 12px;
+    min-height: 30px;
+    padding: 6px 11px;
+    font-size: 11.5px;
   }
 
   .actions {
-    margin-top: 24px;
+    margin-top: 18px;
     gap: 10px;
   }
 
-  .actions > * {
+  .actions>* {
     width: 100%;
   }
 }
@@ -285,12 +291,14 @@
   }
 
   .imageCard {
-    max-width: 320px;
+    width: min(72vw, 292px);
+    max-width: none;
     padding: 8px;
     border-radius: 18px;
   }
 
   .image {
+    display: block;
     width: 100%;
     height: auto;
     aspect-ratio: auto;
@@ -300,21 +308,73 @@
   }
 
   .eyebrow {
-    font-size: 12px;
-    letter-spacing: 0.17em;
+    font-size: 11.5px;
+    letter-spacing: 0.16em;
   }
 
   .title {
-    font-size: clamp(30px, 10vw, 42px);
+    font-size: clamp(30px, 9.8vw, 41px);
   }
 
   .description {
-    font-size: 15px;
-    line-height: 1.5;
+    font-size: 14.5px;
+    line-height: 1.46;
   }
 
   .tags span {
     width: 100%;
     justify-content: center;
+  }
+}
+
+@media (max-width: 640px) and (max-height: 780px) {
+  .hero {
+    padding-bottom: 48px;
+  }
+
+  .grid {
+    gap: 10px;
+  }
+
+  .imageCard {
+    width: min(68vw, 272px);
+  }
+
+  .image {
+    height: auto;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .eyebrow {
+    margin-bottom: 8px;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  .title {
+    font-size: clamp(29px, 9.4vw, 39px);
+  }
+
+  .description {
+    margin-top: 10px;
+    max-width: 28ch;
+    font-size: 14px;
+    line-height: 1.42;
+  }
+
+  .tags {
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .tags span {
+    min-height: 28px;
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .actions {
+    margin-top: 14px;
   }
 }

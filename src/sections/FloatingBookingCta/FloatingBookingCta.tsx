@@ -10,6 +10,16 @@ import {
 } from "../../lib/booking/getBookingTarget";
 import styles from "./FloatingBookingCta.module.css";
 
+function getAdaptiveScrollOffset(scrollOffsetPx: number) {
+  const isMobileOrTablet = window.matchMedia("(max-width: 960px)").matches;
+
+  if (!isMobileOrTablet) {
+    return scrollOffsetPx;
+  }
+
+  return Math.max(scrollOffsetPx, Math.round(window.innerHeight * 0.68));
+}
+
 export function FloatingBookingCta() {
   const { pathname } = useLocation();
   const { t } = useLanguage();
@@ -29,14 +39,18 @@ export function FloatingBookingCta() {
     }
 
     const updateVisibility = () => {
-      setIsVisible(window.scrollY >= scrollOffsetPx);
+      const adaptiveScrollOffset = getAdaptiveScrollOffset(scrollOffsetPx);
+
+      setIsVisible(window.scrollY >= adaptiveScrollOffset);
     };
 
     updateVisibility();
     window.addEventListener("scroll", updateVisibility, { passive: true });
+    window.addEventListener("resize", updateVisibility);
 
     return () => {
       window.removeEventListener("scroll", updateVisibility);
+      window.removeEventListener("resize", updateVisibility);
     };
   }, [enabled, pathname, revealMode, scrollOffsetPx]);
 
