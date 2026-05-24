@@ -40,6 +40,14 @@ function getPackageOptionLabel(item: CrmClientServicePackageRecord): string {
   return `${item.packageTitle} — осталось ${item.remainingSessions} из ${item.totalSessions} — ${item.code}`;
 }
 
+function getClientOptionLabel(client: CrmClientRecord): string {
+  const contact = client.phone || client.email;
+
+  return contact
+    ? `${client.name} — ${contact}`
+    : `${client.name} — контакты не указаны`;
+}
+
 function getAvailablePackageOptions(
   items: CrmClientServicePackageRecord[],
   selectedPackageId: string
@@ -78,7 +86,7 @@ export function SessionEditForm({
     },
     ...clients.map((client) => ({
       value: String(client.id),
-      label: `${client.name} — ${client.phone || client.email || client.id}`,
+      label: getClientOptionLabel(client),
     })),
   ];
 
