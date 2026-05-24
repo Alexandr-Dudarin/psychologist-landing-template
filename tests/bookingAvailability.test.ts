@@ -19,13 +19,13 @@ type AvailabilityDbData = {
     price: number;
     duration_minutes: number;
   }>;
-    settings?: Array<{
-      min_advance_hours: number;
-      buffer_minutes: number;
-      allow_same_day_booking: boolean;
-      max_days_ahead: number;
-      timezone?: string | null;
-    }>;
+  settings?: Array<{
+    min_advance_hours: number;
+    buffer_minutes: number;
+    allow_same_day_booking: boolean;
+    max_days_ahead: number;
+    timezone?: string | null;
+  }>;
   rules?: Array<{
     weekday: number;
     is_enabled: boolean;
@@ -116,7 +116,7 @@ function createAvailabilityDb(overrides: AvailabilityDbData = {}) {
 }
 
 describe("public booking availability", () => {
-  const now = new Date(2026, 3, 19, 9, 0, 0, 0);
+  const now = new Date("2026-04-19T00:00:00.000Z");
 
   it("returns an error for an inactive service", async () => {
     const result = await getPublicBookingAvailabilityData({
@@ -267,6 +267,7 @@ describe("public booking availability", () => {
             buffer_minutes: 30,
             allow_same_day_booking: false,
             max_days_ahead: 30,
+            timezone: "Asia/Tomsk",
           },
         ],
         sessions: [

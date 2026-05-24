@@ -12,6 +12,13 @@ vi.mock("../server/db/pool", () => ({
 }));
 
 vi.mock("../server/publicBooking/bookingAvailability", () => ({
+  getSingleQueryValue: (value: string | string[] | undefined) => {
+    if (Array.isArray(value)) {
+      return value[0] ?? "";
+    }
+
+    return value ?? "";
+  },
   validateBookableSlot: validateBookableSlotMock,
 }));
 
