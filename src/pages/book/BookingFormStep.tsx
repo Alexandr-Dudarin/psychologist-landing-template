@@ -1,5 +1,10 @@
 import type { FormEvent } from "react";
+
 import { Button } from "../../components/Button/Button";
+import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../components/ui/CustomSelect";
 import {
   preferredContactMethodLabels,
   preferredContactPlaceholders,
@@ -32,6 +37,17 @@ type BookingFormStepProps = {
     value: BookingFormState[Field]
   ) => void;
 };
+
+const preferredContactOptions: CustomSelectOption[] = [
+  {
+    value: "",
+    label: "Не указано",
+  },
+  ...preferredContactMethods.map((method) => ({
+    value: method,
+    label: preferredContactMethodLabels[method],
+  })),
+];
 
 export function BookingFormStep({
   copy,
@@ -142,28 +158,23 @@ export function BookingFormStep({
           {showPreferredContact ? (
             <>
               <div className={styles.field}>
-                <label htmlFor="booking-preferred-contact-method">
-                  Предпочтительный способ связи
-                </label>
-                <select
-                  id="booking-preferred-contact-method"
+                <label>Предпочтительный способ связи</label>
+                <CustomSelect
                   value={form.preferredContactMethod}
-                  disabled={isLocked}
-                  onChange={(event) =>
+                  options={preferredContactOptions}
+                  onChange={(nextMethod) =>
                     onFieldChange(
                       "preferredContactMethod",
-                      event.target
-                        .value as BookingFormState["preferredContactMethod"]
+                      nextMethod as BookingFormState["preferredContactMethod"]
                     )
                   }
-                >
-                  <option value="">Не указано</option>
-                  {preferredContactMethods.map((method) => (
-                    <option key={method} value={method}>
-                      {preferredContactMethodLabels[method]}
-                    </option>
-                  ))}
-                </select>
+                  ariaLabel="Предпочтительный способ связи"
+                  disabled={isLocked}
+                  variant="public"
+                  layout="form"
+                  dropdownWidth="trigger"
+                  className={styles.preferredContactSelect}
+                />
                 {formErrors.preferredContactMethod ? (
                   <span className={styles.fieldError}>
                     {formErrors.preferredContactMethod}

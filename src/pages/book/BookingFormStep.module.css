@@ -43,6 +43,50 @@
     background-color var(--transition-base);
 }
 
+.preferredContactSelect {
+  width: 100%;
+
+  --booking-select-dropdown-bg: #fffdfb;
+  --booking-select-option-hover: #f3e3dc;
+  --booking-select-option-selected: #f7eee9;
+  --booking-select-option-selected-hover: #f0ded6;
+}
+
+.preferredContactSelect > button {
+  min-height: 55px;
+  padding: 0 18px;
+  border-radius: 18px;
+  background-color: var(--color-surface-strong);
+  font-size: inherit;
+}
+
+.preferredContactSelect [role="listbox"] {
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, white);
+  border-radius: 18px;
+  background: var(--booking-select-dropdown-bg) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 18px 40px rgba(38, 26, 20, 0.18);
+}
+
+.preferredContactSelect [role="option"] {
+  background: var(--booking-select-dropdown-bg) !important;
+}
+
+.preferredContactSelect [role="option"]:hover {
+  background: var(--booking-select-option-hover) !important;
+}
+
+.preferredContactSelect [role="option"][aria-selected="true"] {
+  background: var(--booking-select-option-selected) !important;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.preferredContactSelect [role="option"][aria-selected="true"]:hover {
+  background: var(--booking-select-option-selected-hover) !important;
+}
+
 .field input::placeholder,
 .field textarea::placeholder {
   color: var(--color-text-muted);
@@ -143,6 +187,20 @@
     font-size: 16px;
   }
 
+  .preferredContactSelect > button {
+    min-height: 51px;
+    padding: 0 16px;
+    border-radius: 16px;
+    font-size: 16px;
+  }
+
+  .preferredContactSelect [role="listbox"] {
+    border-radius: 16px;
+    background: var(--booking-select-dropdown-bg) !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
   .field textarea {
     min-height: 120px;
   }
@@ -153,6 +211,10 @@
   .field select,
   .field textarea {
     padding: 13px 14px;
+  }
+
+  .preferredContactSelect > button {
+    padding: 0 14px;
   }
 
   .checkboxLabel {
