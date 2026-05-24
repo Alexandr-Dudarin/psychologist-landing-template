@@ -144,12 +144,6 @@
   animation: customSelectDropdownIn 0.16s ease both;
 }
 
-.dropdownMatchTrigger {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-}
-
 .dropdownEnd {
   right: 0;
   left: auto;
@@ -196,6 +190,35 @@
 
 .option:last-child {
   border-bottom: 0;
+}
+
+.optionGroup {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 10px 12px;
+  border-bottom: 1px solid transparent;
+  cursor: default;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.rootAdmin .optionGroup {
+  border-bottom-color: color-mix(in srgb, var(--admin-border) 72%, transparent);
+  background: color-mix(in srgb, var(--admin-accent-soft) 70%, white);
+  color: var(--admin-accent);
+}
+
+.rootPublic .optionGroup {
+  border-bottom-color: color-mix(in srgb, var(--color-border) 72%, transparent);
+  background: color-mix(in srgb, var(--color-accent-soft) 70%, white);
+  color: var(--color-accent);
+}
+
+.optionGroupLabel {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .rootAdmin .option:hover:not(:disabled),

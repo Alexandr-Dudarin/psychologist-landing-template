@@ -82,9 +82,10 @@ export function BlockedSlotsSection({
           onChange={(date) => onFormChange("blockedDate", date)}
           datesMeta={buildBlockedSlotsCalendarMeta(blockedSlots)}
           emptyText="Выберите дату блокировки"
+          disablePast
         />
 
-        <div className={styles.grid}>
+        <div className={styles.timeFieldsGrid}>
           <label className={styles.field}>
             <span>Начало</span>
             <AdminTimeSelect

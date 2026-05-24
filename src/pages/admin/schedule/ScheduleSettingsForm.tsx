@@ -142,7 +142,7 @@ const timezoneOptions: CustomSelectOption[] = bookingTimezoneOptionGroups.flatMa
     {
       value: `__group_${group.label}`,
       label: group.label,
-      disabled: true,
+      kind: "group",
     },
     ...group.options.map((option) => ({
       value: option.value,

@@ -14,6 +14,7 @@ export type CustomSelectOption = {
   label: string;
   description?: string;
   disabled?: boolean;
+  kind?: "option" | "group";
 };
 
 type CustomSelectVariant = "admin" | "public";
@@ -46,9 +47,13 @@ const layoutClassNames: Record<CustomSelectLayout, string> = {
   full: styles.rootFull,
 };
 
+function isSelectableOption(option: CustomSelectOption | undefined): boolean {
+  return Boolean(option && option.kind !== "group" && !option.disabled);
+}
+
 function getEnabledOptionIndexes(options: CustomSelectOption[]): number[] {
   return options
-    .map((option, index) => (!option.disabled ? index : -1))
+    .map((option, index) => (isSelectableOption(option) ? index : -1))
     .filter((index) => index >= 0);
 }
 
@@ -57,7 +62,7 @@ function getInitialHighlightedIndex(
   value: string
 ): number {
   const selectedIndex = options.findIndex(
-    (option) => option.value === value && !option.disabled
+    (option) => option.value === value && isSelectableOption(option)
   );
 
   if (selectedIndex >= 0) {
@@ -119,7 +124,10 @@ export function CustomSelect({
   );
 
   const selectedOption = useMemo(
-    () => options.find((option) => option.value === value) ?? null,
+    () =>
+      options.find(
+        (option) => option.kind !== "group" && option.value === value
+      ) ?? null,
     [options, value]
   );
 
@@ -159,7 +167,7 @@ export function CustomSelect({
   };
 
   const selectOption = (option: CustomSelectOption, index: number) => {
-    if (option.disabled) {
+    if (!isSelectableOption(option)) {
       return;
     }
 
@@ -290,7 +298,7 @@ export function CustomSelect({
     setHighlightedIndex((currentIndex) => {
       const currentOption = options[currentIndex];
 
-      if (currentOption && !currentOption.disabled) {
+      if (isSelectableOption(currentOption)) {
         return currentIndex;
       }
 
@@ -344,6 +352,20 @@ export function CustomSelect({
         >
           {options.length > 0 ? (
             options.map((option, index) => {
+              if (option.kind === "group") {
+                return (
+                  <div
+                    key={option.value}
+                    className={styles.optionGroup}
+                    role="presentation"
+                  >
+                    <span className={styles.optionGroupLabel}>
+                      {option.label}
+                    </span>
+                  </div>
+                );
+              }
+
               const isSelected = option.value === value;
               const isHighlighted = index === highlightedIndex;
 
@@ -362,7 +384,7 @@ export function CustomSelect({
                     .filter(Boolean)
                     .join(" ")}
                   onMouseEnter={() => {
-                    if (!option.disabled) {
+                    if (isSelectableOption(option)) {
                       setHighlightedIndex(index);
                     }
                   }}

@@ -83,7 +83,7 @@ export function ScheduleOverridesSection({
           <span>Это рабочий день с особым временем</span>
         </label>
 
-        <div className={styles.grid}>
+        <div className={styles.timeFieldsGrid}>
           <label className={styles.field}>
             <span>Начало</span>
             <AdminTimeSelect

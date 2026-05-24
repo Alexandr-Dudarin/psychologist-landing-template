@@ -5,6 +5,13 @@
   align-items: start;
 }
 
+.timeFieldsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 180px));
+  gap: 18px;
+  align-items: start;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -278,6 +285,10 @@
 
 @media (max-width: 720px) {
   .grid {
+    grid-template-columns: 1fr;
+  }
+
+    .timeFieldsGrid {
     grid-template-columns: 1fr;
   }
 
