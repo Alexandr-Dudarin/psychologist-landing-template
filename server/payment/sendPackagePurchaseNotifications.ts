@@ -18,6 +18,10 @@ export type PackagePurchaseNotificationPayload = {
 export type PackagePurchaseNotificationStatus = "sent" | "failed" | "skipped";
 
 export type PackagePurchaseNotificationResult = {
+  telegram: {
+    status: PackagePurchaseNotificationStatus;
+    error?: string;
+  };
   clientEmail: {
     status: PackagePurchaseNotificationStatus;
     error?: string;
@@ -90,6 +94,70 @@ function getOwnerEmailHtml(payload: PackagePurchaseNotificationPayload) {
   `;
 }
 
+function getOwnerTelegramText(
+  payload: PackagePurchaseNotificationPayload
+): string {
+  return [
+    "Новая покупка пакета услуг",
+    "",
+    `Клиент: ${payload.clientName}`,
+    `Телефон: ${payload.clientPhone || "-"}`,
+    `Email: ${payload.clientEmail || "-"}`,
+    `Предпочтительный способ связи: ${payload.preferredContact || "-"}`,
+    `Пакет: ${payload.packageTitle}`,
+    `Услуга: ${payload.serviceTitle}`,
+    `Количество сессий: ${payload.totalSessions}`,
+    `Код пакета: ${payload.packageCode}`,
+    `Стоимость: ${formatPrice(payload.price)}`,
+  ].join("\n");
+}
+
+async function sendOwnerTelegram(
+  payload: PackagePurchaseNotificationPayload
+): Promise<PackagePurchaseNotificationResult["telegram"]> {
+  const telegramToken = process.env.TELEGRAM_TOKEN;
+  const telegramChatId = process.env.TELEGRAM_CHAT_ID;
+
+  if (!telegramToken || !telegramChatId) {
+    return {
+      status: "skipped",
+      error: "Missing Telegram environment variables",
+    };
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.telegram.org/bot${telegramToken}/sendMessage`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chat_id: telegramChatId,
+          text: getOwnerTelegramText(payload),
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      return {
+        status: "failed",
+        error: await response.text(),
+      };
+    }
+
+    return {
+      status: "sent",
+    };
+  } catch (error) {
+    return {
+      status: "failed",
+      error: error instanceof Error ? error.message : "Unknown Telegram error",
+    };
+  }
+}
+
 async function sendClientEmail(
   resend: Resend,
   payload: PackagePurchaseNotificationPayload
@@ -159,30 +227,49 @@ export async function sendPackagePurchaseNotifications(
   const resendApiKey = process.env.RESEND_API_KEY;
   const ownerEmail = process.env.OWNER_EMAIL;
 
+  const telegramPromise = sendOwnerTelegram(payload);
+
+  let clientEmailPromise: Promise<
+    PackagePurchaseNotificationResult["clientEmail"]
+  >;
+  let ownerEmailPromise: Promise<PackagePurchaseNotificationResult["ownerEmail"]>;
+
   if (!resendApiKey) {
-    return {
-      clientEmail: {
-        status: "skipped",
-        error: "Missing RESEND_API_KEY",
-      },
-      ownerEmail: {
-        status: "skipped",
-        error: "Missing RESEND_API_KEY",
-      },
-    };
-  }
+    clientEmailPromise = Promise.resolve({
+      status: "skipped",
+      error: "Missing RESEND_API_KEY",
+    });
 
-  const resend = new Resend(resendApiKey);
+    ownerEmailPromise = Promise.resolve({
+      status: "skipped",
+      error: "Missing RESEND_API_KEY",
+    });
+  } else {
+    const resend = new Resend(resendApiKey);
 
-  const [clientEmail, ownerEmailResult] = await Promise.all([
-    sendClientEmail(resend, payload),
-    ownerEmail
+    clientEmailPromise = sendClientEmail(resend, payload);
+
+    ownerEmailPromise = ownerEmail
       ? sendOwnerEmail(resend, payload, ownerEmail)
       : Promise.resolve({
-          status: "skipped" as const,
+          status: "skipped",
           error: "Missing OWNER_EMAIL",
-        }),
+        });
+  }
+
+  const [telegram, clientEmail, ownerEmailResult] = await Promise.all([
+    telegramPromise,
+    clientEmailPromise,
+    ownerEmailPromise,
   ]);
+
+  if (telegram.status !== "sent") {
+    console.error("Package purchase Telegram issue:", {
+      packageCode: payload.packageCode,
+      status: telegram.status,
+      error: telegram.error,
+    });
+  }
 
   if (clientEmail.status !== "sent") {
     console.error("Package purchase client email issue:", {
@@ -201,6 +288,7 @@ export async function sendPackagePurchaseNotifications(
   }
 
   return {
+    telegram,
     clientEmail,
     ownerEmail: ownerEmailResult,
   };
