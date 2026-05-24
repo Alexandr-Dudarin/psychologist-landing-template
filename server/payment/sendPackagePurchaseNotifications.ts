@@ -6,6 +6,7 @@ export type PackagePurchaseNotificationPayload = {
   clientName: string;
   clientPhone: string;
   clientEmail: string;
+  preferredContact: string;
   packageTitle: string;
   packageCode: string;
   serviceTitle: string;
@@ -80,6 +81,7 @@ function getOwnerEmailHtml(payload: PackagePurchaseNotificationPayload) {
     <p><strong>Клиент:</strong> ${escapeHtml(payload.clientName)}</p>
     <p><strong>Телефон:</strong> ${escapeHtml(payload.clientPhone)}</p>
     <p><strong>Email:</strong> ${escapeHtml(payload.clientEmail)}</p>
+    <p><strong>Предпочтительный способ связи:</strong> ${escapeHtml(payload.preferredContact || "-")}</p>
     <p><strong>Пакет:</strong> ${escapeHtml(payload.packageTitle)}</p>
     <p><strong>Услуга:</strong> ${escapeHtml(payload.serviceTitle)}</p>
     <p><strong>Количество сессий:</strong> ${escapeHtml(String(payload.totalSessions))}</p>

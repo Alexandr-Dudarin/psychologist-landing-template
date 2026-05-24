@@ -3,7 +3,10 @@ import type { PoolClient } from "pg";
 
 import type { ServicePackagePurchasePayload } from "../payment/packagePurchasePayload.js";
 import type { PackagePurchaseNotificationPayload } from "../payment/sendPackagePurchaseNotifications.js";
-import { normalizePreferredContactForStorage } from "../../src/lib/preferredContact.js";
+import {
+  formatPreferredContactDisplay,
+  normalizePreferredContactForStorage,
+} from "../../src/lib/preferredContact.js";
 
 type PackagePlanRow = {
   id: number | string;
@@ -340,6 +343,11 @@ export async function createClientPackagePurchaseService(
       clientName: clientResult.clientName,
       clientPhone: normalizedPayload.phone,
       clientEmail: normalizedPayload.email,
+      preferredContact: formatPreferredContactDisplay(
+        normalizedPayload.preferredContactMethod,
+        normalizedPayload.preferredContactValue,
+        "-"
+      ),
       packageTitle: packagePlan.title,
       packageCode: clientPackage.code,
       serviceTitle: packagePlan.service_title,
