@@ -2,6 +2,10 @@ import { useRef, useState } from "react";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { Button } from "../../components/Button/Button";
+import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../components/ui/CustomSelect";
 import { siteSettings } from "../../data/siteSettings";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { createPublicRequest } from "../../lib/api/requests";
@@ -36,6 +40,17 @@ type Errors = {
   preferredContactValue?: string;
   consent?: string;
 };
+
+const preferredContactOptions: CustomSelectOption[] = [
+  {
+    value: "",
+    label: "Не указано",
+  },
+  ...preferredContactMethods.map((method) => ({
+    value: method,
+    label: preferredContactMethodLabels[method],
+  })),
+];
 
 export function Booking() {
   const { t } = useLanguage();
@@ -218,7 +233,9 @@ export function Booking() {
                 onChange={(e) => handleChange("phone", e.target.value)}
                 placeholder={booking.placeholders.phone}
               />
-              {errors.phone && <span className={styles.error}>{errors.phone}</span>}
+              {errors.phone && (
+                <span className={styles.error}>{errors.phone}</span>
+              )}
             </div>
 
             <div className={styles.field}>
@@ -230,32 +247,30 @@ export function Booking() {
                 onChange={(e) => handleChange("email", e.target.value)}
                 placeholder={booking.placeholders.email}
               />
-              {errors.email && <span className={styles.error}>{errors.email}</span>}
+              {errors.email && (
+                <span className={styles.error}>{errors.email}</span>
+              )}
             </div>
 
             {preferredContactSettings.enabled ? (
               <>
                 <div className={styles.field}>
-                  <label htmlFor="preferredContactMethod">
-                    Предпочтительный способ связи
-                  </label>
-                  <select
-                    id="preferredContactMethod"
+                  <label>Предпочтительный способ связи</label>
+                  <CustomSelect
                     value={form.preferredContactMethod}
-                    onChange={(e) =>
+                    options={preferredContactOptions}
+                    onChange={(nextMethod) =>
                       handleChange(
                         "preferredContactMethod",
-                        e.target.value as FormData["preferredContactMethod"]
+                        nextMethod as FormData["preferredContactMethod"]
                       )
                     }
-                  >
-                    <option value="">Не указано</option>
-                    {preferredContactMethods.map((method) => (
-                      <option key={method} value={method}>
-                        {preferredContactMethodLabels[method]}
-                      </option>
-                    ))}
-                  </select>
+                    ariaLabel="Предпочтительный способ связи"
+                    variant="public"
+                    layout="form"
+                    dropdownWidth="trigger"
+                    className={styles.preferredContactSelect}
+                  />
                   {errors.preferredContactMethod && (
                     <span className={styles.error}>
                       {errors.preferredContactMethod}
@@ -286,7 +301,9 @@ export function Booking() {
                         handleChange("preferredContactValue", e.target.value)
                       }
                       placeholder={
-                        preferredContactPlaceholders[form.preferredContactMethod]
+                        preferredContactPlaceholders[
+                          form.preferredContactMethod
+                        ]
                       }
                     />
                     {errors.preferredContactValue && (
@@ -329,7 +346,12 @@ export function Booking() {
             </div>
 
             <div className={styles.actions}>
-              <Button type="submit" variant="primary" fullWidth disabled={isSubmitting}>
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? booking.buttons.loading : booking.buttons.idle}
               </Button>
             </div>
