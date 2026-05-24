@@ -2,6 +2,10 @@ import type { FormEvent } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
+import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmSessionRecord } from "../../../types/session";
 import { formatSessionLabel, type NoteForm } from "./noteForm";
@@ -17,6 +21,36 @@ type NoteEditFormProps = {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
+function buildClientOptions(clients: CrmClientRecord[]): CustomSelectOption[] {
+  return [
+    {
+      value: "",
+      label: "Выберите клиента",
+    },
+    ...clients.map((client) => ({
+      value: String(client.id),
+      label: `${client.name} - ${
+        client.phone || client.email || "контакты не указаны"
+      }`,
+    })),
+  ];
+}
+
+function buildSessionOptions(
+  availableSessions: CrmSessionRecord[]
+): CustomSelectOption[] {
+  return [
+    {
+      value: "",
+      label: "Без привязки к сессии",
+    },
+    ...availableSessions.map((session) => ({
+      value: String(session.id),
+      label: formatSessionLabel(session),
+    })),
+  ];
+}
+
 export function NoteEditForm({
   availableSessions,
   clients,
@@ -29,32 +63,26 @@ export function NoteEditForm({
   return (
     <AdminSection title="Редактировать заметку">
       <form onSubmit={onSubmit} className={styles.form}>
-        <select
+        <CustomSelect
           value={form.clientId}
-          onChange={(event) => onChange("clientId", event.target.value)}
-          className={styles.input}
-        >
-          <option value="">Выберите клиента</option>
-          {clients.map((client) => (
-            <option key={client.id} value={client.id}>
-              {client.name} - {client.phone || client.email || client.id}
-            </option>
-          ))}
-        </select>
+          options={buildClientOptions(clients)}
+          onChange={(nextClientId) => onChange("clientId", nextClientId)}
+          ariaLabel="Выберите клиента для заметки"
+          variant="admin"
+          layout="form"
+          dropdownWidth="trigger"
+        />
 
-        <select
+        <CustomSelect
           value={form.sessionId}
-          onChange={(event) => onChange("sessionId", event.target.value)}
-          className={styles.input}
+          options={buildSessionOptions(availableSessions)}
+          onChange={(nextSessionId) => onChange("sessionId", nextSessionId)}
+          ariaLabel="Выберите сессию для заметки"
           disabled={!form.clientId}
-        >
-          <option value="">Без привязки к сессии</option>
-          {availableSessions.map((session) => (
-            <option key={session.id} value={session.id}>
-              {formatSessionLabel(session)}
-            </option>
-          ))}
-        </select>
+          variant="admin"
+          layout="form"
+          dropdownWidth="trigger"
+        />
 
         <textarea
           value={form.content}
