@@ -1,3 +1,4 @@
+import type { PoolClient, QueryResult, QueryResultRow } from "pg";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../server/db/pool", () => ({
@@ -50,7 +51,27 @@ type AvailabilityDbData = {
   }>;
 };
 
-function createAvailabilityDb(overrides: AvailabilityDbData = {}) {
+type TestQueryInput = string | { text?: string };
+
+function getSqlFromQuery(queryTextOrConfig: TestQueryInput): string {
+  return typeof queryTextOrConfig === "string"
+    ? queryTextOrConfig
+    : queryTextOrConfig.text ?? "";
+}
+
+function createQueryResult<T extends QueryResultRow>(rows: T[]): QueryResult<T> {
+  return {
+    rows,
+    rowCount: rows.length,
+    command: "SELECT",
+    oid: 0,
+    fields: [],
+  };
+}
+
+function createAvailabilityDb(
+  overrides: AvailabilityDbData = {}
+): Pick<PoolClient, "query"> {
   const data: Required<AvailabilityDbData> = {
     services: [
       {
@@ -85,34 +106,38 @@ function createAvailabilityDb(overrides: AvailabilityDbData = {}) {
   };
 
   return {
-    async query<T>(sql: string) {
+    async query<T extends QueryResultRow = QueryResultRow>(
+      queryTextOrConfig: TestQueryInput
+    ) {
+      const sql = getSqlFromQuery(queryTextOrConfig);
+
       if (sql.includes("FROM services")) {
-        return { rows: data.services as T[] };
+        return createQueryResult(data.services as unknown as T[]);
       }
 
       if (sql.includes("FROM booking_settings")) {
-        return { rows: data.settings as T[] };
+        return createQueryResult(data.settings as unknown as T[]);
       }
 
       if (sql.includes("FROM schedule_rules")) {
-        return { rows: data.rules as T[] };
+        return createQueryResult(data.rules as unknown as T[]);
       }
 
       if (sql.includes("FROM schedule_overrides")) {
-        return { rows: data.overrides as T[] };
+        return createQueryResult(data.overrides as unknown as T[]);
       }
 
       if (sql.includes("FROM blocked_slots")) {
-        return { rows: data.blockedSlots as T[] };
+        return createQueryResult(data.blockedSlots as unknown as T[]);
       }
 
       if (sql.includes("FROM sessions")) {
-        return { rows: data.sessions as T[] };
+        return createQueryResult(data.sessions as unknown as T[]);
       }
 
       throw new Error(`Unexpected query: ${sql}`);
     },
-  };
+  } as unknown as Pick<PoolClient, "query">;
 }
 
 describe("public booking availability", () => {
