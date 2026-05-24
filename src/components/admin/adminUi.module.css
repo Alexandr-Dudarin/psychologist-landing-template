@@ -252,6 +252,9 @@
 }
 
 .createPanelOpen {
+  position: relative;
+  z-index: 20;
+  overflow: visible;
   grid-template-rows: 1fr;
   margin-bottom: 24px;
   opacity: 1;
@@ -273,6 +276,10 @@
 .createPanelInner {
   min-height: 0;
   overflow: hidden;
+}
+
+.createPanelOpen .createPanelInner {
+  overflow: visible;
 }
 
 @media (max-width: 640px) {

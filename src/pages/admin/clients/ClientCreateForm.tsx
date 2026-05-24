@@ -3,6 +3,10 @@ import type { FormEvent } from "react";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
+import {
   preferredContactMethodLabels,
   preferredContactPlaceholders,
 } from "../../../lib/preferredContact";
@@ -31,6 +35,17 @@ type ClientCreateFormProps = {
   submitLabel: string;
   submittingLabel: string;
 };
+
+const preferredContactOptions: CustomSelectOption[] = [
+  {
+    value: "",
+    label: "Не указано",
+  },
+  ...preferredContactMethods.map((method) => ({
+    value: method,
+    label: preferredContactMethodLabels[method],
+  })),
+];
 
 export function ClientCreateForm({
   form,
@@ -98,20 +113,17 @@ export function ClientCreateForm({
           <>
             <label className={styles.field}>
               <span>Предпочтительный способ связи</span>
-              <select
+              <CustomSelect
                 value={form.preferredContactMethod}
-                onChange={(event) =>
-                  onChange("preferredContactMethod", event.target.value)
+                options={preferredContactOptions}
+                onChange={(nextMethod) =>
+                  onChange("preferredContactMethod", nextMethod)
                 }
-                className={styles.formSelect}
-              >
-                <option value="">Не указано</option>
-                {preferredContactMethods.map((method) => (
-                  <option key={method} value={method}>
-                    {preferredContactMethodLabels[method]}
-                  </option>
-                ))}
-              </select>
+                ariaLabel="Предпочтительный способ связи"
+                variant="admin"
+                layout="form"
+                dropdownWidth="trigger"
+              />
             </label>
 
             {form.preferredContactMethod ? (

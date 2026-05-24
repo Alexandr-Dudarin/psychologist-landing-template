@@ -3,6 +3,10 @@ import { Link } from "react-router-dom";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
+import {
   assignClientServicePackage,
   getClientServicePackages,
 } from "../../../lib/api/adminClients";
@@ -152,6 +156,22 @@ export function ClientDetailsModal({
         (packagePlan) => packagePlan.isActive && packagePlan.serviceIsActive
       ),
     [packagePlans]
+  );
+
+  const packagePlanOptions = useMemo<CustomSelectOption[]>(
+    () => [
+      {
+        value: "",
+        label: "Выберите пакет",
+      },
+      ...activePackagePlans.map((packagePlan) => ({
+        value: String(packagePlan.id),
+        label: `${packagePlan.title} — ${
+          packagePlan.sessionsCount
+        } сесс. / ${formatAdminPriceInput(packagePlan.price)} ₽`,
+      })),
+    ],
+    [activePackagePlans]
   );
 
   const sourceLabel = sourceLabels[client.source] ?? client.source;
@@ -322,29 +342,25 @@ export function ClientDetailsModal({
           </div>
 
           <form className={styles.packageAssignForm} onSubmit={handleAssignPackage}>
-            <select
-              className={`${styles.input} ${styles.select}`}
+            <CustomSelect
               value={selectedPackagePlanId}
-              onChange={(event) => {
-                setSelectedPackagePlanId(event.target.value);
+              options={packagePlanOptions}
+              onChange={(nextPackagePlanId) => {
+                setSelectedPackagePlanId(nextPackagePlanId);
                 setPackageError("");
                 setPackageSuccess("");
               }}
+              ariaLabel="Выберите пакет услуг для клиента"
               disabled={
                 isAssigningPackage ||
                 isPackagesLoading ||
                 activePackagePlans.length === 0 ||
                 client.status !== "active"
               }
-            >
-              <option value="">Выберите пакет</option>
-              {activePackagePlans.map((packagePlan) => (
-                <option key={packagePlan.id} value={packagePlan.id}>
-                  {packagePlan.title} — {packagePlan.sessionsCount} сесс. /{" "}
-                  {formatAdminPriceInput(packagePlan.price)} ₽
-                </option>
-              ))}
-            </select>
+              variant="admin"
+              layout="form"
+              dropdownWidth="trigger"
+            />
 
             <AdminButton
               type="submit"

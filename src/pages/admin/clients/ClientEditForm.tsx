@@ -2,6 +2,10 @@ import type { FormEvent } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
+import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
 import type { ClientStatus } from "../../../types/client";
 import {
   preferredContactMethodLabels,
@@ -27,6 +31,17 @@ type ClientEditFormProps = {
   statusOptions: Array<{ value: ClientStatus; label: string }>;
 };
 
+const preferredContactOptions: CustomSelectOption[] = [
+  {
+    value: "",
+    label: "Не указано",
+  },
+  ...preferredContactMethods.map((method) => ({
+    value: method,
+    label: preferredContactMethodLabels[method],
+  })),
+];
+
 export function ClientEditForm({
   form,
   isUpdating,
@@ -37,6 +52,13 @@ export function ClientEditForm({
   statusOptions,
 }: ClientEditFormProps) {
   const { firstName, lastName } = splitClientName(form.name);
+
+  const clientStatusOptions: CustomSelectOption[] = statusOptions.map(
+    (option) => ({
+      value: option.value,
+      label: option.label,
+    })
+  );
 
   return (
     <AdminSection title="Редактирование клиента">
@@ -97,20 +119,17 @@ export function ClientEditForm({
           <>
             <label className={styles.field}>
               <span>Предпочтительный способ связи</span>
-              <select
+              <CustomSelect
                 value={form.preferredContactMethod}
-                onChange={(event) =>
-                  onChange("preferredContactMethod", event.target.value)
+                options={preferredContactOptions}
+                onChange={(nextMethod) =>
+                  onChange("preferredContactMethod", nextMethod)
                 }
-                className={styles.formSelect}
-              >
-                <option value="">Не указано</option>
-                {preferredContactMethods.map((method) => (
-                  <option key={method} value={method}>
-                    {preferredContactMethodLabels[method]}
-                  </option>
-                ))}
-              </select>
+                ariaLabel="Предпочтительный способ связи"
+                variant="admin"
+                layout="form"
+                dropdownWidth="trigger"
+              />
             </label>
 
             {form.preferredContactMethod ? (
@@ -141,20 +160,18 @@ export function ClientEditForm({
 
         <label className={styles.field}>
           <span>Статус клиента</span>
-          <select
+          <CustomSelect
             value={form.status}
-            onChange={(event) => onChange("status", event.target.value)}
-            className={styles.formSelect}
-          >
-            {statusOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            options={clientStatusOptions}
+            onChange={(nextStatus) => onChange("status", nextStatus)}
+            ariaLabel="Статус клиента"
+            variant="admin"
+            layout="form"
+            dropdownWidth="trigger"
+          />
           <span className={styles.statusHelpText}>
-            Неактивный клиент остаётся в CRM и истории записей, но помещается вниз списка клиентов 
-            и визуально отделяется от активных клиентов.
+            Неактивный клиент остаётся в CRM и истории записей, но помещается
+            вниз списка клиентов и визуально отделяется от активных клиентов.
           </span>
         </label>
 
