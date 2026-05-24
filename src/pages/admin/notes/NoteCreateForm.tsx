@@ -8,6 +8,7 @@ import {
 } from "../../../components/ui/CustomSelect";
 import type { CrmClientRecord } from "../../../types/client";
 import type { CrmSessionRecord } from "../../../types/session";
+import { NoteClientCombobox } from "./NoteClientCombobox";
 import { formatSessionLabel, type NoteForm } from "./noteForm";
 import styles from "./NotesPage.module.css";
 
@@ -19,21 +20,6 @@ type NoteCreateFormProps = {
   onChange: (field: keyof NoteForm, value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
-
-function buildClientOptions(clients: CrmClientRecord[]): CustomSelectOption[] {
-  return [
-    {
-      value: "",
-      label: "Выберите клиента",
-    },
-    ...clients.map((client) => ({
-      value: String(client.id),
-      label: `${client.name} - ${
-        client.phone || client.email || "контакты не указаны"
-      }`,
-    })),
-  ];
-}
 
 function buildSessionOptions(
   availableSessions: CrmSessionRecord[]
@@ -61,14 +47,10 @@ export function NoteCreateForm({
   return (
     <AdminSection title="Создать заметку">
       <form onSubmit={onSubmit} className={styles.form}>
-        <CustomSelect
-          value={form.clientId}
-          options={buildClientOptions(clients)}
-          onChange={(nextClientId) => onChange("clientId", nextClientId)}
-          ariaLabel="Выберите клиента для заметки"
-          variant="admin"
-          layout="form"
-          dropdownWidth="trigger"
+        <NoteClientCombobox
+          clients={clients}
+          selectedClientId={form.clientId}
+          onClientChange={(clientId) => onChange("clientId", clientId)}
         />
 
         <CustomSelect
