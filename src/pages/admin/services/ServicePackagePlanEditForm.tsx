@@ -3,6 +3,10 @@ import type { FormEvent } from "react";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
+import {
   formatAdminPriceInput,
   normalizeAdminPriceInput,
 } from "../../../lib/format/adminPriceInput";
@@ -22,6 +26,21 @@ type ServicePackagePlanEditFormProps = {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
+function buildServiceOptions(services: CrmServiceRecord[]): CustomSelectOption[] {
+  return [
+    {
+      value: "",
+      label: "Выберите базовую услугу",
+    },
+    ...services.map((service) => ({
+      value: String(service.id),
+      label: `${service.title} — ${formatAdminPriceInput(service.price)} ₽ / ${
+        service.durationMinutes
+      } мин${!service.isActive ? " — скрыта" : ""}`,
+    })),
+  ];
+}
+
 export function ServicePackagePlanEditForm({
   form,
   isUpdating,
@@ -33,21 +52,15 @@ export function ServicePackagePlanEditForm({
   return (
     <AdminSection title="Редактировать пакет услуг">
       <form onSubmit={onSubmit} className={styles.form}>
-        <select
+        <CustomSelect
           value={form.serviceId}
-          onChange={(event) => onChange("serviceId", event.target.value)}
-          className={styles.input}
-        >
-          <option value="">Выберите базовую услугу</option>
-
-          {services.map((service) => (
-            <option key={service.id} value={service.id}>
-              {service.title} — {formatAdminPriceInput(service.price)} ₽ /{" "}
-              {service.durationMinutes} мин
-              {!service.isActive ? " — скрыта" : ""}
-            </option>
-          ))}
-        </select>
+          options={buildServiceOptions(services)}
+          onChange={(serviceId) => onChange("serviceId", serviceId)}
+          ariaLabel="Базовая услуга для пакета"
+          variant="admin"
+          layout="form"
+          dropdownWidth="trigger"
+        />
 
         <input
           type="text"

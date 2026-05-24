@@ -3,6 +3,10 @@ import type { FormEvent } from "react";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import {
+  CustomSelect,
+  type CustomSelectOption,
+} from "../../../components/ui/CustomSelect";
+import {
   formatAdminPriceInput,
   normalizeAdminPriceInput,
 } from "../../../lib/format/adminPriceInput";
@@ -21,6 +25,24 @@ type ServicePackagePlanCreateFormProps = {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
+function buildServiceOptions(services: CrmServiceRecord[]): CustomSelectOption[] {
+  return [
+    {
+      value: "",
+      label:
+        services.length > 0
+          ? "Выберите базовую услугу"
+          : "Сначала создайте активную услугу",
+    },
+    ...services.map((service) => ({
+      value: String(service.id),
+      label: `${service.title} — ${formatAdminPriceInput(service.price)} ₽ / ${
+        service.durationMinutes
+      } мин`,
+    })),
+  ];
+}
+
 export function ServicePackagePlanCreateForm({
   form,
   isCreating,
@@ -36,25 +58,16 @@ export function ServicePackagePlanCreateForm({
       </p>
 
       <form onSubmit={onSubmit} className={styles.form}>
-        <select
+        <CustomSelect
           value={form.serviceId}
-          onChange={(event) => onChange("serviceId", event.target.value)}
-          className={styles.input}
+          options={buildServiceOptions(services)}
+          onChange={(serviceId) => onChange("serviceId", serviceId)}
+          ariaLabel="Базовая услуга для пакета"
           disabled={services.length === 0}
-        >
-          <option value="">
-            {services.length > 0
-              ? "Выберите базовую услугу"
-              : "Сначала создайте активную услугу"}
-          </option>
-
-          {services.map((service) => (
-            <option key={service.id} value={service.id}>
-              {service.title} — {formatAdminPriceInput(service.price)} ₽ /{" "}
-              {service.durationMinutes} мин
-            </option>
-          ))}
-        </select>
+          variant="admin"
+          layout="form"
+          dropdownWidth="trigger"
+        />
 
         <input
           type="text"
