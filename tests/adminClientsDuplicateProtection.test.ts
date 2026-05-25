@@ -2,12 +2,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createMockRequest, createMockResponse } from "./helpers/http";
 
-const poolQueryMock = vi.fn();
+const { poolQueryMock, requireAdminRequestMock } = vi.hoisted(() => ({
+  poolQueryMock: vi.fn(),
+  requireAdminRequestMock: vi.fn(),
+}));
 
 vi.mock("../server/db/pool", () => ({
   pool: {
     query: poolQueryMock,
   },
+}));
+
+vi.mock("../server/auth/requireAdmin", () => ({
+  requireAdminRequest: requireAdminRequestMock,
 }));
 
 type QueryLogEntry = {
@@ -231,6 +238,7 @@ describe("admin clients duplicate protection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => undefined);
+    requireAdminRequestMock.mockReturnValue(true);
   });
 
   it("creates a manual client with preferred contact and normalized response fields", async () => {

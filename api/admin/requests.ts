@@ -1,5 +1,6 @@
 /// <reference types="node" />
 
+import { requireAdminRequest } from "../../server/auth/requireAdmin.js";
 import { pool } from "../../server/db/pool.js";
 import type {
   CrmRequestRecord,
@@ -187,11 +188,19 @@ async function handleUpdate(req: any, res: any) {
 
 export default async function handler(req: any, res: any) {
   if (req.method === "GET") {
+    if (!requireAdminRequest(req, res)) {
+      return;
+    }
+
     return handleList(req, res);
   }
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  if (!requireAdminRequest(req, res)) {
+    return;
   }
 
   const action = getSingleQueryValue(req.query?.action).trim();

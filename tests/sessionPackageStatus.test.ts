@@ -2,9 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createMockRequest, createMockResponse } from "./helpers/http";
 
-const { poolQueryMock, processSessionRemindersMock } = vi.hoisted(() => ({
+const {
+  poolQueryMock,
+  processSessionRemindersMock,
+  requireAdminRequestMock,
+} = vi.hoisted(() => ({
   poolQueryMock: vi.fn(),
   processSessionRemindersMock: vi.fn(),
+  requireAdminRequestMock: vi.fn(),
 }));
 
 vi.mock("../server/db/pool", () => ({
@@ -15,6 +20,10 @@ vi.mock("../server/db/pool", () => ({
 
 vi.mock("../server/reminders/processSessionReminders", () => ({
   processSessionReminders: processSessionRemindersMock,
+}));
+
+vi.mock("../server/auth/requireAdmin", () => ({
+  requireAdminRequest: requireAdminRequestMock,
 }));
 
 type QueryLogEntry = {
@@ -305,6 +314,7 @@ describe("admin sessions package status accounting", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => undefined);
+    requireAdminRequestMock.mockReturnValue(true);
   });
 
   it("creates a package session with client_package_id and zero price", async () => {

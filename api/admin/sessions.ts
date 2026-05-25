@@ -1,5 +1,6 @@
 /// <reference types="node" />
 
+import { requireAdminRequest } from "../../server/auth/requireAdmin.js";
 import { pool } from "../../server/db/pool.js";
 import { processSessionReminders } from "../../server/reminders/processSessionReminders.js";
 import type {
@@ -862,6 +863,10 @@ async function handleProcessReminders(req: any, res: any) {
 
 export default async function handler(req: any, res: any) {
   if (req.method === "GET") {
+    if (!requireAdminRequest(req, res)) {
+      return;
+    }
+
     return handleList(req, res);
   }
 
@@ -870,6 +875,10 @@ export default async function handler(req: any, res: any) {
   }
 
   const action = getSingleQueryValue(req.query?.action).trim();
+
+  if (action !== "process-reminders" && !requireAdminRequest(req, res)) {
+    return;
+  }
 
   if (action === "create") {
     return handleCreate(req, res);

@@ -1,5 +1,6 @@
 /// <reference types="node" />
 
+import { requireAdminRequest } from "../../server/auth/requireAdmin.js";
 import { pool } from "../../server/db/pool.js";
 import type {
   CreateServicePackagePlanPayload,
@@ -883,6 +884,10 @@ export default async function handler(req: any, res: any) {
   const action = getSingleQueryValue(req.query?.action).trim();
 
   if (req.method === "GET") {
+    if (!requireAdminRequest(req, res)) {
+      return;
+    }
+
     if (action === "list-package-plans") {
       return handleListPackagePlans(req, res);
     }
@@ -892,6 +897,10 @@ export default async function handler(req: any, res: any) {
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  if (!requireAdminRequest(req, res)) {
+    return;
   }
 
   if (action === "create") {
