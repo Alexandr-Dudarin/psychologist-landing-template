@@ -224,7 +224,7 @@
   }
 
   .imageCard {
-    width: min(72vw, 310px);
+    width: min(68vw, 292px);
     max-width: none;
     padding: 8px;
     border-radius: 20px;
@@ -291,7 +291,7 @@
   }
 
   .imageCard {
-    width: min(72vw, 292px);
+    width: min(68vw, 276px);
     max-width: none;
     padding: 8px;
     border-radius: 18px;
@@ -337,7 +337,7 @@
   }
 
   .imageCard {
-    width: min(68vw, 272px);
+    width: min(64vw, 252px);
   }
 
   .image {
@@ -376,5 +376,11 @@
 
   .actions {
     margin-top: 14px;
+  }
+}
+
+@media (max-width: 640px) and (max-height: 860px) {
+  .imageCard {
+    width: min(66vw, 268px);
   }
 }
