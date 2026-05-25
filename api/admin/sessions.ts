@@ -535,6 +535,17 @@ async function handleList(req: any, res: any) {
     conditions.push(`s.status = $${values.length}`);
   }
 
+  if (clientIdRaw && clientIdRaw !== "all") {
+    const clientId = Number(clientIdRaw);
+
+    if (!Number.isInteger(clientId) || clientId <= 0) {
+      return res.status(400).json({ error: "Некорректный клиент" });
+    }
+
+    values.push(clientId);
+    conditions.push(`s.client_id = $${values.length}`);
+  }
+
   if (serviceIdRaw && serviceIdRaw !== "all") {
     const serviceId = Number(serviceIdRaw);
 
