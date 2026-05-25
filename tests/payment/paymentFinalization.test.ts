@@ -17,35 +17,35 @@ const {
   sendPackagePurchaseNotificationsBoundedMock: vi.fn(),
 }));
 
-vi.mock("../server/db/pool", () => ({
+vi.mock("../../server/db/pool", () => ({
   pool: {
     connect: connectMock,
     query: poolQueryMock,
   },
 }));
 
-vi.mock("../server/services/createBookingService", () => ({
+vi.mock("../../server/services/createBookingService", () => ({
   createBookingService: createBookingServiceMock,
   isCreateBookingServiceError: (error: unknown) =>
     error instanceof Error && error.name === "CreateBookingServiceError",
 }));
 
-vi.mock("../server/services/createClientPackagePurchaseService", () => ({
+vi.mock("../../server/services/createClientPackagePurchaseService", () => ({
   createClientPackagePurchaseService: createClientPackagePurchaseServiceMock,
   isClientPackagePurchaseError: (error: unknown) =>
     error instanceof Error && error.name === "ClientPackagePurchaseError",
 }));
 
-vi.mock("../server/publicBooking/sendBookingNotifications", () => ({
+vi.mock("../../server/publicBooking/sendBookingNotifications", () => ({
   sendBookingNotificationsBounded: sendBookingNotificationsBoundedMock,
 }));
 
-vi.mock("../server/payment/sendPackagePurchaseNotifications", () => ({
+vi.mock("../../server/payment/sendPackagePurchaseNotifications", () => ({
   sendPackagePurchaseNotificationsBounded:
     sendPackagePurchaseNotificationsBoundedMock,
 }));
 
-import { finalizeSuccessfulPayment } from "../server/payment/finalizeSuccessfulPayment";
+import { finalizeSuccessfulPayment } from "../../server/payment/finalizeSuccessfulPayment";
 
 type QueryLogEntry = {
   sql: string;

@@ -3,24 +3,24 @@ import {
   buildAdminSessionCookie,
   buildClearedAdminSessionCookie,
   createAdminSessionToken,
-} from "../server/auth/adminSession";
-import { createMockRequest, createMockResponse } from "./helpers/http";
+} from "../../server/auth/adminSession";
+import { createMockRequest, createMockResponse } from "../helpers/http";
 
 const poolQueryMock = vi.fn();
 
-vi.mock("../server/db/pool", () => ({
+vi.mock("../../server/db/pool", () => ({
   pool: {
     query: poolQueryMock,
   },
 }));
 
 async function loadAuthHandler() {
-  const module = await import("../api/admin/auth");
+  const module = await import("../../api/admin/auth");
   return module.default;
 }
 
 async function loadProtectedScheduleHandler() {
-  const module = await import("../api/admin/schedule");
+  const module = await import("../../api/admin/schedule");
   return module.default;
 }
 

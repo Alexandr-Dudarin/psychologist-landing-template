@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const poolQueryMock = vi.fn();
 const resendSendMock = vi.fn();
 
-vi.mock("../server/db/pool", () => ({
+vi.mock("../../server/db/pool", () => ({
   pool: {
     query: poolQueryMock,
   },
@@ -20,7 +20,7 @@ vi.mock("resend", () => ({
 }));
 
 async function loadProcessPublicRequest() {
-  const module = await import("../server/requests/processPublicRequest");
+  const module = await import("../../server/requests/processPublicRequest");
   return module.processPublicRequest;
 }
 

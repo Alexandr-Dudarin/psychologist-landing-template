@@ -1,7 +1,7 @@
 import type { PoolClient, QueryResult, QueryResultRow } from "pg";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("../server/db/pool", () => ({
+vi.mock("../../server/db/pool", () => ({
   pool: {
     query: vi.fn(),
   },
@@ -10,7 +10,7 @@ vi.mock("../server/db/pool", () => ({
 import {
   getPublicBookingAvailabilityData,
   validateBookableSlot,
-} from "../server/publicBooking/bookingAvailability";
+} from "../../server/publicBooking/bookingAvailability";
 
 type AvailabilityDbData = {
   services?: Array<{

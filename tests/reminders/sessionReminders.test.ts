@@ -1,7 +1,7 @@
 import type { PoolClient } from "pg";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createMockRequest, createMockResponse } from "./helpers/http";
+import { createMockRequest, createMockResponse } from "../helpers/http";
 
 const {
   connectMock,
@@ -27,7 +27,7 @@ const {
   };
 });
 
-vi.mock("../server/db/pool", () => ({
+vi.mock("../../server/db/pool", () => ({
   pool: {
     connect: connectMock,
   },
@@ -207,25 +207,25 @@ function findQueries(queryLog: QueryLogEntry[], fragment: string) {
 
 async function loadNotificationService() {
   const module = await import(
-    "../server/reminders/sendSessionReminderNotifications"
+    "../../server/reminders/sendSessionReminderNotifications"
   );
 
   return module;
 }
 
 async function loadProcessorService() {
-  const module = await import("../server/reminders/processSessionReminders");
+  const module = await import("../../server/reminders/processSessionReminders");
 
   return module.processSessionReminders;
 }
 
 async function loadSessionsHandlerWithMockedProcessor() {
   vi.resetModules();
-  vi.doMock("../server/reminders/processSessionReminders", () => ({
+  vi.doMock("../../server/reminders/processSessionReminders", () => ({
     processSessionReminders: processSessionRemindersMock,
   }));
 
-  const module = await import("../api/admin/sessions");
+  const module = await import("../../api/admin/sessions");
 
   return module.default;
 }

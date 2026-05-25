@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createMockRequest, createMockResponse } from "./helpers/http";
+import { createMockRequest, createMockResponse } from "../helpers/http";
 
 const {
   poolQueryMock,
@@ -14,18 +14,18 @@ const {
   processSessionRemindersMock: vi.fn(),
 }));
 
-vi.mock("../server/db/pool", () => ({
+vi.mock("../../server/db/pool", () => ({
   pool: {
     query: poolQueryMock,
     connect: connectMock,
   },
 }));
 
-vi.mock("../server/auth/requireAdmin", () => ({
+vi.mock("../../server/auth/requireAdmin", () => ({
   requireAdminRequest: requireAdminRequestMock,
 }));
 
-vi.mock("../server/reminders/processSessionReminders", () => ({
+vi.mock("../../server/reminders/processSessionReminders", () => ({
   processSessionReminders: processSessionRemindersMock,
 }));
 
@@ -59,7 +59,7 @@ describe("admin endpoint authorization protection", () => {
   });
 
   it("blocks schedule POST actions before DB access when admin is unauthorized", async () => {
-    const handler = await loadHandler("../api/admin/schedule");
+    const handler = await loadHandler("../../api/admin/schedule");
 
     for (const [action, body] of [
       [
@@ -112,7 +112,7 @@ describe("admin endpoint authorization protection", () => {
   });
 
   it("blocks clients admin actions before DB access when admin is unauthorized", async () => {
-    const handler = await loadHandler("../api/admin/clients");
+    const handler = await loadHandler("../../api/admin/clients");
 
     for (const req of [
       createMockRequest({
@@ -159,7 +159,7 @@ describe("admin endpoint authorization protection", () => {
   });
 
   it("blocks sessions mutations while preserving CRON_SECRET authorization for process-reminders", async () => {
-    const handler = await loadHandler("../api/admin/sessions");
+    const handler = await loadHandler("../../api/admin/sessions");
 
     for (const [action, body] of [
       [
@@ -244,7 +244,7 @@ describe("admin endpoint authorization protection", () => {
   });
 
   it("blocks services mutations before DB access when admin is unauthorized", async () => {
-    const handler = await loadHandler("../api/admin/services");
+    const handler = await loadHandler("../../api/admin/services");
 
     for (const req of [
       createMockRequest({ method: "GET" }),
@@ -282,8 +282,8 @@ describe("admin endpoint authorization protection", () => {
   });
 
   it("blocks notes and requests admin actions before DB access when admin is unauthorized", async () => {
-    const notesHandler = await loadHandler("../api/admin/notes");
-    const requestsHandler = await loadHandler("../api/admin/requests");
+    const notesHandler = await loadHandler("../../api/admin/notes");
+    const requestsHandler = await loadHandler("../../api/admin/requests");
 
     for (const [handler, req] of [
       [
@@ -339,7 +339,7 @@ describe("admin endpoint authorization protection", () => {
       rows: [],
     });
 
-    const handler = await loadHandler("../api/admin/requests");
+    const handler = await loadHandler("../../api/admin/requests");
     const res = createMockResponse();
 
     await handler(createMockRequest({ method: "GET" }), res);

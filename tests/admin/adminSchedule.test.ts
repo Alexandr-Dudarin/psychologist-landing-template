@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createMockRequest, createMockResponse } from "./helpers/http";
+import { createMockRequest, createMockResponse } from "../helpers/http";
 
 const { poolQueryMock, connectMock, requireAdminRequestMock } = vi.hoisted(
   () => ({
@@ -10,14 +10,14 @@ const { poolQueryMock, connectMock, requireAdminRequestMock } = vi.hoisted(
   })
 );
 
-vi.mock("../server/db/pool", () => ({
+vi.mock("../../server/db/pool", () => ({
   pool: {
     query: poolQueryMock,
     connect: connectMock,
   },
 }));
 
-vi.mock("../server/auth/requireAdmin", () => ({
+vi.mock("../../server/auth/requireAdmin", () => ({
   requireAdminRequest: requireAdminRequestMock,
 }));
 
@@ -310,7 +310,7 @@ function findQueries(queryLog: QueryLogEntry[], fragment: string) {
 }
 
 async function loadScheduleHandler() {
-  const module = await import("../api/admin/schedule");
+  const module = await import("../../api/admin/schedule");
   return module.default;
 }
 

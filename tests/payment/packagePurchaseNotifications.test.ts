@@ -24,7 +24,7 @@ vi.mock("resend", () => ({
 import {
   sendPackagePurchaseNotifications,
   type PackagePurchaseNotificationPayload,
-} from "../server/payment/sendPackagePurchaseNotifications";
+} from "../../server/payment/sendPackagePurchaseNotifications";
 
 const fetchMock = vi.fn();
 

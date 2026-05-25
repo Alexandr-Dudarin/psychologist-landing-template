@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createMockRequest, createMockResponse } from "./helpers/http";
+import { createMockRequest, createMockResponse } from "../helpers/http";
 
 const {
   poolQueryMock,
@@ -12,17 +12,17 @@ const {
   requireAdminRequestMock: vi.fn(),
 }));
 
-vi.mock("../server/db/pool", () => ({
+vi.mock("../../server/db/pool", () => ({
   pool: {
     query: poolQueryMock,
   },
 }));
 
-vi.mock("../server/reminders/processSessionReminders", () => ({
+vi.mock("../../server/reminders/processSessionReminders", () => ({
   processSessionReminders: processSessionRemindersMock,
 }));
 
-vi.mock("../server/auth/requireAdmin", () => ({
+vi.mock("../../server/auth/requireAdmin", () => ({
   requireAdminRequest: requireAdminRequestMock,
 }));
 
@@ -301,12 +301,12 @@ function hasQuery(queryLog: QueryLogEntry[], fragment: string) {
 }
 
 async function loadSessionsHandler() {
-  const module = await import("../api/admin/sessions");
+  const module = await import("../../api/admin/sessions");
   return module.default;
 }
 
 async function loadClientsHandler() {
-  const module = await import("../api/admin/clients");
+  const module = await import("../../api/admin/clients");
   return module.default;
 }
 

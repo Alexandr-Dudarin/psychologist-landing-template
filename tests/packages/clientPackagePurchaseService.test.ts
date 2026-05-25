@@ -1,11 +1,11 @@
 import type { PoolClient } from "pg";
 import { describe, expect, it, vi } from "vitest";
 
-import type { ServicePackagePurchasePayload } from "../server/payment/packagePurchasePayload";
+import type { ServicePackagePurchasePayload } from "../../server/payment/packagePurchasePayload";
 import {
   ClientPackagePurchaseError,
   createClientPackagePurchaseService,
-} from "../server/services/createClientPackagePurchaseService";
+} from "../../server/services/createClientPackagePurchaseService";
 
 type QueryLogEntry = {
   sql: string;

@@ -1,7 +1,7 @@
 import type { PoolClient } from "pg";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createMockRequest, createMockResponse } from "./helpers/http";
+import { createMockRequest, createMockResponse } from "../helpers/http";
 
 const {
   connectMock,
@@ -13,13 +13,13 @@ const {
   sendBookingNotificationsBoundedMock: vi.fn(),
 }));
 
-vi.mock("../server/db/pool", () => ({
+vi.mock("../../server/db/pool", () => ({
   pool: {
     connect: connectMock,
   },
 }));
 
-vi.mock("../server/publicBooking/bookingAvailability", () => ({
+vi.mock("../../server/publicBooking/bookingAvailability", () => ({
   getSingleQueryValue: (value: string | string[] | undefined) => {
     if (Array.isArray(value)) {
       return value[0] ?? "";
@@ -30,7 +30,7 @@ vi.mock("../server/publicBooking/bookingAvailability", () => ({
   validateBookableSlot: validateBookableSlotMock,
 }));
 
-vi.mock("../server/publicBooking/sendBookingNotifications", () => ({
+vi.mock("../../server/publicBooking/sendBookingNotifications", () => ({
   sendBookingNotificationsBounded: sendBookingNotificationsBoundedMock,
 }));
 
@@ -199,7 +199,7 @@ function hasQuery(queryLog: QueryLogEntry[], fragment: string) {
 }
 
 async function loadHandler() {
-  const module = await import("../api/public/booking");
+  const module = await import("../../api/public/booking");
   return module.default;
 }
 
