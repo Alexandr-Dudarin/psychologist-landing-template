@@ -401,10 +401,14 @@
 }
 
 @media (max-width: 560px) {
+  .section {
+    padding-bottom: 72px;
+  }
+
   .carouselShell {
-    margin-top: 22px;
+    margin-top: 18px;
     width: 100%;
-    max-width: 340px;
+    max-width: min(274px, calc(100vw - 72px));
     padding-inline: 0;
   }
 
@@ -421,7 +425,7 @@
   }
 
   .card {
-    max-width: 332px;
+    max-width: min(274px, calc(100vw - 72px));
     border-radius: 18px;
     cursor: default;
   }
@@ -434,7 +438,12 @@
   }
 
   .dots {
-    margin-top: 12px;
+    margin-top: 8px;
+  }
+
+  .dot {
+    width: 9px;
+    height: 9px;
   }
 
   .lightbox {
@@ -443,8 +452,13 @@
 }
 
 @media (max-width: 420px) {
+  .section {
+    padding-bottom: 66px;
+  }
+
   .carouselShell {
-    max-width: 292px;
+    margin-top: 16px;
+    max-width: min(252px, calc(100vw - 64px));
   }
 
   .carousel {
@@ -452,11 +466,35 @@
   }
 
   .card {
-    max-width: 292px;
+    max-width: min(252px, calc(100vw - 64px));
     border-radius: 16px;
   }
 
   .dots {
-    margin-top: 10px;
+    margin-top: 7px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+@media (max-width: 420px) and (max-height: 760px) {
+  .section {
+    padding-bottom: 62px;
+  }
+
+  .carouselShell {
+    margin-top: 14px;
+    max-width: min(238px, calc(100vw - 76px));
+  }
+
+  .card {
+    max-width: min(238px, calc(100vw - 76px));
+  }
+
+  .dots {
+    margin-top: 6px;
   }
 }
