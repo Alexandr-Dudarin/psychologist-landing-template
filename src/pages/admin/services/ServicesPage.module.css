@@ -47,7 +47,7 @@
   max-width: 720px;
 }
 
-.form > * {
+.form>* {
   min-width: 0;
 }
 
@@ -83,6 +83,26 @@
 
 .searchInput {
   composes: controlSearch from "../../../components/admin/adminUi.module.css";
+}
+
+.filtersResetButton.filtersResetButton {
+  flex: 0 0 auto;
+  min-height: 46px;
+  border-color: color-mix(in srgb, var(--admin-danger) 28%, white);
+  background: var(--admin-danger-soft);
+  color: var(--admin-danger);
+  white-space: nowrap;
+}
+
+.filtersResetButton.filtersResetButton:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--admin-danger) 42%, white);
+  background: #fceeee;
+  color: #7f3d3d;
+}
+
+.filtersResetButton.filtersResetButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(154, 75, 75, 0.18);
 }
 
 .sectionHint {
@@ -135,7 +155,7 @@
   justify-content: flex-start;
 }
 
-.actionsRow > * {
+.actionsRow>* {
   width: 100%;
 }
 
@@ -337,11 +357,9 @@
 
 .hideButton.hideButton:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--admin-danger) 58%, white);
-  background: color-mix(
-    in srgb,
-    var(--admin-danger-soft) 58%,
-    var(--admin-danger) 10%
-  );
+  background: color-mix(in srgb,
+      var(--admin-danger-soft) 58%,
+      var(--admin-danger) 10%);
   color: #7f3d3d;
   box-shadow: 0 8px 20px rgba(154, 75, 75, 0.14);
 }
@@ -379,6 +397,7 @@
 }
 
 @media (max-width: 1360px) {
+
   .descriptionCell,
   .packageDescriptionCell {
     display: none;
@@ -391,6 +410,7 @@
 }
 
 @media (max-width: 1120px) {
+
   .createdCell,
   .sessionsCell,
   .packageStatusCell {
@@ -453,11 +473,17 @@
 }
 
 @media (max-width: 640px) {
+
   .filterSelect,
-  .searchInput {
+  .searchInput,
+  .filtersResetButton {
     width: 100%;
     max-width: none;
     flex-basis: 100%;
+  }
+
+  .filtersResetButton {
+    justify-content: flex-start;
   }
 
   .tableHead th {
@@ -494,7 +520,7 @@
     min-width: 92px;
   }
 
-  .actionsRow > * {
+  .actionsRow>* {
     min-width: 0;
     min-height: 34px;
     padding-left: 6px;
@@ -533,7 +559,7 @@
     min-width: 78px;
   }
 
-  .actionsRow > * {
+  .actionsRow>* {
     min-height: 32px;
     padding-left: 5px;
     padding-right: 5px;

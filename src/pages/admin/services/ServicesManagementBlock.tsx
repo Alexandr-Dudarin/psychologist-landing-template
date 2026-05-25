@@ -20,6 +20,7 @@ export type ServicesManagementBlockProps = {
   editServiceFormRef: RefObject<HTMLDivElement | null>;
   editingServiceId: number | null;
   error: string;
+  hasActiveFilters: boolean;
   hidingId: number | null;
   isCreating: boolean;
   isServiceCreateFormOpen: boolean;
@@ -40,6 +41,7 @@ export type ServicesManagementBlockProps = {
   onEditFormChange: (field: keyof ServiceForm, value: string | boolean) => void;
   onEditService: (service: CrmServiceRecord) => void;
   onHideService: (service: CrmServiceRecord) => void;
+  onResetFilters: () => void;
   onSearchQueryChange: (value: string) => void;
   onToggleCreateForm: () => void;
   onUpdateService: (event: FormEvent) => void;
@@ -54,6 +56,7 @@ export function ServicesManagementBlock({
   editServiceFormRef,
   editingServiceId,
   error,
+  hasActiveFilters,
   hidingId,
   isCreating,
   isServiceCreateFormOpen,
@@ -71,6 +74,7 @@ export function ServicesManagementBlock({
   onEditFormChange,
   onEditService,
   onHideService,
+  onResetFilters,
   onSearchQueryChange,
   onToggleCreateForm,
   onUpdateService,
@@ -108,8 +112,10 @@ export function ServicesManagementBlock({
 
       <ServiceFilters
         activityFilter={activityFilter}
+        hasActiveFilters={hasActiveFilters}
         searchQuery={searchQuery}
         onActivityFilterChange={onActivityFilterChange}
+        onResetFilters={onResetFilters}
         onSearchQueryChange={onSearchQueryChange}
       />
 

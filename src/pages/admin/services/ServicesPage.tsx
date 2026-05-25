@@ -705,6 +705,24 @@ export function ServicesPage() {
       ? "Пакетов услуг пока нет."
       : "Пакетов по выбранным фильтрам нет.";
 
+  const hasServiceActiveFilters =
+    activityFilter !== "all" || searchQuery.trim().length > 0;
+
+  const hasPackagePlanActiveFilters =
+    packageActivityFilter !== "all" || packageSearchQuery.trim().length > 0;
+
+  const handleResetServiceFilters = () => {
+    setActivityFilter("all");
+    setSearchQuery("");
+    resetServiceMessages();
+  };
+
+  const handleResetPackagePlanFilters = () => {
+    setPackageActivityFilter("all");
+    setPackageSearchQuery("");
+    resetPackageMessages();
+  };
+
   return (
     <main>
       <h1>Услуги</h1>
@@ -718,6 +736,7 @@ export function ServicesPage() {
         editServiceFormRef={editServiceFormRef}
         editingServiceId={editingServiceId}
         error={error}
+        hasActiveFilters={hasServiceActiveFilters}
         hidingId={hidingId}
         isCreating={isCreating}
         isServiceCreateFormOpen={isServiceCreateFormOpen}
@@ -738,6 +757,7 @@ export function ServicesPage() {
         onEditFormChange={handleEditFormChange}
         onEditService={startEditing}
         onHideService={handleHideService}
+        onResetFilters={handleResetServiceFilters}
         onSearchQueryChange={(value) => {
           setSearchQuery(value);
           resetServiceMessages();
@@ -755,6 +775,7 @@ export function ServicesPage() {
         displayedPackagePlans={displayedPackagePlans}
         editPackagePlanFormRef={editPackagePlanFormRef}
         editingPackagePlanId={editingPackagePlanId}
+        hasActiveFilters={hasPackagePlanActiveFilters}
         hidingPackagePlanId={hidingPackagePlanId}
         isPackageCreateFormOpen={isPackageCreateFormOpen}
         isPackagePlanCreating={isPackagePlanCreating}
@@ -785,6 +806,7 @@ export function ServicesPage() {
           setPackageSearchQuery(value);
           resetPackageMessages();
         }}
+        onResetFilters={handleResetPackagePlanFilters}
         onTogglePackageCreateForm={() => {
           setIsPackageCreateFormOpen((current) => !current);
           resetPackageMessages();

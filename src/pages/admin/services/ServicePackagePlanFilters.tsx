@@ -1,3 +1,4 @@
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import {
   CustomSelect,
@@ -8,8 +9,10 @@ import type { PackageActivityFilter } from "./servicesPageHelpers";
 
 type ServicePackagePlanFiltersProps = {
   activityFilter: PackageActivityFilter;
+  hasActiveFilters: boolean;
   searchQuery: string;
   onActivityFilterChange: (value: PackageActivityFilter) => void;
+  onResetFilters: () => void;
   onSearchQueryChange: (value: string) => void;
 };
 
@@ -30,8 +33,10 @@ const packageActivityFilterOptions: CustomSelectOption[] = [
 
 export function ServicePackagePlanFilters({
   activityFilter,
+  hasActiveFilters,
   searchQuery,
   onActivityFilterChange,
+  onResetFilters,
   onSearchQueryChange,
 }: ServicePackagePlanFiltersProps) {
   return (
@@ -56,6 +61,18 @@ export function ServicePackagePlanFilters({
         placeholder="Поиск по названию, описанию или базовой услуге"
         className={`${styles.input} ${styles.searchInput}`}
       />
+
+      {hasActiveFilters ? (
+        <AdminButton
+          type="button"
+          variant="secondary"
+          size="sm"
+          className={styles.filtersResetButton}
+          onClick={onResetFilters}
+        >
+          Сбросить
+        </AdminButton>
+      ) : null}
     </AdminFiltersRow>
   );
 }

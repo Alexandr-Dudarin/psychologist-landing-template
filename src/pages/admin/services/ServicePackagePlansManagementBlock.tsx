@@ -21,6 +21,7 @@ export type ServicePackagePlansManagementBlockProps = {
   displayedPackagePlans: CrmServicePackagePlanRecord[];
   editPackagePlanFormRef: RefObject<HTMLDivElement | null>;
   editingPackagePlanId: number | null;
+  hasActiveFilters: boolean;
   hidingPackagePlanId: number | null;
   isPackageCreateFormOpen: boolean;
   isPackagePlanCreating: boolean;
@@ -51,6 +52,7 @@ export type ServicePackagePlansManagementBlockProps = {
     value: string | boolean
   ) => void;
   onPackageSearchQueryChange: (value: string) => void;
+  onResetFilters: () => void;
   onTogglePackageCreateForm: () => void;
   onUpdatePackagePlan: (event: FormEvent) => void;
 };
@@ -61,6 +63,7 @@ export function ServicePackagePlansManagementBlock({
   displayedPackagePlans,
   editPackagePlanFormRef,
   editingPackagePlanId,
+  hasActiveFilters,
   hidingPackagePlanId,
   isPackageCreateFormOpen,
   isPackagePlanCreating,
@@ -85,6 +88,7 @@ export function ServicePackagePlansManagementBlock({
   onPackagePlanCreateFormChange,
   onPackagePlanEditFormChange,
   onPackageSearchQueryChange,
+  onResetFilters,
   onTogglePackageCreateForm,
   onUpdatePackagePlan,
 }: ServicePackagePlansManagementBlockProps) {
@@ -138,8 +142,10 @@ export function ServicePackagePlansManagementBlock({
 
       <ServicePackagePlanFilters
         activityFilter={packageActivityFilter}
+        hasActiveFilters={hasActiveFilters}
         searchQuery={packageSearchQuery}
         onActivityFilterChange={onPackageActivityFilterChange}
+        onResetFilters={onResetFilters}
         onSearchQueryChange={onPackageSearchQueryChange}
       />
 
