@@ -35,6 +35,7 @@ import { NotesFilters } from "./NotesFilters";
 import {
   getFilterValueFromSearchParam,
   getNextNoteFormState,
+  getNotesFilteredByFavoriteClients,
   getSessionsForClient,
   hasActiveQuickViewState,
   type NotesPageFilterValue,
@@ -43,22 +44,6 @@ import { NotesQuickViewBanner } from "./NotesQuickViewBanner";
 import { NotesTable } from "./NotesTable";
 
 const createFormPanelId = "note-create-form-panel";
-
-function getNotesFilteredByFavoriteClients(
-  notes: CrmNoteRecord[],
-  clients: CrmClientRecord[],
-  favoriteFilter: ClientFavoriteFilter
-): CrmNoteRecord[] {
-  if (favoriteFilter !== "favorites") {
-    return notes;
-  }
-
-  const favoriteClientIds = new Set(
-    clients.filter((client) => client.isFavorite).map((client) => client.id)
-  );
-
-  return notes.filter((note) => favoriteClientIds.has(note.clientId));
-}
 
 export function NotesPage() {
   const navigate = useNavigate();

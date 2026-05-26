@@ -32,7 +32,7 @@ import {
   type ServicePackagePlanForm,
 } from "./servicePackagePlanForm";
 import {
-  doesPackagePlanMatchSearch,
+  filterPackagePlans,
   type PackageActivityFilter,
   type ServiceActivityFilter,
   validatePackagePlanPayload,
@@ -103,23 +103,11 @@ export function ServicesPage() {
   );
 
   const filteredPackagePlans = useMemo(() => {
-    return packagePlans.filter((packagePlan) => {
-      if (
-        packageActivityFilter === "active" &&
-        packagePlan.isActive !== true
-      ) {
-        return false;
-      }
-
-      if (
-        packageActivityFilter === "inactive" &&
-        packagePlan.isActive !== false
-      ) {
-        return false;
-      }
-
-      return doesPackagePlanMatchSearch(packagePlan, packageSearchQuery);
-    });
+    return filterPackagePlans(
+      packagePlans,
+      packageActivityFilter,
+      packageSearchQuery
+    );
   }, [packageActivityFilter, packagePlans, packageSearchQuery]);
 
   useEffect(() => {

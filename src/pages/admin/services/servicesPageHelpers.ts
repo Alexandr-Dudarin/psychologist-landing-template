@@ -2,6 +2,7 @@ import type {
   CreateServicePackagePlanPayload,
   CreateServicePayload,
   CrmServicePackagePlanRecord,
+  CrmServiceRecord,
   UpdateServicePackagePlanPayload,
   UpdateServicePayload,
 } from "../../../types/service";
@@ -57,6 +58,63 @@ export function normalizeSearchValue(value: string): string {
   return value.trim().toLowerCase();
 }
 
+export function doesServiceMatchActivity(
+  service: CrmServiceRecord,
+  activityFilter: ServiceActivityFilter
+): boolean {
+  if (activityFilter === "active") {
+    return service.isActive === true;
+  }
+
+  if (activityFilter === "inactive") {
+    return service.isActive === false;
+  }
+
+  return true;
+}
+
+export function doesServiceMatchSearch(
+  service: CrmServiceRecord,
+  searchQuery: string
+): boolean {
+  const normalizedQuery = normalizeSearchValue(searchQuery);
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  return [service.title, service.description].some((value) =>
+    value.toLowerCase().includes(normalizedQuery)
+  );
+}
+
+export function filterServices(
+  services: CrmServiceRecord[],
+  activityFilter: ServiceActivityFilter,
+  searchQuery: string
+): CrmServiceRecord[] {
+  return services.filter(
+    (service) =>
+      doesServiceMatchActivity(service, activityFilter) &&
+      doesServiceMatchSearch(service, searchQuery)
+  );
+}
+
+export function doesPackagePlanMatchActivity(
+  packagePlan: CrmServicePackagePlanRecord,
+  activityFilter: PackageActivityFilter
+): boolean {
+  if (activityFilter === "active") {
+    return packagePlan.isActive === true;
+  }
+
+  if (activityFilter === "inactive") {
+    return packagePlan.isActive === false;
+  }
+
+  return true;
+}
+
 export function doesPackagePlanMatchSearch(
   packagePlan: CrmServicePackagePlanRecord,
   searchQuery: string
@@ -72,4 +130,16 @@ export function doesPackagePlanMatchSearch(
     packagePlan.description,
     packagePlan.serviceTitle,
   ].some((value) => value.toLowerCase().includes(normalizedQuery));
+}
+
+export function filterPackagePlans(
+  packagePlans: CrmServicePackagePlanRecord[],
+  activityFilter: PackageActivityFilter,
+  searchQuery: string
+): CrmServicePackagePlanRecord[] {
+  return packagePlans.filter(
+    (packagePlan) =>
+      doesPackagePlanMatchActivity(packagePlan, activityFilter) &&
+      doesPackagePlanMatchSearch(packagePlan, searchQuery)
+  );
 }

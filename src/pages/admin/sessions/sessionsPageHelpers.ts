@@ -17,6 +17,14 @@ import type {
 } from "../../../types/session";
 import type { SessionForm } from "./sessionForm";
 
+export type SessionsPageFilters = {
+  clientFilter: number | "all";
+  favoriteFilter: ClientFavoriteFilter;
+  searchQuery: string;
+  serviceFilter: number | "all";
+  statusFilter: SessionStatus | "all";
+};
+
 type TimeRangeMinutes = {
   start: number;
   end: number;
@@ -414,4 +422,55 @@ export function filterSessionsByFavoriteClients(
   }
 
   return sessions.filter((session) => favoriteClientIds.has(session.clientId));
+}
+
+function normalizeSearchValue(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function doesSessionMatchSearch(
+  session: CrmSessionRecord,
+  normalizedQuery: string
+): boolean {
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  return [session.clientName, session.serviceTitle, session.notes]
+    .filter(Boolean)
+    .some((value) => value.toLowerCase().includes(normalizedQuery));
+}
+
+export function filterSessions(
+  sessions: CrmSessionRecord[],
+  favoriteClientIds: Set<number>,
+  {
+    clientFilter,
+    favoriteFilter,
+    searchQuery,
+    serviceFilter,
+    statusFilter,
+  }: SessionsPageFilters
+): CrmSessionRecord[] {
+  const normalizedQuery = normalizeSearchValue(searchQuery);
+
+  return filterSessionsByFavoriteClients(
+    sessions,
+    favoriteClientIds,
+    favoriteFilter
+  ).filter((session) => {
+    if (clientFilter !== "all" && session.clientId !== clientFilter) {
+      return false;
+    }
+
+    if (serviceFilter !== "all" && session.serviceId !== serviceFilter) {
+      return false;
+    }
+
+    if (statusFilter !== "all" && session.status !== statusFilter) {
+      return false;
+    }
+
+    return doesSessionMatchSearch(session, normalizedQuery);
+  });
 }
