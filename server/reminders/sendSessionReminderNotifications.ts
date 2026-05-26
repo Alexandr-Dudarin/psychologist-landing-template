@@ -84,7 +84,7 @@ function getTimeRangeLabel(
   )})`;
 }
 
-function getSubject(
+export function getSubject(
   reminderType: SessionReminderType,
   payload: SendSessionReminderNotificationsPayload
 ): string {
@@ -98,7 +98,7 @@ function getSubject(
   )}`;
 }
 
-function getSpecialistTelegramText(
+export function getSpecialistTelegramText(
   reminderType: SessionReminderType,
   payload: SendSessionReminderNotificationsPayload
 ): string {
@@ -120,7 +120,7 @@ function getSpecialistTelegramText(
   ].join("\n");
 }
 
-function getSpecialistEmailHtml(
+export function getSpecialistEmailHtml(
   reminderType: SessionReminderType,
   payload: SendSessionReminderNotificationsPayload
 ): string {
@@ -141,7 +141,7 @@ function getSpecialistEmailHtml(
   `;
 }
 
-function getClientEmailHtml(
+export function getClientEmailHtml(
   reminderType: SessionReminderType,
   payload: SendSessionReminderNotificationsPayload
 ): string {

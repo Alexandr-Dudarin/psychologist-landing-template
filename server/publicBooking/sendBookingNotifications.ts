@@ -131,7 +131,9 @@ function getClientEmailPackageHtml(
   `;
 }
 
-function getOwnerTelegramText(payload: SendBookingNotificationsPayload): string {
+export function getOwnerTelegramText(
+  payload: SendBookingNotificationsPayload
+): string {
   const timezoneText = getTimezoneText(payload.timezone);
 
   return [
@@ -150,7 +152,9 @@ function getOwnerTelegramText(payload: SendBookingNotificationsPayload): string 
   ].join("\n");
 }
 
-function getOwnerEmailHtml(payload: SendBookingNotificationsPayload): string {
+export function getOwnerEmailHtml(
+  payload: SendBookingNotificationsPayload
+): string {
   const timezoneText = getTimezoneText(payload.timezone);
 
   return `
@@ -175,7 +179,9 @@ function getOwnerEmailHtml(payload: SendBookingNotificationsPayload): string {
   `;
 }
 
-function getClientEmailHtml(payload: SendBookingNotificationsPayload): string {
+export function getClientEmailHtml(
+  payload: SendBookingNotificationsPayload
+): string {
   const timezoneText = getTimezoneText(payload.timezone);
 
   return `

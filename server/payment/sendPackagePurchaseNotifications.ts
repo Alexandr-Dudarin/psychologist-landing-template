@@ -55,7 +55,7 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function formatPrice(value: number): string {
+export function formatPrice(value: number): string {
   return new Intl.NumberFormat("ru-RU", {
     style: "currency",
     currency: "RUB",
@@ -63,7 +63,9 @@ function formatPrice(value: number): string {
   }).format(value);
 }
 
-function getClientEmailHtml(payload: PackagePurchaseNotificationPayload) {
+export function getClientEmailHtml(
+  payload: PackagePurchaseNotificationPayload
+) {
   return `
     <h2>Ваш пакет консультаций оплачен</h2>
     <p>Здравствуйте, ${escapeHtml(payload.clientName)}.</p>
@@ -79,7 +81,9 @@ function getClientEmailHtml(payload: PackagePurchaseNotificationPayload) {
   `;
 }
 
-function getOwnerEmailHtml(payload: PackagePurchaseNotificationPayload) {
+export function getOwnerEmailHtml(
+  payload: PackagePurchaseNotificationPayload
+) {
   return `
     <h2>Новая покупка пакета услуг</h2>
     <p><strong>Клиент:</strong> ${escapeHtml(payload.clientName)}</p>
@@ -94,7 +98,7 @@ function getOwnerEmailHtml(payload: PackagePurchaseNotificationPayload) {
   `;
 }
 
-function getOwnerTelegramText(
+export function getOwnerTelegramText(
   payload: PackagePurchaseNotificationPayload
 ): string {
   return [
