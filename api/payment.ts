@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { timingSafeEqual } from "node:crypto";
 import {
   validateBookableSlot,
   getSingleQueryValue,
@@ -89,6 +90,17 @@ type YooKassaNotificationBody = {
   object?: YooKassaPaymentObject;
 };
 
+const YOOKASSA_WEBHOOK_IPV4_RANGES = [
+  "185.71.76.0/27",
+  "185.71.77.0/27",
+  "77.75.153.0/25",
+  "77.75.156.11",
+  "77.75.156.35",
+  "77.75.154.128/25",
+] as const;
+
+const YOOKASSA_WEBHOOK_IPV6_PREFIX = "2a02:5180::/32";
+
 class YooKassaApiError extends Error {
   status: number;
   code: string;
@@ -178,6 +190,209 @@ function getHeaderValue(
   }
 
   return value;
+}
+
+function normalizeRequestIp(value: string): string {
+  const trimmedValue = value.trim();
+
+  if (trimmedValue.startsWith("[") && trimmedValue.includes("]")) {
+    return trimmedValue.slice(1, trimmedValue.indexOf("]")).trim();
+  }
+
+  const ipv4WithPort = trimmedValue.match(/^(\d{1,3}(?:\.\d{1,3}){3}):\d+$/);
+
+  if (ipv4WithPort) {
+    return ipv4WithPort[1];
+  }
+
+  return trimmedValue;
+}
+
+export function getRequestIp(req: VercelRequest): string | null {
+  const headerNames = [
+    "x-forwarded-for",
+    "x-vercel-forwarded-for",
+    "x-real-ip",
+    "true-client-ip",
+  ] as const;
+
+  for (const headerName of headerNames) {
+    const headerValue = getHeaderValue(req.headers[headerName]);
+
+    if (!headerValue?.trim()) {
+      continue;
+    }
+
+    const firstIp = headerValue.split(",")[0]?.trim();
+
+    if (firstIp) {
+      return normalizeRequestIp(firstIp);
+    }
+  }
+
+  return null;
+}
+
+function ipv4ToUint(ip: string): number | null {
+  const parts = ip.split(".");
+
+  if (parts.length !== 4) {
+    return null;
+  }
+
+  let result = 0;
+
+  for (const part of parts) {
+    if (!/^\d{1,3}$/.test(part)) {
+      return null;
+    }
+
+    const octet = Number(part);
+
+    if (!Number.isInteger(octet) || octet < 0 || octet > 255) {
+      return null;
+    }
+
+    result = (result << 8) + octet;
+  }
+
+  return result >>> 0;
+}
+
+function isIpv4InRange(ip: string, range: string): boolean {
+  if (!range.includes("/")) {
+    return ip === range;
+  }
+
+  const [baseIp, prefixLengthRaw] = range.split("/");
+  const prefixLength = Number(prefixLengthRaw);
+  const ipValue = ipv4ToUint(ip);
+  const baseValue = ipv4ToUint(baseIp);
+
+  if (
+    ipValue === null ||
+    baseValue === null ||
+    !Number.isInteger(prefixLength) ||
+    prefixLength < 0 ||
+    prefixLength > 32
+  ) {
+    return false;
+  }
+
+  const mask =
+    prefixLength === 0 ? 0 : (0xffffffff << (32 - prefixLength)) >>> 0;
+
+  return (ipValue & mask) === (baseValue & mask);
+}
+
+function expandIpv6(ip: string): number[] | null {
+  const normalizedIp = ip.toLowerCase();
+
+  if (!/^[0-9a-f:]+$/.test(normalizedIp)) {
+    return null;
+  }
+
+  const doubleColonParts = normalizedIp.split("::");
+
+  if (doubleColonParts.length > 2) {
+    return null;
+  }
+
+  const leftParts = doubleColonParts[0]
+    ? doubleColonParts[0].split(":").filter(Boolean)
+    : [];
+  const rightParts = doubleColonParts[1]
+    ? doubleColonParts[1].split(":").filter(Boolean)
+    : [];
+  const missingParts =
+    doubleColonParts.length === 2 ? 8 - leftParts.length - rightParts.length : 0;
+  const parts =
+    doubleColonParts.length === 2
+      ? [...leftParts, ...Array(Math.max(missingParts, 0)).fill("0"), ...rightParts]
+      : leftParts;
+
+  if (parts.length !== 8 || missingParts < 0) {
+    return null;
+  }
+
+  const hextets = parts.map((part) => {
+    if (!/^[0-9a-f]{1,4}$/.test(part)) {
+      return null;
+    }
+
+    return Number.parseInt(part, 16);
+  });
+
+  if (hextets.some((part) => part === null)) {
+    return null;
+  }
+
+  return hextets as number[];
+}
+
+function isIpv6InYooKassaPrefix(ip: string): boolean {
+  const hextets = expandIpv6(ip);
+  const [prefixIp, prefixLengthRaw] = YOOKASSA_WEBHOOK_IPV6_PREFIX.split("/");
+  const prefixHextets = expandIpv6(prefixIp);
+  const prefixLength = Number(prefixLengthRaw);
+
+  if (!hextets || !prefixHextets || prefixLength !== 32) {
+    return false;
+  }
+
+  return hextets[0] === prefixHextets[0] && hextets[1] === prefixHextets[1];
+}
+
+export function isIpInYooKassaWebhookAllowlist(ip: string): boolean {
+  const normalizedIp = normalizeRequestIp(ip);
+
+  if (!normalizedIp) {
+    return false;
+  }
+
+  if (ipv4ToUint(normalizedIp) !== null) {
+    return YOOKASSA_WEBHOOK_IPV4_RANGES.some((range) =>
+      isIpv4InRange(normalizedIp, range)
+    );
+  }
+
+  return isIpv6InYooKassaPrefix(normalizedIp);
+}
+
+function safeCompareStrings(actual: string, expected: string): boolean {
+  const actualBuffer = Buffer.from(actual);
+  const expectedBuffer = Buffer.from(expected);
+
+  if (actualBuffer.length !== expectedBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(actualBuffer, expectedBuffer);
+}
+
+function isYooKassaWebhookSecretValid(req: VercelRequest): boolean {
+  const expectedSecret = process.env.YOOKASSA_WEBHOOK_SECRET?.trim();
+
+  if (!expectedSecret) {
+    return true;
+  }
+
+  const querySecret = getSingleQueryValue(
+    req.query?.secret as string | string[] | undefined
+  ).trim();
+  const headerSecret =
+    getHeaderValue(req.headers["x-webhook-secret"])?.trim() ?? "";
+
+  return (
+    safeCompareStrings(querySecret, expectedSecret) ||
+    safeCompareStrings(headerSecret, expectedSecret)
+  );
+}
+
+export function isYooKassaWebhookRequestAllowed(req: VercelRequest): boolean {
+  const requestIp = getRequestIp(req);
+
+  return Boolean(requestIp && isIpInYooKassaWebhookAllowlist(requestIp));
 }
 
 function getBaseUrl(req: VercelRequest): string {
@@ -901,6 +1116,20 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
 }
 
 async function handleWebhook(req: VercelRequest, res: VercelResponse) {
+  if (!isYooKassaWebhookSecretValid(req)) {
+    return res.status(401).json({
+      message: "Unauthorized webhook",
+      code: "invalid_webhook_secret",
+    });
+  }
+
+  if (!isYooKassaWebhookRequestAllowed(req)) {
+    return res.status(403).json({
+      message: "Webhook source IP is not allowed",
+      code: "webhook_ip_not_allowed",
+    });
+  }
+
   const notification = parseWebhookBody(req.body);
 
   if (!notification?.event || !notification.object?.id) {
