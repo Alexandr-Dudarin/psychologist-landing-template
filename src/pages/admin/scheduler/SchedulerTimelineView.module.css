@@ -252,9 +252,11 @@
 
 .dayInsightEmphasis {
   display: -webkit-box;
+  max-height: calc(1.35em * 2);
   color: #7c3f3f;
   overflow: hidden;
   overflow-wrap: anywhere;
+  line-height: 1.35;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
@@ -430,6 +432,7 @@
   .dayHeaderDay {
     height: var(--scheduler-header-height);
     padding: 14px 12px 12px;
+    align-content: start;
   }
 
   .dayHeaderTop {
@@ -508,9 +511,11 @@
   .dayInsightMuted,
   .dayInsightEmphasis {
     font-size: 0.8rem;
+    line-height: 1.35;
   }
 
   .dayInsightEmphasis {
+    max-height: calc(1.35em * 2);
     -webkit-line-clamp: 2;
   }
 

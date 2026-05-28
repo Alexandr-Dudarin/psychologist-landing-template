@@ -269,10 +269,15 @@
 }
 
 .hint {
+  display: -webkit-box;
   margin-top: 4px;
   color: var(--color-text-muted);
   font-size: 11px;
   line-height: 1.4;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
 
 .dayDisabled .label,
@@ -311,7 +316,6 @@
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
 }
-
 
 .calendarPublic .badge {
   font-size: 10px;

@@ -13,6 +13,8 @@ import {
 import type { BaseCalendarProps, CalendarDateMeta } from "./calendar.types";
 import styles from "./BaseCalendar.module.css";
 
+const ADMIN_HINT_PREVIEW_LENGTH = 32;
+
 function getClassName(parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(" ");
 }
@@ -31,6 +33,16 @@ function getDefaultVisibleMonth(
   }
 
   return (todayDate ?? getTodayDateKey()).slice(0, 7);
+}
+
+function getPreviewText(value: string, maxLength = ADMIN_HINT_PREVIEW_LENGTH): string {
+  const normalized = value.trim().replace(/\s+/g, " ");
+
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, maxLength).trimEnd()}...`;
 }
 
 function buildMetaMap(datesMeta: CalendarDateMeta[] | undefined): Map<string, CalendarDateMeta> {
@@ -88,7 +100,7 @@ export function BaseCalendar({
     <div
       className={getClassName([
         styles.calendar,
-        variant === "public" && styles.calendarPublic, // 👈 ВАЖНО
+        variant === "public" && styles.calendarPublic,
         readOnly && styles.calendarReadonly,
         className,
       ])}
@@ -146,6 +158,10 @@ export function BaseCalendar({
             isUnavailable ||
             (minAllowedDate ? isDateBefore(day.date, minAllowedDate) : false) ||
             (maxDate ? isDateAfter(day.date, maxDate) : false);
+          const hintPreview =
+            meta?.hint && variant === "admin"
+              ? getPreviewText(meta.hint)
+              : meta?.hint;
 
           return (
             <button
@@ -176,7 +192,7 @@ export function BaseCalendar({
               </div>
 
               {meta?.label ? <div className={styles.label}>{meta.label}</div> : null}
-              {meta?.hint ? <div className={styles.hint}>{meta.hint}</div> : null}
+              {meta?.hint ? <div className={styles.hint}>{hintPreview}</div> : null}
             </button>
           );
         })}

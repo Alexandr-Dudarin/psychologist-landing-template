@@ -17,6 +17,7 @@ import type {
 
 const MINUTES_IN_HOUR = 60;
 const GRID_START_HOUR = 7;
+const DAY_VIEW_MIN_HEADER_HEIGHT = 190;
 
 type SchedulerTimelineViewProps = {
   daySummaries: SchedulerDaySummary[];
@@ -66,12 +67,17 @@ export function SchedulerTimelineView({
   onDayDetail,
   onEventDetail,
 }: SchedulerTimelineViewProps) {
+  const effectiveHeaderHeight =
+    viewMode === "day"
+      ? Math.max(headerHeight, DAY_VIEW_MIN_HEADER_HEIGHT)
+      : headerHeight;
+
   return (
     <div
       className={viewMode === "week" ? styles.weekFrame : styles.dayFrame}
       style={{
         ["--scheduler-row-height" as string]: `${rowHeight}px`,
-        ["--scheduler-header-height" as string]: `${headerHeight}px`,
+        ["--scheduler-header-height" as string]: `${effectiveHeaderHeight}px`,
         ["--scheduler-hours-count" as string]: String(hours.length),
       }}
     >
