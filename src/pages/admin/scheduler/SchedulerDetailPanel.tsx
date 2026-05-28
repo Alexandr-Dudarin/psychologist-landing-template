@@ -18,6 +18,8 @@ export function SchedulerDetailPanel({ detail }: SchedulerDetailPanelProps) {
   }
 
   const isDayDetail = detail.kind === "day";
+  const shouldShowDaySessionsLink =
+    isDayDetail && detail.primaryLabel === "Сессии дня";
 
   return (
     <div className={styles.detailCard}>
@@ -39,11 +41,32 @@ export function SchedulerDetailPanel({ detail }: SchedulerDetailPanelProps) {
       <p className={styles.detailNote}>{detail.note}</p>
 
       {isDayDetail ? (
-        <div className={styles.detailInfoBox}>
-          Быстрые действия по дню добавим отдельным этапом: сделать день нерабочим,
-          изменить рабочее окно или добавить перерыв. Сейчас это окно показывает
-          только сводку по выбранному дню.
-        </div>
+        <>
+          <div className={styles.detailActions}>
+            {shouldShowDaySessionsLink ? (
+              <Link to={detail.primaryHref} className={styles.detailLink}>
+                {detail.primaryLabel}
+              </Link>
+            ) : null}
+
+            <Link
+              to={detail.secondaryHref}
+              className={
+                shouldShowDaySessionsLink
+                  ? styles.detailLinkSecondary
+                  : styles.detailLink
+              }
+            >
+              {detail.secondaryLabel}
+            </Link>
+          </div>
+
+          <div className={styles.detailInfoBox}>
+            Быстрые действия по дню добавим отдельным этапом: сделать день
+            нерабочим, изменить рабочее окно или добавить перерыв. Сейчас это
+            окно показывает сводку и быстрые переходы по выбранному дню.
+          </div>
+        </>
       ) : (
         <div className={styles.detailActions}>
           <Link to={detail.primaryHref} className={styles.detailLink}>
