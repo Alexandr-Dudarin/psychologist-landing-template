@@ -119,11 +119,10 @@ export function SessionsTable({
           <th className={styles.statusCell}>Статус</th>
           <th className={styles.sourceCell}>Источник</th>
           <th className={styles.notesCell}>Заметки</th>
-          <th className={styles.linksCell}>Связи</th>
           <th className={styles.actionCell}>Действия</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody className={styles.tableBody}>
         {items.map((item) => {
           const isHighlighted =
             highlightedSessionId !== null &&
@@ -211,22 +210,18 @@ export function SessionsTable({
 
               <td className={styles.notesCell} data-label="Заметки">
                 {item.notes ? (
-                  <span className={styles.notesPreview}>{item.notes}</span>
-                ) : (
-                  <span className={styles.notesEmpty}>—</span>
-                )}
-              </td>
-
-              <td className={styles.linksCell} data-label="Связи">
-                <div className={styles.linkStack}>
                   <Link
                     to={`/admin/notes?sessionId=${encodeURIComponent(
                       String(item.id)
                     )}`}
+                    className={styles.notesLink}
+                    title="Открыть заметки по этой сессии"
                   >
-                    К заметкам
+                    <span className={styles.notesPreview}>{item.notes}</span>
                   </Link>
-                </div>
+                ) : (
+                  <span className={styles.notesEmpty}>—</span>
+                )}
               </td>
 
               <td className={styles.actionCell} data-label="Действия">
