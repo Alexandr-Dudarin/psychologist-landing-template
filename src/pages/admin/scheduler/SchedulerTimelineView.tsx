@@ -30,6 +30,33 @@ type SchedulerTimelineViewProps = {
   onEventDetail: (detail: SchedulerDetail) => void;
 };
 
+function getCompactWeekDayParts(shortLabel: string): {
+  dayNumber: string;
+  weekday: string;
+} {
+  const [weekdayPart = "", datePart = ""] = shortLabel
+    .split(",")
+    .map((part) => part.trim());
+
+  const dayNumber =
+    datePart.match(/\d{1,2}/)?.[0] ??
+    shortLabel.match(/\d{1,2}/)?.[0] ??
+    datePart ??
+    shortLabel;
+
+  const weekday =
+    weekdayPart ||
+    shortLabel
+      .replace(dayNumber, "")
+      .replace(",", "")
+      .trim();
+
+  return {
+    dayNumber,
+    weekday,
+  };
+}
+
 export function SchedulerTimelineView({
   daySummaries,
   headerHeight,
@@ -68,6 +95,7 @@ export function SchedulerTimelineView({
             (item) => item.dayKey === day.dateKey
           );
           const openDayDetail = () => onDayDetail(getDayDetail(day));
+          const compactWeekDay = getCompactWeekDayParts(day.shortLabel);
 
           const handleDayHeaderKeyDown = (
             event: KeyboardEvent<HTMLElement>
@@ -108,18 +136,34 @@ export function SchedulerTimelineView({
                 <div className={styles.dayHeaderTop}>
                   <div className={styles.dayTitleGroup}>
                     <div className={styles.dayTitle}>
-                      {viewMode === "week" ? day.shortLabel : day.fullLabel}
+                      {viewMode === "week" ? (
+                        <>
+                          <span className={styles.dayTitleRegular}>
+                            {day.shortLabel}
+                          </span>
+                          <span
+                            className={styles.dayTitleCompact}
+                            aria-label={day.shortLabel}
+                          >
+                            <span className={styles.dayTitleCompactDate}>
+                              {compactWeekDay.dayNumber}
+                            </span>
+                            <span className={styles.dayTitleCompactWeekday}>
+                              {compactWeekDay.weekday}
+                            </span>
+                          </span>
+                        </>
+                      ) : (
+                        day.fullLabel
+                      )}
                     </div>
+
                     <div className={styles.dayHeaderCaption}>
                       {viewMode === "week"
                         ? getWeekSummaryLabel(day)
                         : `${day.workingLabel}. ${getDayWorkingHours(day)}`}
                     </div>
                   </div>
-
-                  <span className={styles.detailToggle} aria-hidden="true">
-                    {viewMode === "week" ? "День" : "Открыть детали дня"}
-                  </span>
                 </div>
 
                 <div className={styles.dayMeta}>
@@ -136,11 +180,6 @@ export function SchedulerTimelineView({
                       ? day.loadCompactLabel
                       : day.compactWorkingLabel}
                   </span>
-                  {viewMode === "day" ? (
-                    <span className={styles.metaBadge}>
-                      {day.compactWorkingLabel}
-                    </span>
-                  ) : null}
                 </div>
 
                 {viewMode === "day" ? (

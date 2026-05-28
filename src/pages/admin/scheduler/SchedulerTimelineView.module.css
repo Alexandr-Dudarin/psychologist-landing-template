@@ -151,6 +151,19 @@
   overflow-wrap: anywhere;
 }
 
+.dayTitleRegular {
+  display: inline;
+}
+
+.dayTitleCompact {
+  display: none;
+}
+
+.dayTitleCompactDate,
+.dayTitleCompactWeekday {
+  display: block;
+}
+
 .dayHeaderWeek .dayTitle {
   font-size: 0.9rem;
   line-height: 1.15;
@@ -198,22 +211,6 @@
 .dayHeaderWeek .dayMeta {
   min-height: 20px;
   overflow: hidden;
-}
-
-.detailToggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 26px;
-  border-radius: 999px;
-  border: 1px solid rgba(47, 93, 120, 0.16);
-  background: rgba(255, 255, 255, 0.82);
-  color: var(--admin-text);
-  padding: 0 8px;
-  font: inherit;
-  font-size: 0.76rem;
-  pointer-events: none;
-  flex-shrink: 0;
 }
 
 .dayInsightRow {
@@ -424,8 +421,39 @@
   }
 
   .dayHeaderWeek .dayTitle {
+    display: block;
+    overflow: visible;
     font-size: 0.76rem;
     line-height: 1.1;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+  }
+
+  .dayHeaderWeek .dayTitleRegular {
+    display: none;
+  }
+
+  .dayHeaderWeek .dayTitleCompact {
+    display: grid;
+    gap: 1px;
+    align-content: start;
+    justify-items: start;
+    line-height: 1.05;
+  }
+
+  .dayTitleCompactDate {
+    color: var(--admin-text);
+    font-size: 0.84rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .dayTitleCompactWeekday {
+    color: var(--admin-text-muted);
+    font-size: 0.64rem;
+    font-weight: 700;
+    line-height: 1.05;
+    text-transform: lowercase;
   }
 
   .dayHeaderDay .dayTitle {
@@ -445,14 +473,10 @@
     font-size: 0.64rem;
   }
 
-  .detailToggle {
-    min-height: 22px;
-    padding: 0 6px;
-    font-size: 0.66rem;
-  }
-
   .dayInsightRow {
-    gap: 6px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 
   .dayInsight,
