@@ -1,3 +1,5 @@
+import type { KeyboardEvent } from "react";
+
 import styles from "./SchedulerTimelineView.module.css";
 import {
   formatOverlayPosition,
@@ -57,27 +59,51 @@ export function SchedulerTimelineView({
       </div>
 
       <div
-        className={`${styles.columns} ${viewMode === "week" ? styles.columnsWeek : styles.columnsDay
-          }`}
+        className={`${styles.columns} ${
+          viewMode === "week" ? styles.columnsWeek : styles.columnsDay
+        }`}
       >
         {daySummaries.map((day) => {
-          const dayItems = overlayItems.filter((item) => item.dayKey === day.dateKey);
+          const dayItems = overlayItems.filter(
+            (item) => item.dayKey === day.dateKey
+          );
+          const openDayDetail = () => onDayDetail(getDayDetail(day));
+
+          const handleDayHeaderKeyDown = (
+            event: KeyboardEvent<HTMLElement>
+          ) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              openDayDetail();
+            }
+          };
 
           return (
             <section
               key={day.dateKey}
-              className={`${styles.dayColumn} ${day.workingStateTone === "override-working"
+              className={`${styles.dayColumn} ${
+                day.workingStateTone === "override-working"
                   ? styles.dayColumnOverride
                   : day.workingStateTone === "override-day-off"
                     ? styles.dayColumnOverrideOff
                     : day.workingStateTone === "day-off"
                       ? styles.dayColumnDayOff
                       : ""
-                } ${viewMode === "day" ? styles.dayColumnExpanded : ""}`}
+              } ${viewMode === "day" ? styles.dayColumnExpanded : ""}`}
             >
               <header
-                className={`${styles.dayHeader} ${viewMode === "week" ? styles.dayHeaderWeek : styles.dayHeaderDay
-                  }`}
+                role="button"
+                tabIndex={0}
+                aria-label={`Открыть детали дня: ${day.fullLabel}`}
+                className={`${styles.dayHeader} ${
+                  styles.dayHeaderInteractive
+                } ${
+                  viewMode === "week"
+                    ? styles.dayHeaderWeek
+                    : styles.dayHeaderDay
+                }`}
+                onClick={openDayDetail}
+                onKeyDown={handleDayHeaderKeyDown}
               >
                 <div className={styles.dayHeaderTop}>
                   <div className={styles.dayTitleGroup}>
@@ -91,25 +117,29 @@ export function SchedulerTimelineView({
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    className={styles.detailToggle}
-                    onClick={() => onDayDetail(getDayDetail(day))}
-                  >
+                  <span className={styles.detailToggle} aria-hidden="true">
                     {viewMode === "week" ? "День" : "Открыть детали дня"}
-                  </button>
+                  </span>
                 </div>
 
                 <div className={styles.dayMeta}>
-                  <span className={styles.metaBadge}>Сессии: {day.sessionsCount}</span>
+                  <span className={styles.metaBadge}>
+                    Сессии: {day.sessionsCount}
+                  </span>
                   {day.blockedCount > 0 ? (
-                    <span className={styles.metaBadge}>Блоки: {day.blockedCount}</span>
+                    <span className={styles.metaBadge}>
+                      Блоки: {day.blockedCount}
+                    </span>
                   ) : null}
                   <span className={styles.metaBadge}>
-                    {viewMode === "week" ? day.loadCompactLabel : day.compactWorkingLabel}
+                    {viewMode === "week"
+                      ? day.loadCompactLabel
+                      : day.compactWorkingLabel}
                   </span>
                   {viewMode === "day" ? (
-                    <span className={styles.metaBadge}>{day.compactWorkingLabel}</span>
+                    <span className={styles.metaBadge}>
+                      {day.compactWorkingLabel}
+                    </span>
                   ) : null}
                 </div>
 
@@ -118,27 +148,38 @@ export function SchedulerTimelineView({
                     <span className={styles.dayInsight}>
                       Рабочее окно: {getDayWorkingHours(day)}
                     </span>
-                    {day.isOverride && day.overrideNotePreview !== "Без заметки" ? (
+                    {day.isOverride &&
+                    day.overrideNotePreview !== "Без заметки" ? (
                       <span className={styles.dayInsightEmphasis}>
                         Исключение: {day.overrideNotePreview}
                       </span>
                     ) : (
-                      <span className={styles.dayInsightMuted}>{day.loadLabel}</span>
+                      <span className={styles.dayInsightMuted}>
+                        {day.loadLabel}
+                      </span>
                     )}
                   </div>
                 ) : null}
               </header>
 
               <div className={styles.gridBody}>
-                {day.workStartMinutes !== null && day.workEndMinutes !== null && day.isWorking ? (
+                {day.workStartMinutes !== null &&
+                day.workEndMinutes !== null &&
+                day.isWorking ? (
                   <div
                     className={styles.workingHoursBand}
                     style={{
-                      top: `${((day.workStartMinutes - GRID_START_HOUR * MINUTES_IN_HOUR) /
-                        MINUTES_IN_HOUR) *
-                        rowHeight}px`,
-                      height: `${((day.workEndMinutes - day.workStartMinutes) / MINUTES_IN_HOUR) *
-                        rowHeight}px`,
+                      top: `${
+                        ((day.workStartMinutes -
+                          GRID_START_HOUR * MINUTES_IN_HOUR) /
+                          MINUTES_IN_HOUR) *
+                        rowHeight
+                      }px`,
+                      height: `${
+                        ((day.workEndMinutes - day.workStartMinutes) /
+                          MINUTES_IN_HOUR) *
+                        rowHeight
+                      }px`,
                     }}
                   />
                 ) : null}
@@ -154,7 +195,9 @@ export function SchedulerTimelineView({
                     <div
                       key={range.id}
                       className={
-                        range.tone === "day-off" ? styles.dayOffOverlay : styles.nonWorkingOverlay
+                        range.tone === "day-off"
+                          ? styles.dayOffOverlay
+                          : styles.nonWorkingOverlay
                       }
                       style={{
                         top: `${top}px`,

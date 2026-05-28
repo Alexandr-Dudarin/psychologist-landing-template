@@ -1,18 +1,14 @@
 import { siteSettings } from "../../../data/siteSettings";
 import pageStyles from "./PremiumSchedulerPage.module.css";
 import styles from "./SchedulerSidebar.module.css";
-import type { SchedulerDetail } from "./premiumScheduler.helpers";
-import { SchedulerDetailPanel } from "./SchedulerDetailPanel";
 
 type SchedulerSidebarProps = {
-  activeDetail: SchedulerDetail | null;
   rulesCount: number;
   totalBlockedSlots: number;
   totalOverrides: number;
 };
 
 export function SchedulerSidebar({
-  activeDetail,
   rulesCount,
   totalBlockedSlots,
   totalOverrides,
@@ -24,7 +20,7 @@ export function SchedulerSidebar({
           <h2 className={styles.panelTitle}>Навигатор</h2>
           <p className={styles.panelDescription}>
             Неделя работает как компактный обзор по дням, а режим дня даёт больше воздуха и
-            контекста по конкретной записи. Слева остаётся спокойная панель деталей без перегруза.
+            контекста по конкретной записи. Детали дня, сессии и блокировки открываются в модальном окне.
           </p>
         </div>
       </section>
@@ -64,13 +60,6 @@ export function SchedulerSidebar({
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className={pageStyles.panel}>
-        <div className={styles.infoPanel}>
-          <h2 className={styles.panelTitle}>Выбранная деталь</h2>
-          <SchedulerDetailPanel detail={activeDetail} />
         </div>
       </section>
 

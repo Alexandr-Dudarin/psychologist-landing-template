@@ -1,0 +1,130 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(24, 34, 44, 0.54);
+}
+
+.dialog {
+  composes: scrollbarBase from "../../../components/admin/adminUi.module.css";
+  width: min(620px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border: 1px solid var(--admin-border);
+  border-radius: 24px;
+  background: var(--admin-surface);
+  box-shadow: 0 24px 60px rgba(20, 30, 40, 0.28);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.titleGroup {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.kicker {
+  color: var(--admin-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: clamp(1.42rem, 2.4vw, 1.72rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--admin-danger) 28%, white);
+  border-radius: 14px;
+  background: var(--admin-danger-soft);
+  color: var(--admin-danger);
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.45rem;
+  line-height: 1;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  border-color: var(--admin-danger);
+  background: color-mix(in srgb, var(--admin-danger-soft) 76%, white);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.body {
+  padding: 18px;
+}
+
+@media (max-width: 820px) {
+  .overlay {
+    align-items: center;
+    padding: 18px;
+  }
+
+  .dialog {
+    width: min(620px, 100%);
+    max-height: calc(100vh - 36px);
+    border-radius: 22px;
+  }
+}
+
+@media (max-width: 560px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 12px 12px env(safe-area-inset-bottom);
+  }
+
+  .dialog {
+    width: 100%;
+    max-height: min(86vh, 720px);
+    border-radius: 22px 22px 0 0;
+  }
+
+  .header {
+    padding: 15px 16px 12px;
+  }
+
+  .title {
+    font-size: 1.34rem;
+  }
+
+  .closeButton {
+    width: 36px;
+    height: 36px;
+    font-size: 1.34rem;
+  }
+
+  .body {
+    padding: 16px;
+  }
+}

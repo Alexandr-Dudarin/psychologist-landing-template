@@ -17,41 +17,46 @@ export function SchedulerDetailPanel({ detail }: SchedulerDetailPanelProps) {
     );
   }
 
+  const isDayDetail = detail.kind === "day";
+
   return (
     <div className={styles.detailCard}>
       <div className={styles.detailTop}>
-        <span className={styles.detailKind}>
-          {detail.kind === "session"
-            ? "Сессия"
-            : detail.kind === "blocked"
-              ? "Блокировка"
-              : "День"}
-        </span>
         <h3 className={styles.detailTitle}>{detail.title}</h3>
         <p className={styles.detailSubtitle}>{detail.subtitle}</p>
       </div>
 
-      <div className={styles.detailChips}>
-        {detail.chips.map((chip) => (
-          <span key={chip} className={styles.detailChip}>
-            {chip}
-          </span>
-        ))}
-      </div>
+      {detail.chips.length > 0 ? (
+        <div className={styles.detailChips}>
+          {detail.chips.map((chip) => (
+            <span key={chip} className={styles.detailChip}>
+              {chip}
+            </span>
+          ))}
+        </div>
+      ) : null}
 
       <p className={styles.detailNote}>{detail.note}</p>
 
-      <div className={styles.detailActions}>
-        <Link to={detail.primaryHref} className={styles.detailLink}>
-          {detail.primaryLabel}
-        </Link>
-        <Link to={detail.secondaryHref} className={styles.detailLinkSecondary}>
-          {detail.secondaryLabel}
-        </Link>
-        <Link to={detail.tertiaryHref} className={styles.detailLinkSecondary}>
-          {detail.tertiaryLabel}
-        </Link>
-      </div>
+      {isDayDetail ? (
+        <div className={styles.detailInfoBox}>
+          Быстрые действия по дню добавим отдельным этапом: сделать день нерабочим,
+          изменить рабочее окно или добавить перерыв. Сейчас это окно показывает
+          только сводку по выбранному дню.
+        </div>
+      ) : (
+        <div className={styles.detailActions}>
+          <Link to={detail.primaryHref} className={styles.detailLink}>
+            {detail.primaryLabel}
+          </Link>
+          <Link to={detail.secondaryHref} className={styles.detailLinkSecondary}>
+            {detail.secondaryLabel}
+          </Link>
+          <Link to={detail.tertiaryHref} className={styles.detailLinkSecondary}>
+            {detail.tertiaryLabel}
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

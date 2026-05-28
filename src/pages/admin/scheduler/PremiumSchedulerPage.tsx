@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { siteSettings } from "../../../data/siteSettings";
@@ -15,6 +15,7 @@ import {
   getTodayDateKey,
   type SchedulerDetail,
 } from "./premiumScheduler.helpers";
+import { SchedulerDetailModal } from "./SchedulerDetailModal";
 import { SchedulerSidebar } from "./SchedulerSidebar";
 import { SchedulerToolbar } from "./SchedulerToolbar";
 import { SchedulerWeekView } from "./SchedulerWeekView";
@@ -169,7 +170,9 @@ export function PremiumSchedulerPage() {
   const totalBlockedSlots = safeScheduleData.blockedSlots.length;
   const totalOverrides = safeScheduleData.overrides.length;
   const rangeLabel = getDateRangeLabel(viewMode, anchorDate, locale);
-  const activeDetail = selectedDetail ?? (daySummaries[0] ? getDayDetail(daySummaries[0]) : null);
+  const closeSelectedDetail = useCallback(() => {
+    setSelectedDetail(null);
+  }, []);
 
   const getDayDetailByDateKey = (dateKey: string) => {
     const detailSummary = getSchedulerDaySummaries({
@@ -237,7 +240,6 @@ export function PremiumSchedulerPage() {
 
       <div className={pageStyles.layout}>
         <SchedulerSidebar
-          activeDetail={activeDetail}
           rulesCount={safeScheduleData.rules.length}
           totalBlockedSlots={totalBlockedSlots}
           totalOverrides={totalOverrides}
@@ -292,6 +294,11 @@ export function PremiumSchedulerPage() {
           </section>
         </div>
       </div>
+
+      <SchedulerDetailModal
+        detail={selectedDetail}
+        onClose={closeSelectedDetail}
+      />
     </main>
   );
 }
