@@ -313,29 +313,156 @@
 @media (max-width: 820px) {
   .weekFrame,
   .dayFrame {
-    display: block;
-    overflow: visible;
+    display: grid;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: auto;
+    max-height: min(72svh, 720px);
+    border: 1px solid var(--admin-border);
+    border-radius: 20px;
+    background: var(--admin-surface);
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .weekFrame {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .dayFrame {
+    grid-template-columns: 58px minmax(0, 1fr);
+    max-height: min(70svh, 680px);
   }
 
   .timeColumn {
-    display: none;
+    position: sticky;
+    left: 0;
+    z-index: 8;
+    display: grid;
+    min-width: 0;
+    background: linear-gradient(180deg, #fbfcfd 0%, #f7fafc 100%);
+    box-shadow: 1px 0 0 var(--admin-border);
   }
 
-  .columnsWeek,
+  .timeHeader {
+    position: sticky;
+    top: 0;
+    z-index: 12;
+    padding: 12px 6px;
+    background: linear-gradient(180deg, #fbfcfd 0%, #f7fafc 100%);
+    font-size: 0.7rem;
+  }
+
+  .timeCell {
+    padding: 8px 6px;
+    font-size: 0.74rem;
+  }
+
+  .columns {
+    grid-column: 2 / -1;
+    min-width: 0;
+  }
+
+  .columnsWeek {
+    width: max(616px, 100%);
+    min-width: 616px;
+    grid-template-columns: repeat(7, minmax(88px, 1fr));
+  }
+
   .columnsDay {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .dayColumn {
-    border: 1px solid var(--admin-border);
-    border-radius: 20px;
-    overflow: hidden;
+    border-right: 1px solid var(--admin-border);
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .dayColumn:last-child {
+    border-right: none;
+  }
+
+  .dayHeader {
+    position: sticky;
+    top: 0;
+    z-index: 7;
+    background: #ffffff;
+    box-shadow: 0 1px 0 var(--admin-border), 0 12px 22px rgba(32, 48, 60, 0.06);
+  }
+
+  .dayColumnOverride .dayHeader {
+    background: linear-gradient(180deg, #f2fbf5 0%, #ffffff 100%);
+  }
+
+  .dayColumnOverrideOff .dayHeader,
+  .dayColumnDayOff .dayHeader {
+    background: linear-gradient(180deg, #fff7f7 0%, #ffffff 100%);
+  }
+
+  .dayHeaderWeek {
+    height: var(--scheduler-header-height);
+    padding: 8px 6px;
+    grid-template-rows: 30px 18px 18px;
+    gap: 3px;
+  }
+
+  .dayHeaderDay {
+    height: var(--scheduler-header-height);
+    padding: 14px 12px 12px;
+  }
+
+  .dayHeaderTop {
+    gap: 5px;
+  }
+
+  .dayTitle {
+    font-size: 0.9rem;
+  }
+
+  .dayHeaderWeek .dayTitle {
+    font-size: 0.76rem;
+    line-height: 1.1;
+  }
+
+  .dayHeaderDay .dayTitle {
+    font-size: 1.05rem;
+  }
+
+  .dayHeaderCaption {
+    font-size: 0.68rem;
+  }
+
+  .dayMeta {
+    gap: 3px;
+  }
+
+  .metaBadge {
+    padding: 2px 5px;
+    font-size: 0.64rem;
+  }
+
+  .detailToggle {
+    min-height: 22px;
+    padding: 0 6px;
+    font-size: 0.66rem;
+  }
+
+  .dayInsightRow {
+    gap: 6px;
+  }
+
+  .dayInsight,
+  .dayInsightMuted,
+  .dayInsightEmphasis {
+    font-size: 0.8rem;
   }
 
   .gridBody {
-    min-height: 420px;
+    min-height: calc(var(--scheduler-row-height) * var(--scheduler-hours-count));
     background:
       linear-gradient(90deg, rgba(47, 93, 120, 0.05), rgba(47, 93, 120, 0) 42px),
       repeating-linear-gradient(
@@ -343,17 +470,7 @@
         rgba(215, 222, 230, 0.92) 0,
         rgba(215, 222, 230, 0.92) 1px,
         transparent 1px,
-        transparent 66px
+        transparent var(--scheduler-row-height)
       );
-  }
-
-  .dayHeaderTop,
-  .dayInsightRow {
-    flex-direction: column;
-  }
-
-  .dayHeaderTop,
-  .dayInsightRow {
-    align-items: flex-start;
   }
 }

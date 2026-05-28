@@ -220,4 +220,70 @@
   .blockBadges {
     justify-content: flex-start;
   }
+
+  .blockWeek {
+    gap: 3px;
+    padding: 6px;
+  }
+
+  .blockExpanded {
+    gap: 4px;
+    padding: 10px 12px;
+  }
+
+  .blockWeekTitle {
+    font-size: 0.76rem;
+    line-height: 1.08;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  .blockWeekMeta {
+    font-size: 0.66rem;
+  }
+
+  .blockTitle {
+    font-size: 0.94rem;
+    line-height: 1.14;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+
+  .blockSubtitle {
+    font-size: 0.76rem;
+    line-height: 1.18;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+
+  .blockNote {
+    display: none;
+  }
+
+  .blockTimePill,
+  .blockStatusBadge,
+  .blockStatusBadgeMuted,
+  .blockConflictBadge {
+    min-height: 20px;
+    padding: 0 6px;
+    font-size: 0.68rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .blockWeek {
+    padding: 5px;
+  }
+
+  .blockExpanded {
+    padding: 9px 10px;
+  }
+
+  .blockWeekTitle {
+    font-size: 0.72rem;
+  }
+
+  .blockWeekMeta {
+    font-size: 0.64rem;
+  }
 }
