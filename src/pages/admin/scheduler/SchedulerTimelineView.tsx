@@ -6,7 +6,6 @@ import {
   getDayDetail,
   getDayWorkingHours,
   getOverlayDetail,
-  getWeekSummaryLabel,
 } from "./premiumScheduler.helpers";
 import { SchedulerEventCard } from "./SchedulerEventCard";
 import type { SchedulerDetail } from "./premiumScheduler.helpers";
@@ -96,6 +95,10 @@ export function SchedulerTimelineView({
           );
           const openDayDetail = () => onDayDetail(getDayDetail(day));
           const compactWeekDay = getCompactWeekDayParts(day.shortLabel);
+          const overrideInsight =
+            day.isOverride && day.overrideNotePreview !== "Без заметки"
+              ? `Исключение: ${day.overrideNotePreview}`
+              : null;
 
           const handleDayHeaderKeyDown = (
             event: KeyboardEvent<HTMLElement>
@@ -158,28 +161,40 @@ export function SchedulerTimelineView({
                       )}
                     </div>
 
-                    <div className={styles.dayHeaderCaption}>
-                      {viewMode === "week"
-                        ? getWeekSummaryLabel(day)
-                        : `${day.workingLabel}. ${getDayWorkingHours(day)}`}
-                    </div>
+                    {viewMode === "day" ? (
+                      <div className={styles.dayHeaderCaption}>
+                        {`${day.workingLabel}. ${getDayWorkingHours(day)}`}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
 
-                <div className={styles.dayMeta}>
-                  <span className={styles.metaBadge}>
+                <div
+                  className={`${styles.dayMeta} ${
+                    viewMode === "day"
+                      ? styles.dayMetaDay
+                      : styles.dayMetaWeek
+                  }`}
+                >
+                  <span
+                    className={`${styles.metaBadge} ${
+                      viewMode === "day" ? styles.sessionsMetaBadge : ""
+                    }`}
+                  >
                     Сессии: {day.sessionsCount}
                   </span>
-                  {day.blockedCount > 0 ? (
+
+                  {viewMode === "day" && day.blockedCount > 0 ? (
                     <span className={styles.metaBadge}>
                       Блоки: {day.blockedCount}
                     </span>
                   ) : null}
-                  <span className={styles.metaBadge}>
-                    {viewMode === "week"
-                      ? day.loadCompactLabel
-                      : day.compactWorkingLabel}
-                  </span>
+
+                  {viewMode === "day" ? (
+                    <span className={styles.metaBadge}>
+                      {day.compactWorkingLabel}
+                    </span>
+                  ) : null}
                 </div>
 
                 {viewMode === "day" ? (
@@ -187,10 +202,13 @@ export function SchedulerTimelineView({
                     <span className={styles.dayInsight}>
                       Рабочее окно: {getDayWorkingHours(day)}
                     </span>
-                    {day.isOverride &&
-                    day.overrideNotePreview !== "Без заметки" ? (
-                      <span className={styles.dayInsightEmphasis}>
-                        Исключение: {day.overrideNotePreview}
+
+                    {overrideInsight ? (
+                      <span
+                        className={styles.dayInsightEmphasis}
+                        title={overrideInsight}
+                      >
+                        {overrideInsight}
                       </span>
                     ) : (
                       <span className={styles.dayInsightMuted}>

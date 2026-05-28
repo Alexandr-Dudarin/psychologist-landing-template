@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { siteSettings } from "../../../data/siteSettings";
@@ -30,22 +31,58 @@ import {
   type SchedulerViewMode,
 } from "./premiumScheduler.shared";
 
+function getQueryViewMode(value: string | null): SchedulerViewMode | null {
+  if (value === "week" || value === "day" || value === "month") {
+    return value;
+  }
+
+  return null;
+}
+
+function getQueryDateKey(value: string | null): string | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null;
+  }
+
+  return value;
+}
+
 export function PremiumSchedulerPage() {
+  const [searchParams] = useSearchParams();
+  const [scheduleData, setScheduleData] = useState<AdminScheduleRecord | null>(
+    null
+  );
+  const scheduleTimezone = scheduleData?.settings.timezone ?? "Europe/Moscow";
   const [viewMode, setViewMode] = useState<SchedulerViewMode>(
-    siteSettings.premiumModules.scheduler.defaultView
+    () =>
+      getQueryViewMode(searchParams.get("view")) ??
+      siteSettings.premiumModules.scheduler.defaultView
   );
   const [sessions, setSessions] = useState<CrmSessionRecord[]>([]);
-  const [scheduleData, setScheduleData] = useState<AdminScheduleRecord | null>(null);
-  const scheduleTimezone = scheduleData?.settings.timezone ?? "Europe/Moscow";
-  const [anchorDate, setAnchorDate] = useState(() =>
-    getTodayDateKey(scheduleTimezone)
+  const [anchorDate, setAnchorDate] = useState(
+    () => getQueryDateKey(searchParams.get("date")) ?? getTodayDateKey(scheduleTimezone)
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDetail, setSelectedDetail] = useState<SchedulerDetail | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<SchedulerDetail | null>(
+    null
+  );
   const rowHeight = viewMode === "day" ? DAY_ROW_HEIGHT : WEEK_ROW_HEIGHT;
-  const headerHeight = viewMode === "day" ? 136 : 88;
+  const headerHeight = viewMode === "day" ? 148 : 88;
   const locale = "ru-RU";
+
+  useEffect(() => {
+    const nextViewMode = getQueryViewMode(searchParams.get("view"));
+    const nextDateKey = getQueryDateKey(searchParams.get("date"));
+
+    if (nextViewMode !== null) {
+      setViewMode(nextViewMode);
+    }
+
+    if (nextDateKey !== null) {
+      setAnchorDate(nextDateKey);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     let isActive = true;

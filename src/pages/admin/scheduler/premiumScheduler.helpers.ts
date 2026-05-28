@@ -74,6 +74,7 @@ export function getDayWorkingHours(summary: SchedulerDaySummary): string {
 }
 
 export function getDayDetail(summary: SchedulerDaySummary): SchedulerDetail {
+  const encodedDateKey = encodeURIComponent(summary.dateKey);
   const chips = [
     `Сессий: ${summary.sessionsCount}`,
     `Блокировок: ${summary.blockedCount}`,
@@ -94,12 +95,13 @@ export function getDayDetail(summary: SchedulerDaySummary): SchedulerDetail {
     subtitle: `${summary.workingLabel}. ${getDayWorkingHours(summary)}`,
     chips,
     note,
-    primaryHref: "/admin/schedule",
-    secondaryHref: "/admin/sessions",
-    tertiaryHref: "/admin/notes",
-    primaryLabel: "Открыть настройки графика",
-    secondaryLabel: "Открыть список сессий",
-    tertiaryLabel: "Открыть заметки",
+    primaryHref: `/admin/sessions?date=${encodedDateKey}`,
+    secondaryHref: `/admin/scheduler?view=day&date=${encodedDateKey}`,
+    tertiaryHref: "/admin/schedule",
+    primaryLabel:
+      summary.sessionsCount > 0 ? "Сессии дня" : "Открыть список сессий",
+    secondaryLabel: "Расписание дня",
+    tertiaryLabel: "Настройки графика",
   };
 }
 

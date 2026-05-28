@@ -50,6 +50,60 @@ import { SessionsQuickViewBanner } from "./SessionsQuickViewBanner";
 
 const createFormPanelId = "session-create-form-panel";
 
+function normalizeDateFilter(value: string | null): string | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null;
+  }
+
+  return value;
+}
+
+function getSessionDateKey(
+  scheduledAt: string,
+  timezone: string
+): string | null {
+  const date = new Date(scheduledAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(date);
+
+    const year = parts.find((part) => part.type === "year")?.value;
+    const month = parts.find((part) => part.type === "month")?.value;
+    const day = parts.find((part) => part.type === "day")?.value;
+
+    if (!year || !month || !day) {
+      return null;
+    }
+
+    return `${year}-${month}-${day}`;
+  } catch {
+    return scheduledAt.slice(0, 10);
+  }
+}
+
+function filterSessionsByDate(
+  sessions: CrmSessionRecord[],
+  dateFilter: string | null,
+  timezone: string
+): CrmSessionRecord[] {
+  if (!dateFilter) {
+    return sessions;
+  }
+
+  return sessions.filter(
+    (session) => getSessionDateKey(session.scheduledAt, timezone) === dateFilter
+  );
+}
+
 export function SessionsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -107,6 +161,7 @@ export function SessionsPage() {
     useState<ClientFavoriteFilter>("all");
   const [serviceFilter, setServiceFilter] = useState<number | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState<string | null>(null);
   const [highlightedSessionId, setHighlightedSessionId] = useState<number | null>(
     null
   );
@@ -134,18 +189,33 @@ export function SessionsPage() {
   );
 
   const visibleItems = useMemo(
-    () => filterSessionsByFavoriteClients(items, favoriteClientIds, favoriteFilter),
-    [favoriteClientIds, favoriteFilter, items]
+    () =>
+      filterSessionsByDate(
+        filterSessionsByFavoriteClients(items, favoriteClientIds, favoriteFilter),
+        dateFilter,
+        scheduleTimezone
+      ),
+    [dateFilter, favoriteClientIds, favoriteFilter, items, scheduleTimezone]
   );
 
   const visibleArchivedItems = useMemo(
     () =>
-      filterSessionsByFavoriteClients(
-        archivedItems,
-        favoriteClientIds,
-        favoriteFilter
+      filterSessionsByDate(
+        filterSessionsByFavoriteClients(
+          archivedItems,
+          favoriteClientIds,
+          favoriteFilter
+        ),
+        dateFilter,
+        scheduleTimezone
       ),
-    [archivedItems, favoriteClientIds, favoriteFilter]
+    [
+      archivedItems,
+      dateFilter,
+      favoriteClientIds,
+      favoriteFilter,
+      scheduleTimezone,
+    ]
   );
 
   const createScheduleWarning = useMemo(
@@ -197,6 +267,7 @@ export function SessionsPage() {
   useEffect(() => {
     const clientIdFromUrl = searchParams.get("clientId");
     const searchFromUrl = searchParams.get("search");
+    const dateFromUrl = normalizeDateFilter(searchParams.get("date"));
     const highlightSessionFromUrl = searchParams.get("highlightSessionId");
 
     if (clientIdFromUrl !== null) {
@@ -212,6 +283,7 @@ export function SessionsPage() {
     }
 
     setSearchQuery(searchFromUrl ?? "");
+    setDateFilter(dateFromUrl);
 
     if (highlightSessionFromUrl !== null) {
       const parsedSessionId = Number(highlightSessionFromUrl);
@@ -709,6 +781,7 @@ export function SessionsPage() {
     setFavoriteFilter("all");
     setServiceFilter("all");
     setSearchQuery("");
+    setDateFilter(null);
     setHighlightedSessionId(null);
     setShowArchivedSessions(false);
     setArchivedItems([]);
@@ -729,6 +802,7 @@ export function SessionsPage() {
     favoriteFilter !== "all" ||
     serviceFilter !== "all" ||
     statusFilter !== "all" ||
+    dateFilter !== null ||
     searchQuery.trim().length > 0;
 
   const hasQuickViewState =
