@@ -21,9 +21,6 @@ export function SchedulerToolbar({
   return (
     <div className={styles.toolbar}>
       <div className={styles.toolbarPrimary}>
-        <button type="button" className={styles.iconButton} onClick={onPrev}>
-          Назад
-        </button>
         <div>
           <div className={styles.toolbarTitle}>{rangeLabel}</div>
           <div className={styles.toolbarHint}>
@@ -37,18 +34,26 @@ export function SchedulerToolbar({
       </div>
 
       <div className={styles.toolbarSecondary}>
-        <button type="button" className={styles.iconButton} onClick={onToday}>
-          Сегодня
-        </button>
-        <button type="button" className={styles.iconButton} onClick={onNext}>
-          Вперед
-        </button>
+        <div className={styles.dateNavigation}>
+          <button type="button" className={styles.iconButton} onClick={onPrev}>
+            Назад
+          </button>
+          <button type="button" className={styles.iconButton} onClick={onToday}>
+            Сегодня
+          </button>
+          <button type="button" className={styles.iconButton} onClick={onNext}>
+            Вперед
+          </button>
+        </div>
+
         <div className={styles.viewSwitch}>
           {(["week", "day", "month"] as SchedulerViewMode[]).map((mode) => (
             <button
               key={mode}
               type="button"
-              className={`${styles.viewButton} ${viewMode === mode ? styles.viewButtonActive : ""}`}
+              className={`${styles.viewButton} ${
+                viewMode === mode ? styles.viewButtonActive : ""
+              }`}
               onClick={() => onViewModeChange(mode)}
             >
               {mode === "week" ? "Неделя" : mode === "day" ? "День" : "Месяц"}

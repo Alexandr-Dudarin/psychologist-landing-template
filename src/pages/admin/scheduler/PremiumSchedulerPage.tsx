@@ -60,7 +60,9 @@ export function PremiumSchedulerPage() {
   );
   const [sessions, setSessions] = useState<CrmSessionRecord[]>([]);
   const [anchorDate, setAnchorDate] = useState(
-    () => getQueryDateKey(searchParams.get("date")) ?? getTodayDateKey(scheduleTimezone)
+    () =>
+      getQueryDateKey(searchParams.get("date")) ??
+      getTodayDateKey(scheduleTimezone)
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +70,7 @@ export function PremiumSchedulerPage() {
     null
   );
   const rowHeight = viewMode === "day" ? DAY_ROW_HEIGHT : WEEK_ROW_HEIGHT;
-  const headerHeight = viewMode === "day" ? 148 : 88;
+  const headerHeight = viewMode === "day" ? 142 : 88;
   const locale = "ru-RU";
 
   useEffect(() => {
@@ -207,6 +209,7 @@ export function PremiumSchedulerPage() {
   const totalBlockedSlots = safeScheduleData.blockedSlots.length;
   const totalOverrides = safeScheduleData.overrides.length;
   const rangeLabel = getDateRangeLabel(viewMode, anchorDate, locale);
+
   const closeSelectedDetail = useCallback(() => {
     setSelectedDetail(null);
   }, []);
@@ -249,11 +252,14 @@ export function PremiumSchedulerPage() {
       <section className={pageStyles.hero}>
         <div className={pageStyles.heroCopy}>
           <p className={pageStyles.eyebrow}>Премиальный планировщик</p>
-          <h1 className={pageStyles.title}>Планировщик с режимами неделя / день / месяц</h1>
+          <h1 className={pageStyles.title}>
+            Планировщик с режимами неделя / день / месяц
+          </h1>
           <p className={pageStyles.description}>
-            Экран строится вокруг одного специалиста: неделя даёт спокойный обзор, день раскрывает
-            детали, а месяц остаётся обзорным режимом. Лента дня читается сверху вниз по времени и
-            показывает последовательные записи без лишнего визуального шума.
+            Экран строится вокруг одного специалиста: неделя даёт спокойный
+            обзор, день раскрывает детали, а месяц остаётся обзорным режимом.
+            Лента дня читается сверху вниз по времени и показывает
+            последовательные записи без лишнего визуального шума.
           </p>
         </div>
 
@@ -287,22 +293,31 @@ export function PremiumSchedulerPage() {
             <SchedulerToolbar
               rangeLabel={rangeLabel}
               viewMode={viewMode}
-              onPrev={() => setAnchorDate(getNextAnchorDate(viewMode, anchorDate, -1))}
+              onPrev={() =>
+                setAnchorDate(getNextAnchorDate(viewMode, anchorDate, -1))
+              }
               onToday={() => setAnchorDate(getTodayDateKey(scheduleTimezone))}
-              onNext={() => setAnchorDate(getNextAnchorDate(viewMode, anchorDate, 1))}
+              onNext={() =>
+                setAnchorDate(getNextAnchorDate(viewMode, anchorDate, 1))
+              }
               onViewModeChange={setViewMode}
             />
 
             <div className={pageStyles.content}>
               {isLoading ? (
-                <div className={pageStyles.stateBox}>Загружаем планировщик...</div>
+                <div className={pageStyles.stateBox}>
+                  Загружаем планировщик...
+                </div>
               ) : error ? (
-                <div className={`${pageStyles.stateBox} ${pageStyles.stateError}`}>
+                <div
+                  className={`${pageStyles.stateBox} ${pageStyles.stateError}`}
+                >
                   Не удалось построить планировщик на текущих данных.
                 </div>
               ) : viewMode === "month" ? (
                 <SchedulerMonthView
                   monthSummary={monthSummary}
+                  targetDateKey={anchorDate}
                   onSelectDay={setSelectedDetail}
                   resolveDayDetail={getDayDetailByDateKey}
                 />
@@ -332,10 +347,7 @@ export function PremiumSchedulerPage() {
         </div>
       </div>
 
-      <SchedulerDetailModal
-        detail={selectedDetail}
-        onClose={closeSelectedDetail}
-      />
+      <SchedulerDetailModal detail={selectedDetail} onClose={closeSelectedDetail} />
     </main>
   );
 }

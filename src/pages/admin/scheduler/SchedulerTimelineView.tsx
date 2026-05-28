@@ -17,7 +17,8 @@ import type {
 
 const MINUTES_IN_HOUR = 60;
 const GRID_START_HOUR = 7;
-const DAY_VIEW_MIN_HEADER_HEIGHT = 190;
+const DAY_VIEW_COMPACT_HEADER_HEIGHT = 112;
+const DAY_VIEW_OVERRIDE_HEADER_HEIGHT = 140;
 
 type SchedulerTimelineViewProps = {
   daySummaries: SchedulerDaySummary[];
@@ -67,9 +68,20 @@ export function SchedulerTimelineView({
   onDayDetail,
   onEventDetail,
 }: SchedulerTimelineViewProps) {
+  const hasDayOverrideInsight =
+    viewMode === "day" &&
+    daySummaries.some(
+      (day) => day.isOverride && day.overrideNotePreview !== "Без заметки"
+    );
+
   const effectiveHeaderHeight =
     viewMode === "day"
-      ? Math.max(headerHeight, DAY_VIEW_MIN_HEADER_HEIGHT)
+      ? Math.max(
+          headerHeight,
+          hasDayOverrideInsight
+            ? DAY_VIEW_OVERRIDE_HEADER_HEIGHT
+            : DAY_VIEW_COMPACT_HEADER_HEIGHT
+        )
       : headerHeight;
 
   return (
