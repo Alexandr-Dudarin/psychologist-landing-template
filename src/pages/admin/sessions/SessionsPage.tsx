@@ -614,6 +614,42 @@ export function SessionsPage() {
     resetFeedback();
   };
 
+    const updateDateFilterSearchParam = (nextDateFilter: string | null) => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+
+    if (nextDateFilter) {
+      nextSearchParams.set("date", nextDateFilter);
+    } else {
+      nextSearchParams.delete("date");
+    }
+
+    nextSearchParams.delete("highlightSessionId");
+
+    const nextSearch = nextSearchParams.toString();
+
+    navigate(nextSearch ? `/admin/sessions?${nextSearch}` : "/admin/sessions");
+  };
+
+  const handleDateFilterChange = (value: string) => {
+    const normalizedDateFilter = normalizeDateFilter(value);
+
+    setDateFilter(normalizedDateFilter);
+    setHighlightedSessionId(null);
+    resetFeedback();
+    updateDateFilterSearchParam(normalizedDateFilter);
+  };
+
+  const handleDateTodayClick = () => {
+    const todayDateKey =
+      getSessionDateKey(new Date().toISOString(), scheduleTimezone) ??
+      new Date().toISOString().slice(0, 10);
+
+    setDateFilter(todayDateKey);
+    setHighlightedSessionId(null);
+    resetFeedback();
+    updateDateFilterSearchParam(todayDateKey);
+  };
+
   const handleCreateFormChange = (field: keyof SessionForm, value: string) => {
     setCreateForm((prev) =>
       updateSessionFormField(
@@ -897,7 +933,7 @@ export function SessionsPage() {
         isArchivedSessionsInitialLoading={isArchivedSessionsInitialLoading}
         isArchivedSessionsRefreshing={isArchivedSessionsRefreshing}
         scheduleTimezone={scheduleTimezone}
-        searchQuery={searchQuery}
+        dateFilter={dateFilter}
         serviceFilter={serviceFilter}
         services={services}
         shouldDisplayArchivedSessions={shouldDisplayArchivedSessions}
@@ -912,10 +948,8 @@ export function SessionsPage() {
         onFavoriteFilterChange={handleFavoriteFilterChange}
         onHideArchivedSessions={handleHideArchivedSessions}
         onResetView={handleResetView}
-        onSearchChange={(value) => {
-          setSearchQuery(value);
-          resetFeedback();
-        }}
+        onDateFilterChange={handleDateFilterChange}
+        onDateTodayClick={handleDateTodayClick}
         onServiceFilterChange={handleServiceFilterChange}
         onShowArchivedSessions={handleShowArchivedSessions}
         onStatusFilterChange={handleStatusFilterChange}

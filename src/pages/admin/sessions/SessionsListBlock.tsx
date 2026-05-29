@@ -15,6 +15,7 @@ export type SessionsListBlockProps = {
   canToggleArchivedSessions: boolean;
   clientFilter: number | "all";
   clients: CrmClientRecord[];
+  dateFilter: string | null;
   deletingId: number | null;
   displayedActiveItems: CrmSessionRecord[];
   displayedArchivedItems: CrmSessionRecord[];
@@ -27,7 +28,6 @@ export type SessionsListBlockProps = {
   isArchivedSessionsInitialLoading: boolean;
   isArchivedSessionsRefreshing: boolean;
   scheduleTimezone: string;
-  searchQuery: string;
   serviceFilter: number | "all";
   services: CrmServiceRecord[];
   shouldDisplayArchivedSessions: boolean;
@@ -37,12 +37,13 @@ export type SessionsListBlockProps = {
   statusFilter: SessionStatus | "all";
   successMessage: string;
   onClientFilterChange: (value: number | "all") => void;
+  onDateFilterChange: (value: string) => void;
+  onDateTodayClick: () => void;
   onDeleteSession: (id: number) => void;
   onEditSession: (session: CrmSessionRecord) => void;
   onFavoriteFilterChange: (value: ClientFavoriteFilter) => void;
   onHideArchivedSessions: () => void;
   onResetView: () => void;
-  onSearchChange: (value: string) => void;
   onServiceFilterChange: (value: number | "all") => void;
   onShowArchivedSessions: () => void;
   onStatusFilterChange: (value: SessionStatus | "all") => void;
@@ -52,6 +53,7 @@ export function SessionsListBlock({
   canToggleArchivedSessions,
   clientFilter,
   clients,
+  dateFilter,
   deletingId,
   displayedActiveItems,
   displayedArchivedItems,
@@ -64,7 +66,6 @@ export function SessionsListBlock({
   isArchivedSessionsInitialLoading,
   isArchivedSessionsRefreshing,
   scheduleTimezone,
-  searchQuery,
   serviceFilter,
   services,
   shouldDisplayArchivedSessions,
@@ -74,12 +75,13 @@ export function SessionsListBlock({
   statusFilter,
   successMessage,
   onClientFilterChange,
+  onDateFilterChange,
+  onDateTodayClick,
   onDeleteSession,
   onEditSession,
   onFavoriteFilterChange,
   onHideArchivedSessions,
   onResetView,
-  onSearchChange,
   onServiceFilterChange,
   onShowArchivedSessions,
   onStatusFilterChange,
@@ -89,15 +91,16 @@ export function SessionsListBlock({
       <SessionsFilters
         clientFilter={clientFilter}
         clients={clients}
+        dateFilter={dateFilter}
         favoriteFilter={favoriteFilter}
-        searchQuery={searchQuery}
         serviceFilter={serviceFilter}
         services={services}
         statusFilter={statusFilter}
         hasActiveFilters={hasActiveFilters}
         onClientFilterChange={onClientFilterChange}
+        onDateFilterChange={onDateFilterChange}
+        onDateTodayClick={onDateTodayClick}
         onFavoriteFilterChange={onFavoriteFilterChange}
-        onSearchChange={onSearchChange}
         onServiceFilterChange={onServiceFilterChange}
         onStatusFilterChange={onStatusFilterChange}
         onResetFilters={onResetView}
@@ -129,7 +132,8 @@ export function SessionsListBlock({
             </h2>
             <p className={styles.archivedSessionsHint}>
               Проведённые, отменённые сессии и неявки загружаются отдельно.
-              Фильтр по клиенту и поиск применяются и к этому списку тоже.
+              Фильтры по клиенту, дате, статусу и услуге применяются и к этому
+              списку тоже.
             </p>
           </div>
 

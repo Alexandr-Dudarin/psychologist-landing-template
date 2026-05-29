@@ -67,6 +67,23 @@
   composes: controlSearch from "../../../components/admin/adminUi.module.css";
 }
 
+.dateFilterGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dateFilterInput {
+  width: min(220px, 100%);
+  min-width: 180px;
+}
+
+.dateTodayButton.dateTodayButton {
+  min-height: 46px;
+  white-space: nowrap;
+}
+
 .filtersResetButton.filtersResetButton {
   min-height: 46px;
   border-color: color-mix(in srgb, var(--admin-danger) 28%, white);
@@ -1263,6 +1280,8 @@
   }
 
   .filterClientPicker,
+  .dateFilterGroup,
+  .dateFilterInput,
   .serviceFilterSelect,
   .clientFavoriteToggle,
   .favoriteFilterToggle,
@@ -1275,6 +1294,15 @@
   .favoriteFilterToggle,
   .filtersResetButton {
     justify-content: flex-start;
+  }
+
+  .dateFilterGroup {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .dateTodayButton.dateTodayButton {
+    justify-content: center;
   }
 
   .filterClientDropdown {

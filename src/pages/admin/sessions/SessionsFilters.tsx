@@ -19,15 +19,16 @@ import styles from "./SessionsPage.module.css";
 type SessionsFiltersProps = {
   clientFilter: number | "all";
   clients: CrmClientRecord[];
+  dateFilter: string | null;
   favoriteFilter: ClientFavoriteFilter;
-  searchQuery: string;
   serviceFilter: number | "all";
   services: CrmServiceRecord[];
   statusFilter: SessionStatus | "all";
   hasActiveFilters: boolean;
   onClientFilterChange: (value: number | "all") => void;
+  onDateFilterChange: (value: string) => void;
+  onDateTodayClick: () => void;
   onFavoriteFilterChange: (value: ClientFavoriteFilter) => void;
-  onSearchChange: (value: string) => void;
   onServiceFilterChange: (value: number | "all") => void;
   onStatusFilterChange: (value: SessionStatus | "all") => void;
   onResetFilters: () => void;
@@ -66,15 +67,16 @@ function getSortedServiceOptions(
 export function SessionsFilters({
   clientFilter,
   clients,
+  dateFilter,
   favoriteFilter,
-  searchQuery,
   serviceFilter,
   services,
   statusFilter,
   hasActiveFilters,
   onClientFilterChange,
+  onDateFilterChange,
+  onDateTodayClick,
   onFavoriteFilterChange,
-  onSearchChange,
   onServiceFilterChange,
   onStatusFilterChange,
   onResetFilters,
@@ -249,13 +251,25 @@ export function SessionsFilters({
         <span>Только избранные</span>
       </label>
 
-      <input
-        type="text"
-        value={searchQuery}
-        onChange={(event) => onSearchChange(event.target.value)}
-        placeholder="Поиск по клиенту, услуге или заметке"
-        className={`${styles.input} ${styles.searchInput}`}
-      />
+      <div className={styles.dateFilterGroup}>
+        <input
+          type="date"
+          value={dateFilter ?? ""}
+          onChange={(event) => onDateFilterChange(event.target.value)}
+          className={`${styles.input} ${styles.dateFilterInput}`}
+          aria-label="Фильтр по дате сессии"
+        />
+
+        <AdminButton
+          type="button"
+          variant="secondary"
+          size="sm"
+          className={styles.dateTodayButton}
+          onClick={onDateTodayClick}
+        >
+          Сегодня
+        </AdminButton>
+      </div>
 
       <CustomSelect
         value={statusFilter}
