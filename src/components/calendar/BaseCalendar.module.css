@@ -338,6 +338,65 @@
   opacity: 0.3;
 }
 
+
+@media (min-width: 641px) {
+  .calendarCompact {
+    gap: 10px;
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .calendarCompact .header {
+    gap: 10px;
+  }
+
+  .calendarCompact .title {
+    font-size: 19px;
+  }
+
+  .calendarCompact .subtitle {
+    font-size: 12px;
+  }
+
+  .calendarCompact .nav {
+    gap: 6px;
+  }
+
+  .calendarCompact .navButton {
+    width: 36px;
+    height: 36px;
+  }
+
+  .calendarCompact .weekdays,
+  .calendarCompact .grid {
+    gap: 6px;
+  }
+
+  .calendarCompact .weekday {
+    font-size: 11px;
+  }
+
+  .calendarCompact .day {
+    min-height: 58px;
+    padding: 7px 6px;
+    border-radius: 14px;
+  }
+
+  .calendarCompact .dayTop {
+    justify-content: center;
+  }
+
+  .calendarCompact .dayNumber {
+    font-size: 14px;
+  }
+
+  .calendarCompact .badge,
+  .calendarCompact .label,
+  .calendarCompact .hint {
+    display: none;
+  }
+}
+
 /* ===== PUBLIC ONLY ===== */
 
 .calendarPublic .day {

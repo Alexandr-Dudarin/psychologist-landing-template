@@ -66,6 +66,7 @@ export function BaseCalendar({
   weekStartsOn = 1,
   className,
   variant = "admin" as const,
+  density = "default",
 }: BaseCalendarProps) {
   const resolvedVisibleMonth =
     visibleMonth ?? getDefaultVisibleMonth(value, minDate, todayDate);
@@ -101,6 +102,7 @@ export function BaseCalendar({
       className={getClassName([
         styles.calendar,
         variant === "public" && styles.calendarPublic,
+        density === "compact" && styles.calendarCompact,
         readOnly && styles.calendarReadonly,
         className,
       ])}

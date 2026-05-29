@@ -67,21 +67,149 @@
   composes: controlSearch from "../../../components/admin/adminUi.module.css";
 }
 
+.filtersMainGroup,
+.filtersControlsGroup {
+  display: contents;
+}
+
 .dateFilterGroup {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
 }
 
-.dateFilterInput {
+.dateFilterButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   width: min(220px, 100%);
   min-width: 180px;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
+}
+
+.dateFilterButton:hover,
+.dateFilterButton:focus-visible {
+  border-color: color-mix(in srgb, var(--admin-accent) 34%, white);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--admin-accent) 12%, transparent);
+  outline: none;
+}
+
+.dateFilterButtonActive {
+  border-color: color-mix(in srgb, var(--admin-accent) 38%, white);
+  background: color-mix(in srgb, var(--admin-accent-soft) 46%, white);
+}
+
+.dateFilterButtonText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dateFilterButtonIcon {
+  flex: 0 0 auto;
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.dateFilterPopover {
+  position: absolute;
+  z-index: 70;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(336px, 92vw);
+  padding: 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: 22px;
+  background: var(--admin-surface);
+  box-shadow: 0 20px 52px rgba(20, 30, 40, 0.2);
+}
+
+.dateFilterCalendar {
+  border-color: var(--admin-border);
+  background:
+    radial-gradient(circle at top right, rgba(47, 93, 120, 0.08), transparent 38%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: none;
+}
+
+.dateFilterPopoverActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.dateFilterPopoverAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--admin-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.dateFilterPopoverAction:hover:not(:disabled),
+.dateFilterPopoverAction:focus-visible:not(:disabled) {
+  border-color: color-mix(in srgb, var(--admin-accent) 34%, white);
+  background: var(--admin-accent-soft);
+  outline: none;
+}
+
+.dateFilterPopoverAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.dateFilterPopoverActionPrimary {
+  border-color: var(--admin-accent);
+  background: var(--admin-accent);
+  color: #ffffff;
+}
+
+.dateFilterPopoverActionPrimary:hover:not(:disabled),
+.dateFilterPopoverActionPrimary:focus-visible:not(:disabled) {
+  border-color: var(--admin-accent);
+  background: var(--admin-accent);
+  color: #ffffff;
 }
 
 .dateTodayButton.dateTodayButton {
   min-height: 46px;
   white-space: nowrap;
+}
+
+.filtersResetButtonHidden {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .filtersResetButton.filtersResetButton {
@@ -165,6 +293,10 @@
   padding: 12px;
   color: var(--admin-text-muted);
   font-size: 0.92rem;
+}
+
+.statusFilterSelect {
+  min-width: 190px;
 }
 
 .serviceFilterSelect {
@@ -1243,7 +1375,163 @@
   }
 }
 
+@media (max-width: 1120px) and (min-width: 861px) {
+
+  .filtersMainGroup,
+  .filtersControlsGroup {
+    display: grid;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .filtersMainGroup {
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+
+  .filtersControlsGroup {
+    grid-template-columns:
+      minmax(240px, 320px) minmax(150px, 180px) minmax(180px, 260px) minmax(140px, 1fr);
+  }
+
+  .filterClientPicker {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dateFilterGroup {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .dateFilterButton {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dateTodayButton.dateTodayButton,
+  .filtersResetButton.filtersResetButton {
+    justify-content: center;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .filtersResetButton.filtersResetButton {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .statusFilterSelect,
+  .serviceFilterSelect {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dateFilterPopover {
+    left: 0;
+    right: auto;
+    width: min(320px, calc(100vw - 32px));
+  }
+}
+
+@media (max-width: 860px) and (min-width: 641px) {
+
+  .filtersMainGroup,
+  .filtersControlsGroup {
+    display: grid;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .filtersMainGroup {
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+
+  .filtersControlsGroup {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .filterClientPicker {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .favoriteFilterToggle {
+    min-width: 0;
+  }
+
+  .dateFilterGroup {
+    grid-column: 1 / 4;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .dateFilterButton {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dateTodayButton.dateTodayButton {
+    justify-content: center;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .statusFilterSelect {
+    grid-column: 4 / 7;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .serviceFilterSelect {
+    grid-column: 1 / 4;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .filtersResetButton.filtersResetButton {
+    grid-column: 4 / 7;
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .dateFilterPopover {
+    left: 0;
+    right: auto;
+    width: min(320px, calc(100vw - 32px));
+  }
+}
+
 @media (max-width: 640px) {
+
+  .filtersMainGroup,
+  .filtersControlsGroup {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    gap: 10px;
+  }
+
+  .dateFilterGroup {
+    grid-column: 1 / -1;
+  }
+
   .tableBody {
     gap: 16px;
     padding: 8px;
@@ -1281,7 +1569,8 @@
 
   .filterClientPicker,
   .dateFilterGroup,
-  .dateFilterInput,
+  .dateFilterButton,
+  .statusFilterSelect,
   .serviceFilterSelect,
   .clientFavoriteToggle,
   .favoriteFilterToggle,
@@ -1294,6 +1583,21 @@
   .favoriteFilterToggle,
   .filtersResetButton {
     justify-content: flex-start;
+  }
+
+  .dateFilterPopover {
+    left: 0;
+    right: auto;
+    width: min(100%, calc(100vw - 32px));
+  }
+
+  .dateFilterPopoverActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dateFilterPopoverAction {
+    width: 100%;
   }
 
   .dateFilterGroup {

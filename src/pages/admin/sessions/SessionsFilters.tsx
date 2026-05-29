@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
+import { BaseCalendar } from "../../../components/calendar/BaseCalendar";
+import { getTodayDateKey } from "../../../components/calendar/calendar.utils";
 import {
   CustomSelect,
   type CustomSelectOption,
@@ -64,6 +66,24 @@ function getSortedServiceOptions(
   });
 }
 
+function formatDateFilterLabel(value: string | null): string {
+  if (!value) {
+    return "Выберите дату";
+  }
+
+  const [year, month, day] = value.split("-");
+
+  if (!year || !month || !day) {
+    return value;
+  }
+
+  return `${day}.${month}.${year}`;
+}
+
+function getDateFilterMonth(value: string | null): string {
+  return (value ?? getTodayDateKey()).slice(0, 7);
+}
+
 export function SessionsFilters({
   clientFilter,
   clients,
@@ -83,7 +103,13 @@ export function SessionsFilters({
 }: SessionsFiltersProps) {
   const [clientSearchQuery, setClientSearchQuery] = useState("");
   const [isClientPickerOpen, setIsClientPickerOpen] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [visibleDateMonth, setVisibleDateMonth] = useState(() =>
+    getDateFilterMonth(dateFilter)
+  );
+
   const clientPickerRef = useRef<HTMLDivElement | null>(null);
+  const datePickerRef = useRef<HTMLDivElement | null>(null);
   const showFavoritesOnly = favoriteFilter === "favorites";
 
   const selectedClient = useMemo(() => {
@@ -134,21 +160,42 @@ export function SessionsFilters({
   );
 
   useEffect(() => {
-    function handleDocumentMouseDown(event: MouseEvent) {
-      if (!clientPickerRef.current) {
-        return;
-      }
+    if (dateFilter) {
+      setVisibleDateMonth(dateFilter.slice(0, 7));
+    }
+  }, [dateFilter]);
 
-      if (!clientPickerRef.current.contains(event.target as Node)) {
+  useEffect(() => {
+    function handleDocumentMouseDown(event: MouseEvent) {
+      const target = event.target as Node;
+
+      if (
+        clientPickerRef.current &&
+        !clientPickerRef.current.contains(target)
+      ) {
         setIsClientPickerOpen(false);
         setClientSearchQuery("");
+      }
+
+      if (datePickerRef.current && !datePickerRef.current.contains(target)) {
+        setIsDatePickerOpen(false);
+      }
+    }
+
+    function handleDocumentKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsClientPickerOpen(false);
+        setClientSearchQuery("");
+        setIsDatePickerOpen(false);
       }
     }
 
     document.addEventListener("mousedown", handleDocumentMouseDown);
+    document.addEventListener("keydown", handleDocumentKeyDown);
 
     return () => {
       document.removeEventListener("mousedown", handleDocumentMouseDown);
+      document.removeEventListener("keydown", handleDocumentKeyDown);
     };
   }, []);
 
@@ -168,144 +215,228 @@ export function SessionsFilters({
     setIsClientPickerOpen(false);
   };
 
+  const handleDateSelect = (value: string) => {
+    onDateFilterChange(value);
+    setVisibleDateMonth(value.slice(0, 7));
+    setIsDatePickerOpen(false);
+  };
+
+  const handleDateTodayClick = () => {
+    const today = getTodayDateKey();
+
+    setVisibleDateMonth(today.slice(0, 7));
+    onDateTodayClick();
+    setIsDatePickerOpen(false);
+  };
+
+  const handleDateClear = () => {
+    onDateFilterChange("");
+    setIsDatePickerOpen(false);
+  };
+
   const clientInputValue = isClientPickerOpen
     ? clientSearchQuery
     : selectedClient?.name ?? "";
 
   return (
     <AdminFiltersRow>
-      <div className={styles.filterClientPicker} ref={clientPickerRef}>
-        <input
-          type="text"
-          value={clientInputValue}
-          onFocus={handleClientInputFocus}
-          onChange={(event) => handleClientSearchChange(event.target.value)}
-          placeholder="Все клиенты или начните вводить имя, телефон, email"
-          className={`${styles.input} ${styles.filterClientInput}`}
-          aria-expanded={isClientPickerOpen}
-        />
+      <div className={styles.filtersMainGroup}>
+        <div className={styles.filterClientPicker} ref={clientPickerRef}>
+          <input
+            type="text"
+            value={clientInputValue}
+            onFocus={handleClientInputFocus}
+            onChange={(event) => handleClientSearchChange(event.target.value)}
+            placeholder="Все клиенты или начните вводить имя, телефон, email"
+            className={`${styles.input} ${styles.filterClientInput}`}
+            aria-expanded={isClientPickerOpen}
+          />
 
-        {isClientPickerOpen ? (
-          <div className={styles.filterClientDropdown}>
-            <button
-              type="button"
-              className={[
-                styles.filterClientOption,
-                clientFilter === "all" ? styles.filterClientOptionActive : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => chooseClient("all")}
-            >
-              <span className={styles.filterClientOptionName}>Все клиенты</span>
-            </button>
+          {isClientPickerOpen ? (
+            <div className={styles.filterClientDropdown}>
+              <button
+                type="button"
+                className={[
+                  styles.filterClientOption,
+                  clientFilter === "all" ? styles.filterClientOptionActive : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => chooseClient("all")}
+              >
+                <span className={styles.filterClientOptionName}>
+                  Все клиенты
+                </span>
+              </button>
 
-            {filteredClients.length > 0 ? (
-              filteredClients.map((client) => (
-                <button
-                  key={client.id}
-                  type="button"
-                  className={[
-                    styles.filterClientOption,
-                    clientFilter === client.id
-                      ? styles.filterClientOptionActive
-                      : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => chooseClient(client.id)}
-                >
-                  <span className={styles.filterClientOptionName}>
-                    {client.isFavorite ? "★ " : ""}
-                    {client.name}
-                  </span>
-
-                  {getClientMeta(client) ? (
-                    <span className={styles.filterClientOptionMeta}>
-                      {getClientMeta(client)}
+              {filteredClients.length > 0 ? (
+                filteredClients.map((client) => (
+                  <button
+                    key={client.id}
+                    type="button"
+                    className={[
+                      styles.filterClientOption,
+                      clientFilter === client.id
+                        ? styles.filterClientOptionActive
+                        : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => chooseClient(client.id)}
+                  >
+                    <span className={styles.filterClientOptionName}>
+                      {client.isFavorite ? "★ " : ""}
+                      {client.name}
                     </span>
-                  ) : null}
-                </button>
-              ))
-            ) : (
-              <div className={styles.filterClientEmpty}>
-                Клиенты не найдены.
-              </div>
-            )}
-          </div>
-        ) : null}
+
+                    {getClientMeta(client) ? (
+                      <span className={styles.filterClientOptionMeta}>
+                        {getClientMeta(client)}
+                      </span>
+                    ) : null}
+                  </button>
+                ))
+              ) : (
+                <div className={styles.filterClientEmpty}>
+                  Клиенты не найдены.
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
+
+        <label className={styles.favoriteFilterToggle}>
+          <input
+            type="checkbox"
+            checked={showFavoritesOnly}
+            onChange={(event) =>
+              onFavoriteFilterChange(
+                event.target.checked ? "favorites" : "all"
+              )
+            }
+          />
+          <span>Только избранные</span>
+        </label>
       </div>
 
-      <label className={styles.favoriteFilterToggle}>
-        <input
-          type="checkbox"
-          checked={showFavoritesOnly}
-          onChange={(event) =>
-            onFavoriteFilterChange(
-              event.target.checked ? "favorites" : "all"
-            )
+      <div className={styles.filtersControlsGroup}>
+        <div className={styles.dateFilterGroup} ref={datePickerRef}>
+          <button
+            type="button"
+            className={[
+              styles.dateFilterButton,
+              dateFilter ? styles.dateFilterButtonActive : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            onClick={() => setIsDatePickerOpen((current) => !current)}
+            aria-label="Фильтр по дате сессии"
+            aria-haspopup="dialog"
+            aria-expanded={isDatePickerOpen}
+          >
+            <span className={styles.dateFilterButtonText}>
+              {formatDateFilterLabel(dateFilter)}
+            </span>
+            <span className={styles.dateFilterButtonIcon} aria-hidden="true">
+              ▾
+            </span>
+          </button>
+
+          <AdminButton
+            type="button"
+            variant="secondary"
+            size="sm"
+            className={styles.dateTodayButton}
+            onClick={handleDateTodayClick}
+          >
+            Сегодня
+          </AdminButton>
+
+          {isDatePickerOpen ? (
+            <div
+              className={styles.dateFilterPopover}
+              role="dialog"
+              aria-label="Выбор даты сессии"
+            >
+              <BaseCalendar
+                value={dateFilter}
+                onChange={handleDateSelect}
+                visibleMonth={visibleDateMonth}
+                onVisibleMonthChange={setVisibleDateMonth}
+                todayDate={getTodayDateKey()}
+                locale="ru-RU"
+                weekStartsOn={1}
+                variant="admin"
+                density="compact"
+                className={styles.dateFilterCalendar}
+              />
+
+              <div className={styles.dateFilterPopoverActions}>
+                <button
+                  type="button"
+                  className={styles.dateFilterPopoverAction}
+                  onClick={handleDateClear}
+                  disabled={!dateFilter}
+                >
+                  Сбросить дату
+                </button>
+
+                <button
+                  type="button"
+                  className={`${styles.dateFilterPopoverAction} ${styles.dateFilterPopoverActionPrimary}`}
+                  onClick={handleDateTodayClick}
+                >
+                  Сегодня
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <CustomSelect
+          value={statusFilter}
+          options={statusSelectOptions}
+          ariaLabel="Фильтр по статусу сессии"
+          variant="admin"
+          layout="filter"
+          className={styles.statusFilterSelect}
+          onChange={(value) =>
+            onStatusFilterChange(value as SessionStatus | "all")
           }
         />
-        <span>Только избранные</span>
-      </label>
 
-      <div className={styles.dateFilterGroup}>
-        <input
-          type="date"
-          value={dateFilter ?? ""}
-          onChange={(event) => onDateFilterChange(event.target.value)}
-          className={`${styles.input} ${styles.dateFilterInput}`}
-          aria-label="Фильтр по дате сессии"
+        <CustomSelect
+          value={serviceFilter === "all" ? "all" : String(serviceFilter)}
+          options={serviceSelectOptions}
+          ariaLabel="Фильтр по услуге"
+          variant="admin"
+          layout="filter"
+          dropdownAlign="end"
+          className={styles.serviceFilterSelect}
+          onChange={(value) =>
+            onServiceFilterChange(value === "all" ? "all" : Number(value))
+          }
         />
 
         <AdminButton
           type="button"
           variant="secondary"
           size="sm"
-          className={styles.dateTodayButton}
-          onClick={onDateTodayClick}
-        >
-          Сегодня
-        </AdminButton>
-      </div>
-
-      <CustomSelect
-        value={statusFilter}
-        options={statusSelectOptions}
-        ariaLabel="Фильтр по статусу сессии"
-        variant="admin"
-        layout="filter"
-        onChange={(value) =>
-          onStatusFilterChange(value as SessionStatus | "all")
-        }
-      />
-
-      <CustomSelect
-        value={serviceFilter === "all" ? "all" : String(serviceFilter)}
-        options={serviceSelectOptions}
-        ariaLabel="Фильтр по услуге"
-        variant="admin"
-        layout="filter"
-        dropdownAlign="end"
-        className={styles.serviceFilterSelect}
-        onChange={(value) =>
-          onServiceFilterChange(value === "all" ? "all" : Number(value))
-        }
-      />
-
-      {hasActiveFilters ? (
-        <AdminButton
-          type="button"
-          variant="secondary"
-          size="sm"
-          className={styles.filtersResetButton}
+          className={[
+            styles.filtersResetButton,
+            !hasActiveFilters ? styles.filtersResetButtonHidden : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
           onClick={onResetFilters}
+          disabled={!hasActiveFilters}
+          aria-hidden={!hasActiveFilters}
         >
           Сбросить
         </AdminButton>
-      ) : null}
+      </div>
     </AdminFiltersRow>
   );
 }
