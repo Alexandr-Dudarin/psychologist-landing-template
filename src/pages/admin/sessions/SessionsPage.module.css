@@ -670,6 +670,10 @@
   font-size: 0.92rem;
 }
 
+.sessionsTable {
+  table-layout: fixed;
+}
+
 .tableHead tr>th {
   vertical-align: bottom;
   white-space: normal;
@@ -711,10 +715,13 @@
 
 .primaryLink {
   display: inline-block;
+  max-width: 100%;
   font-weight: 600;
-  white-space: normal;
+  white-space: nowrap;
   word-break: normal;
-  overflow-wrap: break-word;
+  overflow-wrap: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wrapValue {
@@ -945,30 +952,38 @@
 }
 
 .clientCell {
-  width: 15%;
+  width: 16%;
 }
 
 .serviceCell {
-  width: 12%;
+  width: 13%;
 }
 
 .dateCell {
-  width: 15%;
+  width: 16%;
 }
 
 .compactCell {
-  width: 1%;
+  width: 9%;
   white-space: nowrap;
 }
 
-.statusCell,
+.priceCell {
+  width: 7%;
+}
+
+.statusCell {
+  width: 13%;
+  white-space: nowrap;
+}
+
 .sourceCell {
-  width: 1%;
+  width: 10%;
   white-space: nowrap;
 }
 
 .notesCell {
-  width: 12%;
+  width: 16%;
 }
 
 .linksCell {
@@ -998,6 +1013,30 @@
     min-width: 96px;
   }
 
+  .clientCell {
+    width: 20%;
+  }
+
+  .serviceCell {
+    width: 16%;
+  }
+
+  .dateCell {
+    width: 18%;
+  }
+
+  .compactCell {
+    width: 10%;
+  }
+
+  .priceCell {
+    width: 8%;
+  }
+
+  .statusCell {
+    width: 16%;
+  }
+
   .tableHead th,
   .sessionRow td {
     padding-left: 10px;
@@ -1017,19 +1056,19 @@
   }
 
   .clientCell {
-    width: 18%;
+    width: 25%;
   }
 
   .serviceCell {
-    width: 16%;
+    width: 20%;
   }
 
   .dateCell {
-    width: 18%;
+    width: 24%;
   }
 
   .statusCell {
-    width: 1%;
+    width: 17%;
   }
 
   .linksCell {
@@ -1076,15 +1115,19 @@
   }
 
   .clientCell {
-    width: 20%;
+    width: 26%;
   }
 
   .serviceCell {
-    width: 19%;
+    width: 20%;
   }
 
   .dateCell {
-    width: 19%;
+    width: 24%;
+  }
+
+  .statusCell {
+    width: 17%;
   }
 
   .actionCell {
@@ -1123,20 +1166,24 @@
   }
 
   .clientCell {
-    width: 18%;
+    width: 25%;
   }
 
   .serviceCell {
-    width: 17%;
+    width: 19%;
   }
 
   .dateCell {
-    width: 17%;
+    width: 23%;
+  }
+
+  .statusCell {
+    width: 15%;
   }
 
   .actionCell {
-    width: 100px;
-    min-width: 100px;
+    width: 116px;
+    min-width: 116px;
   }
 
   .tableHead tr>th.actionCell {
@@ -1149,7 +1196,7 @@
   }
 
   .sessionRow>td.actionCell .actionsRow {
-    width: min(100px, 100%);
+    width: min(116px, 100%);
     margin-left: auto;
     margin-right: 0;
   }
@@ -1182,6 +1229,18 @@
   .actionCell {
     width: 108px;
     min-width: 108px;
+  }
+
+  .clientCell {
+    width: 28%;
+  }
+
+  .serviceCell {
+    width: 24%;
+  }
+
+  .dateCell {
+    width: 28%;
   }
 
   .tableHead tr>th.actionCell {
@@ -1308,6 +1367,9 @@
   .primaryLink {
     font-size: 1rem;
     line-height: 1.35;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
   }
 
   .primaryLink,

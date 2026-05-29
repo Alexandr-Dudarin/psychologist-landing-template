@@ -108,7 +108,7 @@ export function SessionsTable({
   }
 
   return (
-    <AdminTable>
+    <AdminTable tableClassName={styles.sessionsTable}>
       <thead className={styles.tableHead}>
         <tr>
           <th className={styles.clientCell}>Клиент</th>
