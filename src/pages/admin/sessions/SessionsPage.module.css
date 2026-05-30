@@ -1157,6 +1157,32 @@
   }
 }
 
+@media (max-width: 860px) and (min-width: 816px) {
+  .actionCell {
+    width: 132px;
+    min-width: 132px;
+  }
+
+  .sessionRow > td.actionCell .actionsRow {
+    width: min(132px, 100%);
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  .editActionButton,
+  .deleteActionButton {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 38px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 0.84rem;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 815px) and (min-width: 761px) {
 
   .tableHead th,
@@ -1410,6 +1436,19 @@
   .actionsRow {
     width: 100%;
     justify-content: center;
+    align-content: start;
+  }
+
+  .editActionButton,
+  .deleteActionButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding-top: 0;
+    padding-bottom: 0;
+    line-height: 1.2;
+    white-space: nowrap;
   }
 
   .actionCell {
@@ -1437,7 +1476,56 @@
   }
 }
 
-@media (max-width: 1450px) and (min-width: 1121px) {
+@media (max-width: 700px) and (min-width: 641px) {
+  .clientCell {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .serviceCell {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .dateCell {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .compactCell:not(.priceCell):not(.sourceCell):not(.linksCell) {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .statusCell {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .actionCell {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: start;
+  }
+
+  .notesCell {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  .sessionRow > td.actionCell .actionsRow {
+    align-self: start;
+  }
+
+  .editActionButton,
+  .deleteActionButton {
+    box-sizing: border-box;
+    transform: translateZ(0);
+  }
+}
+
+@media (max-width: 1451px) and (min-width: 1121px) {
+
   .filtersMainGroup,
   .filtersControlsGroup {
     display: grid;
@@ -1452,14 +1540,10 @@
     grid-template-columns: minmax(0, 1fr) max-content;
   }
 
-.filtersControlsGroup {
-  grid-template-columns:
-    minmax(220px, 260px)
-    max-content
-    minmax(170px, 0.9fr)
-    minmax(210px, 1fr)
-    minmax(108px, 0.72fr);
-}
+  .filtersControlsGroup {
+    grid-template-columns:
+      minmax(220px, 260px) max-content minmax(170px, 0.9fr) minmax(210px, 1fr) minmax(108px, 0.72fr);
+  }
 
   .filterClientPicker {
     width: 100%;
@@ -1504,7 +1588,37 @@
   }
 }
 
+@media (max-width: 1451px) and (min-width: 1320px) {
+  .filtersControlsGroup {
+    grid-template-columns:
+      minmax(250px, 290px)
+      max-content
+      minmax(132px, 156px)
+      minmax(190px, 230px)
+      minmax(108px, 124px);
+    width: max-content;
+    max-width: 100%;
+    justify-content: start;
+  }
+
+  .dateFilterGroup {
+    grid-template-columns: minmax(160px, 1fr) auto;
+  }
+
+  .dateFilterButton {
+    min-width: 160px;
+  }
+
+  .filtersResetButton.filtersResetButton {
+    width: 100%;
+    min-width: 108px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
 @media (max-width: 1120px) and (min-width: 861px) {
+
   .filtersMainGroup,
   .filtersControlsGroup {
     display: grid;
@@ -1519,14 +1633,10 @@
     grid-template-columns: minmax(0, 1fr) max-content;
   }
 
-.filtersControlsGroup {
-  grid-template-columns:
-    minmax(250px, 1.25fr)
-    minmax(72px, max-content)
-    minmax(140px, 0.85fr)
-    minmax(170px, 1fr)
-    minmax(108px, 0.72fr);
-}
+  .filtersControlsGroup {
+    grid-template-columns:
+      minmax(250px, 1.25fr) minmax(72px, max-content) minmax(140px, 0.85fr) minmax(170px, 1fr) minmax(108px, 0.72fr);
+  }
 
   .filterClientPicker {
     width: 100%;
@@ -1572,6 +1682,7 @@
 }
 
 @media (max-width: 860px) and (min-width: 641px) {
+
   .filtersMainGroup,
   .filtersControlsGroup {
     display: grid;
@@ -1586,9 +1697,9 @@
     grid-template-columns: minmax(0, 1fr) max-content;
   }
 
-.filtersControlsGroup {
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-}
+  .filtersControlsGroup {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
 
   .filterClientPicker {
     width: 100%;
@@ -1599,39 +1710,39 @@
     min-width: 0;
   }
 
-.statusFilterSelect {
-  grid-column: 1 / 4;
-  grid-row: 1;
-  width: 100%;
-  min-width: 0;
-}
+  .statusFilterSelect {
+    grid-column: 1 / 5;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+  }
 
-.serviceFilterSelect {
-  grid-column: 4 / 7;
-  grid-row: 1;
-  width: 100%;
-  min-width: 0;
-}
+  .serviceFilterSelect {
+    grid-column: 5 / 9;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+  }
 
-.dateFilterGroup {
-  grid-column: 1 / 7;
-  grid-row: 2;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  width: 100%;
-  min-width: 0;
-  gap: 8px;
-}
+  .dateFilterGroup {
+    grid-column: 1 / 9;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+  }
 
-.filtersResetButton.filtersResetButton {
-  grid-column: 7 / 9;
-  grid-row: 2;
-  width: 100%;
-  min-width: 0;
-  justify-content: center;
-  padding-left: 12px;
-  padding-right: 12px;
-}
+  .filtersResetButton.filtersResetButton {
+    grid-column: 9 / 13;
+    grid-row: 2;
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 
   .dateFilterButton {
     width: 100%;
