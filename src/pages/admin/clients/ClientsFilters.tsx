@@ -69,6 +69,7 @@ export function ClientsFilters({
         ariaLabel="Фильтр по статусу клиента"
         variant="admin"
         layout="filter"
+        className={styles.statusFilterSelect}
       />
 
       <label className={styles.favoriteFilterToggle}>

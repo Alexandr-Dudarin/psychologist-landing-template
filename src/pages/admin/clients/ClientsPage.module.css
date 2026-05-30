@@ -70,6 +70,12 @@
   composes: controlSearch from "../../../components/admin/adminUi.module.css";
 }
 
+.statusFilterSelect {
+  flex: 0 0 220px;
+  min-width: 180px;
+  max-width: 240px;
+}
+
 .buttonRow {
   composes: buttonRow from "../../../components/admin/adminUi.module.css";
 }
@@ -201,6 +207,8 @@
 }
 
 .filtersResetButton.filtersResetButton {
+  flex: 0 0 auto;
+  min-width: 108px;
   min-height: 46px;
   border-color: color-mix(in srgb, var(--admin-danger) 28%, white);
   background: var(--admin-danger-soft);
@@ -1015,6 +1023,61 @@
   }
 }
 
+@media (max-width: 908px) and (min-width: 769px) {
+  .statusFilterSelect {
+    order: 1;
+    flex: 1 1 calc(50% - 6px);
+    min-width: 0;
+    max-width: none;
+  }
+
+  .favoriteFilterToggle {
+    order: 2;
+    flex: 1 1 calc(50% - 6px);
+    min-width: 0;
+  }
+
+  .searchInput {
+    order: 3;
+    flex: 1 1 calc(100% - 132px);
+    min-width: 0;
+    max-width: none;
+  }
+
+  .filtersResetButton.filtersResetButton {
+    order: 4;
+    flex: 0 0 120px;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 768px) and (min-width: 760px) {
+  .statusFilterSelect {
+    order: 1;
+    flex: 0 1 200px;
+    min-width: 180px;
+    max-width: 220px;
+  }
+
+  .favoriteFilterToggle {
+    order: 2;
+    flex: 0 0 auto;
+  }
+
+  .searchInput {
+    order: 3;
+    flex: 1 1 420px;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .filtersResetButton.filtersResetButton {
+    order: 4;
+    flex: 0 0 120px;
+    min-width: 120px;
+  }
+}
+
 @media (max-width: 640px) {
 
   .statusCell,
@@ -1317,5 +1380,38 @@
 
   .detailsActions {
     padding: 0 14px 12px;
+  }
+}
+
+@media (max-width: 908px) and (min-width: 848px) {
+  .statusFilterSelect {
+    order: 1;
+    flex: 0 1 150px;
+    min-width: 140px;
+    max-width: 160px;
+  }
+
+  .favoriteFilterToggle {
+    order: 2;
+    flex: 0 1 168px;
+    min-width: 158px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 0.92rem;
+  }
+
+  .searchInput {
+    order: 3;
+    flex: 1 1 220px;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .filtersResetButton.filtersResetButton {
+    order: 4;
+    flex: 0 0 104px;
+    min-width: 104px;
+    padding-left: 10px;
+    padding-right: 10px;
   }
 }
