@@ -227,6 +227,23 @@
   box-shadow: 0 0 0 3px rgba(154, 75, 75, 0.18);
 }
 
+.clientsTableShell {
+  width: 100%;
+  min-width: 0;
+}
+
+.clientsTableShell {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 641px) {
+  .clientsTableShell :global(table) {
+    width: 100%;
+    table-layout: fixed;
+  }
+}
+
 .tableHead.tableHead>tr>th.phoneCell,
 .tableHead.tableHead>tr>th.emailCell,
 .tableHead.tableHead>tr>th.preferredContactCell,

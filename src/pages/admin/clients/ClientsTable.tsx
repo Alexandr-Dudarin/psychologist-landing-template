@@ -106,7 +106,8 @@ export function ClientsTable({
   }, [highlightedClientId, items]);
 
   return (
-    <AdminTable>
+    <div className={styles.clientsTableShell}>
+      <AdminTable>
       <thead className={styles.tableHead}>
         <tr>
           <th className={styles.nameCell}>{nameLabel}</th>
@@ -300,5 +301,6 @@ export function ClientsTable({
         })}
       </tbody>
     </AdminTable>
+    </div>
   );
 }
