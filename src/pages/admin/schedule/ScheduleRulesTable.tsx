@@ -5,13 +5,13 @@ import type { ScheduleRuleRecord } from "../../../types/schedule";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
+import { AdminTimeSelect } from "../../../components/admin/AdminTimeSelect";
 import styles from "./SchedulePage.module.css";
 import {
   weekdayLabels,
   weekdayShortLabels,
   weekdayTinyLabels,
 } from "./schedulePage.shared";
-import { AdminTimeSelect } from "../../../components/admin/AdminTimeSelect";
 
 type ScheduleRulesTableProps = {
   isSaving: boolean;
@@ -50,14 +50,19 @@ export function ScheduleRulesTable({
             <col className={styles.scheduleRuleTimeColumn} />
             <col className={styles.scheduleRuleTimeColumn} />
           </colgroup>
+
           <thead>
             <tr>
               <th className={styles.scheduleRuleDayHeader}>День</th>
-              <th className={styles.centerHeader}>Активен</th>
+              <th className={styles.centerHeader}>
+                <span className={styles.activeHeaderFull}>Активен</span>
+                <span className={styles.activeHeaderCompact}>Вкл.</span>
+              </th>
               <th className={styles.centerHeader}>Начало</th>
               <th className={styles.centerHeader}>Окончание</th>
             </tr>
           </thead>
+
           <tbody>
             {rules.map((rule) => (
               <tr key={rule.weekday}>

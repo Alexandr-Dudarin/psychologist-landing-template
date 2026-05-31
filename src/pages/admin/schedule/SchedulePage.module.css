@@ -261,6 +261,14 @@
   vertical-align: middle;
 }
 
+.actionsHeaderInner {
+  display: block;
+  width: 148px;
+  margin-left: auto;
+  margin-right: 0;
+  text-align: center;
+}
+
 .actionsCell {
   width: 148px;
   min-width: 148px;
@@ -279,7 +287,7 @@
   margin-left: auto;
 }
 
-.actionsCellInner > * {
+.actionsCellInner>* {
   width: 100%;
 }
 
@@ -318,7 +326,7 @@
   word-break: normal;
 }
 
-.timeRangeValue > span {
+.timeRangeValue>span {
   white-space: nowrap;
   overflow-wrap: normal;
   word-break: normal;
@@ -330,11 +338,9 @@
   white-space: nowrap;
 }
 
-.weekdayShort {
-  display: none;
-}
-
-.weekdayTiny {
+.weekdayShort,
+.weekdayTiny,
+.activeHeaderCompact {
   display: none;
 }
 
@@ -415,13 +421,15 @@
   }
 
   .actionsCell {
-    width: auto;
-    min-width: 0;
+    width: 148px;
+    min-width: 148px;
+    text-align: right;
   }
 
   .actionsCellInner {
-    width: 100%;
-    margin-left: 0;
+    width: 148px;
+    margin-left: auto;
+    margin-right: 0;
   }
 
   .rulesSectionHeader {
@@ -469,7 +477,11 @@
     width: 132px;
   }
 
-  .actionsCellInner > * {
+  .actionsHeaderInner {
+    width: 132px;
+  }
+
+  .actionsCellInner>* {
     min-width: 0;
     padding-inline: 8px;
     font-size: 0.92rem;
@@ -555,17 +567,17 @@
     min-width: 0;
   }
 
-  .scheduleTimeCell .timeSelect.timeSelect > button {
+  .scheduleTimeCell .timeSelect.timeSelect>button {
     justify-content: center;
     gap: 0;
     padding-inline: 6px;
   }
 
-  .scheduleTimeCell .timeSelect.timeSelect > button > span:first-child {
+  .scheduleTimeCell .timeSelect.timeSelect>button>span:first-child {
     text-align: center;
   }
 
-  .scheduleTimeCell .timeSelect.timeSelect > button > span:last-child {
+  .scheduleTimeCell .timeSelect.timeSelect>button>span:last-child {
     display: none;
   }
 }
@@ -592,10 +604,75 @@
 
   .actionsCellInner {
     width: 118px;
+    margin-left: auto;
+    margin-right: 0;
   }
 
-  .actionsCellInner > * {
+  .actionsHeaderInner {
+    width: 118px;
+  }
+
+  .actionsCellInner>* {
+    min-width: 0;
+    min-height: 36px;
     padding-inline: 6px;
     font-size: 0.86rem;
+  }
+
+  .activeHeaderFull {
+    display: none;
+  }
+
+  .activeHeaderCompact {
+    display: inline;
+  }
+
+  .weekdayFull,
+  .weekdayShort {
+    display: none;
+  }
+
+  .weekdayTiny {
+    display: inline;
+  }
+
+  .scheduleRuleDayColumn {
+    width: 38px;
+  }
+
+  .scheduleRuleActiveColumn {
+    width: 42px;
+  }
+
+  .scheduleRuleDayHeader,
+  .scheduleRuleDayCell {
+    width: 38px;
+    max-width: 38px;
+    padding-inline: 4px;
+  }
+
+  .scheduleTimeCell {
+    padding-inline: 2px;
+  }
+
+  .scheduleTimeCell .timeSelect.timeSelect {
+    width: 68px;
+    max-width: 68px;
+    min-width: 0;
+  }
+
+  .scheduleTimeCell .timeSelect.timeSelect>button {
+    justify-content: center;
+    gap: 0;
+    padding-inline: 5px;
+    font-size: 0.88rem;
+  }
+
+  .scheduleTimeCell .timeSelect.timeSelect>button>span:first-child {
+    text-align: center;
+  }
+
+  .scheduleTimeCell .timeSelect.timeSelect>button>span:last-child {
+    display: none;
   }
 }

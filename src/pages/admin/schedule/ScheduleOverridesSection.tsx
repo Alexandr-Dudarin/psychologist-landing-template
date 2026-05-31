@@ -190,7 +190,9 @@ export function ScheduleOverridesSection({
               <th className={`${styles.centerHeader} ${styles.overrideCommentColumn}`}>
                 Комментарий
               </th>
-              <th className={styles.actionsHeader}>Действия</th>
+              <th className={styles.actionsHeader}>
+                <span className={styles.actionsHeaderInner}>Действия</span>
+              </th>
             </tr>
           </thead>
 

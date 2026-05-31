@@ -186,7 +186,9 @@ export function BlockedSlotsSection({
               <th className={`${styles.centerHeader} ${styles.blockedReasonColumn}`}>
                 Причина
               </th>
-              <th className={styles.actionsHeader}>Действия</th>
+              <th className={styles.actionsHeader}>
+                <span className={styles.actionsHeaderInner}>Действия</span>
+              </th>
             </tr>
           </thead>
 
