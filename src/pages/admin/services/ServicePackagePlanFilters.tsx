@@ -47,6 +47,7 @@ export function ServicePackagePlanFilters({
         ariaLabel="Фильтр активности пакетов услуг"
         variant="admin"
         layout="filter"
+        className={styles.filterSelect}
         onChange={(value) => {
           onActivityFilterChange(value as PackageActivityFilter);
         }}
