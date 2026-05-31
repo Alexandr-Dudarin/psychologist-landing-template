@@ -236,6 +236,37 @@
   width: 100%;
 }
 
+.centerHeader,
+.centerCell {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.centerCell {
+  overflow-wrap: anywhere;
+}
+
+.emptyValue {
+  color: #5f6b7a;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.scheduleRuleDayHeader,
+.scheduleRuleDayCell {
+  text-align: left;
+  white-space: nowrap;
+}
+
+.weekdayShort {
+  display: none;
+}
+
+.scheduleTimeCell .timeSelect.timeSelect {
+  margin-inline: auto;
+  align-self: center;
+}
+
 @media (max-width: 1280px) {
   .grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -324,5 +355,43 @@
     width: 100%;
     max-width: none;
     min-width: 0;
+  }
+}
+
+@media (max-width: 610px) {
+  .overrideTypeColumn {
+    display: none;
+  }
+}
+
+@media (max-width: 550px) {
+  .blockedReasonColumn {
+    display: none;
+  }
+}
+
+@media (max-width: 499px) {
+  .weekdayFull {
+    display: none;
+  }
+
+  .weekdayShort {
+    display: inline;
+  }
+
+  .scheduleRuleDayHeader,
+  .scheduleRuleDayCell {
+    width: 82px;
+    max-width: 82px;
+  }
+
+  .scheduleTimeCell {
+    padding-inline: 6px;
+  }
+
+  .scheduleTimeCell .timeSelect.timeSelect {
+    width: 88px;
+    min-width: 0;
+    max-width: 88px;
   }
 }

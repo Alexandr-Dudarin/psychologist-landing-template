@@ -149,8 +149,10 @@ export function BlockedSlotsSection({
           <thead>
             <tr>
               <th>Дата</th>
-              <th>Время</th>
-              <th>Причина</th>
+              <th className={styles.centerHeader}>Время</th>
+              <th className={`${styles.centerHeader} ${styles.blockedReasonColumn}`}>
+                Причина
+              </th>
               <th className={styles.actionsHeader}>Действия</th>
             </tr>
           </thead>
@@ -158,10 +160,15 @@ export function BlockedSlotsSection({
             {blockedSlots.map((item) => (
               <tr key={item.id}>
                 <td>{formatDate(item.blockedDate)}</td>
-                <td>
+
+                <td className={styles.centerCell}>
                   {item.startTime}-{item.endTime}
                 </td>
-                <td>{item.reason || "-"}</td>
+
+                <td className={`${styles.centerCell} ${styles.blockedReasonColumn}`}>
+                  {item.reason || <span className={styles.emptyValue}>—</span>}
+                </td>
+
                 <td className={styles.actionsCell}>
                   <div className={styles.actionsCellInner}>
                     <AdminButton

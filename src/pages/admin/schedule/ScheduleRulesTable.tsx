@@ -6,7 +6,7 @@ import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import styles from "./SchedulePage.module.css";
-import { weekdayLabels } from "./schedulePage.shared";
+import { weekdayLabels, weekdayShortLabels } from "./schedulePage.shared";
 import { AdminTimeSelect } from "../../../components/admin/AdminTimeSelect";
 
 type ScheduleRulesTableProps = {
@@ -42,17 +42,25 @@ export function ScheduleRulesTable({
         <AdminTable withTopMargin={false}>
           <thead>
             <tr>
-              <th>День</th>
-              <th>Активен</th>
-              <th>Начало</th>
-              <th>Окончание</th>
+              <th className={styles.scheduleRuleDayHeader}>День</th>
+              <th className={styles.centerHeader}>Активен</th>
+              <th className={styles.centerHeader}>Начало</th>
+              <th className={styles.centerHeader}>Окончание</th>
             </tr>
           </thead>
           <tbody>
             {rules.map((rule) => (
               <tr key={rule.weekday}>
-                <td>{weekdayLabels[rule.weekday]}</td>
-                <td>
+                <td className={styles.scheduleRuleDayCell}>
+                  <span className={styles.weekdayFull}>
+                    {weekdayLabels[rule.weekday]}
+                  </span>
+                  <span className={styles.weekdayShort}>
+                    {weekdayShortLabels[rule.weekday]}
+                  </span>
+                </td>
+
+                <td className={styles.centerCell}>
                   <input
                     type="checkbox"
                     checked={rule.isEnabled}
@@ -61,7 +69,8 @@ export function ScheduleRulesTable({
                     }
                   />
                 </td>
-                <td>
+
+                <td className={`${styles.centerCell} ${styles.scheduleTimeCell}`}>
                   <AdminTimeSelect
                     value={rule.startTime}
                     onChange={(nextTime) =>
@@ -72,7 +81,8 @@ export function ScheduleRulesTable({
                     className={styles.timeSelect}
                   />
                 </td>
-                <td>
+
+                <td className={`${styles.centerCell} ${styles.scheduleTimeCell}`}>
                   <AdminTimeSelect
                     value={rule.endTime}
                     onChange={(nextTime) =>

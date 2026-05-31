@@ -15,6 +15,16 @@ export const weekdayLabels: Record<number, string> = {
   7: "Воскресенье",
 };
 
+export const weekdayShortLabels: Record<number, string> = {
+  1: "Понед.",
+  2: "Втор.",
+  3: "Среда",
+  4: "Четв.",
+  5: "Пятн.",
+  6: "Субб.",
+  7: "Воскр.",
+};
+
 export type SettingsForm = {
   minAdvanceHours: string;
   bufferMinutes: string;

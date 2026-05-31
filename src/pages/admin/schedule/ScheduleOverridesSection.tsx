@@ -149,9 +149,11 @@ export function ScheduleOverridesSection({
           <thead>
             <tr>
               <th>Дата</th>
-              <th>Тип</th>
-              <th>Время</th>
-              <th>Комментарий</th>
+              <th className={`${styles.centerHeader} ${styles.overrideTypeColumn}`}>
+                Тип
+              </th>
+              <th className={styles.centerHeader}>Время</th>
+              <th className={styles.centerHeader}>Комментарий</th>
               <th className={styles.actionsHeader}>Действия</th>
             </tr>
           </thead>
@@ -159,13 +161,23 @@ export function ScheduleOverridesSection({
             {overrides.map((item) => (
               <tr key={item.date}>
                 <td>{formatDate(item.date)}</td>
-                <td>{item.isWorkingDay ? "Рабочий день" : "Выходной"}</td>
-                <td>
-                  {item.isWorkingDay && item.startTime && item.endTime
-                    ? `${item.startTime}-${item.endTime}`
-                    : "-"}
+
+                <td className={`${styles.centerCell} ${styles.overrideTypeColumn}`}>
+                  {item.isWorkingDay ? "Рабочий день" : "Выходной"}
                 </td>
-                <td>{item.note || "-"}</td>
+
+                <td className={styles.centerCell}>
+                  {item.isWorkingDay && item.startTime && item.endTime ? (
+                    `${item.startTime}-${item.endTime}`
+                  ) : (
+                    <span className={styles.emptyValue}>—</span>
+                  )}
+                </td>
+
+                <td className={styles.centerCell}>
+                  {item.note || <span className={styles.emptyValue}>—</span>}
+                </td>
+
                 <td className={styles.actionsCell}>
                   <div className={styles.actionsCellInner}>
                     <AdminButton

@@ -336,8 +336,8 @@ export function SchedulePage() {
           submitError instanceof Error
             ? submitError.message
             : editingOverrideDate
-            ? getOverrideUpdateErrorMessage()
-            : getOverrideCreateErrorMessage(),
+              ? getOverrideUpdateErrorMessage()
+              : getOverrideCreateErrorMessage(),
       });
     } finally {
       setIsCreatingOverride(false);
@@ -462,8 +462,8 @@ export function SchedulePage() {
           submitError instanceof Error
             ? submitError.message
             : editingBlockedSlotId !== null
-            ? getBlockedSlotUpdateErrorMessage()
-            : getBlockedSlotCreateErrorMessage(),
+              ? getBlockedSlotUpdateErrorMessage()
+              : getBlockedSlotCreateErrorMessage(),
       });
     } finally {
       setIsCreatingBlockedSlot(false);
@@ -532,6 +532,20 @@ export function SchedulePage() {
             onSave={handleSaveSettings}
           />
 
+          <BlockedSlotsSection
+            blockedSlotForm={blockedSlotForm}
+            blockedSlots={blockedSlots}
+            feedback={getScopedFeedback(feedback, "blockedSlots")}
+            isSubmitting={isCreatingBlockedSlot || isUpdatingBlockedSlot}
+            deletingBlockedSlotId={deletingBlockedSlotId}
+            editingBlockedSlotId={editingBlockedSlotId}
+            onFormChange={handleBlockedSlotFormChange}
+            onSubmit={handleSubmitBlockedSlot}
+            onEdit={handleStartEditBlockedSlot}
+            onCancelEdit={handleCancelEditBlockedSlot}
+            onDelete={handleDeleteBlockedSlot}
+          />
+
           <ScheduleOverridesSection
             form={overrideForm}
             overrides={overrides}
@@ -546,19 +560,6 @@ export function SchedulePage() {
             onDelete={handleDeleteOverride}
           />
 
-          <BlockedSlotsSection
-            blockedSlotForm={blockedSlotForm}
-            blockedSlots={blockedSlots}
-            feedback={getScopedFeedback(feedback, "blockedSlots")}
-            isSubmitting={isCreatingBlockedSlot || isUpdatingBlockedSlot}
-            deletingBlockedSlotId={deletingBlockedSlotId}
-            editingBlockedSlotId={editingBlockedSlotId}
-            onFormChange={handleBlockedSlotFormChange}
-            onSubmit={handleSubmitBlockedSlot}
-            onEdit={handleStartEditBlockedSlot}
-            onCancelEdit={handleCancelEditBlockedSlot}
-            onDelete={handleDeleteBlockedSlot}
-          />
         </>
       )}
     </main>
