@@ -53,6 +53,32 @@ function buildBlockedSlotsCalendarMeta(
   }));
 }
 
+function renderTableDate(date: string) {
+  const formattedDate = formatDate(date);
+  const [day, month, year] = formattedDate.split(".");
+
+  if (!day || !month || !year) {
+    return formattedDate;
+  }
+
+  return (
+    <span className={styles.tableDateValue}>
+      <span>{day}.{month}</span>
+      <span className={styles.tableDateYear}>{year}</span>
+    </span>
+  );
+}
+
+function renderTimeRange(startTime: string, endTime: string) {
+  return (
+    <span className={styles.timeRangeValue}>
+      <span>{startTime}</span>
+      <span className={styles.timeRangeSeparator}>–</span>
+      <span>{endTime}</span>
+    </span>
+  );
+}
+
 export function BlockedSlotsSection({
   blockedSlotForm,
   blockedSlots,
@@ -152,6 +178,7 @@ export function BlockedSlotsSection({
             <col className={styles.blockedReasonColumn} />
             <col className={styles.scheduleActionsColumn} />
           </colgroup>
+
           <thead>
             <tr>
               <th>Дата</th>
@@ -162,13 +189,14 @@ export function BlockedSlotsSection({
               <th className={styles.actionsHeader}>Действия</th>
             </tr>
           </thead>
+
           <tbody>
             {blockedSlots.map((item) => (
               <tr key={item.id}>
-                <td>{formatDate(item.blockedDate)}</td>
+                <td>{renderTableDate(item.blockedDate)}</td>
 
                 <td className={styles.centerCell}>
-                  {item.startTime}-{item.endTime}
+                  {renderTimeRange(item.startTime, item.endTime)}
                 </td>
 
                 <td className={`${styles.centerCell} ${styles.blockedReasonColumn}`}>

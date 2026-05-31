@@ -6,7 +6,11 @@ import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import styles from "./SchedulePage.module.css";
-import { weekdayLabels, weekdayShortLabels } from "./schedulePage.shared";
+import {
+  weekdayLabels,
+  weekdayShortLabels,
+  weekdayTinyLabels,
+} from "./schedulePage.shared";
 import { AdminTimeSelect } from "../../../components/admin/AdminTimeSelect";
 
 type ScheduleRulesTableProps = {
@@ -63,6 +67,9 @@ export function ScheduleRulesTable({
                   </span>
                   <span className={styles.weekdayShort}>
                     {weekdayShortLabels[rule.weekday]}
+                  </span>
+                  <span className={styles.weekdayTiny}>
+                    {weekdayTinyLabels[rule.weekday]}
                   </span>
                 </td>
 

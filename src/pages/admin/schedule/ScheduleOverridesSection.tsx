@@ -40,6 +40,32 @@ function buildOverrideCalendarMeta(
   }));
 }
 
+function renderTableDate(date: string) {
+  const formattedDate = formatDate(date);
+  const [day, month, year] = formattedDate.split(".");
+
+  if (!day || !month || !year) {
+    return formattedDate;
+  }
+
+  return (
+    <span className={styles.tableDateValue}>
+      <span>{day}.{month}</span>
+      <span className={styles.tableDateYear}>{year}</span>
+    </span>
+  );
+}
+
+function renderTimeRange(startTime: string, endTime: string) {
+  return (
+    <span className={styles.timeRangeValue}>
+      <span>{startTime}</span>
+      <span className={styles.timeRangeSeparator}>–</span>
+      <span>{endTime}</span>
+    </span>
+  );
+}
+
 export function ScheduleOverridesSection({
   deletingOverrideDate,
   editingOverrideDate,
@@ -153,6 +179,7 @@ export function ScheduleOverridesSection({
             <col className={styles.overrideCommentColumn} />
             <col className={styles.scheduleActionsColumn} />
           </colgroup>
+
           <thead>
             <tr>
               <th>Дата</th>
@@ -166,10 +193,11 @@ export function ScheduleOverridesSection({
               <th className={styles.actionsHeader}>Действия</th>
             </tr>
           </thead>
+
           <tbody>
             {overrides.map((item) => (
               <tr key={item.date}>
-                <td>{formatDate(item.date)}</td>
+                <td>{renderTableDate(item.date)}</td>
 
                 <td className={`${styles.centerCell} ${styles.overrideTypeColumn}`}>
                   {item.isWorkingDay ? "Рабочий день" : "Выходной"}
@@ -177,7 +205,7 @@ export function ScheduleOverridesSection({
 
                 <td className={styles.centerCell}>
                   {item.isWorkingDay && item.startTime && item.endTime ? (
-                    `${item.startTime}-${item.endTime}`
+                    renderTimeRange(item.startTime, item.endTime)
                   ) : (
                     <span className={styles.emptyValue}>—</span>
                   )}
