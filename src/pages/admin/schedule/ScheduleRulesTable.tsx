@@ -40,6 +40,12 @@ export function ScheduleRulesTable({
         </div>
 
         <AdminTable withTopMargin={false}>
+          <colgroup>
+            <col className={styles.scheduleRuleDayColumn} />
+            <col className={styles.scheduleRuleActiveColumn} />
+            <col className={styles.scheduleRuleTimeColumn} />
+            <col className={styles.scheduleRuleTimeColumn} />
+          </colgroup>
           <thead>
             <tr>
               <th className={styles.scheduleRuleDayHeader}>День</th>

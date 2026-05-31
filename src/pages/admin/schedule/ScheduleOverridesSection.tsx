@@ -146,6 +146,13 @@ export function ScheduleOverridesSection({
         <p>Исключений по датам пока нет.</p>
       ) : (
         <AdminTable>
+          <colgroup>
+            <col className={styles.overrideDateColumn} />
+            <col className={styles.overrideTypeColumn} />
+            <col className={styles.overrideTimeColumn} />
+            <col className={styles.overrideCommentColumn} />
+            <col className={styles.scheduleActionsColumn} />
+          </colgroup>
           <thead>
             <tr>
               <th>Дата</th>

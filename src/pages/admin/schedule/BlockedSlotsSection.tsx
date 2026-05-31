@@ -146,6 +146,12 @@ export function BlockedSlotsSection({
         <p>Блокировок слотов пока нет.</p>
       ) : (
         <AdminTable>
+          <colgroup>
+            <col className={styles.blockedDateColumn} />
+            <col className={styles.blockedTimeColumn} />
+            <col className={styles.blockedReasonColumn} />
+            <col className={styles.scheduleActionsColumn} />
+          </colgroup>
           <thead>
             <tr>
               <th>Дата</th>
