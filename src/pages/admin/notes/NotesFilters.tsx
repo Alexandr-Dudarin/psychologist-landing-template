@@ -190,25 +190,27 @@ export function NotesFilters({
         <span>Только избранные</span>
       </label>
 
-      <input
-        type="text"
-        value={searchQuery}
-        onChange={(event) => onSearchChange(event.target.value)}
-        placeholder="Поиск по клиенту, услуге или тексту заметки"
-        className={`${styles.input} ${styles.searchInput}`}
-      />
+      <div className={styles.notesSearchFilterGroup}>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder="Поиск по клиенту, услуге или тексту заметки"
+          className={`${styles.input} ${styles.searchInput}`}
+        />
 
-      {hasActiveFilters ? (
-        <AdminButton
-          type="button"
-          variant="secondary"
-          size="sm"
-          className={styles.filtersResetButton}
-          onClick={onResetFilters}
-        >
-          Сбросить
-        </AdminButton>
-      ) : null}
+        {hasActiveFilters ? (
+          <AdminButton
+            type="button"
+            variant="secondary"
+            size="sm"
+            className={styles.filtersResetButton}
+            onClick={onResetFilters}
+          >
+            Сбросить
+          </AdminButton>
+        ) : null}
+      </div>
     </AdminFiltersRow>
   );
 }

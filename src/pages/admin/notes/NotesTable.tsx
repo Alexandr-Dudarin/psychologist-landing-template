@@ -58,12 +58,16 @@ export function NotesTable({
                     {new Date(item.sessionScheduledAt).toLocaleString("ru-RU")}
                   </Link>
                 ) : (
-                  "-"
+                  <span className={styles.emptyValue}>—</span>
                 )}
               </td>
 
               <td className={styles.noteServiceCell}>
-                {item.sessionServiceTitle || "-"}
+                {item.sessionServiceTitle ? (
+                  item.sessionServiceTitle
+                ) : (
+                  <span className={styles.emptyValue}>—</span>
+                )}
               </td>
 
               <td className={styles.noteTextCell}>
@@ -84,7 +88,8 @@ export function NotesTable({
                     size="sm"
                     onClick={() => onEdit(item)}
                   >
-                    Редактировать
+                    <span className={styles.actionLabelFull}>Редактировать</span>
+                    <span className={styles.actionLabelCompact}>Ред.</span>
                   </AdminButton>
 
                   <AdminButton
@@ -94,7 +99,8 @@ export function NotesTable({
                     className={styles.noteDetailsButton}
                     onClick={() => onShowDetails(item)}
                   >
-                    Подробнее
+                    <span className={styles.actionLabelFull}>Подробнее</span>
+                    <span className={styles.actionLabelCompact}>Инфо</span>
                   </AdminButton>
 
                   <AdminButton
