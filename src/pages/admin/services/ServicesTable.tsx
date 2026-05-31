@@ -33,8 +33,8 @@ export function ServicesTable({
     <AdminTable>
       <thead className={styles.tableHead}>
         <tr>
-          <th className={styles.createdCell}>Создана</th>
           <th className={styles.titleCell}>Название</th>
+          <th className={styles.createdCell}>Создана</th>
           <th className={`${styles.compactCell} ${styles.priceCell}`}>Цена</th>
           <th className={`${styles.compactCell} ${styles.durationCell}`}>
             Длительность
@@ -59,12 +59,12 @@ export function ServicesTable({
               key={item.id}
               className={!item.isActive ? styles.inactiveRow : undefined}
             >
-              <td className={styles.createdCell}>
-                {new Date(item.createdAt).toLocaleString("ru-RU")}
-              </td>
-
               <td className={styles.titleCell}>
                 <span className={styles.primaryValue}>{item.title}</span>
+              </td>
+
+              <td className={styles.createdCell}>
+                {new Date(item.createdAt).toLocaleString("ru-RU")}
               </td>
 
               <td className={`${styles.compactCell} ${styles.priceCell}`}>
@@ -121,8 +121,12 @@ export function ServicesTable({
                           "Скрываем..."
                         ) : (
                           <>
-                            <span className={styles.actionLabelFull}>Скрыть из записи</span>
-                            <span className={styles.actionLabelShort}>Скрыть</span>
+                            <span className={styles.actionLabelFull}>
+                              Скрыть из записи
+                            </span>
+                            <span className={styles.actionLabelShort}>
+                              Скрыть
+                            </span>
                           </>
                         )}
                       </AdminButton>

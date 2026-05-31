@@ -36,11 +36,11 @@ export function ServicePackagePlansTable({
     <AdminTable>
       <thead className={styles.tableHead}>
         <tr>
-          <th className={`${styles.statusCell} ${styles.packageStatusCell}`}>
-            Статус
-          </th>
           <th className={`${styles.titleCell} ${styles.packageTitleCell}`}>
             Пакет
+          </th>
+          <th className={`${styles.statusCell} ${styles.packageStatusCell}`}>
+            Статус
           </th>
           <th className={`${styles.titleCell} ${styles.packageServiceCell}`}>
             Базовая услуга
