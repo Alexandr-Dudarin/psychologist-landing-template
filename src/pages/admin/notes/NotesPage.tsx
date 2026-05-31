@@ -19,6 +19,7 @@ import type {
 import type { CrmNoteRecord } from "../../../types/note";
 import type { CrmSessionRecord } from "../../../types/session";
 import { NoteCreateForm } from "./NoteCreateForm";
+import { NoteDetailsModal } from "./NoteDetailsModal";
 import { NoteEditForm } from "./NoteEditForm";
 import {
   buildCreateNotePayload,
@@ -69,6 +70,8 @@ export function NotesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [createForm, setCreateForm] = useState<NoteForm>(initialCreateForm);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [selectedDetailsNote, setSelectedDetailsNote] =
+    useState<CrmNoteRecord | null>(null);
   const [editForm, setEditForm] = useState<NoteForm>(initialEditForm);
   const [editScrollRequest, setEditScrollRequest] = useState(0);
   const editFormRef = useRef<HTMLDivElement | null>(null);
@@ -333,6 +336,10 @@ export function NotesPage() {
         cancelEditing();
       }
 
+      if (selectedDetailsNote?.id === id) {
+        setSelectedDetailsNote(null);
+      }
+
       setSuccessMessage("Заметка удалена.");
     } catch (deleteError) {
       setError(
@@ -447,9 +454,15 @@ export function NotesPage() {
             deletingId={deletingId}
             onEdit={startEditing}
             onDelete={handleDeleteNote}
+            onShowDetails={setSelectedDetailsNote}
           />
         </AdminRefreshableTableArea>
       )}
+
+      <NoteDetailsModal
+        note={selectedDetailsNote}
+        onClose={() => setSelectedDetailsNote(null)}
+      />
     </main>
   );
 }

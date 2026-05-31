@@ -10,6 +10,7 @@ type NotesTableProps = {
   deletingId: number | null;
   onEdit: (note: CrmNoteRecord) => void;
   onDelete: (id: number) => void;
+  onShowDetails: (note: CrmNoteRecord) => void;
 };
 
 export function NotesTable({
@@ -17,64 +18,100 @@ export function NotesTable({
   deletingId,
   onEdit,
   onDelete,
+  onShowDetails,
 }: NotesTableProps) {
   return (
-    <AdminTable>
-      <thead>
-        <tr>
-          <th>Клиент</th>
-          <th>Сессия</th>
-          <th>Услуга</th>
-          <th>Текст заметки</th>
-          <th>Создана</th>
-          <th className={styles.actionCell}>Действия</th>
-        </tr>
-      </thead>
-      <tbody>
-        {items.map((item) => (
-          <tr key={item.id}>
-            <td>
-              <Link to={`/admin/clients?highlightClientId=${item.clientId}`}>
-                {item.clientName}
-              </Link>
-            </td>
-            <td>
-              {item.sessionId && item.sessionScheduledAt ? (
-                <Link to={`/admin/sessions?highlightSessionId=${item.sessionId}`}>
-                  {new Date(item.sessionScheduledAt).toLocaleString("ru-RU")}
-                </Link>
-              ) : (
-                "-"
-              )}
-            </td>
-            <td>{item.sessionServiceTitle || "-"}</td>
-            <td>{item.content}</td>
-            <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
-            <td className={styles.actionCell}>
-              <div className={styles.actionsRow}>
-                <AdminButton
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onEdit(item)}
-                >
-                  Редактировать
-                </AdminButton>
+    <div className={styles.notesTableScope}>
+      <AdminTable>
+        <colgroup>
+          <col className={styles.noteClientColumn} />
+          <col className={styles.noteSessionColumn} />
+          <col className={styles.noteServiceColumn} />
+          <col className={styles.noteTextColumn} />
+          <col className={styles.noteCreatedColumn} />
+          <col className={styles.noteActionsColumn} />
+        </colgroup>
 
-                <AdminButton
-                  type="button"
-                  variant="danger"
-                  size="sm"
-                  onClick={() => onDelete(item.id)}
-                  disabled={deletingId === item.id}
-                >
-                  {deletingId === item.id ? "Удаление..." : "Удалить"}
-                </AdminButton>
-              </div>
-            </td>
+        <thead>
+          <tr>
+            <th className={styles.noteClientHeader}>Клиент</th>
+            <th className={styles.noteSessionHeader}>Сессия</th>
+            <th className={styles.noteServiceHeader}>Услуга</th>
+            <th className={styles.noteTextHeader}>Текст заметки</th>
+            <th className={styles.noteCreatedHeader}>Создана</th>
+            <th className={styles.actionCell}>Действия</th>
           </tr>
-        ))}
-      </tbody>
-    </AdminTable>
+        </thead>
+
+        <tbody>
+          {items.map((item) => (
+            <tr key={item.id}>
+              <td className={styles.noteClientCell}>
+                <Link to={`/admin/clients?highlightClientId=${item.clientId}`}>
+                  {item.clientName}
+                </Link>
+              </td>
+
+              <td className={styles.noteSessionCell}>
+                {item.sessionId && item.sessionScheduledAt ? (
+                  <Link to={`/admin/sessions?highlightSessionId=${item.sessionId}`}>
+                    {new Date(item.sessionScheduledAt).toLocaleString("ru-RU")}
+                  </Link>
+                ) : (
+                  "-"
+                )}
+              </td>
+
+              <td className={styles.noteServiceCell}>
+                {item.sessionServiceTitle || "-"}
+              </td>
+
+              <td className={styles.noteTextCell}>
+                <span className={styles.noteTextPreview} title={item.content}>
+                  {item.content}
+                </span>
+              </td>
+
+              <td className={styles.noteCreatedCell}>
+                {new Date(item.createdAt).toLocaleString("ru-RU")}
+              </td>
+
+              <td className={styles.actionCell}>
+                <div className={styles.actionsRow}>
+                  <AdminButton
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onEdit(item)}
+                  >
+                    Редактировать
+                  </AdminButton>
+
+                  <AdminButton
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className={styles.noteDetailsButton}
+                    onClick={() => onShowDetails(item)}
+                  >
+                    Подробнее
+                  </AdminButton>
+
+                  <AdminButton
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    onClick={() => onDelete(item.id)}
+                    disabled={deletingId === item.id}
+                  >
+                    {deletingId === item.id ? "Удаление..." : "Удалить"}
+                  </AdminButton>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </AdminTable>
+    </div>
   );
 }
