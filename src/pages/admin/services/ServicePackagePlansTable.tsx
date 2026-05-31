@@ -39,9 +39,6 @@ export function ServicePackagePlansTable({
           <th className={`${styles.titleCell} ${styles.packageTitleCell}`}>
             Пакет
           </th>
-          <th className={`${styles.statusCell} ${styles.packageStatusCell}`}>
-            Статус
-          </th>
           <th className={`${styles.titleCell} ${styles.packageServiceCell}`}>
             Базовая услуга
           </th>
@@ -53,6 +50,9 @@ export function ServicePackagePlansTable({
           </th>
           <th className={`${styles.compactCell} ${styles.packageDurationCell}`}>
             Длительность
+          </th>
+          <th className={`${styles.statusCell} ${styles.packageStatusCell}`}>
+            Статус
           </th>
           <th
             className={`${styles.descriptionCell} ${styles.packageDescriptionCell}`}
@@ -75,12 +75,6 @@ export function ServicePackagePlansTable({
               key={item.id}
               className={isVisuallyInactive ? styles.inactiveRow : undefined}
             >
-              <td className={`${styles.statusCell} ${styles.packageStatusCell}`}>
-                <span className={getPackageStatusBadgeClassName(item)}>
-                  {item.isActive && item.serviceIsActive ? "Активен" : "Скрыт"}
-                </span>
-              </td>
-
               <td className={`${styles.titleCell} ${styles.packageTitleCell}`}>
                 <span className={styles.primaryValue}>{item.title}</span>
 
@@ -113,6 +107,12 @@ export function ServicePackagePlansTable({
                 className={`${styles.compactCell} ${styles.packageDurationCell}`}
               >
                 {item.serviceDurationMinutes} мин
+              </td>
+
+              <td className={`${styles.statusCell} ${styles.packageStatusCell}`}>
+                <span className={getPackageStatusBadgeClassName(item)}>
+                  {item.isActive && item.serviceIsActive ? "Активен" : "Скрыт"}
+                </span>
               </td>
 
               <td
@@ -153,8 +153,12 @@ export function ServicePackagePlansTable({
                           "Скрываем..."
                         ) : (
                           <>
-                            <span className={styles.actionLabelFull}>Скрыть из записи</span>
-                            <span className={styles.actionLabelShort}>Скрыть</span>
+                            <span className={styles.actionLabelFull}>
+                              Скрыть из записи
+                            </span>
+                            <span className={styles.actionLabelShort}>
+                              Скрыть
+                            </span>
                           </>
                         )}
                       </AdminButton>

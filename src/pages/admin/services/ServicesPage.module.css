@@ -343,11 +343,13 @@
 .descriptionPreview {
   display: -webkit-box;
   max-width: 320px;
+  margin-inline: auto;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   color: var(--admin-text-muted);
   line-height: 1.45;
+  text-align: center;
   word-break: normal;
   overflow-wrap: break-word;
 }
