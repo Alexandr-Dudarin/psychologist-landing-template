@@ -160,7 +160,9 @@ export function ScheduleOverridesSection({
                 Тип
               </th>
               <th className={styles.centerHeader}>Время</th>
-              <th className={styles.centerHeader}>Комментарий</th>
+              <th className={`${styles.centerHeader} ${styles.overrideCommentColumn}`}>
+                Комментарий
+              </th>
               <th className={styles.actionsHeader}>Действия</th>
             </tr>
           </thead>
@@ -181,7 +183,7 @@ export function ScheduleOverridesSection({
                   )}
                 </td>
 
-                <td className={styles.centerCell}>
+                <td className={`${styles.centerCell} ${styles.overrideCommentColumn}`}>
                   {item.note || <span className={styles.emptyValue}>—</span>}
                 </td>
 

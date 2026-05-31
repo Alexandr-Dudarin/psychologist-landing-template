@@ -15,6 +15,7 @@ type AdminTimeSelectProps = {
   startHour?: number;
   endHour?: number;
   minuteStep?: number;
+  includePlaceholderOption?: boolean;
 };
 
 function normalizeTimeValue(value: string): string {
@@ -33,12 +34,14 @@ function buildTimeOptions({
   startHour,
   endHour,
   minuteStep,
+  includePlaceholderOption,
 }: {
   value: string;
   placeholder: string;
   startHour: number;
   endHour: number;
   minuteStep: number;
+  includePlaceholderOption: boolean;
 }): CustomSelectOption[] {
   const normalizedValue = normalizeTimeValue(value);
   const options = new Set<string>();
@@ -55,17 +58,23 @@ function buildTimeOptions({
     options.add(normalizedValue);
   }
 
+  const timeOptions = Array.from(options)
+    .sort((left, right) => left.localeCompare(right))
+    .map((time) => ({
+      value: time,
+      label: time,
+    }));
+
+  if (!includePlaceholderOption) {
+    return timeOptions;
+  }
+
   return [
     {
       value: "",
       label: placeholder,
     },
-    ...Array.from(options)
-      .sort((left, right) => left.localeCompare(right))
-      .map((time) => ({
-        value: time,
-        label: time,
-      })),
+    ...timeOptions,
   ];
 }
 
@@ -79,6 +88,7 @@ export function AdminTimeSelect({
   startHour = 0,
   endHour = 23,
   minuteStep = 15,
+  includePlaceholderOption = true,
 }: AdminTimeSelectProps) {
   const normalizedValue = normalizeTimeValue(value);
 
@@ -90,8 +100,16 @@ export function AdminTimeSelect({
         startHour,
         endHour,
         minuteStep,
+        includePlaceholderOption,
       }),
-    [endHour, minuteStep, normalizedValue, placeholder, startHour]
+    [
+      endHour,
+      includePlaceholderOption,
+      minuteStep,
+      normalizedValue,
+      placeholder,
+      startHour,
+    ]
   );
 
   return (

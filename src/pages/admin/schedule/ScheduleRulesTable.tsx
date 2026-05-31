@@ -85,6 +85,7 @@ export function ScheduleRulesTable({
                     ariaLabel={`Начало рабочего дня: ${weekdayLabels[rule.weekday]}`}
                     disabled={!rule.isEnabled}
                     className={styles.timeSelect}
+                    includePlaceholderOption={false}
                   />
                 </td>
 
@@ -97,6 +98,7 @@ export function ScheduleRulesTable({
                     ariaLabel={`Окончание рабочего дня: ${weekdayLabels[rule.weekday]}`}
                     disabled={!rule.isEnabled}
                     className={styles.timeSelect}
+                    includePlaceholderOption={false}
                   />
                 </td>
               </tr>

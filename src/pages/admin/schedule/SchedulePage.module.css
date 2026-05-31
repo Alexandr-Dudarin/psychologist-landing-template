@@ -414,6 +414,12 @@
   }
 }
 
+@media (max-width: 586px) {
+  .overrideCommentColumn {
+    display: none;
+  }
+}
+
 @media (max-width: 550px) {
   .blockedReasonColumn {
     display: none;
@@ -443,5 +449,31 @@
     width: 88px;
     min-width: 0;
     max-width: 88px;
+  }
+}
+
+@media (max-width: 464px) {
+  .scheduleTimeCell {
+    padding-inline: 4px;
+  }
+
+  .scheduleTimeCell .timeSelect.timeSelect {
+    width: 78px;
+    max-width: 78px;
+    min-width: 0;
+  }
+
+  .scheduleTimeCell .timeSelect.timeSelect > button {
+    justify-content: center;
+    gap: 0;
+    padding-inline: 8px;
+  }
+
+  .scheduleTimeCell .timeSelect.timeSelect > button > span:first-child {
+    text-align: center;
+  }
+
+  .scheduleTimeCell .timeSelect.timeSelect > button > span:last-child {
+    display: none;
   }
 }
