@@ -82,6 +82,8 @@ type ParsedDeleteBlockedSlotPayload = {
   id: number;
 };
 
+const SCHEDULE_TEXT_FIELD_MAX_LENGTH = 200;
+
 function getSingleQueryValue(value: string | string[] | undefined): string {
   if (Array.isArray(value)) {
     return value[0] ?? "";
@@ -127,6 +129,18 @@ function isPastBlockedSlotStart(blockedDate: string, startTime: string): boolean
   }
 
   return timestamp < Date.now();
+}
+
+function isScheduleTextFieldTooLong(value: string): boolean {
+  return value.length > SCHEDULE_TEXT_FIELD_MAX_LENGTH;
+}
+
+function getOverrideNoteTooLongMessage(): string {
+  return `Комментарий к исключению не должен быть длиннее ${SCHEDULE_TEXT_FIELD_MAX_LENGTH} символов.`;
+}
+
+function getBlockedSlotReasonTooLongMessage(): string {
+  return `Причина блокировки не должна быть длиннее ${SCHEDULE_TEXT_FIELD_MAX_LENGTH} символов.`;
 }
 
 function mapSettings(row: SettingsRow): BookingSettingsRecord {
@@ -742,6 +756,12 @@ async function handleCreateOverride(req: any, res: any) {
     });
   }
 
+  if (isScheduleTextFieldTooLong(payload.note)) {
+    return res.status(400).json({
+      error: getOverrideNoteTooLongMessage(),
+    });
+  }
+
   if (isPastOverrideDate(payload.date)) {
     return res.status(400).json({
       error: "Нельзя создать исключение для прошедшей даты.",
@@ -801,6 +821,12 @@ async function handleUpdateOverride(req: any, res: any) {
   if (!payload) {
     return res.status(400).json({
       error: "Некорректные данные для обновления исключения по дате.",
+    });
+  }
+
+  if (isScheduleTextFieldTooLong(payload.note)) {
+    return res.status(400).json({
+      error: getOverrideNoteTooLongMessage(),
     });
   }
 
@@ -907,6 +933,12 @@ async function handleCreateBlockedSlot(req: any, res: any) {
     });
   }
 
+  if (isScheduleTextFieldTooLong(payload.reason)) {
+    return res.status(400).json({
+      error: getBlockedSlotReasonTooLongMessage(),
+    });
+  }
+
   if (isPastBlockedSlotStart(payload.blockedDate, payload.startTime)) {
     return res.status(400).json({
       error: "Нельзя создать блокировку в прошлом.",
@@ -974,6 +1006,12 @@ async function handleUpdateBlockedSlot(req: any, res: any) {
   if (!payload) {
     return res.status(400).json({
       error: "Некорректные данные для обновления блокировки слота.",
+    });
+  }
+
+  if (isScheduleTextFieldTooLong(payload.reason)) {
+    return res.status(400).json({
+      error: getBlockedSlotReasonTooLongMessage(),
     });
   }
 

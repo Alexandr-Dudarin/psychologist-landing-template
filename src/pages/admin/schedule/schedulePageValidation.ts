@@ -8,6 +8,8 @@ import { isBookingTimezone } from "../../../lib/booking/bookingTimezones";
 import { weekdayLabels } from "./schedulePage.shared";
 import { isPastOverrideDate } from "./schedulePageHelpers";
 
+export const SCHEDULE_TEXT_FIELD_MAX_LENGTH = 200;
+
 export function validateScheduleSettingsPayload(
   payload: UpdateAdminSchedulePayload
 ): string | null {
@@ -80,6 +82,12 @@ export function validateOverridePayload(
     return "Укажите дату исключения.";
   }
 
+const note = payload.note?.trim() ?? "";
+
+if (note.length > SCHEDULE_TEXT_FIELD_MAX_LENGTH) {
+  return `Комментарий к исключению не должен быть длиннее ${SCHEDULE_TEXT_FIELD_MAX_LENGTH} символов.`;
+}
+
   if (isPastOverrideDate(payload.date)) {
     return isEditing
       ? "Нельзя перенести исключение на прошедшую дату."
@@ -102,6 +110,12 @@ export function validateBlockedSlotPayload(
   if (!payload.blockedDate) {
     return "Укажите дату блокировки.";
   }
+
+const reason = payload.reason?.trim() ?? "";
+
+if (reason.length > SCHEDULE_TEXT_FIELD_MAX_LENGTH) {
+  return `Причина блокировки не должна быть длиннее ${SCHEDULE_TEXT_FIELD_MAX_LENGTH} символов.`;
+}
 
   if (
     !payload.startTime ||

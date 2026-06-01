@@ -14,6 +14,7 @@ import {
   type BlockedSlotsList,
   type FeedbackState,
 } from "./schedulePage.shared";
+import { SCHEDULE_TEXT_FIELD_MAX_LENGTH } from "./schedulePageValidation";
 
 type BlockedSlotsSectionProps = {
   blockedSlotForm: BlockedSlotForm;
@@ -136,6 +137,7 @@ export function BlockedSlotsSection({
         <textarea
           value={blockedSlotForm.reason}
           onChange={(event) => onFormChange("reason", event.target.value)}
+          maxLength={SCHEDULE_TEXT_FIELD_MAX_LENGTH}
           placeholder="Причина блокировки"
           className={`${styles.input} ${styles.textarea}`}
         />

@@ -632,6 +632,31 @@ describe("admin schedule API", () => {
     expect(findQuery(poolQueryLog, "INSERT INTO schedule_overrides")).toBeUndefined();
   });
 
+  it("rejects schedule override with too long note", async () => {
+    const { poolQueryLog } = createMockDb();
+    const handler = await loadScheduleHandler();
+    const req = createMockRequest({
+      method: "POST",
+      query: { action: "create-override" },
+      body: {
+        date: "2027-06-15",
+        isWorkingDay: true,
+        startTime: "12:00",
+        endTime: "16:00",
+        note: "а".repeat(201),
+      },
+    });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.jsonBody).toMatchObject({
+      error: expect.stringContaining("200"),
+    });
+    expect(findQuery(poolQueryLog, "INSERT INTO schedule_overrides")).toBeUndefined();
+  });
+
   it("creates, updates and deletes blocked slots", async () => {
     const { poolQueryLog } = createMockDb();
     const handler = await loadScheduleHandler();
@@ -756,6 +781,30 @@ describe("admin schedule API", () => {
       "13:00",
     ]);
     expect(findQuery(overlapDb.poolQueryLog, "INSERT INTO blocked_slots")).toBeUndefined();
+  });
+
+  it("rejects blocked slot with too long reason", async () => {
+    const { poolQueryLog } = createMockDb();
+    const handler = await loadScheduleHandler();
+    const req = createMockRequest({
+      method: "POST",
+      query: { action: "create-blocked-slot" },
+      body: {
+        blockedDate: "2027-06-20",
+        startTime: "12:00",
+        endTime: "13:00",
+        reason: "а".repeat(201),
+      },
+    });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.jsonBody).toMatchObject({
+      error: expect.stringContaining("200"),
+    });
+    expect(findQuery(poolQueryLog, "INSERT INTO blocked_slots")).toBeUndefined();
   });
 
   it("handles unsupported methods and unknown actions", async () => {

@@ -14,6 +14,7 @@ import {
   type OverrideForm,
   type ScheduleOverrideList,
 } from "./schedulePage.shared";
+import { SCHEDULE_TEXT_FIELD_MAX_LENGTH } from "./schedulePageValidation";
 
 type ScheduleOverridesSectionProps = {
   deletingOverrideDate: string | null;
@@ -137,6 +138,7 @@ export function ScheduleOverridesSection({
           value={form.note}
           onChange={(event) => onFormChange("note", event.target.value)}
           placeholder="Комментарий к исключению"
+          maxLength={SCHEDULE_TEXT_FIELD_MAX_LENGTH}
           className={`${styles.input} ${styles.textarea}`}
         />
 
