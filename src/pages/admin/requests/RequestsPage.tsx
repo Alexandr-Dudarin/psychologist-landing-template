@@ -87,7 +87,7 @@ export function RequestsPage() {
     return () => {
       isMounted = false;
     };
-  }, [statusFilter, searchQuery]);
+  }, [statusFilter, searchQuery, t.admin.requests.messages.loadError]);
 
   const handleStatusChange = async (
     requestId: number,
@@ -173,6 +173,14 @@ export function RequestsPage() {
   const hasQuickViewState =
     highlightedRequestId !== null || searchQuery.trim().length > 0;
 
+  const hasActiveFilters =
+    statusFilter !== "all" ||
+    searchQuery.trim().length > 0 ||
+    highlightedRequestId !== null;
+
+  const isInitialLoading = isLoading && items.length === 0;
+  const hasTableSnapshot = items.length > 0;
+
   return (
     <main>
       <h1>{t.admin.requests.title}</h1>
@@ -183,8 +191,11 @@ export function RequestsPage() {
         searchQuery={searchQuery}
         statusFilter={statusFilter}
         statusOptions={statusOptions}
+        hasActiveFilters={hasActiveFilters}
+        resetLabel="Сбросить"
         onSearchChange={setSearchQuery}
         onStatusChange={setStatusFilter}
+        onResetFilters={handleResetView}
       />
 
       {hasQuickViewState ? (
@@ -220,31 +231,41 @@ export function RequestsPage() {
       <AdminFeedback message={error} tone="error" />
       <AdminFeedback message={successMessage} tone="success" />
 
-      {isLoading ? (
+      {isInitialLoading ? (
         <p>{t.admin.requests.messages.loading}</p>
-      ) : items.length === 0 ? (
-        <p>{t.admin.requests.messages.empty}</p>
+      ) : hasTableSnapshot ? (
+        <>
+          {isLoading ? (
+            <div className={styles.refreshNotice}>
+              Обновляем список заявок...
+            </div>
+          ) : null}
+
+          <div className={isLoading ? styles.tableSnapshotRefreshing : undefined}>
+            <RequestsTable
+              items={items}
+              savingId={savingId}
+              creatingClientId={creatingClientId}
+              highlightedRequestId={highlightedRequestId}
+              statusOptions={statusOptions}
+              createdLabel={t.admin.requests.table.created}
+              nameLabel={t.admin.requests.table.name}
+              phoneLabel={t.admin.requests.table.phone}
+              emailLabel={t.admin.requests.table.email}
+              messageLabel={t.admin.requests.table.message}
+              statusLabel={t.admin.requests.table.status}
+              clientLabel={t.admin.requests.table.client}
+              actionsSavingLabel={t.admin.requests.actions.saving}
+              actionsCreateClientLabel={t.admin.requests.actions.createClient}
+              actionsCreatingClientLabel={t.admin.requests.actions.creatingClient}
+              actionsCreatedLabel={t.admin.requests.actions.created}
+              onStatusChange={handleStatusChange}
+              onCreateClient={handleCreateClient}
+            />
+          </div>
+        </>
       ) : (
-        <RequestsTable
-          items={items}
-          savingId={savingId}
-          creatingClientId={creatingClientId}
-          highlightedRequestId={highlightedRequestId}
-          statusOptions={statusOptions}
-          createdLabel={t.admin.requests.table.created}
-          nameLabel={t.admin.requests.table.name}
-          phoneLabel={t.admin.requests.table.phone}
-          emailLabel={t.admin.requests.table.email}
-          messageLabel={t.admin.requests.table.message}
-          statusLabel={t.admin.requests.table.status}
-          clientLabel={t.admin.requests.table.client}
-          actionsSavingLabel={t.admin.requests.actions.saving}
-          actionsCreateClientLabel={t.admin.requests.actions.createClient}
-          actionsCreatingClientLabel={t.admin.requests.actions.creatingClient}
-          actionsCreatedLabel={t.admin.requests.actions.created}
-          onStatusChange={handleStatusChange}
-          onCreateClient={handleCreateClient}
-        />
+        <p>{t.admin.requests.messages.empty}</p>
       )}
     </main>
   );

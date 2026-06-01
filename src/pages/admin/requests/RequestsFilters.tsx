@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import {
   CustomSelect,
@@ -19,8 +20,11 @@ type RequestsFiltersProps = {
   searchQuery: string;
   statusFilter: RequestStatus | "all";
   statusOptions: StatusOption[];
+  hasActiveFilters: boolean;
+  resetLabel: string;
   onSearchChange: (value: string) => void;
   onStatusChange: (value: RequestStatus | "all") => void;
+  onResetFilters: () => void;
 };
 
 export function RequestsFilters({
@@ -29,8 +33,11 @@ export function RequestsFilters({
   searchQuery,
   statusFilter,
   statusOptions,
+  hasActiveFilters,
+  resetLabel,
   onSearchChange,
   onStatusChange,
+  onResetFilters,
 }: RequestsFiltersProps) {
   const requestStatusOptions = useMemo<CustomSelectOption[]>(
     () => [
@@ -64,6 +71,21 @@ export function RequestsFilters({
         placeholder={searchPlaceholder}
         className={styles.searchInput}
       />
+
+      <AdminButton
+        type="button"
+        variant="danger"
+        onClick={hasActiveFilters ? onResetFilters : undefined}
+        disabled={!hasActiveFilters}
+        aria-hidden={!hasActiveFilters}
+        tabIndex={hasActiveFilters ? 0 : -1}
+        className={`${styles.filtersResetButton} ${hasActiveFilters
+            ? styles.filtersResetButtonVisible
+            : styles.filtersResetButtonHidden
+          }`}
+      >
+        {resetLabel}
+      </AdminButton>
     </AdminFiltersRow>
   );
 }
