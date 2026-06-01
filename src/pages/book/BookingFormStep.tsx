@@ -10,6 +10,7 @@ import {
   preferredContactPlaceholders,
 } from "../../lib/preferredContact";
 import { preferredContactMethods } from "../../types/preferredContact";
+import { getBookingMessageLengthError } from "./bookingPage.helpers";
 import type {
   BookingContent,
   BookingFormErrors,
@@ -65,6 +66,8 @@ export function BookingFormStep({
   onFieldChange,
 }: BookingFormStepProps) {
   const isLocked = isCompleted || isSubmitting;
+  const liveMessageLengthError = getBookingMessageLengthError(form.message);
+  const messageError = formErrors.message ?? liveMessageLengthError;
 
   return (
     <div className={pageStyles.section}>
@@ -225,9 +228,16 @@ export function BookingFormStep({
               id="booking-message"
               value={form.message}
               disabled={isLocked}
+              aria-invalid={Boolean(messageError)}
+              aria-describedby={messageError ? "booking-message-error" : undefined}
               onChange={(event) => onFieldChange("message", event.target.value)}
               placeholder={bookingContent.placeholders.message}
             />
+            {messageError ? (
+              <span id="booking-message-error" className={styles.fieldError}>
+                {messageError}
+              </span>
+            ) : null}
           </div>
 
           <div className={`${styles.checkboxField} ${styles.fullWidth}`}>

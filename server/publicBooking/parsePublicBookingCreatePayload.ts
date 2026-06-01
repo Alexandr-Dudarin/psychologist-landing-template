@@ -7,12 +7,48 @@ import {
   validatePreferredContactFields,
 } from "../../src/lib/preferredContact.js";
 
+const PUBLIC_BOOKING_MESSAGE_MAX_LENGTH = 400;
+
 function normalizePhoneDigits(value: string): string {
   return value.replace(/\D/g, "");
 }
 
 function isValidEmail(value: string): boolean {
   return /^\S+@\S+\.\S+$/.test(value);
+}
+
+function getRussianSymbolWord(count: number) {
+  const normalizedCount = Math.abs(count);
+  const lastTwoDigits = normalizedCount % 100;
+  const lastDigit = normalizedCount % 10;
+
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+    return "символов";
+  }
+
+  if (lastDigit === 1) {
+    return "символ";
+  }
+
+  if (lastDigit >= 2 && lastDigit <= 4) {
+    return "символа";
+  }
+
+  return "символов";
+}
+
+function getPublicBookingMessageLengthError(message: string): string | null {
+  const normalizedMessageLength = message.trim().length;
+  const extraCharacters =
+    normalizedMessageLength - PUBLIC_BOOKING_MESSAGE_MAX_LENGTH;
+
+  if (extraCharacters <= 0) {
+    return null;
+  }
+
+  return `Сообщение не должно быть длиннее ${PUBLIC_BOOKING_MESSAGE_MAX_LENGTH} символов. Сократите его на ${extraCharacters} ${getRussianSymbolWord(
+    extraCharacters
+  )}.`;
 }
 
 export function parsePublicBookingCreatePayload(
@@ -98,6 +134,14 @@ export function getPublicBookingValidationError(
 
   if (!isValidEmail(payload.email)) {
     return "Введите корректный email.";
+  }
+
+  const messageLengthError = getPublicBookingMessageLengthError(
+    payload.message ?? ""
+  );
+
+  if (messageLengthError) {
+    return messageLengthError;
   }
 
   if (payload.clientPackageCode?.trim()) {

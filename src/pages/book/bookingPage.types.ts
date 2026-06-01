@@ -5,6 +5,8 @@ import type {
   PreferredContactMethod,
 } from "../../types/preferredContact";
 
+export const BOOKING_MESSAGE_MAX_LENGTH = 400;
+
 export type BookingPageCopy = {
   eyebrow: string;
   title: string;
@@ -98,6 +100,7 @@ export type BookingFormErrors = {
   email?: string;
   preferredContactMethod?: string;
   preferredContactValue?: string;
+  message?: string;
   consent?: string;
 };
 

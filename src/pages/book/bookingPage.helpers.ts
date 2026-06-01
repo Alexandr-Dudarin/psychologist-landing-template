@@ -5,11 +5,12 @@ import type {
   PublicBookingPackageInfo,
   PublicBookingService,
 } from "../../types/booking";
-import type {
-  BookingContent,
-  BookingFormErrors,
-  BookingFormState,
-  BookingPageCopy,
+import {
+  BOOKING_MESSAGE_MAX_LENGTH,
+  type BookingContent,
+  type BookingFormErrors,
+  type BookingFormState,
+  type BookingPageCopy,
 } from "./bookingPage.types";
 import { validatePreferredContactFields } from "../../lib/preferredContact";
 import type { PublicPricingPackagePlan } from "../../lib/services/getPublicPricingServices";
@@ -68,6 +69,40 @@ function getRussianBookingPhoneError(rawPhone: string) {
   return null;
 }
 
+function getRussianSymbolWord(count: number) {
+  const normalizedCount = Math.abs(count);
+  const lastTwoDigits = normalizedCount % 100;
+  const lastDigit = normalizedCount % 10;
+
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+    return "символов";
+  }
+
+  if (lastDigit === 1) {
+    return "символ";
+  }
+
+  if (lastDigit >= 2 && lastDigit <= 4) {
+    return "символа";
+  }
+
+  return "символов";
+}
+
+export function getBookingMessageLengthError(message: string): string | null {
+  const normalizedMessageLength = message.trim().length;
+  const extraCharacters =
+    normalizedMessageLength - BOOKING_MESSAGE_MAX_LENGTH;
+
+  if (extraCharacters <= 0) {
+    return null;
+  }
+
+  return `Сообщение не должно быть длиннее ${BOOKING_MESSAGE_MAX_LENGTH} символов. Сократите его на ${extraCharacters} ${getRussianSymbolWord(
+    extraCharacters
+  )}.`;
+}
+
 export function validateForm(
   form: BookingFormState,
   bookingContent: BookingContent,
@@ -100,6 +135,12 @@ export function validateForm(
     errors.email = bookingContent.messages.emailEmptyError;
   } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
     errors.email = bookingContent.messages.emailInvalidError;
+  }
+
+  const messageLengthError = getBookingMessageLengthError(form.message);
+
+  if (messageLengthError) {
+    errors.message = messageLengthError;
   }
 
   if (!form.consent) {
