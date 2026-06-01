@@ -8,6 +8,7 @@ import {
   type CustomSelectOption,
 } from "../../../components/ui/CustomSelect";
 import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
+import { RequestDetailsModal } from "./RequestDetailsModal";
 import styles from "./RequestsPage.module.css";
 
 const SHOW_CLIENT_COLUMN = false;
@@ -124,11 +125,6 @@ export function RequestsTable({
 
   const messagePreviewLimit = getMessagePreviewLimit(viewportWidth);
 
-  const selectedRequestStatusLabel = selectedRequest
-    ? statusOptions.find((status) => status.value === selectedRequest.status)
-      ?.label ?? selectedRequest.status
-    : "";
-
   useEffect(() => {
     if (!highlightedRequestId) {
       return;
@@ -157,28 +153,6 @@ export function RequestsTable({
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-
-  useEffect(() => {
-    if (!selectedRequest) {
-      return;
-    }
-
-    const previousBodyOverflow = document.body.style.overflow;
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setSelectedRequest(null);
-      }
-    }
-
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousBodyOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [selectedRequest]);
 
   return (
     <>
@@ -359,87 +333,11 @@ export function RequestsTable({
       </div>
 
       {selectedRequest ? (
-        <div
-          className={styles.requestDetailsOverlay}
-          role="presentation"
-          onMouseDown={() => setSelectedRequest(null)}
-        >
-          <div
-            className={styles.requestDetailsModal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="request-details-title"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <div className={styles.requestDetailsHeader}>
-              <div>
-                <div className={styles.requestDetailsEyebrow}>
-                  Сообщение заявки
-                </div>
-                <h2
-                  id="request-details-title"
-                  className={styles.requestDetailsTitle}
-                >
-                  {selectedRequest.name}
-                </h2>
-              </div>
-
-              <button
-                type="button"
-                className={styles.requestDetailsCloseButton}
-                onClick={() => setSelectedRequest(null)}
-                aria-label="Закрыть подробности заявки"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className={styles.requestDetailsGrid}>
-              <div className={styles.requestDetailsField}>
-                <div className={styles.requestDetailsLabel}>Создана</div>
-                <div className={styles.requestDetailsValue}>
-                  {formatRequestDate(selectedRequest.createdAt)}
-                </div>
-              </div>
-
-              <div className={styles.requestDetailsField}>
-                <div className={styles.requestDetailsLabel}>Статус</div>
-                <div className={styles.requestDetailsValue}>
-                  {selectedRequestStatusLabel}
-                </div>
-              </div>
-
-              <div className={styles.requestDetailsField}>
-                <div className={styles.requestDetailsLabel}>Телефон</div>
-                <div className={styles.requestDetailsValue}>
-                  {selectedRequest.phone || (
-                    <span className={styles.emptyValue}>—</span>
-                  )}
-                </div>
-              </div>
-
-              <div className={styles.requestDetailsField}>
-                <div className={styles.requestDetailsLabel}>Email</div>
-                <div className={styles.requestDetailsValue}>
-                  {selectedRequest.email || (
-                    <span className={styles.emptyValue}>—</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.requestDetailsMessageBlock}>
-              <div className={styles.requestDetailsMessageTitle}>
-                Текст сообщения
-              </div>
-              <div className={styles.requestDetailsMessage}>
-                {selectedRequest.message?.trim() || (
-                  <span className={styles.emptyValue}>—</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <RequestDetailsModal
+          item={selectedRequest}
+          statusOptions={statusOptions}
+          onClose={() => setSelectedRequest(null)}
+        />
       ) : null}
     </>
   );

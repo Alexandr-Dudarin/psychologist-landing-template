@@ -97,6 +97,10 @@
   vertical-align: middle;
 }
 
+.requestsTableFrame {
+  position: relative;
+}
+
 .requestNameCell {
   vertical-align: top;
   font-weight: 600;
@@ -217,14 +221,20 @@
 }
 
 .refreshNotice {
-  margin: 12px 0;
-  padding: 10px 14px;
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 5;
+  margin: 0;
+  padding: 8px 14px;
   border: 1px solid color-mix(in srgb, var(--admin-primary) 18%, white);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--admin-primary) 7%, white);
-  color: var(--admin-text-muted);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--admin-surface) 92%, white);
+  color: var(--admin-primary);
   font-size: 0.95rem;
-  line-height: 1.4;
+  font-weight: 600;
+  line-height: 1.25;
+  box-shadow: 0 12px 28px rgba(32, 48, 60, 0.12);
 }
 
 .tableSnapshotRefreshing {
@@ -474,6 +484,13 @@
 
   .requestDetailsMessage {
     max-height: 44vh;
+  }
+
+    .refreshNotice {
+    top: 10px;
+    right: 10px;
+    max-width: calc(100% - 20px);
+    font-size: 0.86rem;
   }
 }
 

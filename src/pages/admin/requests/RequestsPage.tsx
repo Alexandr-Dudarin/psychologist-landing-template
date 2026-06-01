@@ -235,33 +235,35 @@ export function RequestsPage() {
         <p>{t.admin.requests.messages.loading}</p>
       ) : hasTableSnapshot ? (
         <>
-          {isLoading ? (
-            <div className={styles.refreshNotice}>
-              Обновляем список заявок...
-            </div>
-          ) : null}
+          <div className={styles.requestsTableFrame}>
+            {isLoading ? (
+              <div className={styles.refreshNotice} role="status" aria-live="polite">
+                Обновляем список заявок...
+              </div>
+            ) : null}
 
-          <div className={isLoading ? styles.tableSnapshotRefreshing : undefined}>
-            <RequestsTable
-              items={items}
-              savingId={savingId}
-              creatingClientId={creatingClientId}
-              highlightedRequestId={highlightedRequestId}
-              statusOptions={statusOptions}
-              createdLabel={t.admin.requests.table.created}
-              nameLabel={t.admin.requests.table.name}
-              phoneLabel={t.admin.requests.table.phone}
-              emailLabel={t.admin.requests.table.email}
-              messageLabel={t.admin.requests.table.message}
-              statusLabel={t.admin.requests.table.status}
-              clientLabel={t.admin.requests.table.client}
-              actionsSavingLabel={t.admin.requests.actions.saving}
-              actionsCreateClientLabel={t.admin.requests.actions.createClient}
-              actionsCreatingClientLabel={t.admin.requests.actions.creatingClient}
-              actionsCreatedLabel={t.admin.requests.actions.created}
-              onStatusChange={handleStatusChange}
-              onCreateClient={handleCreateClient}
-            />
+            <div className={isLoading ? styles.tableSnapshotRefreshing : undefined}>
+              <RequestsTable
+                items={items}
+                savingId={savingId}
+                creatingClientId={creatingClientId}
+                highlightedRequestId={highlightedRequestId}
+                statusOptions={statusOptions}
+                createdLabel={t.admin.requests.table.created}
+                nameLabel={t.admin.requests.table.name}
+                phoneLabel={t.admin.requests.table.phone}
+                emailLabel={t.admin.requests.table.email}
+                messageLabel={t.admin.requests.table.message}
+                statusLabel={t.admin.requests.table.status}
+                clientLabel={t.admin.requests.table.client}
+                actionsSavingLabel={t.admin.requests.actions.saving}
+                actionsCreateClientLabel={t.admin.requests.actions.createClient}
+                actionsCreatingClientLabel={t.admin.requests.actions.creatingClient}
+                actionsCreatedLabel={t.admin.requests.actions.created}
+                onStatusChange={handleStatusChange}
+                onCreateClient={handleCreateClient}
+              />
+            </div>
           </div>
         </>
       ) : (
