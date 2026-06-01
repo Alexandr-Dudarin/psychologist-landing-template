@@ -69,7 +69,20 @@
 
 .requestsTableScope th.requestNameHeader,
 .requestsTableScope td.requestNameCell {
-  text-align: left;
+  text-align: center;
+}
+
+.requestsTableScope td.requestNameCell {
+  vertical-align: middle;
+}
+
+.requestNameCell a,
+.unlinkedClientName {
+  display: inline-flex;
+  justify-content: center;
+  max-width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .requestsTableScope th.requestClientHeader,
