@@ -10,6 +10,8 @@ import {
 import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
 import styles from "./RequestsPage.module.css";
 
+const SHOW_CLIENT_COLUMN = false;
+
 type StatusOption = {
   value: RequestStatus;
   label: string;
@@ -83,81 +85,155 @@ export function RequestsTable({
   }, [highlightedRequestId, items]);
 
   return (
-    <AdminTable>
-      <thead>
-        <tr>
-          <th>{createdLabel}</th>
-          <th>{nameLabel}</th>
-          <th>{phoneLabel}</th>
-          <th>{emailLabel}</th>
-          <th>{messageLabel}</th>
-          <th>{statusLabel}</th>
-          <th>{clientLabel}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {items.map((item) => {
-          const clientAlreadyCreated = item.clientId !== null;
-          const isHighlighted =
-            highlightedRequestId !== null &&
-            Number(highlightedRequestId) === Number(item.id);
+    <div className={styles.requestsTableScope}>
+      <AdminTable>
+        <colgroup>
+          <col className={styles.requestCreatedColumn} />
+          <col className={styles.requestMessageColumn} />
+          <col className={styles.requestPhoneColumn} />
+          <col className={styles.requestEmailColumn} />
+          <col className={styles.requestStatusColumn} />
+          <col className={styles.requestNameColumn} />
+          {SHOW_CLIENT_COLUMN ? (
+            <col className={styles.requestClientColumn} />
+          ) : null}
+        </colgroup>
 
-          return (
-            <tr
-              key={item.id}
-              ref={isHighlighted ? highlightedRowRef : null}
-              className={isHighlighted ? styles.highlightedRow : undefined}
-            >
-              <td>{new Date(item.createdAt).toLocaleString("ru-RU")}</td>
-              <td>{item.name}</td>
-              <td>{item.phone}</td>
-              <td>{item.email}</td>
-              <td>{item.message || "-"}</td>
-              <td>
-                <CustomSelect
-                  value={item.status}
-                  options={requestStatusOptions}
-                  onChange={(value) =>
-                    onStatusChange(item.id, value as RequestStatus)
-                  }
-                  ariaLabel={`Статус заявки: ${item.name}`}
-                  disabled={savingId === item.id}
-                  variant="admin"
-                  layout="form"
-                  className={styles.statusSelect}
-                />
+        <thead>
+          <tr>
+            <th className={styles.requestCreatedHeader}>{createdLabel}</th>
+            <th className={styles.requestMessageHeader}>{messageLabel}</th>
+            <th className={styles.requestPhoneHeader}>{phoneLabel}</th>
+            <th className={styles.requestEmailHeader}>{emailLabel}</th>
+            <th className={styles.requestStatusHeader}>{statusLabel}</th>
+            <th className={styles.requestNameHeader}>{nameLabel}</th>
+            {SHOW_CLIENT_COLUMN ? (
+              <th className={styles.requestClientHeader}>{clientLabel}</th>
+            ) : null}
+          </tr>
+        </thead>
 
-                {savingId === item.id ? (
-                  <div className={styles.savingText}>{actionsSavingLabel}</div>
-                ) : null}
-              </td>
-              <td>
-                {clientAlreadyCreated ? (
-                  <div className={styles.linkedClientText}>
+        <tbody>
+          {items.map((item) => {
+            const clientAlreadyCreated = item.clientId !== null;
+            const isHighlighted =
+              highlightedRequestId !== null &&
+              Number(highlightedRequestId) === Number(item.id);
+
+            return (
+              <tr
+                key={item.id}
+                ref={isHighlighted ? highlightedRowRef : null}
+                className={isHighlighted ? styles.highlightedRow : undefined}
+              >
+                <td className={styles.requestCreatedCell}>
+                  {new Date(item.createdAt).toLocaleString("ru-RU")}
+                </td>
+
+                <td className={styles.requestMessageCell}>
+                  {item.message ? (
+                    item.message
+                  ) : (
+                    <span className={styles.emptyValue}>—</span>
+                  )}
+                </td>
+
+                <td className={styles.requestPhoneCell}>
+                  {item.phone ? (
+                    item.phone
+                  ) : (
+                    <span className={styles.emptyValue}>—</span>
+                  )}
+                </td>
+
+                <td className={styles.requestEmailCell}>
+                  {item.email ? (
+                    item.email
+                  ) : (
+                    <span className={styles.emptyValue}>—</span>
+                  )}
+                </td>
+
+                <td className={styles.requestStatusCell}>
+                  <CustomSelect
+                    value={item.status}
+                    options={requestStatusOptions}
+                    onChange={(value) =>
+                      onStatusChange(item.id, value as RequestStatus)
+                    }
+                    ariaLabel={`Статус заявки: ${item.name}`}
+                    disabled={savingId === item.id}
+                    variant="admin"
+                    layout="form"
+                    className={styles.statusSelect}
+                  />
+
+                  {savingId === item.id ? (
+                    <div className={styles.savingText}>
+                      {actionsSavingLabel}
+                    </div>
+                  ) : null}
+                </td>
+
+                <td className={styles.requestNameCell}>
+                  {clientAlreadyCreated ? (
                     <Link to={`/admin/clients?highlightClientId=${item.clientId}`}>
-                      К клиенту
+                      {item.name}
                     </Link>
-                  </div>
-                ) : null}
+                  ) : (
+                    <div className={styles.unlinkedClientName}>{item.name}</div>
+                  )}
 
-                <AdminButton
-                  type="button"
-                  onClick={() => onCreateClient(item.id)}
-                  disabled={creatingClientId === item.id || clientAlreadyCreated}
-                  size="sm"
-                  variant="secondary"
-                >
-                  {clientAlreadyCreated
-                    ? actionsCreatedLabel
-                    : creatingClientId === item.id
-                      ? actionsCreatingClientLabel
-                      : actionsCreateClientLabel}
-                </AdminButton>
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </AdminTable>
+                  {!clientAlreadyCreated && !SHOW_CLIENT_COLUMN ? (
+                    <AdminButton
+                      type="button"
+                      onClick={() => onCreateClient(item.id)}
+                      disabled={creatingClientId === item.id}
+                      size="sm"
+                      variant="secondary"
+                      className={styles.inlineCreateClientButton}
+                    >
+                      {creatingClientId === item.id
+                        ? actionsCreatingClientLabel
+                        : actionsCreateClientLabel}
+                    </AdminButton>
+                  ) : null}
+                </td>
+
+                {SHOW_CLIENT_COLUMN ? (
+                  <td className={styles.requestClientCell}>
+                    {clientAlreadyCreated ? (
+                      <div className={styles.linkedClientText}>
+                        <Link
+                          to={`/admin/clients?highlightClientId=${item.clientId}`}
+                        >
+                          К клиенту
+                        </Link>
+                      </div>
+                    ) : null}
+
+                    <AdminButton
+                      type="button"
+                      onClick={() => onCreateClient(item.id)}
+                      disabled={
+                        creatingClientId === item.id || clientAlreadyCreated
+                      }
+                      size="sm"
+                      variant="secondary"
+                    >
+                      {clientAlreadyCreated
+                        ? actionsCreatedLabel
+                        : creatingClientId === item.id
+                          ? actionsCreatingClientLabel
+                          : actionsCreateClientLabel}
+                    </AdminButton>
+                  </td>
+                ) : null}
+              </tr>
+            );
+          })}
+        </tbody>
+      </AdminTable>
+    </div>
   );
 }
