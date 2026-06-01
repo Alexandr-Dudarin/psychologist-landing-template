@@ -444,6 +444,12 @@
   }
 }
 
+@media (max-width: 675px) {
+  .blockedReasonColumn {
+    display: none;
+  }
+}
+
 @media (max-width: 610px) {
   .overrideTypeColumn {
     display: none;
