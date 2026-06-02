@@ -425,7 +425,9 @@ export function RequestsPage() {
               <p className={styles.empty}>Загружаем старые заявки...</p>
             ) : oldItems.length > 0 ? (
               <>
-                <div className={styles.requestsTableFrame}>
+                <div
+                  className={`${styles.requestsTableFrame} ${styles.oldRequestsTableFrame}`}
+                >
                   {isOldRequestsLoading ? (
                     <div
                       className={styles.refreshNotice}
@@ -448,6 +450,7 @@ export function RequestsPage() {
                       savingId={savingId}
                       creatingClientId={creatingClientId}
                       highlightedRequestId={null}
+                      isStatusChangeDisabled={true}
                       statusOptions={statusOptions}
                       createdLabel={t.admin.requests.table.created}
                       nameLabel={t.admin.requests.table.name}
@@ -471,7 +474,7 @@ export function RequestsPage() {
                 </div>
 
                 {oldRequestsHasMore ||
-                shouldShowBottomOldRequestsHideButton ? (
+                  shouldShowBottomOldRequestsHideButton ? (
                   <div className={styles.oldRequestsFooterActions}>
                     {oldRequestsHasMore ? (
                       <AdminButton
@@ -490,6 +493,7 @@ export function RequestsPage() {
                       <AdminButton
                         type="button"
                         variant="secondary"
+                        className={styles.oldRequestsToggleButton}
                         onClick={() => setIsOldRequestsOpen(false)}
                       >
                         <span className={styles.oldRequestsFullLabel}>

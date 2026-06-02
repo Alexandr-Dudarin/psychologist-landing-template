@@ -34,6 +34,7 @@ type RequestsTableProps = {
   phoneLabel: string;
   savingId: number | null;
   statusLabel: string;
+  isStatusChangeDisabled?: boolean;
   statusOptions: StatusOption[];
   onCreateClient: (requestId: number) => void;
   onStatusChange: (requestId: number, status: RequestStatus) => void;
@@ -97,6 +98,7 @@ export function RequestsTable({
   creatingClientId,
   emailLabel,
   highlightedRequestId = null,
+  isStatusChangeDisabled = false,
   items,
   messageLabel,
   nameLabel,
@@ -252,11 +254,15 @@ export function RequestsTable({
                     <CustomSelect
                       value={item.status}
                       options={requestStatusOptions}
-                      onChange={(value) =>
-                        onStatusChange(item.id, value as RequestStatus)
-                      }
+                      onChange={(value) => {
+                        if (isStatusChangeDisabled) {
+                          return;
+                        }
+
+                        onStatusChange(item.id, value as RequestStatus);
+                      }}
                       ariaLabel={`Статус заявки: ${item.name}`}
-                      disabled={savingId === item.id}
+                      disabled={isStatusChangeDisabled || savingId === item.id}
                       variant="admin"
                       layout="form"
                       className={styles.statusSelect}
