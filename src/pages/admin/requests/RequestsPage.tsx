@@ -103,34 +103,38 @@ export function RequestsPage() {
           scope: highlightedRequestId !== null ? "all" : "active",
         });
 
+        if (!isMounted) {
+          return;
+        }
+
         const unviewedRequestIds = requests
           .filter((request) => request.viewedAt === null)
           .map((request) => request.id);
 
-        if (isMounted) {
-          setItems(requests);
+        setItems(requests);
 
-          if (unviewedRequestIds.length > 0) {
-            setNewRequestIds((current) => {
-              const next = new Set(current);
+        if (unviewedRequestIds.length > 0) {
+          setNewRequestIds((current) => {
+            const next = new Set(current);
 
-              unviewedRequestIds.forEach((requestId) => {
-                next.add(requestId);
-              });
-
-              return next;
+            unviewedRequestIds.forEach((requestId) => {
+              next.add(requestId);
             });
-          }
+
+            return next;
+          });
         }
 
         if (unviewedRequestIds.length > 0) {
           try {
             const viewedItems = await markAdminRequestsViewed(unviewedRequestIds);
 
-            if (isMounted) {
-              setItems((current) => mergeViewedRequests(current, viewedItems));
-              setOldItems((current) => mergeViewedRequests(current, viewedItems));
+            if (!isMounted) {
+              return;
             }
+
+            setItems((current) => mergeViewedRequests(current, viewedItems));
+            setOldItems((current) => mergeViewedRequests(current, viewedItems));
           } catch (markViewedError) {
             if (isMounted) {
               setError(
@@ -621,7 +625,7 @@ export function RequestsPage() {
                 </div>
 
                 {oldRequestsHasMore ||
-                shouldShowBottomOldRequestsHideButton ? (
+                  shouldShowBottomOldRequestsHideButton ? (
                   <div className={styles.oldRequestsFooterActions}>
                     {oldRequestsHasMore ? (
                       <AdminButton

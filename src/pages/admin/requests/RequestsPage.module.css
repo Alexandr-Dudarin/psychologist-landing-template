@@ -165,7 +165,7 @@
 .requestNameContent {
   display: grid;
   justify-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 
 .requestNameCell a {
@@ -271,14 +271,16 @@
   align-items: center;
   justify-content: center;
   width: fit-content;
-  padding: 3px 8px;
-  border: 1px solid color-mix(in srgb, var(--admin-primary) 26%, white);
+  min-height: 24px;
+  padding: 5px 11px;
+  border: 1px solid color-mix(in srgb, var(--color-accent, #b08a7a) 34%, white);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--admin-primary) 10%, white);
-  color: var(--admin-primary);
-  font-size: 0.76rem;
-  font-weight: 700;
+  background: color-mix(in srgb, var(--color-accent, #b08a7a) 20%, white);
+  color: color-mix(in srgb, var(--color-accent, #b08a7a) 88%, #4d342a);
+  font-size: 0.82rem;
+  font-weight: 400;
   line-height: 1.2;
+  box-shadow: 0 6px 14px rgba(120, 82, 64, 0.1);
 }
 
 .quickViewBanner {
@@ -547,7 +549,7 @@
     width: 100%;
   }
 
-    .newRequestsSection {
+  .newRequestsSection {
     padding: 12px;
     border-radius: 16px;
   }
