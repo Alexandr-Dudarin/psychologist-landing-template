@@ -130,6 +130,39 @@ function parseOffset(value: string): number | null {
   return parsed;
 }
 
+function isValidDateFilter(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+  if (!match) {
+    return false;
+  }
+
+  const date = new Date(`${value}T00:00:00.000Z`);
+
+  if (Number.isNaN(date.getTime())) {
+    return false;
+  }
+
+  return date.toISOString().slice(0, 10) === value;
+}
+
+function parseDateFilter(value: string): string | null {
+  if (!value) {
+    return "";
+  }
+
+  return isValidDateFilter(value) ? value : null;
+}
+
+function isValidTimeZone(value: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: value }).format(new Date());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function parseOptionalId(value: unknown): number | null | undefined {
   if (value === null || value === undefined || value === "") {
     return null;
@@ -540,6 +573,8 @@ async function handleList(req: any, res: any) {
   const clientIdRaw = getSingleQueryValue(req.query?.clientId).trim();
   const serviceIdRaw = getSingleQueryValue(req.query?.serviceId).trim();
   const search = getSingleQueryValue(req.query?.search).trim();
+  const dateRaw = getSingleQueryValue(req.query?.date).trim();
+  const timezoneRaw = getSingleQueryValue(req.query?.timezone).trim();
   const limitRaw = getSingleQueryValue(req.query?.limit).trim();
   const offsetRaw = getSingleQueryValue(req.query?.offset).trim();
 
@@ -553,6 +588,18 @@ async function handleList(req: any, res: any) {
 
   if (offset === null) {
     return res.status(400).json({ error: "Некорректное смещение" });
+  }
+
+  const dateFilter = parseDateFilter(dateRaw);
+
+  if (dateFilter === null) {
+    return res.status(400).json({ error: "Некорректная дата" });
+  }
+
+  const timezone = timezoneRaw || "Europe/Moscow";
+
+  if (dateFilter && !isValidTimeZone(timezone)) {
+    return res.status(400).json({ error: "Некорректный часовой пояс" });
   }
 
   const conditions: string[] = [];
@@ -599,6 +646,18 @@ async function handleList(req: any, res: any) {
 
     values.push(serviceId);
     conditions.push(`s.service_id = $${values.length}`);
+  }
+
+  if (dateFilter) {
+    values.push(timezone);
+    const timezoneIndex = values.length;
+
+    values.push(dateFilter);
+    const dateIndex = values.length;
+
+    conditions.push(
+      `(s.scheduled_at AT TIME ZONE $${timezoneIndex})::date = $${dateIndex}::date`
+    );
   }
 
   if (search) {

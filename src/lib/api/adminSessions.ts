@@ -48,6 +48,8 @@ export type AdminSessionsFilters = {
   serviceId?: number | "all";
   search?: string;
   scope?: SessionListScope;
+  date?: string | null;
+  timezone?: string;
   limit?: number;
   offset?: number;
 };
@@ -96,6 +98,14 @@ export async function getAdminSessionsPage(
 
   if (filters.search?.trim()) {
     params.set("search", filters.search.trim());
+  }
+
+  if (filters.date?.trim()) {
+    params.set("date", filters.date.trim());
+  }
+
+  if (filters.timezone?.trim()) {
+    params.set("timezone", filters.timezone.trim());
   }
 
   appendNumberParam(params, "limit", filters.limit);

@@ -328,12 +328,14 @@ export function SessionsPage() {
         const activeSessionsPromise: Promise<CrmSessionRecord[] | null> =
           shouldLoadActiveSessions
             ? getAdminSessions({
-              scope: "active",
-              status: statusFilter,
-              clientId: clientFilter,
-              serviceId: serviceFilter,
-              search: searchQuery,
-            })
+                scope: "active",
+                status: statusFilter,
+                clientId: clientFilter,
+                serviceId: serviceFilter,
+                search: searchQuery,
+                date: dateFilter,
+                timezone: scheduleTimezone,
+              })
             : Promise.resolve(null);
 
         const [sessionsData, clientsData, servicesData, scheduleData] =
@@ -383,6 +385,8 @@ export function SessionsPage() {
     clientFilter,
     serviceFilter,
     searchQuery,
+    dateFilter,
+    scheduleTimezone,
     shouldLoadActiveSessions,
   ]);
 
@@ -406,6 +410,8 @@ export function SessionsPage() {
           clientId: clientFilter,
           serviceId: serviceFilter,
           search: searchQuery,
+          date: dateFilter,
+          timezone: scheduleTimezone,
           limit: ARCHIVED_SESSIONS_PAGE_SIZE,
           offset: 0,
         });
@@ -442,6 +448,8 @@ export function SessionsPage() {
     clientFilter,
     serviceFilter,
     searchQuery,
+    dateFilter,
+    scheduleTimezone,
   ]);
 
   useEffect(() => {
@@ -553,23 +561,27 @@ export function SessionsPage() {
     const [sessionsData, archivedSessionsData] = await Promise.all([
       shouldLoadActiveSessions
         ? getAdminSessions({
-          scope: "active",
-          status: statusFilter,
-          clientId: clientFilter,
-          serviceId: serviceFilter,
-          search: searchQuery,
-        })
+            scope: "active",
+            status: statusFilter,
+            clientId: clientFilter,
+            serviceId: serviceFilter,
+            search: searchQuery,
+            date: dateFilter,
+            timezone: scheduleTimezone,
+          })
         : Promise.resolve(null),
       shouldDisplayArchivedSessions
         ? getAdminSessionsPage({
-          scope: "archived",
-          status: statusFilter,
-          clientId: clientFilter,
-          serviceId: serviceFilter,
-          search: searchQuery,
-          limit: ARCHIVED_SESSIONS_PAGE_SIZE,
-          offset: 0,
-        })
+            scope: "archived",
+            status: statusFilter,
+            clientId: clientFilter,
+            serviceId: serviceFilter,
+            search: searchQuery,
+            date: dateFilter,
+            timezone: scheduleTimezone,
+            limit: ARCHIVED_SESSIONS_PAGE_SIZE,
+            offset: 0,
+          })
         : Promise.resolve(null),
     ]);
 
@@ -861,6 +873,8 @@ export function SessionsPage() {
         clientId: clientFilter,
         serviceId: serviceFilter,
         search: searchQuery,
+        date: dateFilter,
+        timezone: scheduleTimezone,
         limit: ARCHIVED_SESSIONS_PAGE_SIZE,
         offset: archivedItems.length,
       });

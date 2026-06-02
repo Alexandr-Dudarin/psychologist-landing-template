@@ -90,11 +90,10 @@ export function SessionsListBlock({
   onShowArchivedSessions,
   onStatusFilterChange,
 }: SessionsListBlockProps) {
-  const shouldShowArchivedFooterActions =
-    shouldDisplayArchivedSessions &&
-    displayedArchivedItems.length > 0 &&
-    (archivedSessionsHasMore ||
-      (canToggleArchivedSessions && displayedArchivedItems.length > 10));
+const shouldShowArchivedFooterActions =
+  shouldDisplayArchivedSessions &&
+  (archivedSessionsHasMore ||
+    (canToggleArchivedSessions && displayedArchivedItems.length > 10));
 
   return (
     <>

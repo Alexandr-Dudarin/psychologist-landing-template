@@ -188,9 +188,9 @@ function createQueryMock(options: MockDbOptions = {}) {
       return {
         rows: [
           options.selectedSession ??
-            sessionRow({
-              id: values?.[0] as string | number,
-            }),
+          sessionRow({
+            id: values?.[0] as string | number,
+          }),
         ],
       };
     }
@@ -353,6 +353,35 @@ describe("admin sessions API", () => {
     expect(queryLog[0].sql).toContain("spp.title ILIKE $4");
   });
 
+  it("applies date filter with timezone before pagination", async () => {
+    const { queryLog } = createQueryMock({ listRows: [] });
+
+    const res = await callAdminSessions({
+      method: "GET",
+      query: {
+        scope: "archived",
+        date: "2027-06-21",
+        timezone: "Europe/Moscow",
+        limit: "2",
+        offset: "4",
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(queryLog).toHaveLength(1);
+    expect(queryLog[0].sql).toContain(
+      "(s.scheduled_at AT TIME ZONE $1)::date = $2::date"
+    );
+    expect(queryLog[0].sql).toContain("LIMIT $3");
+    expect(queryLog[0].sql).toContain("OFFSET $4");
+    expect(queryLog[0].values).toEqual([
+      "Europe/Moscow",
+      "2027-06-21",
+      3,
+      4,
+    ]);
+  });
+
   it("adds archived scope status conditions", async () => {
     const { queryLog } = createQueryMock({ listRows: [] });
 
@@ -368,7 +397,7 @@ describe("admin sessions API", () => {
     expect(queryLog[0].values).toEqual([]);
   });
 
-    it("paginates archived sessions and returns hasMore when an extra row is loaded", async () => {
+  it("paginates archived sessions and returns hasMore when an extra row is loaded", async () => {
     const { queryLog } = createQueryMock({
       listRows: [
         sessionRow({ id: "901" }),
@@ -415,6 +444,9 @@ describe("admin sessions API", () => {
     ["invalid offset negative", { offset: "-1" }],
     ["invalid offset decimal", { offset: "1.5" }],
     ["invalid offset text", { offset: "next" }],
+    ["invalid date format", { date: "21-06-2027" }],
+    ["invalid date value", { date: "2027-13-01" }],
+    ["invalid timezone", { date: "2027-06-21", timezone: "Mars/Base" }],
   ])("rejects invalid list query: %s", async (_caseName, query) => {
     const res = await callAdminSessions({ method: "GET", query });
 
