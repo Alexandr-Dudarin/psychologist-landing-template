@@ -11,6 +11,7 @@ import { requestStatuses } from "../../src/types/request.js";
 import type { PreferredContactMethod } from "../../src/types/preferredContact.js";
 
 type ParsedUpdatePayload = UpdateRequestStatusPayload | null;
+type ParsedMarkViewedPayload = { ids: number[] } | null;
 type RequestListScope = "all" | "active" | "old";
 
 const OLD_REQUESTS_LIMIT_FALLBACK = 100;
@@ -27,7 +28,13 @@ type RequestRow = {
   preferred_contact_method: string | null;
   preferred_contact_value: string | null;
   created_at: string;
+  viewed_at: string | null;
   client_id: string | number | null;
+};
+
+type ViewedRequestRow = {
+  id: string | number;
+  viewed_at: string;
 };
 
 function toRequestStatus(value: string): RequestStatus {
@@ -86,15 +93,23 @@ function parseOffset(value: string): number | null {
   return parsed;
 }
 
-function parseUpdatePayload(body: any): ParsedUpdatePayload {
-  let rawBody = body;
+function parseJsonBody(body: any): any | null {
+  if (typeof body !== "string") {
+    return body;
+  }
 
-  if (typeof rawBody === "string") {
-    try {
-      rawBody = JSON.parse(rawBody);
-    } catch {
-      return null;
-    }
+  try {
+    return JSON.parse(body);
+  } catch {
+    return null;
+  }
+}
+
+function parseUpdatePayload(body: any): ParsedUpdatePayload {
+  const rawBody = parseJsonBody(body);
+
+  if (!rawBody) {
+    return null;
   }
 
   const id = Number(rawBody?.id);
@@ -118,6 +133,30 @@ function parseUpdatePayload(body: any): ParsedUpdatePayload {
   };
 }
 
+function parseMarkViewedPayload(body: any): ParsedMarkViewedPayload {
+  const rawBody = parseJsonBody(body);
+
+  if (!rawBody || !Array.isArray(rawBody.ids)) {
+    return null;
+  }
+
+  const parsedIds: number[] = rawBody.ids.map((id: unknown) => Number(id));
+
+  if (parsedIds.length === 0) {
+    return null;
+  }
+
+  if (parsedIds.some((id) => !Number.isInteger(id) || id <= 0)) {
+    return null;
+  }
+
+  const ids = Array.from(new Set(parsedIds));
+
+  return {
+    ids,
+  };
+}
+
 function mapRequestRow(row: RequestRow): CrmRequestRecord {
   return {
     id: Number(row.id),
@@ -131,7 +170,15 @@ function mapRequestRow(row: RequestRow): CrmRequestRecord {
       row.preferred_contact_method as PreferredContactMethod | null,
     preferredContactValue: row.preferred_contact_value,
     createdAt: row.created_at,
+    viewedAt: row.viewed_at,
     clientId: row.client_id === null ? null : Number(row.client_id),
+  };
+}
+
+function mapViewedRequestRow(row: ViewedRequestRow) {
+  return {
+    id: Number(row.id),
+    viewedAt: row.viewed_at,
   };
 }
 
@@ -231,6 +278,7 @@ async function handleList(req: any, res: any) {
           r.preferred_contact_method,
           r.preferred_contact_value,
           r.created_at,
+          r.viewed_at,
           r.client_id
         FROM requests r
         ${whereClause}
@@ -291,6 +339,34 @@ async function handleUpdate(req: any, res: any) {
   }
 }
 
+async function handleMarkViewed(req: any, res: any) {
+  const payload = parseMarkViewedPayload(req.body);
+
+  if (!payload) {
+    return res.status(400).json({ error: "Invalid payload" });
+  }
+
+  try {
+    const result = await pool.query<ViewedRequestRow>(
+      `
+        UPDATE requests
+        SET viewed_at = COALESCE(viewed_at, NOW())
+        WHERE id = ANY($1::bigint[])
+        RETURNING id, viewed_at
+      `,
+      [payload.ids]
+    );
+
+    return res.status(200).json({
+      success: true,
+      items: result.rows.map(mapViewedRequestRow),
+    });
+  } catch (error) {
+    console.error("Request mark viewed error:", error);
+    return res.status(500).json({ error: "Failed to mark requests as viewed" });
+  }
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method === "GET") {
     if (!requireAdminRequest(req, res)) {
@@ -312,6 +388,10 @@ export default async function handler(req: any, res: any) {
 
   if (action === "update") {
     return handleUpdate(req, res);
+  }
+
+  if (action === "mark-viewed") {
+    return handleMarkViewed(req, res);
   }
 
   return res.status(405).json({ error: "Method not allowed" });

@@ -33,6 +33,7 @@ type RequestRow = {
   preferred_contact_method: string | null;
   preferred_contact_value: string | null;
   created_at: string;
+  viewed_at: string | null;
   client_id: number | string | null;
 };
 
@@ -48,6 +49,7 @@ function requestRow(overrides: Partial<RequestRow> = {}): RequestRow {
     preferred_contact_method: "telegram",
     preferred_contact_value: "@irina_test",
     created_at: "2027-04-01T09:00:00.000Z",
+    viewed_at: "2027-04-01T09:05:00.000Z",
     client_id: "501",
     ...overrides,
   };
@@ -61,6 +63,21 @@ function createMockDb(rows: RequestRow[] = []) {
 
     if (sql.includes("FROM requests")) {
       return { rows };
+    }
+
+    if (sql.includes("SET viewed_at")) {
+      return {
+        rows: [
+          {
+            id: "301",
+            viewed_at: "2027-04-01T09:10:00.000Z",
+          },
+          {
+            id: "302",
+            viewed_at: "2027-04-01T09:11:00.000Z",
+          },
+        ],
+      };
     }
 
     if (sql.includes("UPDATE requests")) {
@@ -106,6 +123,7 @@ describe("admin requests API", () => {
         preferred_contact_method: null,
         preferred_contact_value: null,
         created_at: "2027-04-02T10:00:00.000Z",
+        viewed_at: null,
         client_id: null,
       }),
     ]);
@@ -129,6 +147,7 @@ describe("admin requests API", () => {
           preferredContactMethod: "telegram",
           preferredContactValue: "@irina_test",
           createdAt: "2027-04-01T09:00:00.000Z",
+          viewedAt: "2027-04-01T09:05:00.000Z",
           clientId: 501,
         },
         {
@@ -142,12 +161,14 @@ describe("admin requests API", () => {
           preferredContactMethod: null,
           preferredContactValue: null,
           createdAt: "2027-04-02T10:00:00.000Z",
+          viewedAt: null,
           clientId: null,
         },
       ],
     });
     expect(queryLog).toHaveLength(1);
     expect(queryLog[0].sql).toContain("FROM requests");
+    expect(queryLog[0].sql).toContain("r.viewed_at");
     expect(queryLog[0].sql).toContain("ORDER BY r.created_at DESC");
     expect(queryLog[0].values).toEqual([]);
   });
@@ -322,6 +343,47 @@ describe("admin requests API", () => {
     expect(queryLog[0].values).toEqual(["completed", 301]);
   });
 
+  it("marks requests as viewed without overwriting already viewed timestamps", async () => {
+    const { queryLog } = createMockDb();
+
+    const handler = await loadRequestsHandler();
+    const res = createMockResponse();
+
+    await handler(
+      createMockRequest({
+        method: "POST",
+        query: { action: "mark-viewed" },
+        body: JSON.stringify({
+          ids: ["301", 302, 302],
+        }),
+      }),
+      res
+    );
+
+    expect(res.statusCode).toBe(200);
+    expect(res.jsonBody).toEqual({
+      success: true,
+      items: [
+        {
+          id: 301,
+          viewedAt: "2027-04-01T09:10:00.000Z",
+        },
+        {
+          id: 302,
+          viewedAt: "2027-04-01T09:11:00.000Z",
+        },
+      ],
+    });
+    expect(queryLog).toHaveLength(1);
+    expect(queryLog[0].sql).toContain("UPDATE requests");
+    expect(queryLog[0].sql).toContain(
+      "SET viewed_at = COALESCE(viewed_at, NOW())"
+    );
+    expect(queryLog[0].sql).toContain("WHERE id = ANY($1::bigint[])");
+    expect(queryLog[0].sql).toContain("RETURNING id, viewed_at");
+    expect(queryLog[0].values).toEqual([[301, 302]]);
+  });
+
   it("returns not found when a valid status update has no matching request", async () => {
     const queryLog: QueryLogEntry[] = [];
     poolQueryMock.mockImplementation(async (sql: string, values?: unknown[]) => {
@@ -377,6 +439,38 @@ describe("admin requests API", () => {
     expect(poolQueryMock).not.toHaveBeenCalled();
   });
 
+  it("rejects invalid mark viewed payloads before querying the database", async () => {
+    createMockDb();
+    const handler = await loadRequestsHandler();
+
+    for (const body of [
+      {},
+      { ids: [] },
+      { ids: "301" },
+      { ids: [0] },
+      { ids: [-1] },
+      { ids: [1.5] },
+      { ids: ["not-a-number"] },
+      "{bad json",
+    ]) {
+      const res = createMockResponse();
+
+      await handler(
+        createMockRequest({
+          method: "POST",
+          query: { action: "mark-viewed" },
+          body,
+        }),
+        res
+      );
+
+      expect(res.statusCode).toBe(400);
+      expect(res.jsonBody).toEqual({ error: "Invalid payload" });
+    }
+
+    expect(poolQueryMock).not.toHaveBeenCalled();
+  });
+
   it("handles missing action, unknown action, and unsupported methods without DB access", async () => {
     createMockDb();
     const handler = await loadRequestsHandler();
@@ -418,6 +512,32 @@ describe("admin requests API", () => {
     const res = createMockResponse();
 
     await handler(createMockRequest({ method: "GET" }), res);
+
+    expect(res.statusCode).toBe(401);
+    expect(res.jsonBody).toEqual({ error: "Unauthorized" });
+    expect(poolQueryMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks unauthorized mark viewed requests before DB access", async () => {
+    createMockDb();
+    requireAdminRequestMock.mockImplementation((_req, res) => {
+      res.status(401).json({ error: "Unauthorized" });
+      return false;
+    });
+
+    const handler = await loadRequestsHandler();
+    const res = createMockResponse();
+
+    await handler(
+      createMockRequest({
+        method: "POST",
+        query: { action: "mark-viewed" },
+        body: {
+          ids: [301],
+        },
+      }),
+      res
+    );
 
     expect(res.statusCode).toBe(401);
     expect(res.jsonBody).toEqual({ error: "Unauthorized" });

@@ -27,9 +27,6 @@ It has since evolved into a more product-oriented foundation that combines:
 - package / multi-session service foundations
 - planner / scheduler groundwork
 
-The goal of the project is not only to build a strong landing page, foundations
-- planner / scheduler groundwork
-
 The goal of the project is not only to build a strong landing page, but also to create a reusable base that can later be adapted for real client projects and extended into a more advanced booking / CRM product.
 
 At its current stage, this is much closer to a **landing + CRM + booking template** than to a static marketing page.
@@ -136,8 +133,22 @@ A dedicated `/book` page with:
 - success / conflict / error states
 - skeleton loading state
 - booking timezone display
+- request message length validation
 
 This allows the template to support both simpler low-cost versions and more advanced CRM-connected versions.
+
+## Booking Request Message Validation
+
+The public `/book` flow limits the free-text field “Коротко опишите ваш запрос”.
+
+Current behavior:
+
+- the message has a maximum allowed length
+- if the user exceeds the limit, the booking cannot continue
+- the validation message explains that the text is too long
+- the message also tells the user how many characters need to be removed
+
+This protects the CRM tables and admin UI from extremely long user-submitted text.
 
 ## Package / Multi-session Foundations
 
@@ -171,6 +182,17 @@ The project already includes booking-related admin foundations:
 - blocked time slots
 - reusable calendar/date picker UI for admin schedule forms
 - reusable admin time select foundation
+
+Recent schedule work also improved:
+
+- responsive schedule tables
+- schedule table column alignment
+- mobile-friendly weekday labels
+- compact admin time select behavior on narrow screens
+- separate validation for long schedule comments
+- maximum length protection for blocked-slot reasons
+- maximum length protection for schedule override comments
+- safer table behavior for long comments and reasons
 
 The project also includes a planner / scheduler foundation with multiple view modes and timeline-based rendering groundwork.
 
@@ -209,6 +231,60 @@ The admin area has also gone through structural refactoring:
 - part of admin UI localization has already been added
 - the codebase was prepared for further reuse and scaling
 
+## Admin Requests Features
+
+The admin requests page currently supports:
+
+- status filtering
+- text search
+- client creation from a request
+- request status updates
+- quick transition to a related client by clicking the client name
+- optional / hideable client-related column behavior
+- full request message modal
+- responsive message previews
+- stable refresh state while filters update
+- reset filters button
+- old requests loading as a separate section
+
+Old requests are handled separately from the main list.
+
+Current old-request behavior:
+
+- the main requests list keeps only active / recent requests
+- requests older than 32 days are loaded into a separate collapsible section
+- old requests are loaded in pages
+- the first visible batch is limited
+- more old requests can be loaded through a “Показать ещё 100” button
+- the old requests section can be hidden again
+- old request status changes are disabled to avoid accidentally editing archived / older data
+- the old requests table has a visually muted state so it is easier to distinguish from the main list
+
+This keeps the requests page faster and easier to scan when the project accumulates many records.
+
+## Admin Schedule Features
+
+The schedule admin page currently supports:
+
+- booking settings
+- weekly working rules
+- per-date schedule overrides
+- blocked time slots
+- reusable admin date picker
+- reusable admin time select
+- editing and deleting schedule overrides
+- editing and deleting blocked slots
+- responsive schedule tables
+- compact behavior on narrow mobile widths
+
+Schedule validation includes:
+
+- date checks
+- time range checks
+- past-date protection where applicable
+- maximum length checks for blocked-slot reasons
+- maximum length checks for override comments
+
 ## Recent Refactoring / UI Improvements
 
 Recent maintenance and polish work included:
@@ -226,6 +302,14 @@ Recent maintenance and polish work included:
 - safer date handling in schedule-related forms
 - booking page copy/helpers/types extraction
 - preservation of existing UI, colors, icons, and business logic during refactoring
+- responsive polish for notes, services, service packages, schedule, and requests tables
+- centered table headers / values where appropriate
+- improved empty values in admin tables
+- compact action labels on narrow screens
+- old requests section with paginated loading
+- request message modal extraction
+- public booking request message length validation
+- admin help page updates for currently implemented functionality
 
 ## Tech Stack
 
@@ -250,6 +334,8 @@ Recent maintenance and polish work included:
 - Supporting package / multi-session service logic
 - Improving maintainability through bounded refactoring and shared UI primitives
 - Preparing a project for deployment, SEO, and social preview sharing
+- Designing admin screens that remain usable on desktop, tablet, and mobile widths
+- Thinking through long-term CRM data growth, including old requests and archived-like lists
 
 ## Project Structure
 
@@ -656,6 +742,25 @@ npm run build
 
 The project may show a Vite chunk-size warning after a successful build. This is not the same as a TypeScript or runtime error. Future code splitting can be considered later if needed.
 
+## Tests
+
+The project uses Vitest for automated tests.
+
+Run tests:
+
+```bash
+npm run test
+```
+
+Relevant tested areas include admin API behavior, public booking behavior, package booking logic, payment-related foundations, reminders, and helper logic.
+
+Before committing important CRM / booking / API changes, the recommended baseline is:
+
+```bash
+npm run test
+npm run build
+```
+
 ## Deployment
 
 This project is designed to be deployed on **Vercel**.
@@ -722,6 +827,27 @@ The project is gradually moving toward a more reusable product structure with:
 
 This is especially important for adapting the template not only for psychologists, but also for other specialists and service businesses.
 
+## Scheduler / Premium Calendar Direction
+
+The planner / scheduler direction is intended to grow into a more product-complete premium module.
+
+The long-term idea is to avoid building a one-off calendar screen and instead move toward a reusable calendar layer with:
+
+- day view
+- week view
+- month view
+- sessions
+- free time
+- blocked slots
+- schedule overrides
+- day metadata
+- hints
+- badges
+- compact month overview
+- richer scheduler interactions
+
+This can later become a paid / premium module that can be enabled through feature flags.
+
 ## Current Development Notes
 
 Some parts of the project have already gone through focused polish / refactor passes, including:
@@ -738,6 +864,9 @@ Some parts of the project have already gone through focused polish / refactor pa
 - parts of notes / requests / clients admin UI
 - shared custom select foundation
 - schedule form select/time-select improvements
+- schedule table responsive improvements
+- requests table responsive improvements
+- old requests section
 - parts of planner / scheduler groundwork
 
 The project also uses bounded refactoring where it improves maintainability without rewriting stable logic.
@@ -765,6 +894,8 @@ Planned / possible future directions include:
 - stronger documentation for feature flags and setup
 - final responsive audit across desktop, tablet, and mobile sizes
 - premium Cyrillic-compatible font selection
+- better handling of very large historical CRM datasets
+- optional notification / unread-like logic for new requests
 
 ## Why I Built This
 

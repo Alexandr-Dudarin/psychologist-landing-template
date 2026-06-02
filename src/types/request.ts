@@ -41,6 +41,7 @@ export type CrmRequestRecord = {
   preferredContactMethod: PreferredContactMethod | null;
   preferredContactValue: string | null;
   createdAt: string;
+  viewedAt: string | null;
   clientId: number | null;
 };
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../../../app/providers/LanguageProvider";
@@ -6,6 +6,7 @@ import { createClientFromRequest } from "../../../lib/api/adminClients";
 import {
   getAdminRequests,
   getAdminRequestsPage,
+  markAdminRequestsViewed,
   updateAdminRequestStatus,
 } from "../../../lib/api/adminRequests";
 import { AdminButton } from "../../../components/admin/AdminButton";
@@ -18,12 +19,41 @@ import styles from "./RequestsPage.module.css";
 
 const OLD_REQUESTS_PAGE_SIZE = 100;
 
+function mergeViewedRequests(
+  items: CrmRequestRecord[],
+  viewedItems: Array<{ id: number; viewedAt: string }>
+): CrmRequestRecord[] {
+  if (viewedItems.length === 0) {
+    return items;
+  }
+
+  const viewedAtById = new Map(
+    viewedItems.map((item) => [item.id, item.viewedAt])
+  );
+
+  return items.map((item) => {
+    const viewedAt = viewedAtById.get(item.id);
+
+    if (!viewedAt) {
+      return item;
+    }
+
+    return {
+      ...item,
+      viewedAt,
+    };
+  });
+}
+
 export function RequestsPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmRequestRecord[]>([]);
   const [oldItems, setOldItems] = useState<CrmRequestRecord[]>([]);
+  const [newRequestIds, setNewRequestIds] = useState<Set<number>>(
+    () => new Set()
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isOldRequestsOpen, setIsOldRequestsOpen] = useState(false);
   const [isOldRequestsLoading, setIsOldRequestsLoading] = useState(false);
@@ -73,8 +103,43 @@ export function RequestsPage() {
           scope: highlightedRequestId !== null ? "all" : "active",
         });
 
+        const unviewedRequestIds = requests
+          .filter((request) => request.viewedAt === null)
+          .map((request) => request.id);
+
         if (isMounted) {
           setItems(requests);
+
+          if (unviewedRequestIds.length > 0) {
+            setNewRequestIds((current) => {
+              const next = new Set(current);
+
+              unviewedRequestIds.forEach((requestId) => {
+                next.add(requestId);
+              });
+
+              return next;
+            });
+          }
+        }
+
+        if (unviewedRequestIds.length > 0) {
+          try {
+            const viewedItems = await markAdminRequestsViewed(unviewedRequestIds);
+
+            if (isMounted) {
+              setItems((current) => mergeViewedRequests(current, viewedItems));
+              setOldItems((current) => mergeViewedRequests(current, viewedItems));
+            }
+          } catch (markViewedError) {
+            if (isMounted) {
+              setError(
+                markViewedError instanceof Error
+                  ? markViewedError.message
+                  : "Не удалось пометить новые заявки просмотренными."
+              );
+            }
+          }
         }
       } catch (loadError) {
         if (isMounted) {
@@ -156,6 +221,16 @@ export function RequestsPage() {
     searchQuery,
     t.admin.requests.messages.loadError,
   ]);
+
+  const newItems = useMemo(
+    () => items.filter((item) => newRequestIds.has(item.id)),
+    [items, newRequestIds]
+  );
+
+  const regularItems = useMemo(
+    () => items.filter((item) => !newRequestIds.has(item.id)),
+    [items, newRequestIds]
+  );
 
   const handleStatusChange = async (
     requestId: number,
@@ -291,6 +366,7 @@ export function RequestsPage() {
 
   const isInitialLoading = isLoading && items.length === 0;
   const hasTableSnapshot = items.length > 0;
+  const hasNewRequests = newItems.length > 0;
   const shouldShowBottomOldRequestsHideButton = oldItems.length > 10;
 
   const oldRequestsToggleLabel = isOldRequestsOpen
@@ -366,26 +442,97 @@ export function RequestsPage() {
           ) : null}
 
           <div className={isLoading ? styles.tableSnapshotRefreshing : undefined}>
-            <RequestsTable
-              items={items}
-              savingId={savingId}
-              creatingClientId={creatingClientId}
-              highlightedRequestId={highlightedRequestId}
-              statusOptions={statusOptions}
-              createdLabel={t.admin.requests.table.created}
-              nameLabel={t.admin.requests.table.name}
-              phoneLabel={t.admin.requests.table.phone}
-              emailLabel={t.admin.requests.table.email}
-              messageLabel={t.admin.requests.table.message}
-              statusLabel={t.admin.requests.table.status}
-              clientLabel={t.admin.requests.table.client}
-              actionsSavingLabel={t.admin.requests.actions.saving}
-              actionsCreateClientLabel={t.admin.requests.actions.createClient}
-              actionsCreatingClientLabel={t.admin.requests.actions.creatingClient}
-              actionsCreatedLabel={t.admin.requests.actions.created}
-              onStatusChange={handleStatusChange}
-              onCreateClient={handleCreateClient}
-            />
+            <div className={styles.requestsLists}>
+              {hasNewRequests ? (
+                <section className={styles.newRequestsSection}>
+                  <div className={styles.requestsSectionHeader}>
+                    <div>
+                      <h2 className={styles.requestsSectionTitle}>
+                        Новые заявки
+                      </h2>
+                      <p className={styles.requestsSectionDescription}>
+                        Новые обращения, которые появились с прошлого просмотра
+                        страницы. После обновления или повторного входа они
+                        останутся в общем списке заявок.
+                      </p>
+                    </div>
+
+                    <span className={styles.newRequestsCount}>
+                      {newItems.length}
+                    </span>
+                  </div>
+
+                  <RequestsTable
+                    items={newItems}
+                    savingId={savingId}
+                    creatingClientId={creatingClientId}
+                    highlightedRequestId={highlightedRequestId}
+                    newRequestIds={newRequestIds}
+                    statusOptions={statusOptions}
+                    createdLabel={t.admin.requests.table.created}
+                    nameLabel={t.admin.requests.table.name}
+                    phoneLabel={t.admin.requests.table.phone}
+                    emailLabel={t.admin.requests.table.email}
+                    messageLabel={t.admin.requests.table.message}
+                    statusLabel={t.admin.requests.table.status}
+                    clientLabel={t.admin.requests.table.client}
+                    actionsSavingLabel={t.admin.requests.actions.saving}
+                    actionsCreateClientLabel={t.admin.requests.actions.createClient}
+                    actionsCreatingClientLabel={
+                      t.admin.requests.actions.creatingClient
+                    }
+                    actionsCreatedLabel={t.admin.requests.actions.created}
+                    onStatusChange={handleStatusChange}
+                    onCreateClient={handleCreateClient}
+                  />
+                </section>
+              ) : null}
+
+              {regularItems.length > 0 ? (
+                <section className={styles.regularRequestsSection}>
+                  {hasNewRequests ? (
+                    <div className={styles.requestsSectionHeader}>
+                      <div>
+                        <h2 className={styles.requestsSectionTitle}>
+                          Остальные заявки
+                        </h2>
+                        <p className={styles.requestsSectionDescription}>
+                          Активные заявки за последние 32 дня.
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <RequestsTable
+                    items={regularItems}
+                    savingId={savingId}
+                    creatingClientId={creatingClientId}
+                    highlightedRequestId={highlightedRequestId}
+                    newRequestIds={newRequestIds}
+                    statusOptions={statusOptions}
+                    createdLabel={t.admin.requests.table.created}
+                    nameLabel={t.admin.requests.table.name}
+                    phoneLabel={t.admin.requests.table.phone}
+                    emailLabel={t.admin.requests.table.email}
+                    messageLabel={t.admin.requests.table.message}
+                    statusLabel={t.admin.requests.table.status}
+                    clientLabel={t.admin.requests.table.client}
+                    actionsSavingLabel={t.admin.requests.actions.saving}
+                    actionsCreateClientLabel={t.admin.requests.actions.createClient}
+                    actionsCreatingClientLabel={
+                      t.admin.requests.actions.creatingClient
+                    }
+                    actionsCreatedLabel={t.admin.requests.actions.created}
+                    onStatusChange={handleStatusChange}
+                    onCreateClient={handleCreateClient}
+                  />
+                </section>
+              ) : hasNewRequests ? (
+                <p className={styles.empty}>
+                  Остальных заявок по текущим фильтрам нет.
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : (
@@ -474,7 +621,7 @@ export function RequestsPage() {
                 </div>
 
                 {oldRequestsHasMore ||
-                  shouldShowBottomOldRequestsHideButton ? (
+                shouldShowBottomOldRequestsHideButton ? (
                   <div className={styles.oldRequestsFooterActions}>
                     {oldRequestsHasMore ? (
                       <AdminButton

@@ -31,6 +31,7 @@ type RequestsTableProps = {
   items: CrmRequestRecord[];
   messageLabel: string;
   nameLabel: string;
+  newRequestIds?: Set<number>;
   phoneLabel: string;
   savingId: number | null;
   statusLabel: string;
@@ -102,6 +103,7 @@ export function RequestsTable({
   items,
   messageLabel,
   nameLabel,
+  newRequestIds,
   phoneLabel,
   savingId,
   statusLabel,
@@ -192,6 +194,13 @@ export function RequestsTable({
               const isHighlighted =
                 highlightedRequestId !== null &&
                 Number(highlightedRequestId) === Number(item.id);
+              const isNewRequest = newRequestIds?.has(item.id) ?? false;
+              const rowClassName = [
+                isHighlighted ? styles.highlightedRow : "",
+                isNewRequest ? styles.newRequestRow : "",
+              ]
+                .filter(Boolean)
+                .join(" ");
               const message = item.message?.trim() ?? "";
               const messagePreview = getMessagePreview(
                 message,
@@ -205,7 +214,7 @@ export function RequestsTable({
                 <tr
                   key={item.id}
                   ref={isHighlighted ? highlightedRowRef : null}
-                  className={isHighlighted ? styles.highlightedRow : undefined}
+                  className={rowClassName || undefined}
                 >
                   <td className={styles.requestCreatedCell}>
                     {formatRequestDate(item.createdAt)}
@@ -276,30 +285,38 @@ export function RequestsTable({
                   </td>
 
                   <td className={styles.requestNameCell}>
-                    {clientAlreadyCreated ? (
-                      <Link to={`/admin/clients?highlightClientId=${item.clientId}`}>
-                        {item.name}
-                      </Link>
-                    ) : (
-                      <div className={styles.unlinkedClientName}>
-                        {item.name}
-                      </div>
-                    )}
+                    <div className={styles.requestNameContent}>
+                      {clientAlreadyCreated ? (
+                        <Link
+                          to={`/admin/clients?highlightClientId=${item.clientId}`}
+                        >
+                          {item.name}
+                        </Link>
+                      ) : (
+                        <div className={styles.unlinkedClientName}>
+                          {item.name}
+                        </div>
+                      )}
 
-                    {!clientAlreadyCreated && !SHOW_CLIENT_COLUMN ? (
-                      <AdminButton
-                        type="button"
-                        onClick={() => onCreateClient(item.id)}
-                        disabled={creatingClientId === item.id}
-                        size="sm"
-                        variant="secondary"
-                        className={styles.inlineCreateClientButton}
-                      >
-                        {creatingClientId === item.id
-                          ? actionsCreatingClientLabel
-                          : actionsCreateClientLabel}
-                      </AdminButton>
-                    ) : null}
+                      {isNewRequest ? (
+                        <span className={styles.newRequestBadge}>Новая</span>
+                      ) : null}
+
+                      {!clientAlreadyCreated && !SHOW_CLIENT_COLUMN ? (
+                        <AdminButton
+                          type="button"
+                          onClick={() => onCreateClient(item.id)}
+                          disabled={creatingClientId === item.id}
+                          size="sm"
+                          variant="secondary"
+                          className={styles.inlineCreateClientButton}
+                        >
+                          {creatingClientId === item.id
+                            ? actionsCreatingClientLabel
+                            : actionsCreateClientLabel}
+                        </AdminButton>
+                      ) : null}
+                    </div>
                   </td>
 
                   {SHOW_CLIENT_COLUMN ? (
