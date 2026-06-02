@@ -4,8 +4,11 @@ import type {
   UpdateRequestStatusPayload,
 } from "../../types/request";
 
+export type AdminRequestsScope = "all" | "active" | "old";
+
 type ListAdminRequestsResponse = {
   items: CrmRequestRecord[];
+  hasMore?: boolean;
 };
 
 type ListAdminRequestsErrorResponse = {
@@ -27,11 +30,35 @@ type UpdateRequestStatusErrorResponse = {
 export type AdminRequestsFilters = {
   status?: RequestStatus | "all";
   search?: string;
+  scope?: AdminRequestsScope;
+  limit?: number;
+  offset?: number;
 };
 
-export async function getAdminRequests(
+export type AdminRequestsPageResult = {
+  items: CrmRequestRecord[];
+  hasMore: boolean;
+};
+
+function appendNumberParam(
+  params: URLSearchParams,
+  name: string,
+  value: number | undefined
+) {
+  if (typeof value !== "number") {
+    return;
+  }
+
+  if (!Number.isFinite(value)) {
+    return;
+  }
+
+  params.set(name, String(value));
+}
+
+export async function getAdminRequestsPage(
   filters: AdminRequestsFilters = {}
-): Promise<CrmRequestRecord[]> {
+): Promise<AdminRequestsPageResult> {
   const params = new URLSearchParams();
 
   if (filters.status) {
@@ -41,6 +68,13 @@ export async function getAdminRequests(
   if (filters.search?.trim()) {
     params.set("search", filters.search.trim());
   }
+
+  if (filters.scope) {
+    params.set("scope", filters.scope);
+  }
+
+  appendNumberParam(params, "limit", filters.limit);
+  appendNumberParam(params, "offset", filters.offset);
 
   const queryString = params.toString();
   const url = queryString
@@ -61,10 +95,24 @@ export async function getAdminRequests(
   }
 
   if (data && "items" in data) {
-    return data.items;
+    return {
+      items: data.items,
+      hasMore: Boolean(data.hasMore),
+    };
   }
 
-  return [];
+  return {
+    items: [],
+    hasMore: false,
+  };
+}
+
+export async function getAdminRequests(
+  filters: AdminRequestsFilters = {}
+): Promise<CrmRequestRecord[]> {
+  const result = await getAdminRequestsPage(filters);
+
+  return result.items;
 }
 
 export async function updateAdminRequestStatus(

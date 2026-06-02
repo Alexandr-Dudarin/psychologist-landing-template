@@ -5,6 +5,7 @@ import { useLanguage } from "../../../app/providers/LanguageProvider";
 import { createClientFromRequest } from "../../../lib/api/adminClients";
 import {
   getAdminRequests,
+  getAdminRequestsPage,
   updateAdminRequestStatus,
 } from "../../../lib/api/adminRequests";
 import { AdminButton } from "../../../components/admin/AdminButton";
@@ -15,12 +16,19 @@ import { RequestsFilters } from "./RequestsFilters";
 import { RequestsTable } from "./RequestsTable";
 import styles from "./RequestsPage.module.css";
 
+const OLD_REQUESTS_PAGE_SIZE = 100;
+
 export function RequestsPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmRequestRecord[]>([]);
+  const [oldItems, setOldItems] = useState<CrmRequestRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOldRequestsOpen, setIsOldRequestsOpen] = useState(false);
+  const [isOldRequestsLoading, setIsOldRequestsLoading] = useState(false);
+  const [oldRequestsHasMore, setOldRequestsHasMore] = useState(false);
+  const [oldRequestsError, setOldRequestsError] = useState("");
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [savingId, setSavingId] = useState<number | null>(null);
@@ -62,6 +70,7 @@ export function RequestsPage() {
         const requests = await getAdminRequests({
           status: statusFilter,
           search: searchQuery,
+          scope: highlightedRequestId !== null ? "all" : "active",
         });
 
         if (isMounted) {
@@ -87,15 +96,80 @@ export function RequestsPage() {
     return () => {
       isMounted = false;
     };
-  }, [statusFilter, searchQuery, t.admin.requests.messages.loadError]);
+  }, [
+    statusFilter,
+    searchQuery,
+    highlightedRequestId,
+    t.admin.requests.messages.loadError,
+  ]);
+
+  useEffect(() => {
+    if (!isOldRequestsOpen) {
+      setOldItems([]);
+      setOldRequestsHasMore(false);
+      setOldRequestsError("");
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadOldRequests() {
+      try {
+        setIsOldRequestsLoading(true);
+        setOldRequestsError("");
+
+        const result = await getAdminRequestsPage({
+          status: statusFilter,
+          search: searchQuery,
+          scope: "old",
+          limit: OLD_REQUESTS_PAGE_SIZE,
+          offset: 0,
+        });
+
+        if (isMounted) {
+          setOldItems(result.items);
+          setOldRequestsHasMore(result.hasMore);
+        }
+      } catch (loadError) {
+        if (isMounted) {
+          setOldRequestsError(
+            loadError instanceof Error
+              ? loadError.message
+              : t.admin.requests.messages.loadError
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsOldRequestsLoading(false);
+        }
+      }
+    }
+
+    loadOldRequests();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    isOldRequestsOpen,
+    statusFilter,
+    searchQuery,
+    t.admin.requests.messages.loadError,
+  ]);
 
   const handleStatusChange = async (
     requestId: number,
     nextStatus: RequestStatus
   ) => {
     const previousItems = items;
+    const previousOldItems = oldItems;
 
     setItems((current) =>
+      current.map((item) =>
+        item.id === requestId ? { ...item, status: nextStatus } : item
+      )
+    );
+    setOldItems((current) =>
       current.map((item) =>
         item.id === requestId ? { ...item, status: nextStatus } : item
       )
@@ -104,6 +178,7 @@ export function RequestsPage() {
     setSavingId(requestId);
     setError("");
     setSuccessMessage("");
+    setOldRequestsError("");
 
     try {
       await updateAdminRequestStatus({
@@ -112,6 +187,7 @@ export function RequestsPage() {
       });
     } catch (updateError) {
       setItems(previousItems);
+      setOldItems(previousOldItems);
       setError(
         updateError instanceof Error
           ? updateError.message
@@ -123,7 +199,9 @@ export function RequestsPage() {
   };
 
   const handleCreateClient = async (requestId: number) => {
-    const currentRequest = items.find((item) => item.id === requestId);
+    const currentRequest =
+      items.find((item) => item.id === requestId) ??
+      oldItems.find((item) => item.id === requestId);
 
     if (!currentRequest || currentRequest.clientId !== null) {
       return;
@@ -132,11 +210,18 @@ export function RequestsPage() {
     setCreatingClientId(requestId);
     setError("");
     setSuccessMessage("");
+    setOldRequestsError("");
 
     try {
       const result = await createClientFromRequest(requestId);
 
       setItems((current) =>
+        current.map((item) =>
+          item.id === requestId ? { ...item, clientId: result.item.id } : item
+        )
+      );
+
+      setOldItems((current) =>
         current.map((item) =>
           item.id === requestId ? { ...item, clientId: result.item.id } : item
         )
@@ -155,6 +240,32 @@ export function RequestsPage() {
       );
     } finally {
       setCreatingClientId(null);
+    }
+  };
+
+  const handleLoadMoreOldRequests = async () => {
+    try {
+      setIsOldRequestsLoading(true);
+      setOldRequestsError("");
+
+      const result = await getAdminRequestsPage({
+        status: statusFilter,
+        search: searchQuery,
+        scope: "old",
+        limit: OLD_REQUESTS_PAGE_SIZE,
+        offset: oldItems.length,
+      });
+
+      setOldItems((current) => [...current, ...result.items]);
+      setOldRequestsHasMore(result.hasMore);
+    } catch (loadError) {
+      setOldRequestsError(
+        loadError instanceof Error
+          ? loadError.message
+          : t.admin.requests.messages.loadError
+      );
+    } finally {
+      setIsOldRequestsLoading(false);
     }
   };
 
@@ -180,6 +291,15 @@ export function RequestsPage() {
 
   const isInitialLoading = isLoading && items.length === 0;
   const hasTableSnapshot = items.length > 0;
+  const shouldShowBottomOldRequestsHideButton = oldItems.length > 10;
+
+  const oldRequestsToggleLabel = isOldRequestsOpen
+    ? "Скрыть заявки старше 32 дней"
+    : "Показать заявки старше 32 дней";
+
+  const oldRequestsToggleCompactLabel = isOldRequestsOpen
+    ? "Скрыть старые заявки"
+    : "Показать старые заявки";
 
   return (
     <main>
@@ -234,41 +354,163 @@ export function RequestsPage() {
       {isInitialLoading ? (
         <p>{t.admin.requests.messages.loading}</p>
       ) : hasTableSnapshot ? (
-        <>
-          <div className={styles.requestsTableFrame}>
-            {isLoading ? (
-              <div className={styles.refreshNotice} role="status" aria-live="polite">
-                Обновляем список заявок...
-              </div>
-            ) : null}
-
-            <div className={isLoading ? styles.tableSnapshotRefreshing : undefined}>
-              <RequestsTable
-                items={items}
-                savingId={savingId}
-                creatingClientId={creatingClientId}
-                highlightedRequestId={highlightedRequestId}
-                statusOptions={statusOptions}
-                createdLabel={t.admin.requests.table.created}
-                nameLabel={t.admin.requests.table.name}
-                phoneLabel={t.admin.requests.table.phone}
-                emailLabel={t.admin.requests.table.email}
-                messageLabel={t.admin.requests.table.message}
-                statusLabel={t.admin.requests.table.status}
-                clientLabel={t.admin.requests.table.client}
-                actionsSavingLabel={t.admin.requests.actions.saving}
-                actionsCreateClientLabel={t.admin.requests.actions.createClient}
-                actionsCreatingClientLabel={t.admin.requests.actions.creatingClient}
-                actionsCreatedLabel={t.admin.requests.actions.created}
-                onStatusChange={handleStatusChange}
-                onCreateClient={handleCreateClient}
-              />
+        <div className={styles.requestsTableFrame}>
+          {isLoading ? (
+            <div
+              className={styles.refreshNotice}
+              role="status"
+              aria-live="polite"
+            >
+              Обновляем список заявок...
             </div>
+          ) : null}
+
+          <div className={isLoading ? styles.tableSnapshotRefreshing : undefined}>
+            <RequestsTable
+              items={items}
+              savingId={savingId}
+              creatingClientId={creatingClientId}
+              highlightedRequestId={highlightedRequestId}
+              statusOptions={statusOptions}
+              createdLabel={t.admin.requests.table.created}
+              nameLabel={t.admin.requests.table.name}
+              phoneLabel={t.admin.requests.table.phone}
+              emailLabel={t.admin.requests.table.email}
+              messageLabel={t.admin.requests.table.message}
+              statusLabel={t.admin.requests.table.status}
+              clientLabel={t.admin.requests.table.client}
+              actionsSavingLabel={t.admin.requests.actions.saving}
+              actionsCreateClientLabel={t.admin.requests.actions.createClient}
+              actionsCreatingClientLabel={t.admin.requests.actions.creatingClient}
+              actionsCreatedLabel={t.admin.requests.actions.created}
+              onStatusChange={handleStatusChange}
+              onCreateClient={handleCreateClient}
+            />
           </div>
-        </>
+        </div>
       ) : (
         <p>{t.admin.requests.messages.empty}</p>
       )}
+
+      <section className={styles.oldRequestsPanel}>
+        <div className={styles.oldRequestsCard}>
+          <div className={styles.oldRequestsText}>
+            <h2 className={styles.oldRequestsTitle}>Заявки старше 32 дней</h2>
+            <p className={styles.oldRequestsDescription}>
+              Старые заявки загружаются отдельно, чтобы основной список оставался
+              быстрым и не перегружал страницу.
+            </p>
+          </div>
+
+          <AdminButton
+            type="button"
+            variant="secondary"
+            className={styles.oldRequestsToggleButton}
+            onClick={() => setIsOldRequestsOpen((current) => !current)}
+          >
+            <span className={styles.oldRequestsFullLabel}>
+              {oldRequestsToggleLabel}
+            </span>
+            <span className={styles.oldRequestsCompactLabel}>
+              {oldRequestsToggleCompactLabel}
+            </span>
+          </AdminButton>
+        </div>
+
+        {isOldRequestsOpen ? (
+          <div className={styles.oldRequestsContent}>
+            <AdminFeedback message={oldRequestsError} tone="error" />
+
+            {isOldRequestsLoading && oldItems.length === 0 ? (
+              <p className={styles.empty}>Загружаем старые заявки...</p>
+            ) : oldItems.length > 0 ? (
+              <>
+                <div className={styles.requestsTableFrame}>
+                  {isOldRequestsLoading ? (
+                    <div
+                      className={styles.refreshNotice}
+                      role="status"
+                      aria-live="polite"
+                    >
+                      Обновляем список заявок...
+                    </div>
+                  ) : null}
+
+                  <div
+                    className={
+                      isOldRequestsLoading
+                        ? styles.tableSnapshotRefreshing
+                        : undefined
+                    }
+                  >
+                    <RequestsTable
+                      items={oldItems}
+                      savingId={savingId}
+                      creatingClientId={creatingClientId}
+                      highlightedRequestId={null}
+                      statusOptions={statusOptions}
+                      createdLabel={t.admin.requests.table.created}
+                      nameLabel={t.admin.requests.table.name}
+                      phoneLabel={t.admin.requests.table.phone}
+                      emailLabel={t.admin.requests.table.email}
+                      messageLabel={t.admin.requests.table.message}
+                      statusLabel={t.admin.requests.table.status}
+                      clientLabel={t.admin.requests.table.client}
+                      actionsSavingLabel={t.admin.requests.actions.saving}
+                      actionsCreateClientLabel={
+                        t.admin.requests.actions.createClient
+                      }
+                      actionsCreatingClientLabel={
+                        t.admin.requests.actions.creatingClient
+                      }
+                      actionsCreatedLabel={t.admin.requests.actions.created}
+                      onStatusChange={handleStatusChange}
+                      onCreateClient={handleCreateClient}
+                    />
+                  </div>
+                </div>
+
+                {oldRequestsHasMore ||
+                shouldShowBottomOldRequestsHideButton ? (
+                  <div className={styles.oldRequestsFooterActions}>
+                    {oldRequestsHasMore ? (
+                      <AdminButton
+                        type="button"
+                        variant="secondary"
+                        onClick={handleLoadMoreOldRequests}
+                        disabled={isOldRequestsLoading}
+                      >
+                        {isOldRequestsLoading
+                          ? "Загружаем..."
+                          : "Показать ещё 100"}
+                      </AdminButton>
+                    ) : null}
+
+                    {shouldShowBottomOldRequestsHideButton ? (
+                      <AdminButton
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setIsOldRequestsOpen(false)}
+                      >
+                        <span className={styles.oldRequestsFullLabel}>
+                          Скрыть заявки старше 32 дней
+                        </span>
+                        <span className={styles.oldRequestsCompactLabel}>
+                          Скрыть старые заявки
+                        </span>
+                      </AdminButton>
+                    ) : null}
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <p className={styles.empty}>
+                Старых заявок по текущим фильтрам нет.
+              </p>
+            )}
+          </div>
+        ) : null}
+      </section>
     </main>
   );
 }

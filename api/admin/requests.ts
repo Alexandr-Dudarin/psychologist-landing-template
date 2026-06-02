@@ -11,6 +11,10 @@ import { requestStatuses } from "../../src/types/request.js";
 import type { PreferredContactMethod } from "../../src/types/preferredContact.js";
 
 type ParsedUpdatePayload = UpdateRequestStatusPayload | null;
+type RequestListScope = "all" | "active" | "old";
+
+const OLD_REQUESTS_LIMIT_FALLBACK = 100;
+const OLD_REQUESTS_MAX_LIMIT = 100;
 
 type RequestRow = {
   id: string | number;
@@ -40,6 +44,46 @@ function getSingleQueryValue(value: string | string[] | undefined): string {
   }
 
   return value ?? "";
+}
+
+function parseRequestListScope(value: string): RequestListScope | null {
+  if (!value) {
+    return "all";
+  }
+
+  if (value === "all" || value === "active" || value === "old") {
+    return value;
+  }
+
+  return null;
+}
+
+function parseLimit(value: string, fallback: number | null): number | null {
+  if (!value) {
+    return fallback;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return Math.min(parsed, OLD_REQUESTS_MAX_LIMIT);
+}
+
+function parseOffset(value: string): number | null {
+  if (!value) {
+    return 0;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    return null;
+  }
+
+  return parsed;
 }
 
 function parseUpdatePayload(body: any): ParsedUpdatePayload {
@@ -74,12 +118,61 @@ function parseUpdatePayload(body: any): ParsedUpdatePayload {
   };
 }
 
+function mapRequestRow(row: RequestRow): CrmRequestRecord {
+  return {
+    id: Number(row.id),
+    name: row.name,
+    phone: row.phone,
+    email: row.email,
+    message: row.message,
+    status: toRequestStatus(row.status),
+    source: row.source,
+    preferredContactMethod:
+      row.preferred_contact_method as PreferredContactMethod | null,
+    preferredContactValue: row.preferred_contact_value,
+    createdAt: row.created_at,
+    clientId: row.client_id === null ? null : Number(row.client_id),
+  };
+}
+
 async function handleList(req: any, res: any) {
   const status = getSingleQueryValue(req.query?.status).trim();
   const search = getSingleQueryValue(req.query?.search).trim();
+  const scopeRaw = getSingleQueryValue(req.query?.scope).trim();
+  const limitRaw = getSingleQueryValue(req.query?.limit).trim();
+  const offsetRaw = getSingleQueryValue(req.query?.offset).trim();
+
+  const scope = parseRequestListScope(scopeRaw);
+
+  if (!scope) {
+    return res.status(400).json({ error: "Invalid request scope" });
+  }
+
+  const limit = parseLimit(
+    limitRaw,
+    scope === "old" ? OLD_REQUESTS_LIMIT_FALLBACK : null
+  );
+
+  if (limitRaw && limit === null) {
+    return res.status(400).json({ error: "Invalid limit" });
+  }
+
+  const offset = parseOffset(offsetRaw);
+
+  if (offset === null) {
+    return res.status(400).json({ error: "Invalid offset" });
+  }
 
   const conditions: string[] = [];
-  const values: string[] = [];
+  const values: Array<string | number> = [];
+
+  if (scope === "active") {
+    conditions.push(`r.created_at::date > CURRENT_DATE - INTERVAL '32 days'`);
+  }
+
+  if (scope === "old") {
+    conditions.push(`r.created_at::date <= CURRENT_DATE - INTERVAL '32 days'`);
+  }
 
   if (status && status !== "all") {
     if (!requestStatuses.includes(status as RequestStatus)) {
@@ -109,6 +202,21 @@ async function handleList(req: any, res: any) {
   const whereClause =
     conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+  let paginationClause = "";
+
+  if (limit !== null) {
+    values.push(limit + 1);
+    const limitParamIndex = values.length;
+
+    values.push(offset);
+    const offsetParamIndex = values.length;
+
+    paginationClause = `
+      LIMIT $${limitParamIndex}
+      OFFSET $${offsetParamIndex}
+    `;
+  }
+
   try {
     const result = await pool.query<RequestRow>(
       `
@@ -127,23 +235,20 @@ async function handleList(req: any, res: any) {
         FROM requests r
         ${whereClause}
         ORDER BY r.created_at DESC
+        ${paginationClause}
       `,
       values
     );
 
-    const items: CrmRequestRecord[] = result.rows.map((row) => ({
-      id: Number(row.id),
-      name: row.name,
-      phone: row.phone,
-      email: row.email,
-      message: row.message,
-      status: toRequestStatus(row.status),
-      source: row.source,
-      preferredContactMethod: row.preferred_contact_method as PreferredContactMethod | null,
-      preferredContactValue: row.preferred_contact_value,
-      createdAt: row.created_at,
-      clientId: row.client_id === null ? null : Number(row.client_id),
-    }));
+    const rows = limit === null ? result.rows : result.rows.slice(0, limit);
+    const items = rows.map(mapRequestRow);
+
+    if (limit !== null) {
+      return res.status(200).json({
+        items,
+        hasMore: result.rows.length > limit,
+      });
+    }
 
     return res.status(200).json({ items });
   } catch (error) {

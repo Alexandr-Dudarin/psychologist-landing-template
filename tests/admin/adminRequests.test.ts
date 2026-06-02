@@ -205,6 +205,92 @@ describe("admin requests API", () => {
     expect(queryLog).toHaveLength(1);
   });
 
+  it("supports active and old request scopes with old requests pagination", async () => {
+    const { queryLog } = createMockDb([
+      requestRow({ id: "301" }),
+      requestRow({ id: "302" }),
+      requestRow({ id: "303" }),
+    ]);
+
+    const handler = await loadRequestsHandler();
+
+    const activeRes = createMockResponse();
+    await handler(
+      createMockRequest({
+        method: "GET",
+        query: { scope: "active" },
+      }),
+      activeRes
+    );
+
+    const oldRes = createMockResponse();
+    await handler(
+      createMockRequest({
+        method: "GET",
+        query: {
+          scope: "old",
+          limit: "2",
+          offset: "4",
+        },
+      }),
+      oldRes
+    );
+
+    const activeJson = activeRes.jsonBody as {
+      items: unknown[];
+      hasMore?: boolean;
+    };
+
+    const oldJson = oldRes.jsonBody as {
+      items: unknown[];
+      hasMore?: boolean;
+    };
+
+    expect(activeRes.statusCode).toBe(200);
+    expect(activeJson.items).toHaveLength(3);
+    expect(activeJson).not.toHaveProperty("hasMore");
+    expect(queryLog[0].sql).toContain(
+      "r.created_at::date > CURRENT_DATE - INTERVAL '32 days'"
+    );
+
+    expect(oldRes.statusCode).toBe(200);
+    expect(oldJson.items).toHaveLength(2);
+    expect(oldJson.hasMore).toBe(true);
+    expect(queryLog[1].sql).toContain(
+      "r.created_at::date <= CURRENT_DATE - INTERVAL '32 days'"
+    );
+    expect(queryLog[1].sql).toContain("LIMIT $1");
+    expect(queryLog[1].sql).toContain("OFFSET $2");
+    expect(queryLog[1].values).toEqual([3, 4]);
+  });
+
+  it("rejects invalid request scope and pagination params before DB access", async () => {
+    createMockDb();
+    const handler = await loadRequestsHandler();
+
+    for (const query of [
+      { scope: "archived" },
+      { scope: "old", limit: "0" },
+      { scope: "old", limit: "-1" },
+      { scope: "old", offset: "-1" },
+      { scope: "old", offset: "1.5" },
+    ]) {
+      const res = createMockResponse();
+
+      await handler(
+        createMockRequest({
+          method: "GET",
+          query,
+        }),
+        res
+      );
+
+      expect(res.statusCode).toBe(400);
+    }
+
+    expect(poolQueryMock).not.toHaveBeenCalled();
+  });
+
   it("updates request status with validated id and status params", async () => {
     const { queryLog } = createMockDb();
 
