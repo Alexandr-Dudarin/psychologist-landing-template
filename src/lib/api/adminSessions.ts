@@ -8,6 +8,7 @@ import type {
 
 type ListSessionsResponse = {
   items: CrmSessionRecord[];
+  hasMore?: boolean;
 };
 
 type ListSessionsErrorResponse = {
@@ -47,11 +48,34 @@ export type AdminSessionsFilters = {
   serviceId?: number | "all";
   search?: string;
   scope?: SessionListScope;
+  limit?: number;
+  offset?: number;
 };
 
-export async function getAdminSessions(
+export type AdminSessionsPageResult = {
+  items: CrmSessionRecord[];
+  hasMore: boolean;
+};
+
+function appendNumberParam(
+  params: URLSearchParams,
+  name: string,
+  value: number | undefined
+) {
+  if (typeof value !== "number") {
+    return;
+  }
+
+  if (!Number.isFinite(value)) {
+    return;
+  }
+
+  params.set(name, String(value));
+}
+
+export async function getAdminSessionsPage(
   filters: AdminSessionsFilters = {}
-): Promise<CrmSessionRecord[]> {
+): Promise<AdminSessionsPageResult> {
   const params = new URLSearchParams();
 
   if (filters.status) {
@@ -74,6 +98,9 @@ export async function getAdminSessions(
     params.set("search", filters.search.trim());
   }
 
+  appendNumberParam(params, "limit", filters.limit);
+  appendNumberParam(params, "offset", filters.offset);
+
   const queryString = params.toString();
   const url = queryString
     ? `/api/admin/sessions?${queryString}`
@@ -93,10 +120,24 @@ export async function getAdminSessions(
   }
 
   if (data && "items" in data) {
-    return data.items;
+    return {
+      items: data.items,
+      hasMore: Boolean(data.hasMore),
+    };
   }
 
-  return [];
+  return {
+    items: [],
+    hasMore: false,
+  };
+}
+
+export async function getAdminSessions(
+  filters: AdminSessionsFilters = {}
+): Promise<CrmSessionRecord[]> {
+  const result = await getAdminSessionsPage(filters);
+
+  return result.items;
 }
 
 export async function createAdminSession(

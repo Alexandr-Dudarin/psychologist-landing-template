@@ -12,6 +12,7 @@ import { SessionsTable } from "./SessionsTable";
 import styles from "./SessionsPage.module.css";
 
 export type SessionsListBlockProps = {
+  archivedSessionsHasMore: boolean;
   canToggleArchivedSessions: boolean;
   clientFilter: number | "all";
   clients: CrmClientRecord[];
@@ -43,6 +44,7 @@ export type SessionsListBlockProps = {
   onEditSession: (session: CrmSessionRecord) => void;
   onFavoriteFilterChange: (value: ClientFavoriteFilter) => void;
   onHideArchivedSessions: () => void;
+  onLoadMoreArchivedSessions: () => void;
   onResetView: () => void;
   onServiceFilterChange: (value: number | "all") => void;
   onShowArchivedSessions: () => void;
@@ -50,6 +52,7 @@ export type SessionsListBlockProps = {
 };
 
 export function SessionsListBlock({
+  archivedSessionsHasMore,
   canToggleArchivedSessions,
   clientFilter,
   clients,
@@ -81,11 +84,18 @@ export function SessionsListBlock({
   onEditSession,
   onFavoriteFilterChange,
   onHideArchivedSessions,
+  onLoadMoreArchivedSessions,
   onResetView,
   onServiceFilterChange,
   onShowArchivedSessions,
   onStatusFilterChange,
 }: SessionsListBlockProps) {
+  const shouldShowArchivedFooterActions =
+    shouldDisplayArchivedSessions &&
+    displayedArchivedItems.length > 0 &&
+    (archivedSessionsHasMore ||
+      (canToggleArchivedSessions && displayedArchivedItems.length > 10));
+
   return (
     <>
       <SessionsFilters
@@ -156,18 +166,47 @@ export function SessionsListBlock({
       ) : null}
 
       {shouldDisplayArchivedSessions ? (
-        <AdminRefreshableTableArea isRefreshing={isArchivedSessionsRefreshing}>
-          <SessionsTable
-            items={displayedArchivedItems}
-            isLoading={isArchivedSessionsInitialLoading}
-            deletingId={deletingId}
-            timezone={scheduleTimezone}
-            highlightedSessionId={highlightedSessionId}
-            emptyMessage="Завершённых сессий пока нет."
-            onEdit={onEditSession}
-            onDelete={onDeleteSession}
-          />
-        </AdminRefreshableTableArea>
+        <>
+          <AdminRefreshableTableArea isRefreshing={isArchivedSessionsRefreshing}>
+            <SessionsTable
+              items={displayedArchivedItems}
+              isLoading={isArchivedSessionsInitialLoading}
+              deletingId={deletingId}
+              timezone={scheduleTimezone}
+              highlightedSessionId={highlightedSessionId}
+              emptyMessage="Завершённых сессий пока нет."
+              onEdit={onEditSession}
+              onDelete={onDeleteSession}
+            />
+          </AdminRefreshableTableArea>
+
+          {shouldShowArchivedFooterActions ? (
+            <div className={styles.archivedSessionsFooterActions}>
+              {archivedSessionsHasMore ? (
+                <AdminButton
+                  type="button"
+                  variant="secondary"
+                  onClick={onLoadMoreArchivedSessions}
+                  disabled={isArchivedSessionsRefreshing}
+                >
+                  {isArchivedSessionsRefreshing
+                    ? "Загружаем..."
+                    : "Показать ещё 100"}
+                </AdminButton>
+              ) : null}
+
+              {canToggleArchivedSessions && displayedArchivedItems.length > 10 ? (
+                <AdminButton
+                  type="button"
+                  variant="secondary"
+                  onClick={onHideArchivedSessions}
+                >
+                  Скрыть завершённые
+                </AdminButton>
+              ) : null}
+            </div>
+          ) : null}
+        </>
       ) : null}
     </>
   );

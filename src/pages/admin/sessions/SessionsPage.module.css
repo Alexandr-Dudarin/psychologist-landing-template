@@ -568,6 +568,15 @@
   line-height: 1.45;
 }
 
+.archivedSessionsFooterActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
 .highlightedRow {
   composes: rowHighlighted from "../../../components/admin/adminUi.module.css";
 }
@@ -1792,6 +1801,16 @@
 
   .sessionRow td {
     gap: 5px;
+  }
+
+    .archivedSessionsFooterActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .archivedSessionsFooterActions button {
+    width: 100%;
+    justify-content: center;
   }
 
   .clientCell,

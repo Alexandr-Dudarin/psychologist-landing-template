@@ -368,11 +368,53 @@ describe("admin sessions API", () => {
     expect(queryLog[0].values).toEqual([]);
   });
 
+    it("paginates archived sessions and returns hasMore when an extra row is loaded", async () => {
+    const { queryLog } = createQueryMock({
+      listRows: [
+        sessionRow({ id: "901" }),
+        sessionRow({ id: "902" }),
+        sessionRow({ id: "903" }),
+      ],
+    });
+
+    const res = await callAdminSessions({
+      method: "GET",
+      query: {
+        scope: "archived",
+        limit: "2",
+        offset: "4",
+      },
+    });
+
+    const body = res.jsonBody as {
+      items: unknown[];
+      hasMore?: boolean;
+    };
+
+    expect(res.statusCode).toBe(200);
+    expect(body.items).toHaveLength(2);
+    expect(body.hasMore).toBe(true);
+    expect(queryLog).toHaveLength(1);
+    expect(queryLog[0].sql).toContain(
+      "s.status IN ('completed', 'cancelled', 'no_show')"
+    );
+    expect(queryLog[0].sql).toContain("LIMIT $1");
+    expect(queryLog[0].sql).toContain("OFFSET $2");
+    expect(queryLog[0].values).toEqual([3, 4]);
+  });
+
   it.each([
     ["invalid scope", { scope: "future" }],
     ["invalid status", { status: "done" }],
     ["invalid clientId", { clientId: "bad" }],
     ["invalid serviceId", { serviceId: "0" }],
+    ["invalid limit zero", { limit: "0" }],
+    ["invalid limit negative", { limit: "-1" }],
+    ["invalid limit decimal", { limit: "1.5" }],
+    ["invalid limit text", { limit: "many" }],
+    ["invalid offset negative", { offset: "-1" }],
+    ["invalid offset decimal", { offset: "1.5" }],
+    ["invalid offset text", { offset: "next" }],
   ])("rejects invalid list query: %s", async (_caseName, query) => {
     const res = await callAdminSessions({ method: "GET", query });
 

@@ -15,6 +15,7 @@ import {
   createAdminSession,
   deleteAdminSession,
   getAdminSessions,
+  getAdminSessionsPage,
   updateAdminSession,
 } from "../../../lib/api/adminSessions";
 import type {
@@ -49,6 +50,8 @@ import { SessionsListBlock } from "./SessionsListBlock";
 import { SessionsQuickViewBanner } from "./SessionsQuickViewBanner";
 
 const createFormPanelId = "session-create-form-panel";
+
+const ARCHIVED_SESSIONS_PAGE_SIZE = 100;
 
 function normalizeDateFilter(value: string | null): string | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -149,6 +152,7 @@ export function SessionsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isArchivedLoading, setIsArchivedLoading] = useState(false);
   const [showArchivedSessions, setShowArchivedSessions] = useState(false);
+  const [archivedSessionsHasMore, setArchivedSessionsHasMore] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -307,6 +311,7 @@ export function SessionsPage() {
     if (statusFilter === "scheduled") {
       setShowArchivedSessions(false);
       setArchivedItems([]);
+      setArchivedSessionsHasMore(false);
     }
   }, [isArchivedFilterActive, statusFilter]);
 
@@ -395,16 +400,19 @@ export function SessionsPage() {
           setError("");
         }
 
-        const archivedSessionsData = await getAdminSessions({
+        const result = await getAdminSessionsPage({
           scope: "archived",
           status: statusFilter,
           clientId: clientFilter,
           serviceId: serviceFilter,
           search: searchQuery,
+          limit: ARCHIVED_SESSIONS_PAGE_SIZE,
+          offset: 0,
         });
 
         if (isMounted) {
-          setArchivedItems(archivedSessionsData);
+          setArchivedItems(result.items);
+          setArchivedSessionsHasMore(result.hasMore);
           setHasLoadedArchivedSessionsOnce(true);
           setHasLoadedAnySessionsOnce(true);
         }
@@ -553,12 +561,14 @@ export function SessionsPage() {
         })
         : Promise.resolve(null),
       shouldDisplayArchivedSessions
-        ? getAdminSessions({
+        ? getAdminSessionsPage({
           scope: "archived",
           status: statusFilter,
           clientId: clientFilter,
           serviceId: serviceFilter,
           search: searchQuery,
+          limit: ARCHIVED_SESSIONS_PAGE_SIZE,
+          offset: 0,
         })
         : Promise.resolve(null),
     ]);
@@ -568,7 +578,8 @@ export function SessionsPage() {
     }
 
     if (archivedSessionsData !== null) {
-      setArchivedItems(archivedSessionsData);
+      setArchivedItems(archivedSessionsData.items);
+      setArchivedSessionsHasMore(archivedSessionsData.hasMore);
       setHasLoadedArchivedSessionsOnce(true);
       setHasLoadedAnySessionsOnce(true);
     }
@@ -614,7 +625,7 @@ export function SessionsPage() {
     resetFeedback();
   };
 
-    const updateDateFilterSearchParam = (nextDateFilter: string | null) => {
+  const updateDateFilterSearchParam = (nextDateFilter: string | null) => {
     const nextSearchParams = new URLSearchParams(searchParams);
 
     if (nextDateFilter) {
@@ -821,6 +832,7 @@ export function SessionsPage() {
     setHighlightedSessionId(null);
     setShowArchivedSessions(false);
     setArchivedItems([]);
+    setArchivedSessionsHasMore(false);
     navigate("/admin/sessions");
   };
 
@@ -831,6 +843,41 @@ export function SessionsPage() {
   const handleHideArchivedSessions = () => {
     setShowArchivedSessions(false);
     setArchivedItems([]);
+    setArchivedSessionsHasMore(false);
+  };
+
+  const handleLoadMoreArchivedSessions = async () => {
+    if (isArchivedLoading || !archivedSessionsHasMore) {
+      return;
+    }
+
+    try {
+      setIsArchivedLoading(true);
+      setError("");
+
+      const result = await getAdminSessionsPage({
+        scope: "archived",
+        status: statusFilter,
+        clientId: clientFilter,
+        serviceId: serviceFilter,
+        search: searchQuery,
+        limit: ARCHIVED_SESSIONS_PAGE_SIZE,
+        offset: archivedItems.length,
+      });
+
+      setArchivedItems((current) => [...current, ...result.items]);
+      setArchivedSessionsHasMore(result.hasMore);
+      setHasLoadedArchivedSessionsOnce(true);
+      setHasLoadedAnySessionsOnce(true);
+    } catch (loadError) {
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Не удалось загрузить ещё завершённые сессии"
+      );
+    } finally {
+      setIsArchivedLoading(false);
+    }
   };
 
   const hasActiveFilters =
@@ -919,6 +966,7 @@ export function SessionsPage() {
 
       <SessionsListBlock
         canToggleArchivedSessions={canToggleArchivedSessions}
+        archivedSessionsHasMore={archivedSessionsHasMore}
         clientFilter={clientFilter}
         clients={clients}
         deletingId={deletingId}
@@ -947,6 +995,7 @@ export function SessionsPage() {
         onEditSession={startEditing}
         onFavoriteFilterChange={handleFavoriteFilterChange}
         onHideArchivedSessions={handleHideArchivedSessions}
+        onLoadMoreArchivedSessions={handleLoadMoreArchivedSessions}
         onResetView={handleResetView}
         onDateFilterChange={handleDateFilterChange}
         onDateTodayClick={handleDateTodayClick}

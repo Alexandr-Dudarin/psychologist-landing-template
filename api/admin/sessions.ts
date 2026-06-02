@@ -76,6 +76,8 @@ type SessionOverlapRow = {
   duration_minutes: string | number;
 };
 
+const SESSIONS_MAX_PAGE_SIZE = 100;
+
 function toSessionStatus(value: string): SessionStatus {
   if (sessionStatuses.includes(value as SessionStatus)) {
     return value as SessionStatus;
@@ -98,6 +100,34 @@ function getSingleHeaderValue(value: string | string[] | undefined): string {
   }
 
   return value ?? "";
+}
+
+function parseLimit(value: string): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return Math.min(parsed, SESSIONS_MAX_PAGE_SIZE);
+}
+
+function parseOffset(value: string): number | null {
+  if (!value) {
+    return 0;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    return null;
+  }
+
+  return parsed;
 }
 
 function parseOptionalId(value: unknown): number | null | undefined {
@@ -510,6 +540,20 @@ async function handleList(req: any, res: any) {
   const clientIdRaw = getSingleQueryValue(req.query?.clientId).trim();
   const serviceIdRaw = getSingleQueryValue(req.query?.serviceId).trim();
   const search = getSingleQueryValue(req.query?.search).trim();
+  const limitRaw = getSingleQueryValue(req.query?.limit).trim();
+  const offsetRaw = getSingleQueryValue(req.query?.offset).trim();
+
+  const limit = parseLimit(limitRaw);
+
+  if (limitRaw && limit === null) {
+    return res.status(400).json({ error: "Некорректный лимит" });
+  }
+
+  const offset = parseOffset(offsetRaw);
+
+  if (offset === null) {
+    return res.status(400).json({ error: "Некорректное смещение" });
+  }
 
   const conditions: string[] = [];
   const values: Array<string | number> = [];
@@ -576,6 +620,21 @@ async function handleList(req: any, res: any) {
   const whereClause =
     conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+  let paginationClause = "";
+
+  if (limit !== null) {
+    values.push(limit + 1);
+    const limitParamIndex = values.length;
+
+    values.push(offset);
+    const offsetParamIndex = values.length;
+
+    paginationClause = `
+      LIMIT $${limitParamIndex}
+      OFFSET $${offsetParamIndex}
+    `;
+  }
+
   try {
     const result = await pool.query<SessionRow>(
       `
@@ -612,11 +671,20 @@ async function handleList(req: any, res: any) {
             THEN s.scheduled_at
           END ASC NULLS LAST,
           s.scheduled_at DESC
+        ${paginationClause}
       `,
       values
     );
 
-    const items: CrmSessionRecord[] = result.rows.map(mapSession);
+    const rows = limit === null ? result.rows : result.rows.slice(0, limit);
+    const items: CrmSessionRecord[] = rows.map(mapSession);
+
+    if (limit !== null) {
+      return res.status(200).json({
+        items,
+        hasMore: result.rows.length > limit,
+      });
+    }
 
     return res.status(200).json({ items });
   } catch (error) {
