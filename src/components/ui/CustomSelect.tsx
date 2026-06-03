@@ -117,6 +117,8 @@ export function CustomSelect({
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const shouldScrollToSelectedOnOpenRef = useRef(false);
 
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(() =>
@@ -159,10 +161,12 @@ export function CustomSelect({
     }
 
     setHighlightedIndex(getInitialHighlightedIndex(options, value));
+    shouldScrollToSelectedOnOpenRef.current = true;
     setIsOpen(true);
   };
 
   const closeDropdown = () => {
+    shouldScrollToSelectedOnOpenRef.current = false;
     setIsOpen(false);
   };
 
@@ -265,6 +269,42 @@ export function CustomSelect({
       }
     }
   };
+
+  useEffect(() => {
+    optionRefs.current = optionRefs.current.slice(0, options.length);
+  }, [options.length]);
+
+  useEffect(() => {
+    if (!isOpen || !shouldScrollToSelectedOnOpenRef.current) {
+      return;
+    }
+
+    const selectedIndex = getInitialHighlightedIndex(options, value);
+
+    if (selectedIndex < 0) {
+      shouldScrollToSelectedOnOpenRef.current = false;
+      return;
+    }
+
+    const animationFrameId = window.requestAnimationFrame(() => {
+      const selectedOptionElement = optionRefs.current[selectedIndex];
+
+      if (!selectedOptionElement) {
+        shouldScrollToSelectedOnOpenRef.current = false;
+        return;
+      }
+
+      selectedOptionElement.scrollIntoView({
+        block: "center",
+      });
+
+      shouldScrollToSelectedOnOpenRef.current = false;
+    });
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+    };
+  }, [isOpen, options, value]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -372,6 +412,9 @@ export function CustomSelect({
               return (
                 <button
                   key={option.value}
+                  ref={(element) => {
+                    optionRefs.current[index] = element;
+                  }}
                   type="button"
                   role="option"
                   aria-selected={isSelected}

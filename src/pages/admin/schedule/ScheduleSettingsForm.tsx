@@ -53,7 +53,7 @@ export function ScheduleSettingsForm({
           </label>
 
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Буфер между сессиями, минут</span>
+            <span className={styles.fieldLabel}>Перерыв между сессиями, минут</span>
             <input
               type="number"
               min="0"
