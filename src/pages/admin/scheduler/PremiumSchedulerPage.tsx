@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+} from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
@@ -9,11 +15,24 @@ import {
   getAdminSchedule,
   updateScheduleOverride,
 } from "../../../lib/api/adminSchedule";
-import { getAdminSessions } from "../../../lib/api/adminSessions";
+import {
+  getAdminClients,
+  getClientServicePackages,
+} from "../../../lib/api/adminClients";
+import { getAdminServices } from "../../../lib/api/adminServices";
+import {
+  createAdminSession,
+  getAdminSessions,
+} from "../../../lib/api/adminSessions";
+import type {
+  CrmClientRecord,
+  CrmClientServicePackageRecord,
+} from "../../../types/client";
 import type {
   AdminScheduleRecord,
   ScheduleRuleRecord,
 } from "../../../types/schedule";
+import type { CrmServiceRecord } from "../../../types/service";
 import type { CrmSessionRecord } from "../../../types/session";
 import { SchedulerDayView } from "./SchedulerDayView";
 import { SchedulerMonthView } from "./SchedulerMonthView";
@@ -30,6 +49,8 @@ import {
   SchedulerBlockedSlotModal,
   type SchedulerBlockedSlotDraft,
 } from "./SchedulerBlockedSlotModal";
+import { SchedulerEmptySlotActionModal } from "./SchedulerEmptySlotActionModal";
+import { SchedulerSessionModal } from "./SchedulerSessionModal";
 import { SchedulerSidebar } from "./SchedulerSidebar";
 import { SchedulerToolbar } from "./SchedulerToolbar";
 import { SchedulerWeekView } from "./SchedulerWeekView";
@@ -43,6 +64,14 @@ import {
   getSchedulerHours,
   type SchedulerViewMode,
 } from "./premiumScheduler.shared";
+import { initialCreateForm, type SessionForm } from "../sessions/sessionForm";
+import {
+  buildCreateSessionPayload,
+  getManualSessionScheduleWarning,
+  getParsedClientId,
+  updateSessionFormField,
+} from "../sessions/sessionsPageHelpers";
+import { validateCreateSessionPayload } from "../sessions/sessionsPageValidation";
 
 function getQueryViewMode(value: string | null): SchedulerViewMode | null {
   if (value === "week" || value === "day" || value === "month") {
@@ -98,6 +127,17 @@ function isValidTimeRange(startTime: string, endTime: string): boolean {
   return Boolean(startTime && endTime && startTime < endTime);
 }
 
+function buildSchedulerSessionDraft(
+  selection: SchedulerEmptySlotSelection
+): SessionForm {
+  return {
+    ...initialCreateForm,
+    scheduledAt: `${selection.dateKey}T${selection.startTime}`,
+    durationMinutes: "60",
+    status: "scheduled",
+  };
+}
+
 export function PremiumSchedulerPage() {
   const [searchParams] = useSearchParams();
   const [scheduleData, setScheduleData] = useState<AdminScheduleRecord | null>(
@@ -110,6 +150,8 @@ export function PremiumSchedulerPage() {
       siteSettings.premiumModules.scheduler.defaultView
   );
   const [sessions, setSessions] = useState<CrmSessionRecord[]>([]);
+  const [clients, setClients] = useState<CrmClientRecord[]>([]);
+  const [services, setServices] = useState<CrmServiceRecord[]>([]);
   const [anchorDate, setAnchorDate] = useState(
     () =>
       getQueryDateKey(searchParams.get("date")) ??
@@ -123,14 +165,29 @@ export function PremiumSchedulerPage() {
   const [savingDayActionDate, setSavingDayActionDate] = useState<string | null>(
     null
   );
+  const [emptySlotSelection, setEmptySlotSelection] =
+    useState<SchedulerEmptySlotSelection | null>(null);
   const [blockedSlotDraft, setBlockedSlotDraft] =
     useState<SchedulerBlockedSlotDraft | null>(null);
   const [blockedSlotDraftError, setBlockedSlotDraftError] = useState("");
   const [isCreatingBlockedSlot, setIsCreatingBlockedSlot] = useState(false);
+  const [sessionDraft, setSessionDraft] = useState<SessionForm | null>(null);
+  const [sessionDraftError, setSessionDraftError] = useState("");
+  const [sessionClientPackages, setSessionClientPackages] = useState<
+    CrmClientServicePackageRecord[]
+  >([]);
+  const [isSessionPackagesLoading, setIsSessionPackagesLoading] =
+    useState(false);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
 
   const rowHeight = viewMode === "day" ? DAY_ROW_HEIGHT : WEEK_ROW_HEIGHT;
   const headerHeight = viewMode === "day" ? 142 : 88;
   const locale = "ru-RU";
+
+  const activeServices = useMemo(
+    () => services.filter((service) => service.isActive),
+    [services]
+  );
 
   useEffect(() => {
     const nextViewMode = getQueryViewMode(searchParams.get("view"));
@@ -153,10 +210,13 @@ export function PremiumSchedulerPage() {
       setError(null);
 
       try {
-        const [sessionsData, nextScheduleData] = await Promise.all([
-          getAdminSessions(),
-          getAdminSchedule(),
-        ]);
+        const [sessionsData, nextScheduleData, clientsData, servicesData] =
+          await Promise.all([
+            getAdminSessions(),
+            getAdminSchedule(),
+            getAdminClients(),
+            getAdminServices(),
+          ]);
 
         if (!isActive) {
           return;
@@ -164,6 +224,8 @@ export function PremiumSchedulerPage() {
 
         setSessions(sessionsData);
         setScheduleData(nextScheduleData);
+        setClients(clientsData);
+        setServices(servicesData);
       } catch (loadError) {
         if (!isActive) {
           return;
@@ -264,6 +326,24 @@ export function PremiumSchedulerPage() {
     ]
   );
 
+  const sessionScheduleWarning = useMemo(
+    () =>
+      sessionDraft
+        ? getManualSessionScheduleWarning(
+            sessionDraft,
+            safeScheduleData.rules,
+            safeScheduleData.overrides,
+            safeScheduleData.blockedSlots
+          )
+        : null,
+    [
+      sessionDraft,
+      safeScheduleData.blockedSlots,
+      safeScheduleData.overrides,
+      safeScheduleData.rules,
+    ]
+  );
+
   const totalSessions = sessions.length;
   const totalBlockedSlots = safeScheduleData.blockedSlots.length;
   const totalOverrides = safeScheduleData.overrides.length;
@@ -355,17 +435,45 @@ export function PremiumSchedulerPage() {
 
   const handleEmptySlotSelect = useCallback(
     (selection: SchedulerEmptySlotSelection) => {
-      setBlockedSlotDraft({
-        dateKey: selection.dateKey,
-        startTime: selection.startTime,
-        endTime: selection.endTime,
-        reason: "Перерыв",
-      });
+      setEmptySlotSelection(selection);
+      setBlockedSlotDraft(null);
+      setSessionDraft(null);
       setBlockedSlotDraftError("");
+      setSessionDraftError("");
       setSelectedDetail(null);
     },
     []
   );
+
+  const handleCloseEmptySlotSelection = useCallback(() => {
+    setEmptySlotSelection(null);
+  }, []);
+
+  const handleStartBlockedSlotFromSelection = useCallback(() => {
+    if (!emptySlotSelection) {
+      return;
+    }
+
+    setBlockedSlotDraft({
+      dateKey: emptySlotSelection.dateKey,
+      startTime: emptySlotSelection.startTime,
+      endTime: emptySlotSelection.endTime,
+      reason: "Перерыв",
+    });
+    setBlockedSlotDraftError("");
+    setEmptySlotSelection(null);
+  }, [emptySlotSelection]);
+
+  const handleStartSessionFromSelection = useCallback(() => {
+    if (!emptySlotSelection) {
+      return;
+    }
+
+    setSessionDraft(buildSchedulerSessionDraft(emptySlotSelection));
+    setSessionClientPackages([]);
+    setSessionDraftError("");
+    setEmptySlotSelection(null);
+  }, [emptySlotSelection]);
 
   const handleBlockedSlotDraftChange = useCallback(
     (field: keyof SchedulerBlockedSlotDraft, value: string) => {
@@ -432,6 +540,130 @@ export function PremiumSchedulerPage() {
       setIsCreatingBlockedSlot(false);
     }
   }, [blockedSlotDraft, isCreatingBlockedSlot]);
+
+  const handleSessionDraftChange = useCallback(
+    (field: keyof SessionForm, value: string) => {
+      setSessionDraft((current) =>
+        current
+          ? updateSessionFormField(
+              current,
+              field,
+              value,
+              activeServices,
+              sessionClientPackages
+            )
+          : current
+      );
+
+      if (sessionDraftError) {
+        setSessionDraftError("");
+      }
+    },
+    [activeServices, sessionClientPackages, sessionDraftError]
+  );
+
+  const handleCloseSessionDraft = useCallback(() => {
+    if (isCreatingSession) {
+      return;
+    }
+
+    setSessionDraft(null);
+    setSessionDraftError("");
+    setSessionClientPackages([]);
+  }, [isCreatingSession]);
+
+  const handleCreateSessionFromScheduler = useCallback(
+    async (event: FormEvent) => {
+      event.preventDefault();
+
+      if (!sessionDraft || isCreatingSession) {
+        return;
+      }
+
+      const payload = buildCreateSessionPayload(
+        sessionDraft,
+        safeScheduleData.settings.timezone
+      );
+      const validationError = validateCreateSessionPayload(
+        payload,
+        safeScheduleData.settings.timezone
+      );
+
+      if (validationError) {
+        setSessionDraftError(validationError);
+        return;
+      }
+
+      setIsCreatingSession(true);
+      setSessionDraftError("");
+      setError(null);
+
+      try {
+        await createAdminSession(payload);
+
+        const sessionsData = await getAdminSessions();
+
+        setSessions(sessionsData);
+        setSessionDraft(null);
+        setSessionClientPackages([]);
+      } catch (createError) {
+        setSessionDraftError(
+          createError instanceof Error
+            ? createError.message
+            : "Не удалось создать сессию из планировщика."
+        );
+      } finally {
+        setIsCreatingSession(false);
+      }
+    },
+    [isCreatingSession, safeScheduleData.settings.timezone, sessionDraft]
+  );
+
+  useEffect(() => {
+    const clientId = getParsedClientId(sessionDraft?.clientId ?? "");
+
+    if (clientId === null) {
+      setSessionClientPackages([]);
+      setIsSessionPackagesLoading(false);
+      return;
+    }
+
+    const selectedClientId = clientId;
+    let isMounted = true;
+
+    async function loadClientPackages() {
+      try {
+        if (isMounted) {
+          setIsSessionPackagesLoading(true);
+        }
+
+        const packages = await getClientServicePackages(selectedClientId);
+
+        if (isMounted) {
+          setSessionClientPackages(packages);
+        }
+      } catch (loadError) {
+        if (isMounted) {
+          setSessionClientPackages([]);
+          setSessionDraftError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Не удалось загрузить пакеты клиента"
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsSessionPackagesLoading(false);
+        }
+      }
+    }
+
+    void loadClientPackages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [sessionDraft?.clientId]);
 
   useEffect(() => {
     setSelectedDetail(null);
@@ -563,6 +795,13 @@ export function PremiumSchedulerPage() {
         onMakeDayWorking={(dateKey) => handleSetDayWorkingState(dateKey, true)}
       />
 
+      <SchedulerEmptySlotActionModal
+        selection={emptySlotSelection}
+        onClose={handleCloseEmptySlotSelection}
+        onCreateBlockedSlot={handleStartBlockedSlotFromSelection}
+        onCreateSession={handleStartSessionFromSelection}
+      />
+
       <SchedulerBlockedSlotModal
         draft={blockedSlotDraft}
         error={blockedSlotDraftError}
@@ -570,6 +809,21 @@ export function PremiumSchedulerPage() {
         onChange={handleBlockedSlotDraftChange}
         onClose={handleCloseBlockedSlotDraft}
         onSubmit={handleCreateBlockedSlotFromScheduler}
+      />
+
+      <SchedulerSessionModal
+        activeServices={activeServices}
+        clientPackages={sessionClientPackages}
+        clients={clients}
+        draft={sessionDraft}
+        error={sessionDraftError}
+        isCreating={isCreatingSession}
+        isPackagesLoading={isSessionPackagesLoading}
+        scheduleWarning={sessionScheduleWarning}
+        timezone={safeScheduleData.settings.timezone}
+        onChange={handleSessionDraftChange}
+        onClose={handleCloseSessionDraft}
+        onSubmit={handleCreateSessionFromScheduler}
       />
     </main>
   );
