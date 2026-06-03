@@ -56,13 +56,36 @@
 }
 
 .detailInfoBox {
+  display: grid;
+  gap: 12px;
   padding: 12px 14px;
   border: 1px solid var(--admin-border);
   border-radius: 16px;
   background: color-mix(in srgb, var(--admin-surface-muted) 74%, white);
   color: var(--admin-text-muted);
   font-size: 0.94rem;
+}
+
+.dayActionsHeader {
+  display: grid;
+  gap: 5px;
+}
+
+.dayActionsTitle {
+  color: var(--admin-text);
+  font-weight: 700;
+}
+
+.dayActionsHint,
+.dayActionsFallback {
+  margin: 0;
+  color: var(--admin-text-muted);
   line-height: 1.45;
+}
+
+.dayActionsGrid {
+  display: grid;
+  gap: 10px;
 }
 
 .detailActions {

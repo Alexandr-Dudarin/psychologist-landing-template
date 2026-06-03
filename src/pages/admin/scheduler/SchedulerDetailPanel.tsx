@@ -1,14 +1,23 @@
 import { Link } from "react-router-dom";
 
+import { AdminButton } from "../../../components/admin/AdminButton";
 import pageStyles from "./PremiumSchedulerPage.module.css";
 import styles from "./SchedulerDetailPanel.module.css";
 import type { SchedulerDetail } from "./premiumScheduler.helpers";
 
 type SchedulerDetailPanelProps = {
   detail: SchedulerDetail | null;
+  isDayActionSaving?: boolean;
+  onMakeDayNonWorking?: (dateKey: string) => void;
+  onMakeDayWorking?: (dateKey: string) => void;
 };
 
-export function SchedulerDetailPanel({ detail }: SchedulerDetailPanelProps) {
+export function SchedulerDetailPanel({
+  detail,
+  isDayActionSaving = false,
+  onMakeDayNonWorking,
+  onMakeDayWorking,
+}: SchedulerDetailPanelProps) {
   if (!detail) {
     return (
       <div className={pageStyles.stateBox}>
@@ -20,6 +29,11 @@ export function SchedulerDetailPanel({ detail }: SchedulerDetailPanelProps) {
   const isDayDetail = detail.kind === "day";
   const shouldShowDaySessionsLink =
     isDayDetail && detail.primaryLabel === "Сессии дня";
+  const canUseDayQuickActions =
+    isDayDetail &&
+    detail.dateKey !== undefined &&
+    onMakeDayNonWorking !== undefined &&
+    onMakeDayWorking !== undefined;
 
   return (
     <div className={styles.detailCard}>
@@ -62,9 +76,50 @@ export function SchedulerDetailPanel({ detail }: SchedulerDetailPanelProps) {
           </div>
 
           <div className={styles.detailInfoBox}>
-            Быстрые действия по дню добавим отдельным этапом: сделать день
-            нерабочим, изменить рабочее окно или добавить перерыв. Сейчас это
-            окно показывает сводку и быстрые переходы по выбранному дню.
+            <div className={styles.dayActionsHeader}>
+              <span className={styles.dayActionsTitle}>Быстрые действия</span>
+              <span className={styles.dayActionsHint}>
+                Изменения сохраняются как исключение по дате и будут видны в
+                разделе «Расписание».
+              </span>
+            </div>
+
+            {canUseDayQuickActions && detail.dateKey ? (
+              <div className={styles.dayActionsGrid}>
+                {detail.isWorking ? (
+                  <AdminButton
+                    type="button"
+                    variant="secondary"
+                    onClick={() => onMakeDayNonWorking(detail.dateKey!)}
+                    disabled={isDayActionSaving}
+                  >
+                    {isDayActionSaving
+                      ? "Сохраняем..."
+                      : "Сделать день нерабочим"}
+                  </AdminButton>
+                ) : (
+                  <AdminButton
+                    type="button"
+                    variant="primary"
+                    onClick={() => onMakeDayWorking(detail.dateKey!)}
+                    disabled={isDayActionSaving}
+                  >
+                    {isDayActionSaving
+                      ? "Сохраняем..."
+                      : "Сделать рабочим по базовому времени"}
+                  </AdminButton>
+                )}
+
+                <Link to={detail.tertiaryHref} className={styles.detailLinkSecondary}>
+                  {detail.tertiaryLabel}
+                </Link>
+              </div>
+            ) : (
+              <p className={styles.dayActionsFallback}>
+                Быстрые действия недоступны для выбранного дня. Изменить
+                расписание можно в разделе «Расписание».
+              </p>
+            )}
           </div>
         </>
       ) : (

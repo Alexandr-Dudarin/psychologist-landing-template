@@ -3,9 +3,16 @@ import { useSearchParams } from "react-router-dom";
 
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { siteSettings } from "../../../data/siteSettings";
-import { getAdminSchedule } from "../../../lib/api/adminSchedule";
+import {
+  createScheduleOverride,
+  getAdminSchedule,
+  updateScheduleOverride,
+} from "../../../lib/api/adminSchedule";
 import { getAdminSessions } from "../../../lib/api/adminSessions";
-import type { AdminScheduleRecord } from "../../../types/schedule";
+import type {
+  AdminScheduleRecord,
+  ScheduleRuleRecord,
+} from "../../../types/schedule";
 import type { CrmSessionRecord } from "../../../types/session";
 import { SchedulerDayView } from "./SchedulerDayView";
 import { SchedulerMonthView } from "./SchedulerMonthView";
@@ -47,6 +54,40 @@ function getQueryDateKey(value: string | null): string | null {
   return value;
 }
 
+function getSchedulerWeekday(dateKey: string): number {
+  const date = new Date(`${dateKey}T00:00:00.000Z`);
+  const weekday = date.getUTCDay();
+
+  return weekday === 0 ? 7 : weekday;
+}
+
+function getQuickWorkingWindow(
+  dateKey: string,
+  rules: ScheduleRuleRecord[]
+): { startTime: string; endTime: string } {
+  const weekday = getSchedulerWeekday(dateKey);
+  const rule = rules.find((item) => item.weekday === weekday);
+
+  const startTime = rule?.startTime ?? "10:00";
+  const endTime = rule?.endTime ?? "19:00";
+
+  if (startTime && endTime && startTime < endTime) {
+    return {
+      startTime,
+      endTime,
+    };
+  }
+
+  return {
+    startTime: "10:00",
+    endTime: "19:00",
+  };
+}
+
+function normalizeScheduleDate(value: string): string {
+  return value.slice(0, 10);
+}
+
 export function PremiumSchedulerPage() {
   const [searchParams] = useSearchParams();
   const [scheduleData, setScheduleData] = useState<AdminScheduleRecord | null>(
@@ -67,6 +108,9 @@ export function PremiumSchedulerPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<SchedulerDetail | null>(
+    null
+  );
+  const [savingDayActionDate, setSavingDayActionDate] = useState<string | null>(
     null
   );
   const rowHeight = viewMode === "day" ? DAY_ROW_HEIGHT : WEEK_ROW_HEIGHT;
@@ -214,24 +258,85 @@ export function PremiumSchedulerPage() {
     setSelectedDetail(null);
   }, []);
 
-  const getDayDetailByDateKey = (dateKey: string) => {
-    const detailSummary = getSchedulerDaySummaries({
-      viewMode: "day",
-      anchorDateKey: dateKey,
-      sessions,
-      blockedSlots: safeScheduleData.blockedSlots,
-      overrides: safeScheduleData.overrides,
-      rules: safeScheduleData.rules,
-      locale,
-      timezone: safeScheduleData.settings.timezone,
-    })[0];
+  const getDayDetailByDateKey = useCallback(
+    (dateKey: string, sourceScheduleData = safeScheduleData) => {
+      const detailSummary = getSchedulerDaySummaries({
+        viewMode: "day",
+        anchorDateKey: dateKey,
+        sessions,
+        blockedSlots: sourceScheduleData.blockedSlots,
+        overrides: sourceScheduleData.overrides,
+        rules: sourceScheduleData.rules,
+        locale,
+        timezone: sourceScheduleData.settings.timezone,
+      })[0];
 
-    if (!detailSummary) {
-      return null;
-    }
+      if (!detailSummary) {
+        return null;
+      }
 
-    return getDayDetail(detailSummary);
-  };
+      return getDayDetail(detailSummary);
+    },
+    [locale, safeScheduleData, sessions]
+  );
+
+  const handleSetDayWorkingState = useCallback(
+    async (dateKey: string, isWorkingDay: boolean) => {
+      if (!scheduleData || savingDayActionDate !== null) {
+        return;
+      }
+
+      const normalizedDateKey = normalizeScheduleDate(dateKey);
+      const existingOverride = scheduleData.overrides.find(
+        (item) => normalizeScheduleDate(item.date) === normalizedDateKey
+      );
+
+      const workingWindow = getQuickWorkingWindow(
+        normalizedDateKey,
+        scheduleData.rules
+      );
+
+      const nextPayload = {
+        date: normalizedDateKey,
+        isWorkingDay,
+        startTime: isWorkingDay ? workingWindow.startTime : null,
+        endTime: isWorkingDay ? workingWindow.endTime : null,
+        note: isWorkingDay
+          ? "Рабочий день создан из планировщика."
+          : "Нерабочий день создан из планировщика.",
+      };
+
+      setSavingDayActionDate(normalizedDateKey);
+      setError(null);
+
+      try {
+        if (existingOverride) {
+          await updateScheduleOverride({
+            originalDate: normalizeScheduleDate(existingOverride.date),
+            ...nextPayload,
+          });
+        } else {
+          await createScheduleOverride(nextPayload);
+        }
+
+        const nextScheduleData = await getAdminSchedule();
+
+        setScheduleData(nextScheduleData);
+        setSelectedDetail(
+          getDayDetailByDateKey(normalizedDateKey, nextScheduleData)
+        );
+      } catch (saveError) {
+        setError(
+          saveError instanceof Error
+            ? saveError.message
+            : "Не удалось обновить день в планировщике."
+        );
+      } finally {
+        setSavingDayActionDate(null);
+      }
+    },
+    [getDayDetailByDateKey, savingDayActionDate, scheduleData]
+  );
 
   useEffect(() => {
     setSelectedDetail(null);
@@ -347,7 +452,19 @@ export function PremiumSchedulerPage() {
         </div>
       </div>
 
-      <SchedulerDetailModal detail={selectedDetail} onClose={closeSelectedDetail} />
+      <SchedulerDetailModal
+        detail={selectedDetail}
+        isDayActionSaving={
+          selectedDetail?.kind === "day" &&
+          selectedDetail.dateKey !== undefined &&
+          savingDayActionDate === selectedDetail.dateKey
+        }
+        onClose={closeSelectedDetail}
+        onMakeDayNonWorking={(dateKey) =>
+          handleSetDayWorkingState(dateKey, false)
+        }
+        onMakeDayWorking={(dateKey) => handleSetDayWorkingState(dateKey, true)}
+      />
     </main>
   );
 }

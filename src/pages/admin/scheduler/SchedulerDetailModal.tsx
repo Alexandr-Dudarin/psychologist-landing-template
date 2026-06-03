@@ -6,7 +6,10 @@ import type { SchedulerDetail } from "./premiumScheduler.helpers";
 
 type SchedulerDetailModalProps = {
   detail: SchedulerDetail | null;
+  isDayActionSaving?: boolean;
   onClose: () => void;
+  onMakeDayNonWorking?: (dateKey: string) => void;
+  onMakeDayWorking?: (dateKey: string) => void;
 };
 
 function getDetailKindLabel(detail: SchedulerDetail): string {
@@ -23,7 +26,10 @@ function getDetailKindLabel(detail: SchedulerDetail): string {
 
 export function SchedulerDetailModal({
   detail,
+  isDayActionSaving = false,
   onClose,
+  onMakeDayNonWorking,
+  onMakeDayWorking,
 }: SchedulerDetailModalProps) {
   const titleId = useId();
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -95,7 +101,12 @@ export function SchedulerDetailModal({
         </header>
 
         <div className={styles.body}>
-          <SchedulerDetailPanel detail={detail} />
+          <SchedulerDetailPanel
+            detail={detail}
+            isDayActionSaving={isDayActionSaving}
+            onMakeDayNonWorking={onMakeDayNonWorking}
+            onMakeDayWorking={onMakeDayWorking}
+          />
         </div>
       </section>
     </div>

@@ -22,6 +22,9 @@ export type SchedulerDetail = {
   primaryLabel: string;
   secondaryLabel: string;
   tertiaryLabel: string;
+  dateKey?: string;
+  isWorking?: boolean;
+  isOverride?: boolean;
 };
 
 export function getTodayDateKey(timezone = "Europe/Moscow"): string {
@@ -102,6 +105,9 @@ export function getDayDetail(summary: SchedulerDaySummary): SchedulerDetail {
       summary.sessionsCount > 0 ? "Сессии дня" : "Открыть список сессий",
     secondaryLabel: "Расписание дня",
     tertiaryLabel: "Настройки графика",
+    dateKey: summary.dateKey,
+    isWorking: summary.isWorking,
+    isOverride: summary.isOverride,
   };
 }
 
