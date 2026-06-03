@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { siteSettings } from "../../../data/siteSettings";
 import {
+  createBlockedSlot,
   createScheduleOverride,
   getAdminSchedule,
   updateScheduleOverride,
@@ -22,8 +23,13 @@ import {
   getDayDetail,
   getTodayDateKey,
   type SchedulerDetail,
+  type SchedulerEmptySlotSelection,
 } from "./premiumScheduler.helpers";
 import { SchedulerDetailModal } from "./SchedulerDetailModal";
+import {
+  SchedulerBlockedSlotModal,
+  type SchedulerBlockedSlotDraft,
+} from "./SchedulerBlockedSlotModal";
 import { SchedulerSidebar } from "./SchedulerSidebar";
 import { SchedulerToolbar } from "./SchedulerToolbar";
 import { SchedulerWeekView } from "./SchedulerWeekView";
@@ -88,6 +94,10 @@ function normalizeScheduleDate(value: string): string {
   return value.slice(0, 10);
 }
 
+function isValidTimeRange(startTime: string, endTime: string): boolean {
+  return Boolean(startTime && endTime && startTime < endTime);
+}
+
 export function PremiumSchedulerPage() {
   const [searchParams] = useSearchParams();
   const [scheduleData, setScheduleData] = useState<AdminScheduleRecord | null>(
@@ -113,6 +123,11 @@ export function PremiumSchedulerPage() {
   const [savingDayActionDate, setSavingDayActionDate] = useState<string | null>(
     null
   );
+  const [blockedSlotDraft, setBlockedSlotDraft] =
+    useState<SchedulerBlockedSlotDraft | null>(null);
+  const [blockedSlotDraftError, setBlockedSlotDraftError] = useState("");
+  const [isCreatingBlockedSlot, setIsCreatingBlockedSlot] = useState(false);
+
   const rowHeight = viewMode === "day" ? DAY_ROW_HEIGHT : WEEK_ROW_HEIGHT;
   const headerHeight = viewMode === "day" ? 142 : 88;
   const locale = "ru-RU";
@@ -338,6 +353,86 @@ export function PremiumSchedulerPage() {
     [getDayDetailByDateKey, savingDayActionDate, scheduleData]
   );
 
+  const handleEmptySlotSelect = useCallback(
+    (selection: SchedulerEmptySlotSelection) => {
+      setBlockedSlotDraft({
+        dateKey: selection.dateKey,
+        startTime: selection.startTime,
+        endTime: selection.endTime,
+        reason: "Перерыв",
+      });
+      setBlockedSlotDraftError("");
+      setSelectedDetail(null);
+    },
+    []
+  );
+
+  const handleBlockedSlotDraftChange = useCallback(
+    (field: keyof SchedulerBlockedSlotDraft, value: string) => {
+      setBlockedSlotDraft((current) =>
+        current
+          ? {
+              ...current,
+              [field]: value,
+            }
+          : current
+      );
+
+      if (blockedSlotDraftError) {
+        setBlockedSlotDraftError("");
+      }
+    },
+    [blockedSlotDraftError]
+  );
+
+  const handleCloseBlockedSlotDraft = useCallback(() => {
+    if (isCreatingBlockedSlot) {
+      return;
+    }
+
+    setBlockedSlotDraft(null);
+    setBlockedSlotDraftError("");
+  }, [isCreatingBlockedSlot]);
+
+  const handleCreateBlockedSlotFromScheduler = useCallback(async () => {
+    if (!blockedSlotDraft || isCreatingBlockedSlot) {
+      return;
+    }
+
+    if (!isValidTimeRange(blockedSlotDraft.startTime, blockedSlotDraft.endTime)) {
+      setBlockedSlotDraftError(
+        "Укажите корректное время начала и окончания блокировки."
+      );
+      return;
+    }
+
+    setIsCreatingBlockedSlot(true);
+    setBlockedSlotDraftError("");
+    setError(null);
+
+    try {
+      await createBlockedSlot({
+        blockedDate: blockedSlotDraft.dateKey,
+        startTime: blockedSlotDraft.startTime,
+        endTime: blockedSlotDraft.endTime,
+        reason: blockedSlotDraft.reason.trim(),
+      });
+
+      const nextScheduleData = await getAdminSchedule();
+
+      setScheduleData(nextScheduleData);
+      setBlockedSlotDraft(null);
+    } catch (createError) {
+      setBlockedSlotDraftError(
+        createError instanceof Error
+          ? createError.message
+          : "Не удалось создать блокировку из планировщика."
+      );
+    } finally {
+      setIsCreatingBlockedSlot(false);
+    }
+  }, [blockedSlotDraft, isCreatingBlockedSlot]);
+
   useEffect(() => {
     setSelectedDetail(null);
   }, [anchorDate, viewMode]);
@@ -434,6 +529,7 @@ export function PremiumSchedulerPage() {
                   overlayItems={overlayItems}
                   rowHeight={rowHeight}
                   onDayDetail={setSelectedDetail}
+                  onEmptySlotSelect={handleEmptySlotSelect}
                   onEventDetail={setSelectedDetail}
                 />
               ) : (
@@ -444,6 +540,7 @@ export function PremiumSchedulerPage() {
                   overlayItems={overlayItems}
                   rowHeight={rowHeight}
                   onDayDetail={setSelectedDetail}
+                  onEmptySlotSelect={handleEmptySlotSelect}
                   onEventDetail={setSelectedDetail}
                 />
               )}
@@ -464,6 +561,15 @@ export function PremiumSchedulerPage() {
           handleSetDayWorkingState(dateKey, false)
         }
         onMakeDayWorking={(dateKey) => handleSetDayWorkingState(dateKey, true)}
+      />
+
+      <SchedulerBlockedSlotModal
+        draft={blockedSlotDraft}
+        error={blockedSlotDraftError}
+        isSubmitting={isCreatingBlockedSlot}
+        onChange={handleBlockedSlotDraftChange}
+        onClose={handleCloseBlockedSlotDraft}
+        onSubmit={handleCreateBlockedSlotFromScheduler}
       />
     </main>
   );

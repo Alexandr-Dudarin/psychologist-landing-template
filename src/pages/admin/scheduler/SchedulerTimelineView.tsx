@@ -1,4 +1,9 @@
-import type { KeyboardEvent } from "react";
+import {
+  useRef,
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
+} from "react";
 
 import styles from "./SchedulerTimelineView.module.css";
 import {
@@ -8,7 +13,10 @@ import {
   getOverlayDetail,
 } from "./premiumScheduler.helpers";
 import { SchedulerEventCard } from "./SchedulerEventCard";
-import type { SchedulerDetail } from "./premiumScheduler.helpers";
+import type {
+  SchedulerDetail,
+  SchedulerEmptySlotSelection,
+} from "./premiumScheduler.helpers";
 import type {
   SchedulerDaySummary,
   SchedulerOverlayItem,
@@ -17,6 +25,11 @@ import type {
 
 const MINUTES_IN_HOUR = 60;
 const GRID_START_HOUR = 7;
+const GRID_END_HOUR = 23;
+const SLOT_STEP_MINUTES = 15;
+const EMPTY_SLOT_DEFAULT_DURATION_MINUTES = 60;
+const MOBILE_LONG_PRESS_MS = 560;
+const MOBILE_MOVE_CANCEL_THRESHOLD = 10;
 const DAY_VIEW_COMPACT_HEADER_HEIGHT = 112;
 const DAY_VIEW_OVERRIDE_HEADER_HEIGHT = 140;
 
@@ -28,6 +41,7 @@ type SchedulerTimelineViewProps = {
   rowHeight: number;
   viewMode: Extract<SchedulerViewMode, "week" | "day">;
   onDayDetail: (detail: SchedulerDetail) => void;
+  onEmptySlotSelect: (selection: SchedulerEmptySlotSelection) => void;
   onEventDetail: (detail: SchedulerDetail) => void;
 };
 
@@ -58,6 +72,64 @@ function getCompactWeekDayParts(shortLabel: string): {
   };
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function roundToStep(value: number, step: number): number {
+  return Math.round(value / step) * step;
+}
+
+function toTimeLabel(minutesFromStartOfDay: number): string {
+  const minutes = clamp(minutesFromStartOfDay, 0, GRID_END_HOUR * MINUTES_IN_HOUR);
+  const hours = Math.floor(minutes / MINUTES_IN_HOUR);
+  const minutesPart = minutes % MINUTES_IN_HOUR;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutesPart).padStart(
+    2,
+    "0"
+  )}`;
+}
+
+function shouldUseLongPressInteraction(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.matchMedia("(max-width: 640px), (pointer: coarse)").matches;
+}
+
+function getEmptySlotSelection(params: {
+  clientY: number;
+  dateKey: string;
+  gridBody: HTMLDivElement;
+  rowHeight: number;
+}): SchedulerEmptySlotSelection {
+  const rect = params.gridBody.getBoundingClientRect();
+  const offsetY = clamp(params.clientY - rect.top, 0, rect.height);
+  const rawMinutes =
+    GRID_START_HOUR * MINUTES_IN_HOUR +
+    (offsetY / params.rowHeight) * MINUTES_IN_HOUR;
+  const roundedStartMinutes = roundToStep(rawMinutes, SLOT_STEP_MINUTES);
+  const minStartMinutes = GRID_START_HOUR * MINUTES_IN_HOUR;
+  const maxStartMinutes = GRID_END_HOUR * MINUTES_IN_HOUR - SLOT_STEP_MINUTES;
+  const startMinutes = clamp(
+    roundedStartMinutes,
+    minStartMinutes,
+    maxStartMinutes
+  );
+  const endMinutes = Math.min(
+    startMinutes + EMPTY_SLOT_DEFAULT_DURATION_MINUTES,
+    GRID_END_HOUR * MINUTES_IN_HOUR
+  );
+
+  return {
+    dateKey: params.dateKey,
+    startTime: toTimeLabel(startMinutes),
+    endTime: toTimeLabel(Math.max(endMinutes, startMinutes + SLOT_STEP_MINUTES)),
+  };
+}
+
 export function SchedulerTimelineView({
   daySummaries,
   headerHeight,
@@ -66,8 +138,13 @@ export function SchedulerTimelineView({
   rowHeight,
   viewMode,
   onDayDetail,
+  onEmptySlotSelect,
   onEventDetail,
 }: SchedulerTimelineViewProps) {
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressStartRef = useRef<{ x: number; y: number } | null>(null);
+  const longPressHandledRef = useRef(false);
+
   const hasDayOverrideInsight =
     viewMode === "day" &&
     daySummaries.some(
@@ -83,6 +160,89 @@ export function SchedulerTimelineView({
             : DAY_VIEW_COMPACT_HEADER_HEIGHT
         )
       : headerHeight;
+
+  const clearLongPressTimer = () => {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const openEmptySlotAction = (
+    day: SchedulerDaySummary,
+    gridBody: HTMLDivElement,
+    clientY: number
+  ) => {
+    onEmptySlotSelect(
+      getEmptySlotSelection({
+        clientY,
+        dateKey: day.dateKey,
+        gridBody,
+        rowHeight,
+      })
+    );
+  };
+
+  const handleGridClick = (
+    event: MouseEvent<HTMLDivElement>,
+    day: SchedulerDaySummary
+  ) => {
+    if (shouldUseLongPressInteraction()) {
+      if (longPressHandledRef.current) {
+        longPressHandledRef.current = false;
+      }
+
+      return;
+    }
+
+    openEmptySlotAction(day, event.currentTarget, event.clientY);
+  };
+
+  const handleGridPointerDown = (
+    event: PointerEvent<HTMLDivElement>,
+    day: SchedulerDaySummary
+  ) => {
+    if (!shouldUseLongPressInteraction()) {
+      return;
+    }
+
+    clearLongPressTimer();
+    longPressHandledRef.current = false;
+    longPressStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+    };
+
+    const gridBody = event.currentTarget;
+    const clientY = event.clientY;
+
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressHandledRef.current = true;
+      openEmptySlotAction(day, gridBody, clientY);
+      clearLongPressTimer();
+    }, MOBILE_LONG_PRESS_MS);
+  };
+
+  const handleGridPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!longPressStartRef.current) {
+      return;
+    }
+
+    const distanceX = Math.abs(event.clientX - longPressStartRef.current.x);
+    const distanceY = Math.abs(event.clientY - longPressStartRef.current.y);
+
+    if (
+      distanceX > MOBILE_MOVE_CANCEL_THRESHOLD ||
+      distanceY > MOBILE_MOVE_CANCEL_THRESHOLD
+    ) {
+      clearLongPressTimer();
+    }
+  };
+
+  const handleGridPointerEnd = () => {
+    clearLongPressTimer();
+    longPressStartRef.current = null;
+  };
 
   return (
     <div
@@ -237,7 +397,15 @@ export function SchedulerTimelineView({
                 ) : null}
               </header>
 
-              <div className={styles.gridBody}>
+              <div
+                className={styles.gridBody}
+                onClick={(event) => handleGridClick(event, day)}
+                onPointerCancel={handleGridPointerEnd}
+                onPointerDown={(event) => handleGridPointerDown(event, day)}
+                onPointerLeave={handleGridPointerEnd}
+                onPointerMove={handleGridPointerMove}
+                onPointerUp={handleGridPointerEnd}
+              >
                 {day.workStartMinutes !== null &&
                 day.workEndMinutes !== null &&
                 day.isWorking ? (

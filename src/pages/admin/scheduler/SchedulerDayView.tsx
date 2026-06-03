@@ -1,6 +1,12 @@
 import { SchedulerTimelineView } from "./SchedulerTimelineView";
-import type { SchedulerDetail } from "./premiumScheduler.helpers";
-import type { SchedulerDaySummary, SchedulerOverlayItem } from "./premiumScheduler.shared";
+import type {
+  SchedulerDetail,
+  SchedulerEmptySlotSelection,
+} from "./premiumScheduler.helpers";
+import type {
+  SchedulerDaySummary,
+  SchedulerOverlayItem,
+} from "./premiumScheduler.shared";
 
 type SchedulerDayViewProps = {
   daySummaries: SchedulerDaySummary[];
@@ -9,6 +15,7 @@ type SchedulerDayViewProps = {
   overlayItems: SchedulerOverlayItem[];
   rowHeight: number;
   onDayDetail: (detail: SchedulerDetail) => void;
+  onEmptySlotSelect: (selection: SchedulerEmptySlotSelection) => void;
   onEventDetail: (detail: SchedulerDetail) => void;
 };
 

@@ -24,9 +24,8 @@ export function SchedulerEventCard({
   return (
     <button
       type="button"
-      className={`${item.tone === "session" ? styles.sessionBlock : styles.blockedBlock} ${
-        isWeekMode ? styles.blockWeek : styles.blockExpanded
-      } ${item.hasConflict ? styles.blockConflict : ""}`}
+      className={`${item.tone === "session" ? styles.sessionBlock : styles.blockedBlock} ${isWeekMode ? styles.blockWeek : styles.blockExpanded
+        } ${item.hasConflict ? styles.blockConflict : ""}`}
       style={{
         top: `${top}px`,
         height: `${visualHeight}px`,
@@ -34,7 +33,10 @@ export function SchedulerEventCard({
         right: `${isWeekMode ? 8 : 12 + Math.max(0, 16 - conflictOffset)}px`,
         zIndex: item.hasConflict ? 4 + item.conflictOrder : 3,
       }}
-      onClick={onClick}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick();
+      }}
     >
       {isWeekMode ? (
         <>

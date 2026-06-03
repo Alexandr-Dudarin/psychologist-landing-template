@@ -27,6 +27,12 @@ export type SchedulerDetail = {
   isOverride?: boolean;
 };
 
+export type SchedulerEmptySlotSelection = {
+  dateKey: string;
+  startTime: string;
+  endTime: string;
+};
+
 export function getTodayDateKey(timezone = "Europe/Moscow"): string {
   return getTodayDateKeyInTimeZone(timezone);
 }
