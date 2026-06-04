@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
+import { CustomCheckbox } from "../../../components/ui/CustomCheckbox";
 import type {
   ClientFavoriteFilter,
   CrmClientRecord,
@@ -179,16 +180,16 @@ export function NotesFilters({
         ) : null}
       </div>
 
-      <label className={styles.favoriteFilterToggle}>
-        <input
-          type="checkbox"
-          checked={showFavoritesOnly}
-          onChange={(event) =>
-            onFavoriteFilterChange(event.target.checked ? "favorites" : "all")
-          }
-        />
-        <span>Только избранные</span>
-      </label>
+      <CustomCheckbox
+        checked={showFavoritesOnly}
+        onChange={(checked) =>
+          onFavoriteFilterChange(checked ? "favorites" : "all")
+        }
+        className={styles.favoriteFilterToggle}
+        ariaLabel="Показывать только избранных клиентов"
+      >
+        Только избранные
+      </CustomCheckbox>
 
       <div className={styles.notesSearchFilterGroup}>
         <input

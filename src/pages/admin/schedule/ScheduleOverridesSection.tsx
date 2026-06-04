@@ -7,6 +7,7 @@ import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import { AdminScheduleDatePicker } from "./AdminScheduleDatePicker";
 import { AdminTimeSelect } from "../../../components/admin/AdminTimeSelect";
+import { CustomCheckbox } from "../../../components/ui/CustomCheckbox";
 import styles from "./SchedulePage.module.css";
 import {
   formatDate,
@@ -99,16 +100,14 @@ export function ScheduleOverridesSection({
           disablePast
         />
 
-        <label className={styles.checkboxRow}>
-          <input
-            type="checkbox"
-            checked={form.isWorkingDay}
-            onChange={(event) =>
-              onFormChange("isWorkingDay", event.target.checked)
-            }
-          />
-          <span>Это рабочий день с особым временем</span>
-        </label>
+        <CustomCheckbox
+          checked={form.isWorkingDay}
+          onChange={(checked) => onFormChange("isWorkingDay", checked)}
+          className={styles.checkboxRow}
+          ariaLabel="Это рабочий день с особым временем"
+        >
+          Это рабочий день с особым временем
+        </CustomCheckbox>
 
         <div className={styles.timeFieldsGrid}>
           <label className={styles.field}>

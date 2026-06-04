@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
+import { CustomCheckbox } from "../../../components/ui/CustomCheckbox";
 import {
   CustomSelect,
   type CustomSelectOption,
@@ -72,16 +73,14 @@ export function ClientsFilters({
         className={styles.statusFilterSelect}
       />
 
-      <label className={styles.favoriteFilterToggle}>
-        <input
-          type="checkbox"
-          checked={showFavoritesOnly}
-          onChange={(event) =>
-            onFavoriteChange(event.target.checked ? "favorites" : "all")
-          }
-        />
-        <span>Только избранные</span>
-      </label>
+      <CustomCheckbox
+        checked={showFavoritesOnly}
+        onChange={(checked) => onFavoriteChange(checked ? "favorites" : "all")}
+        className={styles.favoriteFilterToggle}
+        ariaLabel="Показывать только избранных клиентов"
+      >
+        Только избранные
+      </CustomCheckbox>
 
       <input
         type="text"

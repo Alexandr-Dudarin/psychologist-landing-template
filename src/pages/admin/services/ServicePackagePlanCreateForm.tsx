@@ -2,6 +2,7 @@ import type { FormEvent } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
+import { CustomCheckbox } from "../../../components/ui/CustomCheckbox";
 import {
   CustomSelect,
   type CustomSelectOption,
@@ -36,9 +37,8 @@ function buildServiceOptions(services: CrmServiceRecord[]): CustomSelectOption[]
     },
     ...services.map((service) => ({
       value: String(service.id),
-      label: `${service.title} — ${formatAdminPriceInput(service.price)} ₽ / ${
-        service.durationMinutes
-      } мин`,
+      label: `${service.title} — ${formatAdminPriceInput(service.price)} ₽ / ${service.durationMinutes
+        } мин`,
     })),
   ];
 }
@@ -105,14 +105,14 @@ export function ServicePackagePlanCreateForm({
           className={styles.input}
         />
 
-        <label className={styles.checkboxRow}>
-          <input
-            type="checkbox"
-            checked={form.isActive}
-            onChange={(event) => onChange("isActive", event.target.checked)}
-          />
-          <span>Пакет активен</span>
-        </label>
+        <CustomCheckbox
+          checked={form.isActive}
+          onChange={(checked) => onChange("isActive", checked)}
+          className={styles.checkboxRow}
+          ariaLabel="Пакет активен"
+        >
+          Пакет активен
+        </CustomCheckbox>
 
         <div>
           <AdminButton type="submit" disabled={isCreating} variant="primary">

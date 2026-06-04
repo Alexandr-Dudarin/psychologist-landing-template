@@ -8,6 +8,7 @@ import {
 } from "../../components/ui/CustomSelect";
 import { siteSettings } from "../../data/siteSettings";
 import { useLanguage } from "../../app/providers/LanguageProvider";
+import { CustomCheckbox } from "../../components/ui/CustomCheckbox";
 import { createPublicRequest } from "../../lib/api/requests";
 import {
   preferredContactMethodLabels,
@@ -292,7 +293,7 @@ export function Booking() {
                       }
                       inputMode={
                         form.preferredContactMethod === "whatsapp" ||
-                        form.preferredContactMethod === "sms"
+                          form.preferredContactMethod === "sms"
                           ? "tel"
                           : undefined
                       }
@@ -302,7 +303,7 @@ export function Booking() {
                       }
                       placeholder={
                         preferredContactPlaceholders[
-                          form.preferredContactMethod
+                        form.preferredContactMethod
                         ]
                       }
                     />
@@ -327,19 +328,20 @@ export function Booking() {
             </div>
 
             <div className={`${styles.checkboxField} ${styles.fullWidth}`}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={form.consent}
-                  onChange={(e) => handleChange("consent", e.target.checked)}
-                />
+              <CustomCheckbox
+                checked={form.consent}
+                onChange={(checked) => handleChange("consent", checked)}
+                className={styles.checkboxLabel}
+                variant="public"
+                ariaLabel="Согласие на обработку персональных данных"
+              >
                 <span>
                   {booking.fields.consent}{" "}
                   <a href="#privacy" className={styles.policyLink}>
                     {ui.booking.privacyLinkText}
                   </a>
                 </span>
-              </label>
+              </CustomCheckbox>
               {errors.consent && (
                 <span className={styles.error}>{errors.consent}</span>
               )}

@@ -2,6 +2,7 @@ import type { FormEvent } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
+import { CustomCheckbox } from "../../../components/ui/CustomCheckbox";
 import {
   formatAdminPriceInput,
   normalizeAdminPriceInput,
@@ -61,14 +62,14 @@ export function ServiceCreateForm({
           className={styles.input}
         />
 
-        <label className={styles.checkboxRow}>
-          <input
-            type="checkbox"
-            checked={form.isActive}
-            onChange={(event) => onChange("isActive", event.target.checked)}
-          />
-          <span>{"Услуга активна"}</span>
-        </label>
+        <CustomCheckbox
+          checked={form.isActive}
+          onChange={(checked) => onChange("isActive", checked)}
+          className={styles.checkboxRow}
+          ariaLabel="Услуга активна"
+        >
+          Услуга активна
+        </CustomCheckbox>
 
         <div>
           <AdminButton type="submit" disabled={isCreating} variant="primary">

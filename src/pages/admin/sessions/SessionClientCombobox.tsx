@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import type { CrmClientRecord } from "../../../types/client";
+import { CustomCheckbox } from "../../../components/ui/CustomCheckbox";
 import styles from "./SessionsPage.module.css";
 
 type SessionClientComboboxProps = {
@@ -282,17 +283,15 @@ export function SessionClientCombobox({
           ) : null}
         </div>
 
-        <label className={styles.clientFavoriteToggle}>
-          <input
-            type="checkbox"
-            checked={showFavoriteClientsOnly}
-            onChange={(event) =>
-              setShowFavoriteClientsOnly(event.target.checked)
-            }
-            disabled={!hasActiveClients}
-          />
-          <span>Только избранные</span>
-        </label>
+        <CustomCheckbox
+          checked={showFavoriteClientsOnly}
+          onChange={setShowFavoriteClientsOnly}
+          disabled={!hasActiveClients}
+          className={styles.clientFavoriteToggle}
+          ariaLabel="Показывать только избранных клиентов"
+        >
+          Только избранные
+        </CustomCheckbox>
       </div>
 
       <span className={styles.clientPickerHint}>

@@ -11,6 +11,7 @@ import {
 } from "../../lib/preferredContact";
 import { preferredContactMethods } from "../../types/preferredContact";
 import { getBookingMessageLengthError } from "./bookingPage.helpers";
+import { CustomCheckbox } from "../../components/ui/CustomCheckbox";
 import type {
   BookingContent,
   BookingFormErrors,
@@ -241,22 +242,21 @@ export function BookingFormStep({
           </div>
 
           <div className={`${styles.checkboxField} ${styles.fullWidth}`}>
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={form.consent}
-                disabled={isLocked}
-                onChange={(event) =>
-                  onFieldChange("consent", event.target.checked)
-                }
-              />
+            <CustomCheckbox
+              checked={form.consent}
+              disabled={isLocked}
+              onChange={(checked) => onFieldChange("consent", checked)}
+              className={styles.checkboxLabel}
+              variant="public"
+              ariaLabel="Согласие на обработку персональных данных"
+            >
               <span>
                 {bookingContent.fields.consent}{" "}
                 <a href="#privacy" className={styles.policyLink}>
                   {privacyLinkText}
                 </a>
               </span>
-            </label>
+            </CustomCheckbox>
             {formErrors.consent ? (
               <span className={styles.fieldError}>{formErrors.consent}</span>
             ) : null}
