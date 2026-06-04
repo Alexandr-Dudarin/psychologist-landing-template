@@ -23,6 +23,14 @@ export const siteSettings = {
     publicPricingEnabled: true,
   },
 
+  clientReviews: {
+    enabled: true,
+    publicListEnabled: true,
+    publicFormEnabled: true,
+    moderationEnabled: true,
+    rewardCodesEnabled: false,
+  },
+
   premiumModules: {
     scheduler: {
       enabled: true,
@@ -61,6 +69,10 @@ export const siteSettings = {
     },
     reviews: {
       enabled: true,
+      mode: "images" as "images" | "client_reviews" | "mixed",
+      imageReviewsEnabled: true,
+      clientReviewsEnabled: false,
+      clientReviewFormLinkEnabled: false,
     },
   },
 
