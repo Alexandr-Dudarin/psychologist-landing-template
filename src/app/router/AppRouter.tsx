@@ -4,6 +4,7 @@ import { AdminLayout } from "../../layouts/AdminLayout";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { LandingPage } from "../../pages/landing/LandingPage";
 import { BookingPage } from "../../pages/book/BookingPage";
+import { ClientReviewsPage } from "../../pages/reviews/ClientReviewsPage";
 import { AdminLoginPage } from "../../pages/admin/login/AdminLoginPage";
 import { AdminDashboardPage } from "../../pages/admin/dashboard/AdminDashboardPage";
 import { RequestsPage } from "../../pages/admin/requests/RequestsPage";
@@ -23,6 +24,9 @@ export function AppRouter() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/book" element={<BookingPage />} />
+        {siteSettings.clientReviews.enabled ? (
+          <Route path="/reviews" element={<ClientReviewsPage />} />
+        ) : null}
         <Route path="/payment-success" element={<PaymentSuccessPage />} />
       </Route>
 
