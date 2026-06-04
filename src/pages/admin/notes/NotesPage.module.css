@@ -153,7 +153,8 @@
 
 .favoriteFilterToggle {
   display: inline-flex;
-  align-items: center;
+  align-items: center !important;
+  justify-content: center;
   gap: 8px;
   min-height: 46px;
   padding: 0 14px;
@@ -173,6 +174,10 @@
     color 0.18s ease;
 }
 
+.favoriteFilterToggle > span:first-child {
+  margin-top: 0;
+}
+
 .favoriteFilterToggle:hover {
   border-color: color-mix(in srgb, var(--admin-accent) 28%, white);
   background: var(--admin-accent-soft);
@@ -181,14 +186,6 @@
 .favoriteFilterToggle:focus-within {
   border-color: color-mix(in srgb, var(--admin-accent) 42%, white);
   box-shadow: 0 0 0 3px rgba(47, 93, 120, 0.16);
-}
-
-.favoriteFilterToggle input {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  accent-color: var(--admin-accent);
-  cursor: pointer;
 }
 
 .filtersResetButton.filtersResetButton {
