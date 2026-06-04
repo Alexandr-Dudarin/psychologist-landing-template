@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
+import { CustomCheckbox } from "../../../components/ui/CustomCheckbox";
 import styles from "./SchedulePage.module.css";
 import {
   bookingTimezoneOptionGroups,
@@ -100,7 +101,7 @@ export function ScheduleSettingsForm({
             </span>
           </label>
 
-          <label className={`${styles.field} ${styles.checkboxField}`}>
+          <div className={`${styles.field} ${styles.checkboxField}`}>
             <span className={styles.checkboxLabelCopy}>
               <span className={styles.checkboxLabelTitle}>
                 Разрешить запись на текущий день
@@ -112,14 +113,13 @@ export function ScheduleSettingsForm({
             </span>
 
             <span className={styles.checkboxControl}>
-              <input
-                type="checkbox"
+              <CustomCheckbox
                 checked={settingsForm.allowSameDayBooking}
-                onChange={(event) => onCheckboxChange(event.target.checked)}
-                className={styles.checkboxInput}
+                onChange={onCheckboxChange}
+                ariaLabel="Разрешить запись на текущий день"
               />
             </span>
-          </label>
+          </div>
         </div>
 
         <div className={styles.actions}>

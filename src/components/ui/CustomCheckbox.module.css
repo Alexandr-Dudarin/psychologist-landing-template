@@ -1,0 +1,191 @@
+.root {
+  --checkbox-size: 18px;
+  --checkbox-radius: 5px;
+  --checkbox-border: #cfd8e2;
+  --checkbox-border-hover: #b8c5d0;
+  --checkbox-accent: #2f5d78;
+  --checkbox-accent-hover: #274c62;
+  --checkbox-accent-contrast: #ffffff;
+  --checkbox-bg: #ffffff;
+  --checkbox-bg-muted: #f5f7fa;
+  --checkbox-text: #20303c;
+  --checkbox-text-muted: #5d6b78;
+  --checkbox-focus: rgba(47, 93, 120, 0.18);
+
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: fit-content;
+  max-width: 100%;
+  color: var(--checkbox-text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.rootAdmin {
+  --checkbox-border: var(--admin-border, #d7dee6);
+  --checkbox-border-hover: var(--admin-border-strong, #c5ced8);
+  --checkbox-accent: var(--admin-accent, #2f5d78);
+  --checkbox-accent-hover: #274c62;
+  --checkbox-bg: var(--admin-surface, #ffffff);
+  --checkbox-bg-muted: var(--admin-surface-muted, #f5f7fa);
+  --checkbox-text: var(--admin-text, #20303c);
+  --checkbox-text-muted: var(--admin-text-muted, #5d6b78);
+}
+
+.rootPublic {
+  --checkbox-border: color-mix(in srgb, var(--color-text, #2f241f) 16%, white);
+  --checkbox-border-hover: color-mix(
+    in srgb,
+    var(--color-text, #2f241f) 28%,
+    white
+  );
+  --checkbox-accent: var(--color-accent, #ad8f82);
+  --checkbox-accent-hover: color-mix(
+    in srgb,
+    var(--color-accent, #ad8f82) 82%,
+    black
+  );
+  --checkbox-accent-contrast: var(--color-accent-contrast, #ffffff);
+  --checkbox-bg: color-mix(in srgb, var(--color-surface, #ffffff) 92%, white);
+  --checkbox-bg-muted: color-mix(
+    in srgb,
+    var(--color-surface, #ffffff) 86%,
+    var(--color-muted, #f5eee8)
+  );
+  --checkbox-text: var(--color-text, #2f241f);
+  --checkbox-text-muted: var(--color-text-muted, #7b6b62);
+  --checkbox-focus: color-mix(
+    in srgb,
+    var(--color-accent, #ad8f82) 26%,
+    transparent
+  );
+}
+
+.rootSmall {
+  --checkbox-size: 16px;
+  --checkbox-radius: 4px;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.rootMedium {
+  --checkbox-size: 18px;
+  --checkbox-radius: 5px;
+}
+
+.rootIconOnly {
+  align-items: center;
+  gap: 0;
+}
+
+.control {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  margin-top: 0.1em;
+}
+
+.input {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  border: 1px solid var(--checkbox-border);
+  border-radius: var(--checkbox-radius);
+  background: var(--checkbox-bg);
+  color: var(--checkbox-accent-contrast);
+  box-shadow: 0 1px 2px rgba(32, 48, 60, 0.04);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.mark {
+  font-size: calc(var(--checkbox-size) * 0.72);
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(0.72);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+
+.copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.label {
+  color: var(--checkbox-text);
+  line-height: 1.35;
+}
+
+.description {
+  color: var(--checkbox-text-muted);
+  font-size: 0.92em;
+  line-height: 1.4;
+}
+
+.root:hover:not(.rootDisabled) .box {
+  border-color: var(--checkbox-border-hover);
+  box-shadow: 0 4px 12px rgba(32, 48, 60, 0.08);
+}
+
+.input:checked + .box {
+  border-color: var(--checkbox-accent);
+  background: var(--checkbox-accent);
+}
+
+.input:checked + .box .mark {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.input:focus-visible + .box {
+  outline: none;
+  border-color: var(--checkbox-accent);
+  box-shadow: 0 0 0 3px var(--checkbox-focus);
+}
+
+.input:active + .box {
+  transform: scale(0.96);
+}
+
+.rootDisabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.rootDisabled .box {
+  background: var(--checkbox-bg-muted);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .box,
+  .mark {
+    transition: none;
+  }
+}

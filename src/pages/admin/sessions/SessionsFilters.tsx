@@ -16,6 +16,7 @@ import type { CrmServiceRecord } from "../../../types/service";
 import type { SessionStatus } from "../../../types/session";
 import { sessionStatuses } from "../../../types/session";
 import { sessionStatusLabels } from "./sessionForm";
+import { CustomCheckbox } from "../../../components/ui/CustomCheckbox";
 import styles from "./SessionsPage.module.css";
 
 type SessionsFiltersProps = {
@@ -307,18 +308,16 @@ export function SessionsFilters({
           ) : null}
         </div>
 
-        <label className={styles.favoriteFilterToggle}>
-          <input
-            type="checkbox"
-            checked={showFavoritesOnly}
-            onChange={(event) =>
-              onFavoriteFilterChange(
-                event.target.checked ? "favorites" : "all"
-              )
-            }
-          />
-          <span>Только избранные</span>
-        </label>
+        <CustomCheckbox
+          checked={showFavoritesOnly}
+          onChange={(checked) =>
+            onFavoriteFilterChange(checked ? "favorites" : "all")
+          }
+          className={styles.favoriteFilterToggle}
+          ariaLabel="Показывать только избранных клиентов"
+        >
+          Только избранные
+        </CustomCheckbox>
       </div>
 
       <div className={styles.filtersControlsGroup}>

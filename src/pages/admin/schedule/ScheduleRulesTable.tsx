@@ -6,6 +6,7 @@ import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import { AdminTimeSelect } from "../../../components/admin/AdminTimeSelect";
+import { CustomCheckbox } from "../../../components/ui/CustomCheckbox";
 import styles from "./SchedulePage.module.css";
 import {
   weekdayLabels,
@@ -79,12 +80,13 @@ export function ScheduleRulesTable({
                 </td>
 
                 <td className={styles.centerCell}>
-                  <input
-                    type="checkbox"
+                  <CustomCheckbox
                     checked={rule.isEnabled}
-                    onChange={(event) =>
-                      onRuleChange(rule.weekday, "isEnabled", event.target.checked)
+                    onChange={(checked) =>
+                      onRuleChange(rule.weekday, "isEnabled", checked)
                     }
+                    ariaLabel={`Рабочий день активен: ${weekdayLabels[rule.weekday]}`}
+                    size="sm"
                   />
                 </td>
 
