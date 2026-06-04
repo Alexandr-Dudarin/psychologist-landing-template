@@ -16,6 +16,7 @@ type SchedulerSessionModalProps = {
   clients: CrmClientRecord[];
   draft: SessionForm | null;
   error: string;
+  successMessage: string;
   isCreating: boolean;
   isPackagesLoading: boolean;
   scheduleWarning: string | null;
@@ -31,6 +32,7 @@ export function SchedulerSessionModal({
   clients,
   draft,
   error,
+  successMessage,
   isCreating,
   isPackagesLoading,
   scheduleWarning,
@@ -108,29 +110,39 @@ export function SchedulerSessionModal({
 
         <div className={styles.body}>
           <AdminFeedback message={error} tone="error" />
+          <AdminFeedback message={successMessage} tone="success" />
 
-          {scheduleWarning ? (
-            <div className={styles.warningFeedback} role="status">
-              {scheduleWarning}
-            </div>
-          ) : null}
+          {successMessage ? (
+            <p className={styles.hint}>
+              Планировщик уже обновлён. Можно дождаться автоматического закрытия
+              окна или закрыть его вручную.
+            </p>
+          ) : (
+            <>
+              {scheduleWarning ? (
+                <div className={styles.warningFeedback} role="status">
+                  {scheduleWarning}
+                </div>
+              ) : null}
 
-          <SessionCreateForm
-            clients={clients}
-            activeServices={activeServices}
-            clientPackages={clientPackages}
-            form={draft}
-            timezone={timezone}
-            isCreating={isCreating}
-            isPackagesLoading={isPackagesLoading}
-            onFormChange={onChange}
-            onSubmit={onSubmit}
-          />
+              <SessionCreateForm
+                clients={clients}
+                activeServices={activeServices}
+                clientPackages={clientPackages}
+                form={draft}
+                timezone={timezone}
+                isCreating={isCreating}
+                isPackagesLoading={isPackagesLoading}
+                onFormChange={onChange}
+                onSubmit={onSubmit}
+              />
 
-          <p className={styles.hint}>
-            Сессия создаётся через общую CRM-логику. После сохранения она
-            появится в планировщике и в разделе «Сессии».
-          </p>
+              <p className={styles.hint}>
+                Сессия создаётся через общую CRM-логику. После сохранения она
+                появится в планировщике и в разделе «Сессии».
+              </p>
+            </>
+          )}
         </div>
       </section>
     </div>

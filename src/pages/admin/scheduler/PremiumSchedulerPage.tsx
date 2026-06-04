@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
 } from "react";
@@ -127,6 +128,27 @@ function isValidTimeRange(startTime: string, endTime: string): boolean {
   return Boolean(startTime && endTime && startTime < endTime);
 }
 
+function addBufferInfoToScheduleWarning(
+  warning: string,
+  bufferMinutes: number
+): string {
+  if (!bufferMinutes || bufferMinutes <= 0) {
+    return warning;
+  }
+
+  const bufferText = `Сейчас перерыв после сессий настроен на ${bufferMinutes} мин.`;
+  const chooseAnotherTimeText = "Выберите другое время.";
+
+  if (warning.includes(chooseAnotherTimeText)) {
+    return warning.replace(
+      chooseAnotherTimeText,
+      `${bufferText} ${chooseAnotherTimeText}`
+    );
+  }
+
+  return `${warning} ${bufferText}`;
+}
+
 function buildSchedulerSessionDraft(
   selection: SchedulerEmptySlotSelection
 ): SessionForm {
@@ -173,12 +195,14 @@ export function PremiumSchedulerPage() {
   const [isCreatingBlockedSlot, setIsCreatingBlockedSlot] = useState(false);
   const [sessionDraft, setSessionDraft] = useState<SessionForm | null>(null);
   const [sessionDraftError, setSessionDraftError] = useState("");
+  const [sessionDraftSuccess, setSessionDraftSuccess] = useState("");
   const [sessionClientPackages, setSessionClientPackages] = useState<
     CrmClientServicePackageRecord[]
   >([]);
   const [isSessionPackagesLoading, setIsSessionPackagesLoading] =
     useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const sessionSuccessCloseTimerRef = useRef<number | null>(null);
 
   const rowHeight = viewMode === "day" ? DAY_ROW_HEIGHT : WEEK_ROW_HEIGHT;
   const headerHeight = viewMode === "day" ? 142 : 88;
@@ -326,23 +350,33 @@ export function PremiumSchedulerPage() {
     ]
   );
 
-  const sessionScheduleWarning = useMemo(
-    () =>
-      sessionDraft
-        ? getManualSessionScheduleWarning(
-            sessionDraft,
-            safeScheduleData.rules,
-            safeScheduleData.overrides,
-            safeScheduleData.blockedSlots
-          )
-        : null,
-    [
+  const sessionScheduleWarning = useMemo(() => {
+    if (!sessionDraft) {
+      return null;
+    }
+
+    const warning = getManualSessionScheduleWarning(
       sessionDraft,
-      safeScheduleData.blockedSlots,
-      safeScheduleData.overrides,
       safeScheduleData.rules,
-    ]
-  );
+      safeScheduleData.overrides,
+      safeScheduleData.blockedSlots
+    );
+
+    if (!warning) {
+      return null;
+    }
+
+    return addBufferInfoToScheduleWarning(
+      warning,
+      safeScheduleData.settings.bufferMinutes
+    );
+  }, [
+    sessionDraft,
+    safeScheduleData.blockedSlots,
+    safeScheduleData.overrides,
+    safeScheduleData.rules,
+    safeScheduleData.settings.bufferMinutes,
+  ]);
 
   const totalSessions = sessions.length;
   const totalBlockedSlots = safeScheduleData.blockedSlots.length;
@@ -351,6 +385,13 @@ export function PremiumSchedulerPage() {
 
   const closeSelectedDetail = useCallback(() => {
     setSelectedDetail(null);
+  }, []);
+
+  const clearSessionSuccessCloseTimer = useCallback(() => {
+    if (sessionSuccessCloseTimerRef.current !== null) {
+      window.clearTimeout(sessionSuccessCloseTimerRef.current);
+      sessionSuccessCloseTimerRef.current = null;
+    }
   }, []);
 
   const getDayDetailByDateKey = useCallback(
@@ -435,14 +476,16 @@ export function PremiumSchedulerPage() {
 
   const handleEmptySlotSelect = useCallback(
     (selection: SchedulerEmptySlotSelection) => {
+      clearSessionSuccessCloseTimer();
       setEmptySlotSelection(selection);
       setBlockedSlotDraft(null);
       setSessionDraft(null);
       setBlockedSlotDraftError("");
       setSessionDraftError("");
+      setSessionDraftSuccess("");
       setSelectedDetail(null);
     },
-    []
+    [clearSessionSuccessCloseTimer]
   );
 
   const handleCloseEmptySlotSelection = useCallback(() => {
@@ -469,11 +512,13 @@ export function PremiumSchedulerPage() {
       return;
     }
 
+    clearSessionSuccessCloseTimer();
     setSessionDraft(buildSchedulerSessionDraft(emptySlotSelection));
     setSessionClientPackages([]);
     setSessionDraftError("");
+    setSessionDraftSuccess("");
     setEmptySlotSelection(null);
-  }, [emptySlotSelection]);
+  }, [clearSessionSuccessCloseTimer, emptySlotSelection]);
 
   const handleBlockedSlotDraftChange = useCallback(
     (field: keyof SchedulerBlockedSlotDraft, value: string) => {
@@ -558,8 +603,19 @@ export function PremiumSchedulerPage() {
       if (sessionDraftError) {
         setSessionDraftError("");
       }
+
+      if (sessionDraftSuccess) {
+        clearSessionSuccessCloseTimer();
+        setSessionDraftSuccess("");
+      }
     },
-    [activeServices, sessionClientPackages, sessionDraftError]
+    [
+      activeServices,
+      clearSessionSuccessCloseTimer,
+      sessionClientPackages,
+      sessionDraftError,
+      sessionDraftSuccess,
+    ]
   );
 
   const handleCloseSessionDraft = useCallback(() => {
@@ -567,10 +623,12 @@ export function PremiumSchedulerPage() {
       return;
     }
 
+    clearSessionSuccessCloseTimer();
     setSessionDraft(null);
     setSessionDraftError("");
+    setSessionDraftSuccess("");
     setSessionClientPackages([]);
-  }, [isCreatingSession]);
+  }, [clearSessionSuccessCloseTimer, isCreatingSession]);
 
   const handleCreateSessionFromScheduler = useCallback(
     async (event: FormEvent) => {
@@ -596,6 +654,7 @@ export function PremiumSchedulerPage() {
 
       setIsCreatingSession(true);
       setSessionDraftError("");
+      setSessionDraftSuccess("");
       setError(null);
 
       try {
@@ -604,19 +663,42 @@ export function PremiumSchedulerPage() {
         const sessionsData = await getAdminSessions();
 
         setSessions(sessionsData);
-        setSessionDraft(null);
-        setSessionClientPackages([]);
+        setSessionDraftError("");
+        setSessionDraftSuccess(
+          "Сессия успешно создана. Окно закроется автоматически через 7 секунд."
+        );
+
+        clearSessionSuccessCloseTimer();
+        sessionSuccessCloseTimerRef.current = window.setTimeout(() => {
+          setSessionDraft(null);
+          setSessionDraftSuccess("");
+          setSessionClientPackages([]);
+          sessionSuccessCloseTimerRef.current = null;
+        }, 7000);
       } catch (createError) {
-        setSessionDraftError(
+        const errorMessage =
           createError instanceof Error
             ? createError.message
-            : "Не удалось создать сессию из планировщика."
+            : "Не удалось создать сессию из планировщика.";
+
+        setSessionDraftSuccess("");
+        setSessionDraftError(
+          addBufferInfoToScheduleWarning(
+            errorMessage,
+            safeScheduleData.settings.bufferMinutes
+          )
         );
       } finally {
         setIsCreatingSession(false);
       }
     },
-    [isCreatingSession, safeScheduleData.settings.timezone, sessionDraft]
+    [
+      clearSessionSuccessCloseTimer,
+      isCreatingSession,
+      safeScheduleData.settings.bufferMinutes,
+      safeScheduleData.settings.timezone,
+      sessionDraft,
+    ]
   );
 
   useEffect(() => {
@@ -678,6 +760,12 @@ export function PremiumSchedulerPage() {
       return getTodayDateKey(scheduleTimezone);
     });
   }, [scheduleTimezone]);
+
+  useEffect(() => {
+    return () => {
+      clearSessionSuccessCloseTimer();
+    };
+  }, [clearSessionSuccessCloseTimer]);
 
   return (
     <main className={pageStyles.page}>
@@ -817,6 +905,7 @@ export function PremiumSchedulerPage() {
         clients={clients}
         draft={sessionDraft}
         error={sessionDraftError}
+        successMessage={sessionDraftSuccess}
         isCreating={isCreatingSession}
         isPackagesLoading={isSessionPackagesLoading}
         scheduleWarning={sessionScheduleWarning}
