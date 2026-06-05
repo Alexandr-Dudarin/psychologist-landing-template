@@ -68,6 +68,7 @@ export type ClientReviewListSuccessResponse = {
 
 export type ClientReviewAdminListSuccessResponse = {
   items: ClientReviewAdminRecord[];
+  hasMore?: boolean;
 };
 
 export type ClientReviewAdminUpdateSuccessResponse = {

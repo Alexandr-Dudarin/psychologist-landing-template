@@ -900,9 +900,11 @@ async function handleListPackages(req: any, res: any) {
 
 async function handleListReviews(req: any, res: any) {
   const status = getSingleQueryValue(req.query?.status).trim();
+  const limitRaw = getSingleQueryValue(req.query?.limit).trim();
+  const offsetRaw = getSingleQueryValue(req.query?.offset).trim();
 
   const conditions: string[] = [];
-  const values: string[] = [];
+  const values: Array<string | number> = [];
 
   if (status && status !== "all") {
     if (!clientReviewStatuses.includes(status as ClientReviewStatus)) {
@@ -913,8 +915,43 @@ async function handleListReviews(req: any, res: any) {
     conditions.push(`r.status = $${values.length}`);
   }
 
+  let limit: number | null = null;
+  let offset = 0;
+
+  if (limitRaw) {
+    const parsedLimit = Number(limitRaw);
+
+    if (!Number.isInteger(parsedLimit) || parsedLimit <= 0) {
+      return res.status(400).json({ error: "Invalid reviews limit" });
+    }
+
+    limit = Math.min(parsedLimit, 50);
+  }
+
+  if (offsetRaw) {
+    const parsedOffset = Number(offsetRaw);
+
+    if (!Number.isInteger(parsedOffset) || parsedOffset < 0) {
+      return res.status(400).json({ error: "Invalid reviews offset" });
+    }
+
+    offset = parsedOffset;
+  }
+
   const whereClause =
     conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  let paginationClause = "";
+
+  if (limit !== null) {
+    values.push(limit + 1);
+    const limitParamIndex = values.length;
+
+    values.push(offset);
+    const offsetParamIndex = values.length;
+
+    paginationClause = `LIMIT $${limitParamIndex} OFFSET $${offsetParamIndex}`;
+  }
 
   try {
     const result = await pool.query<ClientReviewRow>(
@@ -948,12 +985,17 @@ async function handleListReviews(req: any, res: any) {
             ELSE 4
           END,
           r.created_at DESC
+        ${paginationClause}
       `,
       values
     );
 
+    const rows =
+      limit === null ? result.rows : result.rows.slice(0, limit);
+
     return res.status(200).json({
-      items: result.rows.map(mapClientReview),
+      items: rows.map(mapClientReview),
+      hasMore: limit === null ? false : result.rows.length > limit,
     });
   } catch (error) {
     console.error("Client reviews admin list error:", error);

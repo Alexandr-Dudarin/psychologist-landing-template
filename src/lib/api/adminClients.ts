@@ -90,12 +90,24 @@ type AssignClientServicePackageErrorResponse = {
 
 type ListClientReviewsAdminResponse = {
   items: ClientReviewAdminRecord[];
+  hasMore?: boolean;
 };
 
 export type AdminClientsFilters = {
   status?: ClientStatus | "all";
   favorite?: ClientFavoriteFilter;
   search?: string;
+};
+
+export type AdminClientReviewsPageOptions = {
+  status?: ClientReviewAdminStatusFilter;
+  limit?: number;
+  offset?: number;
+};
+
+export type AdminClientReviewsPageResult = {
+  items: ClientReviewAdminRecord[];
+  hasMore: boolean;
 };
 
 export async function getAdminClients(
@@ -359,13 +371,21 @@ export async function assignClientServicePackage(
   throw new Error("Не удалось добавить пакет клиенту");
 }
 
-export async function getAdminClientReviews(
-  status: ClientReviewAdminStatusFilter = "all"
-): Promise<ClientReviewAdminRecord[]> {
+export async function getAdminClientReviewsPage(
+  options: AdminClientReviewsPageOptions = {}
+): Promise<AdminClientReviewsPageResult> {
   const params = new URLSearchParams({
     action: "list-reviews",
-    status,
+    status: options.status ?? "all",
   });
+
+  if (typeof options.limit === "number") {
+    params.set("limit", String(options.limit));
+  }
+
+  if (typeof options.offset === "number") {
+    params.set("offset", String(options.offset));
+  }
 
   const response = await fetch(`/api/admin/clients?${params.toString()}`);
 
@@ -381,10 +401,24 @@ export async function getAdminClientReviews(
   }
 
   if (data && "items" in data) {
-    return data.items;
+    return {
+      items: data.items,
+      hasMore: Boolean(data.hasMore),
+    };
   }
 
-  return [];
+  return {
+    items: [],
+    hasMore: false,
+  };
+}
+
+export async function getAdminClientReviews(
+  status: ClientReviewAdminStatusFilter = "all"
+): Promise<ClientReviewAdminRecord[]> {
+  const result = await getAdminClientReviewsPage({ status });
+
+  return result.items;
 }
 
 export async function updateAdminClientReview(

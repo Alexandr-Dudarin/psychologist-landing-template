@@ -9,6 +9,7 @@ import styles from "./AdminReviewsPage.module.css";
 type AdminReviewsTableProps = {
   adminNoteDrafts: Record<number, string>;
   items: ClientReviewAdminRecord[];
+  previewLimit: number;
   updatingId: number | null;
   onAdminNoteChange: (id: number, value: string) => void;
   onUpdateReview: (
@@ -56,6 +57,16 @@ function getRatingLabel(rating: number | null): string {
   return `${rating} / 5`;
 }
 
+function getPreviewText(value: string, limit: number): string {
+  const normalizedValue = value.trim();
+
+  if (normalizedValue.length <= limit) {
+    return normalizedValue;
+  }
+
+  return `${normalizedValue.slice(0, limit).trimEnd()}…`;
+}
+
 function getStatusBadgeClassName(status: ClientReviewStatus): string {
   return [
     styles.statusBadge,
@@ -69,17 +80,25 @@ function getStatusBadgeClassName(status: ClientReviewStatus): string {
 }
 
 function getRatingBadgeClassName(rating: number | null): string {
-  return [
-    styles.ratingBadge,
-    rating === null ? styles.ratingBadgeEmpty : "",
-  ]
+  return [styles.ratingBadge, rating === null ? styles.ratingBadgeEmpty : ""]
     .filter(Boolean)
     .join(" ");
+}
+
+function getRowClassName(status: ClientReviewStatus): string | undefined {
+  const classNames = [
+    status === "pending" ? styles.pendingRow : "",
+    status === "hidden" ? styles.hiddenRow : "",
+    status === "deleted" ? styles.deletedRow : "",
+  ].filter(Boolean);
+
+  return classNames.length > 0 ? classNames.join(" ") : undefined;
 }
 
 export function AdminReviewsTable({
   adminNoteDrafts,
   items,
+  previewLimit,
   updatingId,
   onAdminNoteChange,
   onUpdateReview,
@@ -103,17 +122,16 @@ export function AdminReviewsTable({
           const isUpdating = updatingId === item.id;
 
           return (
-            <tr
-              key={item.id}
-              className={item.status === "deleted" ? styles.deletedRow : undefined}
-            >
+            <tr key={item.id} className={getRowClassName(item.status)}>
               <td className={styles.reviewCell}>
                 <div className={styles.reviewPreview}>
                   <strong className={styles.reviewAuthor}>
                     {getPublicName(item.publicName)}
                   </strong>
 
-                  <p className={styles.reviewText}>{item.text}</p>
+                  <p className={styles.reviewText}>
+                    {getPreviewText(item.text, previewLimit)}
+                  </p>
                 </div>
               </td>
 

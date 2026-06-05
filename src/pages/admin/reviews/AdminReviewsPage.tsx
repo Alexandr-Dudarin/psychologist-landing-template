@@ -4,62 +4,164 @@ import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import { AdminSection } from "../../../components/admin/AdminSection";
-import { CustomSelect } from "../../../components/ui/CustomSelect";
 import {
-  getAdminClientReviews,
+  getAdminClientReviewsPage,
   updateAdminClientReview,
 } from "../../../lib/api/adminClients";
 import type {
   ClientReviewAdminRecord,
-  ClientReviewAdminStatusFilter,
   ClientReviewStatus,
 } from "../../../types/reviews";
 import { AdminReviewsTable } from "./AdminReviewsTable";
 import styles from "./AdminReviewsPage.module.css";
 
-const statusOptions: Array<{
-  value: ClientReviewAdminStatusFilter;
-  label: string;
-}> = [
-  { value: "all", label: "Все статусы" },
-  { value: "pending", label: "На проверке" },
-  { value: "published", label: "Опубликованы" },
-  { value: "hidden", label: "Скрыты" },
-  { value: "deleted", label: "Удалены" },
-];
+const REVIEW_PAGE_SIZE = 10;
+
+function getReviewPreviewLimit(width: number): number {
+  if (width <= 640) {
+    return 80;
+  }
+
+  if (width <= 700) {
+    return 100;
+  }
+
+  if (width <= 800) {
+    return 120;
+  }
+
+  if (width <= 900) {
+    return 150;
+  }
+
+  if (width <= 1000) {
+    return 170;
+  }
+
+  if (width <= 1100) {
+    return 200;
+  }
+
+  if (width <= 1280) {
+    return 250;
+  }
+
+  return 350;
+}
+
+function useReviewPreviewLimit(): number {
+  const [previewLimit, setPreviewLimit] = useState(() => {
+    if (typeof window === "undefined") {
+      return 350;
+    }
+
+    return getReviewPreviewLimit(window.innerWidth);
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setPreviewLimit(getReviewPreviewLimit(window.innerWidth));
+    };
+
+    handleResize();
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  return previewLimit;
+}
+
+function upsertReview(
+  items: ClientReviewAdminRecord[],
+  item: ClientReviewAdminRecord
+): ClientReviewAdminRecord[] {
+  const withoutItem = items.filter((currentItem) => currentItem.id !== item.id);
+
+  return [item, ...withoutItem];
+}
+
+function removeReview(
+  items: ClientReviewAdminRecord[],
+  itemId: number
+): ClientReviewAdminRecord[] {
+  return items.filter((currentItem) => currentItem.id !== itemId);
+}
 
 export function AdminReviewsPage() {
-  const [items, setItems] = useState<ClientReviewAdminRecord[]>([]);
-  const [statusFilter, setStatusFilter] =
-    useState<ClientReviewAdminStatusFilter>("all");
+  const previewLimit = useReviewPreviewLimit();
+
+  const [pendingItems, setPendingItems] = useState<ClientReviewAdminRecord[]>(
+    []
+  );
+  const [publishedItems, setPublishedItems] = useState<
+    ClientReviewAdminRecord[]
+  >([]);
+  const [hiddenItems, setHiddenItems] = useState<ClientReviewAdminRecord[]>([]);
+
+  const [isPendingLoading, setIsPendingLoading] = useState(true);
+  const [isPublishedLoading, setIsPublishedLoading] = useState(false);
+  const [isHiddenLoading, setIsHiddenLoading] = useState(false);
+
+  const [isPublishedOpen, setIsPublishedOpen] = useState(false);
+  const [isHiddenOpen, setIsHiddenOpen] = useState(false);
+
+  const [publishedHasMore, setPublishedHasMore] = useState(false);
+  const [hiddenHasMore, setHiddenHasMore] = useState(false);
+
   const [adminNoteDrafts, setAdminNoteDrafts] = useState<
     Record<number, string>
   >({});
-  const [isLoading, setIsLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const pendingCount = useMemo(
-    () => items.filter((item) => item.status === "pending").length,
-    [items]
+  const pendingCount = pendingItems.length;
+
+  const visibleItemsCount = useMemo(
+    () =>
+      pendingItems.length +
+      (isPublishedOpen ? publishedItems.length : 0) +
+      (isHiddenOpen ? hiddenItems.length : 0),
+    [
+      hiddenItems.length,
+      isHiddenOpen,
+      isPublishedOpen,
+      pendingItems.length,
+      publishedItems.length,
+    ]
   );
 
-  const loadReviews = useCallback(async () => {
-    setIsLoading(true);
+  const mergeAdminNoteDrafts = useCallback(
+    (loadedItems: ClientReviewAdminRecord[]) => {
+      setAdminNoteDrafts((currentDrafts) => {
+        const nextDrafts = { ...currentDrafts };
+
+        loadedItems.forEach((item) => {
+          nextDrafts[item.id] = item.adminNote;
+        });
+
+        return nextDrafts;
+      });
+    },
+    []
+  );
+
+  const loadPendingReviews = useCallback(async () => {
+    setIsPendingLoading(true);
     setError("");
     setSuccessMessage("");
 
     try {
-      const loadedItems = await getAdminClientReviews(statusFilter);
+      const result = await getAdminClientReviewsPage({
+        status: "pending",
+      });
 
-      setItems(loadedItems);
-      setAdminNoteDrafts(
-        loadedItems.reduce<Record<number, string>>((acc, item) => {
-          acc[item.id] = item.adminNote;
-          return acc;
-        }, {})
-      );
+      setPendingItems(result.items);
+      mergeAdminNoteDrafts(result.items);
     } catch (loadError) {
       setError(
         loadError instanceof Error
@@ -67,22 +169,155 @@ export function AdminReviewsPage() {
           : "Не удалось загрузить отзывы"
       );
     } finally {
-      setIsLoading(false);
+      setIsPendingLoading(false);
     }
-  }, [statusFilter]);
+  }, [mergeAdminNoteDrafts]);
+
+  const loadPublishedReviews = useCallback(
+    async (mode: "replace" | "append") => {
+      setIsPublishedLoading(true);
+      setError("");
+      setSuccessMessage("");
+
+      try {
+        const offset = mode === "append" ? publishedItems.length : 0;
+
+        const result = await getAdminClientReviewsPage({
+          status: "published",
+          limit: REVIEW_PAGE_SIZE,
+          offset,
+        });
+
+        setPublishedItems((currentItems) =>
+          mode === "append" ? [...currentItems, ...result.items] : result.items
+        );
+        setPublishedHasMore(result.hasMore);
+        mergeAdminNoteDrafts(result.items);
+      } catch (loadError) {
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Не удалось загрузить опубликованные отзывы"
+        );
+      } finally {
+        setIsPublishedLoading(false);
+      }
+    },
+    [mergeAdminNoteDrafts, publishedItems.length]
+  );
+
+  const loadHiddenReviews = useCallback(
+    async (mode: "replace" | "append") => {
+      setIsHiddenLoading(true);
+      setError("");
+      setSuccessMessage("");
+
+      try {
+        const offset = mode === "append" ? hiddenItems.length : 0;
+
+        const result = await getAdminClientReviewsPage({
+          status: "hidden",
+          limit: REVIEW_PAGE_SIZE,
+          offset,
+        });
+
+        setHiddenItems((currentItems) =>
+          mode === "append" ? [...currentItems, ...result.items] : result.items
+        );
+        setHiddenHasMore(result.hasMore);
+        mergeAdminNoteDrafts(result.items);
+      } catch (loadError) {
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Не удалось загрузить скрытые отзывы"
+        );
+      } finally {
+        setIsHiddenLoading(false);
+      }
+    },
+    [hiddenItems.length, mergeAdminNoteDrafts]
+  );
 
   useEffect(() => {
-    void loadReviews();
-  }, [loadReviews]);
+    void loadPendingReviews();
+  }, [loadPendingReviews]);
 
-  const handleStatusChange = (value: string) => {
-    setStatusFilter(value as ClientReviewAdminStatusFilter);
+  const handleRefresh = async () => {
+    await loadPendingReviews();
+
+    if (isPublishedOpen) {
+      await loadPublishedReviews("replace");
+    }
+
+    if (isHiddenOpen) {
+      await loadHiddenReviews("replace");
+    }
+  };
+
+  const handleTogglePublished = () => {
+    if (isPublishedOpen) {
+      setIsPublishedOpen(false);
+      return;
+    }
+
+    setIsPublishedOpen(true);
+
+    if (publishedItems.length === 0) {
+      void loadPublishedReviews("replace");
+    }
+  };
+
+  const handleToggleHidden = () => {
+    if (isHiddenOpen) {
+      setIsHiddenOpen(false);
+      return;
+    }
+
+    setIsHiddenOpen(true);
+
+    if (hiddenItems.length === 0) {
+      void loadHiddenReviews("replace");
+    }
   };
 
   const handleAdminNoteChange = (id: number, value: string) => {
     setAdminNoteDrafts((current) => ({
       ...current,
       [id]: value,
+    }));
+  };
+
+  const applyUpdatedReview = (updatedItem: ClientReviewAdminRecord) => {
+    setPendingItems((currentItems) =>
+      updatedItem.status === "pending"
+        ? upsertReview(currentItems, updatedItem)
+        : removeReview(currentItems, updatedItem.id)
+    );
+
+    setPublishedItems((currentItems) => {
+      const withoutItem = removeReview(currentItems, updatedItem.id);
+
+      if (updatedItem.status !== "published" || !isPublishedOpen) {
+        return withoutItem;
+      }
+
+      return upsertReview(withoutItem, updatedItem);
+    });
+
+    setHiddenItems((currentItems) => {
+      const withoutItem = removeReview(currentItems, updatedItem.id);
+
+      if (updatedItem.status !== "hidden" || !isHiddenOpen) {
+        return withoutItem;
+      }
+
+      return upsertReview(withoutItem, updatedItem);
+    });
+
+    setAdminNoteDrafts((currentDrafts) => ({
+      ...currentDrafts,
+      [updatedItem.id]: updatedItem.adminNote,
     }));
   };
 
@@ -101,15 +336,7 @@ export function AdminReviewsPage() {
         adminNote: adminNoteDrafts[item.id] ?? "",
       });
 
-      setItems((currentItems) =>
-        currentItems.map((currentItem) =>
-          currentItem.id === updatedItem.id ? updatedItem : currentItem
-        )
-      );
-      setAdminNoteDrafts((currentDrafts) => ({
-        ...currentDrafts,
-        [updatedItem.id]: updatedItem.adminNote,
-      }));
+      applyUpdatedReview(updatedItem);
       setSuccessMessage("Отзыв обновлён.");
     } catch (updateError) {
       setError(
@@ -132,33 +359,28 @@ export function AdminReviewsPage() {
           <p className={styles.summaryDescription}>
             Здесь специалист видит, кто оставил отзыв, может проверить текст,
             опубликовать его на сайте, скрыть или удалить из публичного показа.
+            В первую очередь загружаются отзывы на проверке, а опубликованные и
+            скрытые можно открыть отдельно.
           </p>
         </div>
 
         <AdminButton
           type="button"
           variant="secondary"
-          onClick={() => void loadReviews()}
-          disabled={isLoading}
+          onClick={() => void handleRefresh()}
+          disabled={isPendingLoading || isPublishedLoading || isHiddenLoading}
         >
-          {isLoading ? "Обновление..." : "Обновить"}
+          {isPendingLoading ? "Обновление..." : "Обновить"}
         </AdminButton>
       </div>
 
       <AdminFiltersRow>
-        <CustomSelect
-          ariaLabel="Фильтр отзывов по статусу"
-          className={styles.statusFilter}
-          dropdownWidth="trigger"
-          layout="filter"
-          options={statusOptions}
-          value={statusFilter}
-          variant="admin"
-          onChange={handleStatusChange}
-        />
-
         <div className={styles.pendingCounter}>
           На проверке: <strong>{pendingCount}</strong>
+        </div>
+
+        <div className={styles.visibleCounter}>
+          Сейчас показано: <strong>{visibleItemsCount}</strong>
         </div>
       </AdminFiltersRow>
 
@@ -166,19 +388,141 @@ export function AdminReviewsPage() {
       <AdminFeedback message={successMessage} tone="success" />
 
       <AdminSection>
-        {isLoading ? (
+        <div className={styles.reviewsGroupHeader}>
+          <div>
+            <h2 className={styles.reviewsGroupTitle}>Отзывы на проверке</h2>
+            <p className={styles.reviewsGroupDescription}>
+              Новые отзывы, которые ещё не опубликованы на сайте.
+            </p>
+          </div>
+        </div>
+
+        {isPendingLoading ? (
           <p className={styles.mutedText}>Загрузка отзывов...</p>
-        ) : items.length === 0 ? (
-          <p className={styles.mutedText}>Отзывов с таким статусом пока нет.</p>
+        ) : pendingItems.length === 0 ? (
+          <p className={styles.mutedText}>
+            Сейчас нет отзывов, ожидающих проверки.
+          </p>
         ) : (
           <AdminReviewsTable
             adminNoteDrafts={adminNoteDrafts}
-            items={items}
+            items={pendingItems}
+            previewLimit={previewLimit}
             updatingId={updatingId}
             onAdminNoteChange={handleAdminNoteChange}
             onUpdateReview={handleUpdateReview}
           />
         )}
+      </AdminSection>
+
+      <AdminSection>
+        <div className={styles.reviewsGroupHeader}>
+          <div>
+            <h2 className={styles.reviewsGroupTitle}>Опубликованные отзывы</h2>
+            <p className={styles.reviewsGroupDescription}>
+              Отзывы, которые уже показываются на публичной странице.
+            </p>
+          </div>
+
+          <AdminButton
+            type="button"
+            variant="secondary"
+            onClick={handleTogglePublished}
+            disabled={isPublishedLoading}
+          >
+            {isPublishedOpen ? "Скрыть опубликованные" : "Показать опубликованные"}
+          </AdminButton>
+        </div>
+
+        {isPublishedOpen ? (
+          <>
+            {isPublishedLoading && publishedItems.length === 0 ? (
+              <p className={styles.mutedText}>Загрузка опубликованных...</p>
+            ) : publishedItems.length === 0 ? (
+              <p className={styles.mutedText}>
+                Опубликованных отзывов пока нет.
+              </p>
+            ) : (
+              <AdminReviewsTable
+                adminNoteDrafts={adminNoteDrafts}
+                items={publishedItems}
+                previewLimit={previewLimit}
+                updatingId={updatingId}
+                onAdminNoteChange={handleAdminNoteChange}
+                onUpdateReview={handleUpdateReview}
+              />
+            )}
+
+            {publishedHasMore ? (
+              <div className={styles.loadMoreRow}>
+                <AdminButton
+                  type="button"
+                  variant="secondary"
+                  onClick={() => void loadPublishedReviews("append")}
+                  disabled={isPublishedLoading}
+                >
+                  {isPublishedLoading
+                    ? "Загрузка..."
+                    : `Показать ещё ${REVIEW_PAGE_SIZE}`}
+                </AdminButton>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+      </AdminSection>
+
+      <AdminSection>
+        <div className={styles.reviewsGroupHeader}>
+          <div>
+            <h2 className={styles.reviewsGroupTitle}>Скрытые отзывы</h2>
+            <p className={styles.reviewsGroupDescription}>
+              Отзывы, которые сохранены в CRM, но не показываются публично.
+            </p>
+          </div>
+
+          <AdminButton
+            type="button"
+            variant="secondary"
+            onClick={handleToggleHidden}
+            disabled={isHiddenLoading}
+          >
+            {isHiddenOpen ? "Скрыть скрытые" : "Показать скрытые"}
+          </AdminButton>
+        </div>
+
+        {isHiddenOpen ? (
+          <>
+            {isHiddenLoading && hiddenItems.length === 0 ? (
+              <p className={styles.mutedText}>Загрузка скрытых...</p>
+            ) : hiddenItems.length === 0 ? (
+              <p className={styles.mutedText}>Скрытых отзывов пока нет.</p>
+            ) : (
+              <AdminReviewsTable
+                adminNoteDrafts={adminNoteDrafts}
+                items={hiddenItems}
+                previewLimit={previewLimit}
+                updatingId={updatingId}
+                onAdminNoteChange={handleAdminNoteChange}
+                onUpdateReview={handleUpdateReview}
+              />
+            )}
+
+            {hiddenHasMore ? (
+              <div className={styles.loadMoreRow}>
+                <AdminButton
+                  type="button"
+                  variant="secondary"
+                  onClick={() => void loadHiddenReviews("append")}
+                  disabled={isHiddenLoading}
+                >
+                  {isHiddenLoading
+                    ? "Загрузка..."
+                    : `Показать ещё ${REVIEW_PAGE_SIZE}`}
+                </AdminButton>
+              </div>
+            ) : null}
+          </>
+        ) : null}
       </AdminSection>
     </main>
   );

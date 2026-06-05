@@ -24,20 +24,15 @@
 }
 
 .summaryDescription {
-  max-width: 760px;
+  max-width: 860px;
   margin: 0;
   color: var(--admin-text-muted);
   font-size: 0.95rem;
   line-height: 1.45;
 }
 
-.statusFilter {
-  flex: 0 0 220px;
-  min-width: 220px;
-  max-width: 280px;
-}
-
-.pendingCounter {
+.pendingCounter,
+.visibleCounter {
   display: inline-flex;
   align-items: center;
   min-height: 46px;
@@ -50,13 +45,42 @@
   line-height: 1.2;
 }
 
-.pendingCounter strong {
+.pendingCounter strong,
+.visibleCounter strong {
   color: var(--admin-text);
 }
 
 .mutedText {
   margin: 0;
   color: var(--admin-text-muted);
+}
+
+.reviewsGroupHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.reviewsGroupTitle {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 1.08rem;
+  line-height: 1.25;
+}
+
+.reviewsGroupDescription {
+  margin: 6px 0 0;
+  color: var(--admin-text-muted);
+  font-size: 0.94rem;
+  line-height: 1.4;
+}
+
+.loadMoreRow {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
 }
 
 .reviewsTable {
@@ -67,13 +91,19 @@
 .reviewsTable th,
 .reviewsTable td {
   text-align: center;
+}
+
+.reviewsTable th {
   vertical-align: middle;
+}
+
+.reviewsTable td {
+  vertical-align: top;
 }
 
 .reviewsTable th.reviewCell,
 .reviewsTable td.reviewCell {
   text-align: left;
-  vertical-align: top;
 }
 
 .reviewCell {
@@ -112,6 +142,11 @@
   text-align: right;
 }
 
+.reviewsTable th.actionCell,
+.reviewsTable td.actionCell {
+  text-align: right;
+}
+
 .reviewPreview,
 .clientPreview,
 .dateStack {
@@ -131,15 +166,12 @@
 }
 
 .reviewText {
-  display: -webkit-box;
   max-width: 100%;
   margin: 0;
   overflow: hidden;
   color: var(--admin-text);
   line-height: 1.45;
   overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
 }
 
 .ratingBadge {
@@ -260,25 +292,105 @@
   width: 100%;
 }
 
+.pendingRow td {
+  background: color-mix(in srgb, var(--admin-highlight) 62%, white);
+}
+
+.hiddenRow td {
+  background: color-mix(in srgb, var(--admin-surface-muted) 76%, white);
+}
+
+.hiddenRow .reviewAuthor,
+.hiddenRow .reviewText,
+.hiddenRow .clientPreview strong,
+.hiddenRow .clientPreview span,
+.hiddenRow .dateStack span {
+  color: var(--admin-text-muted);
+}
+
 .deletedRow td {
   background: color-mix(in srgb, var(--admin-danger-soft) 34%, white);
 }
 
+@media (max-width: 900px) {
+  .reviewsTable {
+    min-width: 760px;
+  }
+
+  .clientCell,
+  .dateCell,
+  .noteCell {
+    display: none;
+  }
+
+  .reviewCell {
+    width: 44%;
+    min-width: 260px;
+  }
+
+  .ratingCell {
+    width: 110px;
+    min-width: 100px;
+  }
+
+  .statusCell {
+    width: 132px;
+    min-width: 132px;
+  }
+
+  .actionCell {
+    width: 148px;
+    min-width: 148px;
+  }
+}
+
 @media (max-width: 760px) {
-  .summaryBar {
+  .summaryBar,
+  .reviewsGroupHeader {
     align-items: stretch;
     flex-direction: column;
     padding: 14px;
   }
 
-  .summaryBar > button {
+  .summaryBar > button,
+  .reviewsGroupHeader > button {
     width: 100%;
   }
 
-  .statusFilter,
-  .pendingCounter {
+  .pendingCounter,
+  .visibleCounter {
     width: 100%;
     min-width: 0;
     max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .reviewsTable {
+    min-width: 640px;
+  }
+
+  .reviewCell {
+    width: 230px;
+    min-width: 230px;
+  }
+
+  .ratingCell {
+    width: 92px;
+    min-width: 92px;
+  }
+
+  .statusCell {
+    width: 122px;
+    min-width: 122px;
+  }
+
+  .actionCell {
+    width: 138px;
+    min-width: 138px;
+  }
+
+  .actionsStack {
+    width: 124px;
   }
 }
