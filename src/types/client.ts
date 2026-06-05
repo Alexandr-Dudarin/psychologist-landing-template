@@ -29,6 +29,8 @@ export type CrmClientRecord = {
   preferredContactMethod: PreferredContactMethod | null;
   preferredContactValue: string | null;
   firstRequestId: number | null;
+  reviewsBlockedAt: string | null;
+  reviewsBlockedReason: string | null;
   createdAt: string;
 };
 

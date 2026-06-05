@@ -229,11 +229,6 @@
   min-width: 0;
 }
 
-.clientsTableShell {
-  width: 100%;
-  min-width: 0;
-}
-
 @media (min-width: 641px) {
   .clientsTableShell :global(table) {
     width: 100%;
@@ -249,6 +244,7 @@
 .tableHead.tableHead>tr>th.statusCell,
 .tableHead.tableHead>tr>th.packagesCell,
 .tableHead.tableHead>tr>th.firstRequestCell,
+.tableHead.tableHead>tr>th.reviewPermissionCell,
 .tableHead.tableHead>tr>th.linksCell,
 .tableHead.tableHead>tr>th.actionCell,
 .phoneCell,
@@ -259,6 +255,7 @@
 .statusCell,
 .packagesCell,
 .firstRequestCell,
+.reviewPermissionCell,
 .linksCell,
 .actionCell {
   text-align: center;
@@ -527,6 +524,49 @@
   width: 100%;
   text-align: center;
   color: var(--admin-text-muted);
+}
+
+.reviewPermissionCell {
+  width: 126px;
+  min-width: 116px;
+  white-space: normal;
+}
+
+.reviewPermissionBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.reviewPermissionBadgeAllowed {
+  border-color: color-mix(in srgb, var(--admin-success) 24%, white);
+  background: var(--admin-success-soft);
+  color: var(--admin-success);
+}
+
+.reviewPermissionBadgeBlocked {
+  border-color: color-mix(in srgb, var(--admin-danger) 24%, white);
+  background: var(--admin-danger-soft);
+  color: var(--admin-danger);
+}
+
+.reviewPermissionReason {
+  display: block;
+  max-width: 100%;
+  margin-top: 5px;
+  color: var(--admin-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .linksCell {
@@ -907,8 +947,9 @@
   }
 }
 
-@media (max-width: 1360px) {
-  .firstRequestCell {
+@media (max-width: 1359px) {
+  .firstRequestCell,
+  .reviewPermissionCell {
     display: none;
   }
 }

@@ -9,6 +9,7 @@ import {
 } from "../../lib/api/clientReviews";
 import type { ClientReviewPublicRecord } from "../../types/reviews";
 import styles from "./ClientReviewsPage.module.css";
+import { ClientReviewsTable } from "./ClientReviewsTable";
 
 type ReviewFormState = {
     contact: string;
@@ -29,18 +30,6 @@ const initialForm: ReviewFormState = {
 };
 
 const ratingOptions = [1, 2, 3, 4, 5];
-
-function getPublicReviewName(review: ClientReviewPublicRecord) {
-    return review.publicName.trim() || "Анонимный отзыв";
-}
-
-function formatReviewDate(value: string) {
-    return new Date(value).toLocaleDateString("ru-RU", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
-}
 
 function validateForm(form: ReviewFormState): ReviewFormErrors {
     const errors: ReviewFormErrors = {};
@@ -435,9 +424,7 @@ export function ClientReviewsPage() {
                             Также подойдёт прошедшая по времени запись, если специалист ещё
                             не успел вручную поставить статус «Проведена».
                         </li>
-                        <li>
-                            Будущая запись, отмена или неявка не дают право оставить отзыв.
-                        </li>
+                        <li>Будущая запись, отмена или неявка не дают право оставить отзыв.</li>
                     </ul>
 
                     <div className={styles.infoNote}>
@@ -471,34 +458,7 @@ export function ClientReviewsPage() {
                         </div>
                     ) : null}
 
-                    {hasPublishedReviews ? (
-                        <div className={styles.reviewsGrid}>
-                            {items.map((review) => (
-                                <article key={review.id} className={styles.reviewCard}>
-                                    <div className={styles.reviewHeader}>
-                                        <div>
-                                            <h3 className={styles.reviewName}>
-                                                {getPublicReviewName(review)}
-                                            </h3>
-                                            <p className={styles.reviewDate}>
-                                                {formatReviewDate(
-                                                    review.publishedAt ?? review.createdAt
-                                                )}
-                                            </p>
-                                        </div>
-
-                                        {review.rating ? (
-                                            <span className={styles.reviewRating}>
-                                                {review.rating}/5
-                                            </span>
-                                        ) : null}
-                                    </div>
-
-                                    <p className={styles.reviewText}>{review.text}</p>
-                                </article>
-                            ))}
-                        </div>
-                    ) : null}
+                    {hasPublishedReviews ? <ClientReviewsTable items={items} /> : null}
                 </section>
             ) : null}
         </main>

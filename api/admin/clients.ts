@@ -87,6 +87,8 @@ type ClientRow = {
   preferred_contact_method: string | null;
   preferred_contact_value: string | null;
   first_request_id: number | string | null;
+  reviews_blocked_at: string | null;
+  reviews_blocked_reason: string | null;
   created_at: string;
 };
 
@@ -185,6 +187,8 @@ function mapClient(row: ClientRow): CrmClientRecord {
     preferredContactValue: row.preferred_contact_value,
     firstRequestId:
       row.first_request_id === null ? null : Number(row.first_request_id),
+    reviewsBlockedAt: row.reviews_blocked_at,
+    reviewsBlockedReason: row.reviews_blocked_reason,
     createdAt: row.created_at,
   };
 }
@@ -556,6 +560,8 @@ async function findExistingClientByContacts(
         preferred_contact_method,
         preferred_contact_value,
         first_request_id,
+        reviews_blocked_at,
+        reviews_blocked_reason,
         created_at
       FROM clients
       WHERE ${conditions.join(" OR ")}
@@ -609,6 +615,8 @@ async function findDuplicateClientByContacts(
         preferred_contact_method,
         preferred_contact_value,
         first_request_id,
+        reviews_blocked_at,
+        reviews_blocked_reason,
         created_at
       FROM clients
       WHERE id <> $1
@@ -637,6 +645,8 @@ async function selectClient(id: number): Promise<ClientRow | null> {
         preferred_contact_method,
         preferred_contact_value,
         first_request_id,
+        reviews_blocked_at,
+        reviews_blocked_reason,
         created_at
       FROM clients
       WHERE id = $1
@@ -759,6 +769,8 @@ async function handleList(req: any, res: any) {
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
+          reviews_blocked_at,
+          reviews_blocked_reason,
           created_at
         FROM clients
         ${whereClause}
@@ -805,7 +817,7 @@ async function handleListPackages(req: any, res: any) {
           c.name AS client_name,
           csp.package_plan_id,
           spp.title AS package_title,
-          spp.service_id,
+          csp.service_id,
           sv.title AS service_title,
           sv.duration_minutes AS service_duration_minutes,
           spp.sessions_count,
@@ -1045,6 +1057,8 @@ async function handleCreate(req: any, res: any) {
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
+          reviews_blocked_at,
+          reviews_blocked_reason,
           created_at
       `,
       [
@@ -1092,6 +1106,8 @@ async function handleCreateFromRequest(req: any, res: any) {
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
+          reviews_blocked_at,
+          reviews_blocked_reason,
           created_at
         FROM clients
         WHERE first_request_id = $1
@@ -1195,6 +1211,8 @@ async function handleCreateFromRequest(req: any, res: any) {
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
+          reviews_blocked_at,
+          reviews_blocked_reason,
           created_at
       `,
       [
@@ -1252,7 +1270,7 @@ async function handleUpdate(req: any, res: any) {
 
     const result = siteSettings.preferredContactMethod.enabled
       ? await pool.query<ClientRow>(
-        `
+          `
             UPDATE clients
             SET
               name = $2,
@@ -1276,21 +1294,23 @@ async function handleUpdate(req: any, res: any) {
               preferred_contact_method,
               preferred_contact_value,
               first_request_id,
+              reviews_blocked_at,
+              reviews_blocked_reason,
               created_at
           `,
-        [
-          payload.id,
-          payload.name,
-          payload.phone,
-          payload.email,
-          payload.source,
-          payload.status,
-          preferredContact.preferredContactMethod,
-          preferredContact.preferredContactValue,
-        ]
-      )
+          [
+            payload.id,
+            payload.name,
+            payload.phone,
+            payload.email,
+            payload.source,
+            payload.status,
+            preferredContact.preferredContactMethod,
+            preferredContact.preferredContactValue,
+          ]
+        )
       : await pool.query<ClientRow>(
-        `
+          `
             UPDATE clients
             SET
               name = $2,
@@ -1312,17 +1332,19 @@ async function handleUpdate(req: any, res: any) {
               preferred_contact_method,
               preferred_contact_value,
               first_request_id,
+              reviews_blocked_at,
+              reviews_blocked_reason,
               created_at
           `,
-        [
-          payload.id,
-          payload.name,
-          payload.phone,
-          payload.email,
-          payload.source,
-          payload.status,
-        ]
-      );
+          [
+            payload.id,
+            payload.name,
+            payload.phone,
+            payload.email,
+            payload.source,
+            payload.status,
+          ]
+        );
 
     const updatedClient = result.rows[0];
 
@@ -1381,6 +1403,8 @@ async function handleToggleFavorite(req: any, res: any) {
           preferred_contact_method,
           preferred_contact_value,
           first_request_id,
+          reviews_blocked_at,
+          reviews_blocked_reason,
           created_at
       `,
       [payload.id]

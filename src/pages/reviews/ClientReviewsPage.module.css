@@ -1,481 +1,589 @@
 .page {
-    --reviews-container-width: 1200px;
-    --reviews-grid-gap: 24px;
-    --reviews-main-column-width: calc((min(var(--reviews-container-width), calc(100vw - 40px)) - var(--reviews-grid-gap)) * 2 / 3);
+  --reviews-container-width: 1200px;
+  --reviews-grid-gap: 24px;
+  --reviews-main-column-width: calc((min(var(--reviews-container-width), calc(100vw - 40px)) - var(--reviews-grid-gap)) * 2 / 3);
 
-    min-height: 100vh;
-    padding: 72px 20px 96px;
-    background:
-        radial-gradient(circle at top left, rgba(173, 143, 130, 0.18), transparent 34%),
-        linear-gradient(180deg, #fffaf7 0%, #f7f0eb 100%);
-    color: var(--color-text, #2f241f);
+  min-height: 100vh;
+  padding: 72px 20px 96px;
+  background:
+    radial-gradient(circle at top left, rgba(173, 143, 130, 0.18), transparent 34%),
+    linear-gradient(180deg, #fffaf7 0%, #f7f0eb 100%);
+  color: var(--color-text, #2f241f);
 }
 
 .hero,
 .contentGrid,
 .reviewsSection {
-    width: min(var(--reviews-container-width), 100%);
-    margin: 0 auto;
+  width: min(var(--reviews-container-width), 100%);
+  margin: 0 auto;
 }
 
 .hero {
-    margin-bottom: 28px;
+  margin-bottom: 28px;
 }
 
 .heroContent {
-    max-width: var(--reviews-main-column-width);
+  max-width: var(--reviews-main-column-width);
 }
 
 .backLink {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: fit-content;
-    gap: 8px;
-    min-height: 46px;
-    margin-bottom: 22px;
-    padding: 0 18px;
-    border: 1px solid color-mix(in srgb, var(--color-accent, #ad8f82) 35%, var(--color-border, #e7deda) 65%);
-    border-radius: var(--radius-pill, 999px);
-    background: color-mix(in srgb, var(--color-accent, #ad8f82) 10%, var(--color-white, #ffffff) 90%);
-    color: var(--color-text, #2f241f);
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    transition:
-        transform var(--transition-base, 0.18s ease),
-        background-color var(--transition-base, 0.18s ease),
-        border-color var(--transition-base, 0.18s ease),
-        box-shadow var(--transition-base, 0.18s ease);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  gap: 8px;
+  min-height: 46px;
+  margin-bottom: 22px;
+  padding: 0 18px;
+  border: 1px solid color-mix(in srgb, var(--color-accent, #ad8f82) 35%, var(--color-border, #e7deda) 65%);
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--color-accent, #ad8f82) 10%, var(--color-white, #ffffff) 90%);
+  color: var(--color-text, #2f241f);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    transform var(--transition-base, 0.18s ease),
+    background-color var(--transition-base, 0.18s ease),
+    border-color var(--transition-base, 0.18s ease),
+    box-shadow var(--transition-base, 0.18s ease);
 }
 
 .backLink:hover {
-    transform: translateY(-1px);
-    background: color-mix(in srgb, var(--color-accent, #ad8f82) 16%, white 84%);
-    border-color: color-mix(in srgb, var(--color-accent, #ad8f82) 45%, var(--color-border, #e7deda) 55%);
-    box-shadow: var(--shadow-soft, 0 18px 44px rgba(71, 48, 37, 0.08));
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--color-accent, #ad8f82) 16%, white 84%);
+  border-color: color-mix(in srgb, var(--color-accent, #ad8f82) 45%, var(--color-border, #e7deda) 55%);
+  box-shadow: var(--shadow-soft, 0 18px 44px rgba(71, 48, 37, 0.08));
 }
 
 .backLink:active {
-    transform: scale(0.97);
+  transform: scale(0.97);
 }
 
 .eyebrow {
-    margin: 0 0 8px;
-    color: var(--color-accent, #ad8f82);
-    font-size: 0.84rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+  margin: 0 0 8px;
+  color: var(--color-accent, #ad8f82);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .title {
-    max-width: 760px;
-    margin: 0;
-    color: var(--color-heading, #2f241f);
-    font-size: clamp(2.1rem, 5vw, 4.4rem);
-    line-height: 0.98;
-    letter-spacing: -0.055em;
+  max-width: 760px;
+  margin: 0;
+  color: var(--color-heading, #2f241f);
+  font-size: clamp(2.1rem, 5vw, 4.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
 }
 
 .description {
-    max-width: 720px;
-    margin: 22px 0 0;
-    color: var(--color-text-muted, #7b6b62);
-    font-size: clamp(1rem, 2vw, 1.18rem);
-    line-height: 1.75;
+  max-width: 720px;
+  margin: 22px 0 0;
+  color: var(--color-text-muted, #7b6b62);
+  font-size: clamp(1rem, 2vw, 1.18rem);
+  line-height: 1.75;
 }
 
 .notice {
-    max-width: 100%;
-    margin-top: 22px;
-    padding: 18px 20px;
-    border: 1px solid rgba(173, 143, 130, 0.22);
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.62);
-    color: var(--color-text-muted, #7b6b62);
-    line-height: 1.65;
-    box-shadow: 0 18px 44px rgba(71, 48, 37, 0.08);
-    backdrop-filter: blur(14px);
+  max-width: 100%;
+  margin-top: 22px;
+  padding: 18px 20px;
+  border: 1px solid rgba(173, 143, 130, 0.22);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--color-text-muted, #7b6b62);
+  line-height: 1.65;
+  box-shadow: 0 18px 44px rgba(71, 48, 37, 0.08);
+  backdrop-filter: blur(14px);
 }
 
 .notice strong {
-    color: var(--color-text, #2f241f);
+  color: var(--color-text, #2f241f);
 }
 
 .contentGrid {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
-    gap: var(--reviews-grid-gap);
-    align-items: start;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: var(--reviews-grid-gap);
+  align-items: start;
 }
 
 .formCard,
 .infoCard,
 .reviewsSection {
-    border: 1px solid rgba(173, 143, 130, 0.18);
-    border-radius: 30px;
-    background: rgba(255, 255, 255, 0.78);
-    box-shadow: 0 24px 70px rgba(71, 48, 37, 0.1);
-    backdrop-filter: blur(18px);
+  border: 1px solid rgba(173, 143, 130, 0.18);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 24px 70px rgba(71, 48, 37, 0.1);
+  backdrop-filter: blur(18px);
 }
 
 .formCard {
-    padding: clamp(22px, 4vw, 36px);
+  padding: clamp(22px, 4vw, 36px);
 }
 
 .infoCard {
-    position: sticky;
-    top: 24px;
-    padding: 24px;
+  position: sticky;
+  top: 24px;
+  padding: 24px;
 }
 
 .sectionHeader {
-    margin-bottom: 22px;
+  margin-bottom: 22px;
 }
 
 .sectionTitle {
-    margin: 0;
-    color: var(--color-heading, #2f241f);
-    font-size: clamp(1.55rem, 3vw, 2.2rem);
-    line-height: 1.1;
-    letter-spacing: -0.035em;
+  margin: 0;
+  color: var(--color-heading, #2f241f);
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
 }
 
 .sectionDescription {
-    max-width: 640px;
-    margin: 10px 0 0;
-    color: var(--color-text-muted, #7b6b62);
-    line-height: 1.65;
+  max-width: 640px;
+  margin: 10px 0 0;
+  color: var(--color-text-muted, #7b6b62);
+  line-height: 1.65;
 }
 
 .form {
-    display: grid;
-    gap: 18px;
+  display: grid;
+  gap: 18px;
 }
 
 .field {
-    display: grid;
-    gap: 8px;
+  display: grid;
+  gap: 8px;
 }
 
 .field label,
 .fieldLabel {
-    color: var(--color-text, #2f241f);
-    font-weight: 700;
+  color: var(--color-text, #2f241f);
+  font-weight: 700;
 }
 
 .field label span,
 .fieldLabel span {
-    color: var(--color-text-muted, #7b6b62);
-    font-weight: 500;
+  color: var(--color-text-muted, #7b6b62);
+  font-weight: 500;
 }
 
 .field input,
 .field textarea {
-    width: 100%;
-    border: 1px solid rgba(123, 107, 98, 0.18);
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.78);
-    color: var(--color-text, #2f241f);
-    font: inherit;
-    outline: none;
-    transition:
-        border-color 0.18s ease,
-        box-shadow 0.18s ease,
-        background-color 0.18s ease;
+  width: 100%;
+  border: 1px solid rgba(123, 107, 98, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--color-text, #2f241f);
+  font: inherit;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
 }
 
 .field input {
-    min-height: 54px;
-    padding: 0 18px;
+  min-height: 54px;
+  padding: 0 18px;
 }
 
 .field textarea {
-    min-height: 170px;
-    resize: vertical;
-    padding: 16px 18px;
-    line-height: 1.6;
+  min-height: 170px;
+  resize: vertical;
+  padding: 16px 18px;
+  line-height: 1.6;
 }
 
 .field input::placeholder,
 .field textarea::placeholder {
-    color: rgba(123, 107, 98, 0.62);
+  color: rgba(123, 107, 98, 0.62);
 }
 
 .field input:focus,
 .field textarea:focus {
-    border-color: rgba(173, 143, 130, 0.58);
-    background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(173, 143, 130, 0.14);
+  border-color: rgba(173, 143, 130, 0.58);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(173, 143, 130, 0.14);
 }
 
 .field input:disabled,
 .field textarea:disabled {
-    cursor: not-allowed;
-    opacity: 0.72;
+  cursor: not-allowed;
+  opacity: 0.72;
 }
 
 .fieldHint {
-    color: var(--color-text-muted, #7b6b62);
-    font-size: 0.92rem;
-    line-height: 1.45;
+  color: var(--color-text-muted, #7b6b62);
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .fieldError {
-    color: #a7443e;
-    font-size: 0.92rem;
-    line-height: 1.45;
+  color: #a7443e;
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .ratingGroup {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .ratingButton {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    border: 1px solid rgba(123, 107, 98, 0.18);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.78);
-    color: var(--color-text, #2f241f);
-    cursor: pointer;
-    font: inherit;
-    font-weight: 700;
-    transition:
-        background-color 0.18s ease,
-        border-color 0.18s ease,
-        color 0.18s ease,
-        transform 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(123, 107, 98, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--color-text, #2f241f);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
 }
 
 .ratingButton:hover:not(:disabled) {
-    transform: translateY(-1px);
-    border-color: rgba(173, 143, 130, 0.5);
+  transform: translateY(-1px);
+  border-color: rgba(173, 143, 130, 0.5);
 }
 
 .ratingButtonActive {
-    border-color: var(--color-accent, #ad8f82);
-    background: var(--color-accent, #ad8f82);
-    color: var(--color-accent-contrast, #ffffff);
+  border-color: var(--color-accent, #ad8f82);
+  background: var(--color-accent, #ad8f82);
+  color: var(--color-accent-contrast, #ffffff);
 }
 
 .ratingButton:disabled {
-    cursor: not-allowed;
-    opacity: 0.72;
+  cursor: not-allowed;
+  opacity: 0.72;
 }
 
 .consentBox {
-    display: grid;
-    gap: 8px;
-    padding-top: 2px;
+  display: grid;
+  gap: 8px;
+  padding-top: 2px;
 }
 
 .inlineLink {
-    color: var(--color-accent, #ad8f82);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+  color: var(--color-accent, #ad8f82);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .stateBox {
-    padding: 15px 17px;
-    border: 1px solid rgba(123, 107, 98, 0.16);
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.66);
-    color: var(--color-text-muted, #7b6b62);
-    line-height: 1.55;
+  padding: 15px 17px;
+  border: 1px solid rgba(123, 107, 98, 0.16);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.66);
+  color: var(--color-text-muted, #7b6b62);
+  line-height: 1.55;
 }
 
 .errorBox {
-    border-color: rgba(167, 68, 62, 0.28);
-    background: rgba(167, 68, 62, 0.08);
-    color: #963832;
+  border-color: rgba(167, 68, 62, 0.28);
+  background: rgba(167, 68, 62, 0.08);
+  color: #963832;
 }
 
 .successBox {
-    border-color: rgba(55, 132, 82, 0.25);
-    background: rgba(55, 132, 82, 0.09);
-    color: #2f7a4b;
+  border-color: rgba(55, 132, 82, 0.25);
+  background: rgba(55, 132, 82, 0.09);
+  color: #2f7a4b;
 }
 
 .submitButton {
-    min-height: 56px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--color-accent, #ad8f82);
-    color: var(--color-accent-contrast, #ffffff);
-    cursor: pointer;
-    font: inherit;
-    font-weight: 800;
-    box-shadow: 0 18px 36px rgba(173, 143, 130, 0.28);
-    transition:
-        transform 0.18s ease,
-        box-shadow 0.18s ease,
-        opacity 0.18s ease;
+  min-height: 56px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-accent, #ad8f82);
+  color: var(--color-accent-contrast, #ffffff);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  box-shadow: 0 18px 36px rgba(173, 143, 130, 0.28);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
 }
 
 .submitButton:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 22px 42px rgba(173, 143, 130, 0.34);
+  transform: translateY(-1px);
+  box-shadow: 0 22px 42px rgba(173, 143, 130, 0.34);
 }
 
 .submitButton:disabled {
-    cursor: not-allowed;
-    opacity: 0.72;
+  cursor: not-allowed;
+  opacity: 0.72;
 }
 
 .infoTitle {
-    margin: 0;
-    color: var(--color-heading, #2f241f);
-    font-size: 1.35rem;
-    letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--color-heading, #2f241f);
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
 }
 
 .infoList {
-    display: grid;
-    gap: 12px;
-    margin: 18px 0 0;
-    padding-left: 20px;
-    color: var(--color-text-muted, #7b6b62);
-    line-height: 1.55;
+  display: grid;
+  gap: 12px;
+  margin: 18px 0 0;
+  padding-left: 20px;
+  color: var(--color-text-muted, #7b6b62);
+  line-height: 1.55;
 }
 
 .infoList li::marker {
-    color: var(--color-accent, #ad8f82);
+  color: var(--color-accent, #ad8f82);
 }
 
 .infoNote {
-    margin-top: 20px;
-    padding: 16px;
-    border-radius: 20px;
-    background: rgba(173, 143, 130, 0.1);
-    color: var(--color-text-muted, #7b6b62);
-    line-height: 1.55;
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(173, 143, 130, 0.1);
+  color: var(--color-text-muted, #7b6b62);
+  line-height: 1.55;
 }
 
 .reviewsSection {
-    margin-top: 26px;
-    padding: clamp(22px, 4vw, 36px);
+  margin-top: 26px;
+  padding: clamp(22px, 4vw, 36px);
 }
 
-.reviewsGrid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
+.reviewsTableShell {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid rgba(173, 143, 130, 0.16);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.58);
 }
 
-.reviewCard {
-    display: grid;
-    gap: 16px;
-    min-height: 220px;
-    padding: 22px;
-    border: 1px solid rgba(173, 143, 130, 0.14);
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.68);
+.reviewsTable {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
 }
 
-.reviewHeader {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 14px;
+.reviewsTable th,
+.reviewsTable td {
+  padding: 18px;
+  border-bottom: 1px solid rgba(173, 143, 130, 0.14);
+  text-align: left;
+  vertical-align: top;
 }
 
-.reviewName {
-    margin: 0;
-    color: var(--color-heading, #2f241f);
-    font-size: 1.05rem;
+.reviewsTable th {
+  color: var(--color-text-muted, #7b6b62);
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.reviewDate {
-    margin: 5px 0 0;
-    color: var(--color-text-muted, #7b6b62);
-    font-size: 0.9rem;
+.reviewsTable tbody tr:last-child td {
+  border-bottom: 0;
 }
 
-.reviewRating {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    min-width: 48px;
-    min-height: 32px;
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: rgba(173, 143, 130, 0.12);
-    color: var(--color-accent, #ad8f82);
-    font-size: 0.9rem;
-    font-weight: 800;
+.reviewAuthorCell {
+  width: 180px;
 }
 
-.reviewText {
-    margin: 0;
-    color: var(--color-text-muted, #7b6b62);
-    line-height: 1.65;
-    white-space: pre-wrap;
+.reviewTextCell {
+  min-width: 280px;
+}
+
+.reviewRatingCell {
+  width: 116px;
+  text-align: center;
+}
+
+.reviewDateCell {
+  width: 160px;
+}
+
+.reviewsTable th.reviewRatingCell,
+.reviewsTable td.reviewRatingCell {
+  text-align: center;
+}
+
+.publicReviewName {
+  display: block;
+  color: var(--color-heading, #2f241f);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.publicReviewText {
+  margin: 0;
+  color: var(--color-text-muted, #7b6b62);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.publicReviewRatingBadge,
+.publicReviewRatingEmpty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.publicReviewRatingBadge {
+  background: rgba(173, 143, 130, 0.12);
+  color: var(--color-accent, #ad8f82);
+}
+
+.publicReviewRatingEmpty {
+  background: rgba(123, 107, 98, 0.08);
+  color: var(--color-text-muted, #7b6b62);
+}
+
+.publicReviewDate {
+  display: block;
+  color: var(--color-text-muted, #7b6b62);
+  font-size: 0.95rem;
+  line-height: 1.45;
 }
 
 @media (max-width: 920px) {
-    .page {
-        --reviews-main-column-width: 100%;
-    }
+  .page {
+    --reviews-main-column-width: 100%;
+  }
 
-    .contentGrid {
-        grid-template-columns: 1fr;
-    }
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
 
-    .infoCard {
-        position: static;
-    }
-
-    .reviewsGrid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  .infoCard {
+    position: static;
+  }
 }
 
 @media (max-width: 640px) {
-    .page {
-        padding: 40px 14px 64px;
-    }
+  .page {
+    padding: 40px 14px 64px;
+  }
 
-    .backLink {
-        width: 100%;
-        justify-content: center;
-        min-height: 48px;
-    }
+  .backLink {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
 
-    .formCard,
-    .infoCard,
-    .reviewsSection {
-        border-radius: 24px;
-    }
+  .formCard,
+  .infoCard,
+  .reviewsSection {
+    border-radius: 24px;
+  }
 
-    .notice {
-        border-radius: 20px;
-    }
+  .notice {
+    border-radius: 20px;
+  }
 
-    .ratingButton {
-        width: 40px;
-        height: 40px;
-    }
+  .ratingButton {
+    width: 40px;
+    height: 40px;
+  }
 
-    .reviewsGrid {
-        grid-template-columns: 1fr;
-    }
+  .reviewsTableShell {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .reviewsTable {
+    min-width: 0;
+  }
+
+  .reviewsTable,
+  .reviewsTable thead,
+  .reviewsTable tbody,
+  .reviewsTable tr,
+  .reviewsTable th,
+  .reviewsTable td {
+    display: block;
+  }
+
+  .reviewsTable thead {
+    display: none;
+  }
+
+  .reviewsTable tr {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding: 16px;
+    border: 1px solid rgba(173, 143, 130, 0.14);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.68);
+  }
+
+  .reviewsTable tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .reviewsTable td {
+    display: grid;
+    grid-template-columns: 94px minmax(0, 1fr);
+    gap: 12px;
+    width: 100%;
+    padding: 0;
+    border-bottom: 0;
+    text-align: left;
+  }
+
+  .reviewsTable td::before {
+    content: attr(data-label);
+    color: var(--color-text-muted, #7b6b62);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .reviewsTable td.reviewRatingCell {
+    text-align: left;
+  }
+
+  .publicReviewRatingBadge,
+  .publicReviewRatingEmpty {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 420px) {
+  .reviewsTable td {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-
-    .backLink,
-    .field input,
-    .field textarea,
-    .ratingButton,
-    .submitButton {
-        transition: none;
-    }
+  .backLink,
+  .field input,
+  .field textarea,
+  .ratingButton,
+  .submitButton {
+    transition: none;
+  }
 }
