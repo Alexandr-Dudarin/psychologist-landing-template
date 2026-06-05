@@ -32,13 +32,15 @@
 }
 
 .statusFilter {
-  composes: controlSelect from "../../../components/admin/adminUi.module.css";
+  flex: 0 0 220px;
+  min-width: 220px;
+  max-width: 280px;
 }
 
 .pendingCounter {
   display: inline-flex;
   align-items: center;
-  min-height: 42px;
+  min-height: 46px;
   padding: 9px 12px;
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-md);
@@ -58,13 +60,30 @@
 }
 
 .reviewsTable {
-  min-width: 1120px;
+  min-width: 1180px;
   table-layout: fixed;
 }
 
+.reviewsTable th,
+.reviewsTable td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.reviewsTable th.reviewCell,
+.reviewsTable td.reviewCell {
+  text-align: left;
+  vertical-align: top;
+}
+
 .reviewCell {
-  width: 28%;
+  width: 30%;
   min-width: 260px;
+}
+
+.ratingCell {
+  width: 110px;
+  min-width: 100px;
 }
 
 .clientCell {
@@ -75,7 +94,6 @@
 .statusCell {
   width: 126px;
   min-width: 126px;
-  text-align: center;
 }
 
 .dateCell {
@@ -91,7 +109,7 @@
 .actionCell {
   width: 136px;
   min-width: 136px;
-  text-align: center;
+  text-align: right;
 }
 
 .reviewPreview,
@@ -102,26 +120,14 @@
   min-width: 0;
 }
 
-.reviewHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+.reviewAuthor {
+  display: block;
   min-width: 0;
-}
-
-.reviewHeader strong {
-  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   color: var(--admin-text);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.reviewHeader span {
-  flex: 0 0 auto;
-  color: var(--admin-text-muted);
-  font-size: 0.9rem;
 }
 
 .reviewText {
@@ -134,6 +140,30 @@
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 5;
+}
+
+.ratingBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  min-width: 66px;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--admin-accent) 20%, white);
+  border-radius: 999px;
+  background: var(--admin-accent-soft);
+  color: var(--admin-accent);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.ratingBadgeEmpty {
+  border-color: color-mix(in srgb, var(--admin-text-muted) 22%, white);
+  background: color-mix(in srgb, var(--admin-surface-muted) 82%, white);
+  color: var(--admin-text-muted);
+  font-weight: 500;
 }
 
 .clientPreview strong {
@@ -220,8 +250,10 @@
 
 .actionsStack {
   display: grid;
+  width: min(132px, 100%);
   gap: 8px;
   justify-items: stretch;
+  margin-left: auto;
 }
 
 .actionsStack > * {
@@ -246,5 +278,7 @@
   .statusFilter,
   .pendingCounter {
     width: 100%;
+    min-width: 0;
+    max-width: none;
   }
 }

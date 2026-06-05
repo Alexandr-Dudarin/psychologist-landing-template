@@ -798,9 +798,41 @@
 }
 
 .reviewPermissionTextarea {
-  composes: controlTextArea from "../../../components/admin/adminUi.module.css";
-  min-height: 92px;
+  composes: scrollbarBase from "../../../components/admin/adminUi.module.css";
+  width: 100%;
+  min-height: 112px;
+  padding: 12px 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  font: inherit;
+  font-weight: 400;
+  line-height: 1.45;
   resize: vertical;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.reviewPermissionTextarea::placeholder {
+  color: var(--admin-text-muted);
+}
+
+.reviewPermissionTextarea:hover {
+  border-color: var(--admin-border-strong);
+}
+
+.reviewPermissionTextarea:focus-visible {
+  outline: none;
+  border-color: var(--admin-accent);
+  box-shadow: 0 0 0 3px rgba(47, 93, 120, 0.14);
+}
+
+.reviewPermissionTextarea:disabled {
+  background: var(--admin-surface-muted);
+  color: var(--admin-text-muted);
 }
 
 .reviewPermissionFooter {
@@ -990,25 +1022,49 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
-  padding: 5px 9px;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-sm);
-  background: var(--admin-surface);
-  color: var(--admin-text);
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid color-mix(in srgb, var(--admin-accent) 26%, white);
+  border-radius: var(--admin-radius-md);
+  background: color-mix(in srgb, var(--admin-accent-soft) 74%, white);
+  color: var(--admin-accent);
   cursor: pointer;
   font: inherit;
-  font-size: 0.86rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(47, 93, 120, 0.08);
   transition:
     background-color 0.18s ease,
     border-color 0.18s ease,
-    color 0.18s ease;
+    box-shadow 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
 }
 
 .packageCodeButton:hover {
-  border-color: color-mix(in srgb, var(--admin-accent) 28%, white);
-  background: var(--admin-accent-soft);
+  border-color: color-mix(in srgb, var(--admin-accent) 44%, white);
+  background: color-mix(
+    in srgb,
+    var(--admin-accent-soft) 64%,
+    var(--admin-accent) 12%
+  );
   color: var(--admin-accent);
+  box-shadow: 0 8px 20px rgba(47, 93, 120, 0.14);
+  transform: translateY(-1px);
+}
+
+.packageCodeButton:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--admin-accent) 52%, white);
+  box-shadow: 0 0 0 3px rgba(47, 93, 120, 0.16);
+}
+
+.packageCodeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+  transform: none;
 }
 
 @media (max-width: 1600px) {

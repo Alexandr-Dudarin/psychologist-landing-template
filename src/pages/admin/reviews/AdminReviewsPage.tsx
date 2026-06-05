@@ -4,7 +4,7 @@ import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import { AdminSection } from "../../../components/admin/AdminSection";
-import { AdminTable } from "../../../components/admin/AdminTable";
+import { CustomSelect } from "../../../components/ui/CustomSelect";
 import {
   getAdminClientReviews,
   updateAdminClientReview,
@@ -14,6 +14,7 @@ import type {
   ClientReviewAdminStatusFilter,
   ClientReviewStatus,
 } from "../../../types/reviews";
+import { AdminReviewsTable } from "./AdminReviewsTable";
 import styles from "./AdminReviewsPage.module.css";
 
 const statusOptions: Array<{
@@ -26,57 +27,6 @@ const statusOptions: Array<{
   { value: "hidden", label: "Скрыты" },
   { value: "deleted", label: "Удалены" },
 ];
-
-const statusLabels: Record<ClientReviewStatus, string> = {
-  pending: "На проверке",
-  published: "Опубликован",
-  hidden: "Скрыт",
-  deleted: "Удалён",
-};
-
-function formatDateTime(value: string | null): string {
-  if (!value) {
-    return "—";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "—";
-  }
-
-  return new Intl.DateTimeFormat("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function getStatusBadgeClassName(status: ClientReviewStatus): string {
-  return [
-    styles.statusBadge,
-    status === "pending" ? styles.statusBadgePending : "",
-    status === "published" ? styles.statusBadgePublished : "",
-    status === "hidden" ? styles.statusBadgeHidden : "",
-    status === "deleted" ? styles.statusBadgeDeleted : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-}
-
-function getRatingLabel(rating: number | null): string {
-  if (rating === null) {
-    return "Без оценки";
-  }
-
-  return `${rating} из 5`;
-}
-
-function getPublicName(value: string): string {
-  return value.trim() || "Анонимный отзыв";
-}
 
 export function AdminReviewsPage() {
   const [items, setItems] = useState<ClientReviewAdminRecord[]>([]);
@@ -196,17 +146,16 @@ export function AdminReviewsPage() {
       </div>
 
       <AdminFiltersRow>
-        <select
+        <CustomSelect
+          ariaLabel="Фильтр отзывов по статусу"
           className={styles.statusFilter}
+          dropdownWidth="trigger"
+          layout="filter"
+          options={statusOptions}
           value={statusFilter}
-          onChange={(event) => handleStatusChange(event.target.value)}
-        >
-          {statusOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          variant="admin"
+          onChange={handleStatusChange}
+        />
 
         <div className={styles.pendingCounter}>
           На проверке: <strong>{pendingCount}</strong>
@@ -222,150 +171,13 @@ export function AdminReviewsPage() {
         ) : items.length === 0 ? (
           <p className={styles.mutedText}>Отзывов с таким статусом пока нет.</p>
         ) : (
-          <AdminTable
-            withTopMargin={false}
-            tableClassName={styles.reviewsTable}
-          >
-            <thead>
-              <tr>
-                <th className={styles.reviewCell}>Отзыв</th>
-                <th className={styles.clientCell}>Клиент</th>
-                <th className={styles.statusCell}>Статус</th>
-                <th className={styles.dateCell}>Даты</th>
-                <th className={styles.noteCell}>Заметка админа</th>
-                <th className={styles.actionCell}>Действия</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {items.map((item) => {
-                const isUpdating = updatingId === item.id;
-
-                return (
-                  <tr
-                    key={item.id}
-                    className={
-                      item.status === "deleted" ? styles.deletedRow : undefined
-                    }
-                  >
-                    <td className={styles.reviewCell}>
-                      <div className={styles.reviewPreview}>
-                        <div className={styles.reviewHeader}>
-                          <strong>{getPublicName(item.publicName)}</strong>
-                          <span>{getRatingLabel(item.rating)}</span>
-                        </div>
-
-                        <p className={styles.reviewText}>{item.text}</p>
-                      </div>
-                    </td>
-
-                    <td className={styles.clientCell}>
-                      <div className={styles.clientPreview}>
-                        <strong>{item.clientName}</strong>
-
-                        <span>{item.clientPhone || "Телефон не указан"}</span>
-                        <span>{item.clientEmail || "Email не указан"}</span>
-
-                        {item.eligibilitySessionId ? (
-                          <span className={styles.eligibilityText}>
-                            Проверочная сессия найдена
-                          </span>
-                        ) : (
-                          <span className={styles.eligibilityText}>
-                            Проверочная сессия не указана
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className={styles.statusCell}>
-                      <span className={getStatusBadgeClassName(item.status)}>
-                        {statusLabels[item.status]}
-                      </span>
-                    </td>
-
-                    <td className={styles.dateCell}>
-                      <div className={styles.dateStack}>
-                        <span>
-                          <strong>Создан:</strong> {formatDateTime(item.createdAt)}
-                        </span>
-                        <span>
-                          <strong>Опубликован:</strong>{" "}
-                          {formatDateTime(item.publishedAt)}
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className={styles.noteCell}>
-                      <textarea
-                        className={styles.noteTextarea}
-                        value={adminNoteDrafts[item.id] ?? ""}
-                        placeholder="Внутренняя заметка специалиста"
-                        disabled={isUpdating}
-                        onChange={(event) =>
-                          handleAdminNoteChange(item.id, event.target.value)
-                        }
-                      />
-                    </td>
-
-                    <td className={styles.actionCell}>
-                      <div className={styles.actionsStack}>
-                        {item.status !== "published" ? (
-                          <AdminButton
-                            type="button"
-                            variant="primary"
-                            size="sm"
-                            disabled={isUpdating}
-                            onClick={() =>
-                              void handleUpdateReview(item, "published")
-                            }
-                          >
-                            Опубликовать
-                          </AdminButton>
-                        ) : null}
-
-                        {item.status !== "hidden" ? (
-                          <AdminButton
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            disabled={isUpdating}
-                            onClick={() => void handleUpdateReview(item, "hidden")}
-                          >
-                            Скрыть
-                          </AdminButton>
-                        ) : null}
-
-                        {item.status === "deleted" ? (
-                          <AdminButton
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            disabled={isUpdating}
-                            onClick={() => void handleUpdateReview(item, "hidden")}
-                          >
-                            Восстановить
-                          </AdminButton>
-                        ) : (
-                          <AdminButton
-                            type="button"
-                            variant="danger"
-                            size="sm"
-                            disabled={isUpdating}
-                            onClick={() =>
-                              void handleUpdateReview(item, "deleted")
-                            }
-                          >
-                            Удалить
-                          </AdminButton>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </AdminTable>
+          <AdminReviewsTable
+            adminNoteDrafts={adminNoteDrafts}
+            items={items}
+            updatingId={updatingId}
+            onAdminNoteChange={handleAdminNoteChange}
+            onUpdateReview={handleUpdateReview}
+          />
         )}
       </AdminSection>
     </main>
