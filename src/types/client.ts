@@ -54,6 +54,12 @@ export type UpdateClientPayload = {
   preferredContactValue?: string;
 };
 
+export type UpdateClientReviewPermissionPayload = {
+  id: number;
+  reviewsBlocked: boolean;
+  reviewsBlockedReason?: string;
+};
+
 export type CrmClientServicePackageRecord = {
   id: number;
   clientId: number;

@@ -6,6 +6,7 @@ import type {
   CrmClientRecord,
   CrmClientServicePackageRecord,
   UpdateClientPayload,
+  UpdateClientReviewPermissionPayload,
 } from "../../types/client";
 import type {
   ClientReviewAdminRecord,
@@ -49,6 +50,15 @@ type UpdateClientResponse = {
 };
 
 type UpdateClientErrorResponse = {
+  error: string;
+};
+
+type UpdateClientReviewPermissionResponse = {
+  success: true;
+  item: CrmClientRecord;
+};
+
+type UpdateClientReviewPermissionErrorResponse = {
   error: string;
 };
 
@@ -221,6 +231,40 @@ export async function updateClient(
   }
 
   throw new Error("Failed to update client");
+}
+
+export async function updateClientReviewPermission(
+  payload: UpdateClientReviewPermissionPayload
+): Promise<CrmClientRecord> {
+  const response = await fetch(
+    "/api/admin/clients?action=update-review-permission",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  const data = (await response.json().catch(() => null)) as
+    | UpdateClientReviewPermissionResponse
+    | UpdateClientReviewPermissionErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data
+        ? data.error
+        : "Не удалось изменить разрешение на отзывы"
+    );
+  }
+
+  if (data && "item" in data) {
+    return data.item;
+  }
+
+  throw new Error("Не удалось изменить разрешение на отзывы");
 }
 
 export async function toggleClientFavorite(

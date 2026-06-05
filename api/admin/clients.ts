@@ -12,6 +12,7 @@ import type {
   CrmClientRecord,
   CrmClientServicePackageRecord,
   UpdateClientPayload,
+  UpdateClientReviewPermissionPayload,
 } from "../../src/types/client.js";
 import {
   clientFavoriteFilters,
@@ -64,6 +65,8 @@ type ParsedReviewModerationPayload = {
   status: ClientReviewStatus;
   adminNote: string;
 };
+
+type ParsedReviewPermissionPayload = UpdateClientReviewPermissionPayload;
 
 type RequestRow = {
   id: number;
@@ -494,6 +497,45 @@ function parseReviewModerationBody(
     id,
     status: status as ClientReviewStatus,
     adminNote,
+  };
+}
+
+function parseReviewPermissionBody(
+  body: any
+): ParsedReviewPermissionPayload | null {
+  let rawBody = body;
+
+  if (typeof rawBody === "string") {
+    try {
+      rawBody = JSON.parse(rawBody);
+    } catch {
+      return null;
+    }
+  }
+
+  const id = Number(rawBody?.id);
+  const reviewsBlocked = rawBody?.reviewsBlocked;
+  const reviewsBlockedReason =
+    typeof rawBody?.reviewsBlockedReason === "string"
+      ? rawBody.reviewsBlockedReason.trim()
+      : "";
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return null;
+  }
+
+  if (typeof reviewsBlocked !== "boolean") {
+    return null;
+  }
+
+  if (reviewsBlockedReason.length > 300) {
+    return null;
+  }
+
+  return {
+    id,
+    reviewsBlocked,
+    reviewsBlockedReason,
   };
 }
 
@@ -1004,6 +1046,89 @@ async function handleModerateReview(req: any, res: any) {
   }
 }
 
+async function handleUpdateReviewPermission(req: any, res: any) {
+  const payload = parseReviewPermissionBody(req.body);
+
+  if (!payload) {
+    return res.status(400).json({
+      error: "Некорректные данные для изменения разрешения на отзывы.",
+    });
+  }
+
+  try {
+    const result = payload.reviewsBlocked
+      ? await pool.query<ClientRow>(
+        `
+            UPDATE clients
+            SET
+              reviews_blocked_at = COALESCE(reviews_blocked_at, NOW()),
+              reviews_blocked_reason = NULLIF($2, '')
+            WHERE id = $1
+            RETURNING
+              id,
+              name,
+              phone,
+              email,
+              source,
+              status,
+              is_favorite,
+              ${getHasActivePackagesSelect("clients")} AS has_active_packages,
+              preferred_contact_method,
+              preferred_contact_value,
+              first_request_id,
+              reviews_blocked_at,
+              reviews_blocked_reason,
+              created_at
+          `,
+        [payload.id, payload.reviewsBlockedReason ?? ""]
+      )
+      : await pool.query<ClientRow>(
+        `
+            UPDATE clients
+            SET
+              reviews_blocked_at = NULL,
+              reviews_blocked_reason = NULL
+            WHERE id = $1
+            RETURNING
+              id,
+              name,
+              phone,
+              email,
+              source,
+              status,
+              is_favorite,
+              ${getHasActivePackagesSelect("clients")} AS has_active_packages,
+              preferred_contact_method,
+              preferred_contact_value,
+              first_request_id,
+              reviews_blocked_at,
+              reviews_blocked_reason,
+              created_at
+          `,
+        [payload.id]
+      );
+
+    const updatedClient = result.rows[0];
+
+    if (!updatedClient) {
+      return res.status(404).json({ error: "Клиент не найден." });
+    }
+
+    return res.status(200).json({
+      success: true,
+      item: mapClient(updatedClient),
+      message: payload.reviewsBlocked
+        ? "Клиенту запрещено оставлять отзывы."
+        : "Клиенту снова разрешено оставлять отзывы.",
+    });
+  } catch (error) {
+    console.error("Client review permission update error:", error);
+    return res.status(500).json({
+      error: "Не удалось изменить разрешение на отзывы",
+    });
+  }
+}
+
 async function handleCreate(req: any, res: any) {
   const payload = parseCreateBody(req.body);
 
@@ -1270,7 +1395,7 @@ async function handleUpdate(req: any, res: any) {
 
     const result = siteSettings.preferredContactMethod.enabled
       ? await pool.query<ClientRow>(
-          `
+        `
             UPDATE clients
             SET
               name = $2,
@@ -1298,19 +1423,19 @@ async function handleUpdate(req: any, res: any) {
               reviews_blocked_reason,
               created_at
           `,
-          [
-            payload.id,
-            payload.name,
-            payload.phone,
-            payload.email,
-            payload.source,
-            payload.status,
-            preferredContact.preferredContactMethod,
-            preferredContact.preferredContactValue,
-          ]
-        )
+        [
+          payload.id,
+          payload.name,
+          payload.phone,
+          payload.email,
+          payload.source,
+          payload.status,
+          preferredContact.preferredContactMethod,
+          preferredContact.preferredContactValue,
+        ]
+      )
       : await pool.query<ClientRow>(
-          `
+        `
             UPDATE clients
             SET
               name = $2,
@@ -1336,15 +1461,15 @@ async function handleUpdate(req: any, res: any) {
               reviews_blocked_reason,
               created_at
           `,
-          [
-            payload.id,
-            payload.name,
-            payload.phone,
-            payload.email,
-            payload.source,
-            payload.status,
-          ]
-        );
+        [
+          payload.id,
+          payload.name,
+          payload.phone,
+          payload.email,
+          payload.source,
+          payload.status,
+        ]
+      );
 
     const updatedClient = result.rows[0];
 
@@ -1571,6 +1696,10 @@ export default async function handler(req: any, res: any) {
 
   if (action === "update-review") {
     return handleModerateReview(req, res);
+  }
+
+  if (action === "update-review-permission") {
+    return handleUpdateReviewPermission(req, res);
   }
 
   return res.status(405).json({ error: "Method not allowed" });
