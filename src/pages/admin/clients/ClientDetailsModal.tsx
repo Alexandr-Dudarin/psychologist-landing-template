@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
+import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import {
   CustomSelect,
   type CustomSelectOption,
@@ -18,6 +19,7 @@ import type {
   ClientStatus,
   CrmClientRecord,
   CrmClientServicePackageRecord,
+  UpdateClientReviewPermissionPayload,
 } from "../../../types/client";
 import type { CrmServicePackagePlanRecord } from "../../../types/service";
 import styles from "./ClientsPage.module.css";
@@ -27,6 +29,9 @@ type ClientDetailsModalProps = {
   sourceLabels: Record<string, string>;
   statusLabels: Record<ClientStatus, string>;
   onClose: () => void;
+  onReviewPermissionChange: (
+    payload: UpdateClientReviewPermissionPayload
+  ) => Promise<CrmClientRecord>;
 };
 
 const clientPackageStatusLabels: Record<ClientServicePackageStatus, string> = {
@@ -67,11 +72,21 @@ function getPackageStatusClass(status: ClientServicePackageStatus): string {
     .join(" ");
 }
 
+function getReviewPermissionBadgeClass(isBlocked: boolean): string {
+  return [
+    styles.reviewPermissionBadge,
+    isBlocked
+      ? styles.reviewPermissionBadgeBlocked
+      : styles.reviewPermissionBadgeAllowed,
+  ].join(" ");
+}
+
 export function ClientDetailsModal({
   client,
   sourceLabels,
   statusLabels,
   onClose,
+  onReviewPermissionChange,
 }: ClientDetailsModalProps) {
   const [packagePlans, setPackagePlans] = useState<
     CrmServicePackagePlanRecord[]
@@ -84,6 +99,16 @@ export function ClientDetailsModal({
   const [isAssigningPackage, setIsAssigningPackage] = useState(false);
   const [packageError, setPackageError] = useState("");
   const [packageSuccess, setPackageSuccess] = useState("");
+
+  const [reviewReasonDraft, setReviewReasonDraft] = useState(
+    client.reviewsBlockedReason ?? ""
+  );
+  const [isReviewPermissionSaving, setIsReviewPermissionSaving] =
+    useState(false);
+  const [reviewPermissionError, setReviewPermissionError] = useState("");
+  const [reviewPermissionSuccess, setReviewPermissionSuccess] = useState("");
+
+  const isReviewsBlocked = Boolean(client.reviewsBlockedAt);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -105,6 +130,12 @@ export function ClientDetailsModal({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [onClose]);
+
+  useEffect(() => {
+    setReviewReasonDraft(client.reviewsBlockedReason ?? "");
+    setReviewPermissionError("");
+    setReviewPermissionSuccess("");
+  }, [client.id]);
 
   useEffect(() => {
     let isMounted = true;
@@ -232,6 +263,67 @@ export function ClientDetailsModal({
     } catch {
       setPackageError("Не удалось скопировать код автоматически.");
       setPackageSuccess("");
+    }
+  };
+
+  const handleBlockReviews = async () => {
+    const trimmedReason = reviewReasonDraft.trim();
+
+    if (trimmedReason.length > 300) {
+      setReviewPermissionError("Причина запрета не должна быть длиннее 300 символов.");
+      setReviewPermissionSuccess("");
+      return;
+    }
+
+    setIsReviewPermissionSaving(true);
+    setReviewPermissionError("");
+    setReviewPermissionSuccess("");
+
+    try {
+      const updatedClient = await onReviewPermissionChange({
+        id: client.id,
+        reviewsBlocked: true,
+        reviewsBlockedReason: trimmedReason,
+      });
+
+      setReviewReasonDraft(updatedClient.reviewsBlockedReason ?? "");
+      setReviewPermissionSuccess(
+        isReviewsBlocked
+          ? "Настройки отзывов обновлены."
+          : "Клиенту запрещено оставлять отзывы."
+      );
+    } catch (error) {
+      setReviewPermissionError(
+        error instanceof Error
+          ? error.message
+          : "Не удалось изменить разрешение на отзывы"
+      );
+    } finally {
+      setIsReviewPermissionSaving(false);
+    }
+  };
+
+  const handleAllowReviews = async () => {
+    setIsReviewPermissionSaving(true);
+    setReviewPermissionError("");
+    setReviewPermissionSuccess("");
+
+    try {
+      await onReviewPermissionChange({
+        id: client.id,
+        reviewsBlocked: false,
+      });
+
+      setReviewReasonDraft("");
+      setReviewPermissionSuccess("Клиенту снова разрешено оставлять отзывы.");
+    } catch (error) {
+      setReviewPermissionError(
+        error instanceof Error
+          ? error.message
+          : "Не удалось изменить разрешение на отзывы"
+      );
+    } finally {
+      setIsReviewPermissionSaving(false);
     }
   };
 
@@ -450,6 +542,81 @@ export function ClientDetailsModal({
               ))}
             </div>
           )}
+        </section>
+
+                <section className={styles.reviewPermissionSection}>
+          <div className={styles.reviewPermissionHeader}>
+            <div>
+              <h3 className={styles.reviewPermissionTitle}>Отзывы</h3>
+              <p className={styles.reviewPermissionText}>
+                По умолчанию клиент может оставить отзыв после проведённой
+                консультации. Здесь можно вручную запретить отзывы для
+                конкретного клиента, если это необходимо.
+              </p>
+            </div>
+
+            <span className={getReviewPermissionBadgeClass(isReviewsBlocked)}>
+              {isReviewsBlocked ? "Отзывы запрещены" : "Отзывы разрешены"}
+            </span>
+          </div>
+
+          <AdminFeedback message={reviewPermissionError} tone="error" />
+          <AdminFeedback message={reviewPermissionSuccess} tone="success" />
+
+          <label className={styles.reviewPermissionField}>
+            <span className={styles.reviewPermissionLabel}>
+              Причина запрета
+            </span>
+
+            <textarea
+              className={styles.reviewPermissionTextarea}
+              value={reviewReasonDraft}
+              maxLength={300}
+              placeholder="Например: клиент просил не публиковать отзывы или нарушал правила общения."
+              onChange={(event) => {
+                setReviewReasonDraft(event.target.value);
+                setReviewPermissionError("");
+                setReviewPermissionSuccess("");
+              }}
+            />
+          </label>
+
+          <div className={styles.reviewPermissionFooter}>
+            <p className={styles.reviewPermissionHint}>
+              Причина видна только специалисту и не показывается публично.
+              {reviewReasonDraft.length > 0
+                ? ` ${reviewReasonDraft.length}/300`
+                : " Поле можно оставить пустым."}
+            </p>
+
+            <div className={styles.reviewPermissionActions}>
+              <AdminButton
+                type="button"
+                variant={isReviewsBlocked ? "secondary" : "primary"}
+                disabled={isReviewPermissionSaving}
+                onClick={handleBlockReviews}
+              >
+                {isReviewPermissionSaving
+                  ? "Сохраняем..."
+                  : isReviewsBlocked
+                    ? "Сохранить причину"
+                    : "Запретить отзывы"}
+              </AdminButton>
+
+              {isReviewsBlocked ? (
+                <AdminButton
+                  type="button"
+                  variant="primary"
+                  disabled={isReviewPermissionSaving}
+                  onClick={handleAllowReviews}
+                >
+                  {isReviewPermissionSaving
+                    ? "Сохраняем..."
+                    : "Разрешить отзывы"}
+                </AdminButton>
+              ) : null}
+            </div>
+          </div>
         </section>
 
         <div className={styles.detailsActions}>

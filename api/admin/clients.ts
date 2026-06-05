@@ -859,7 +859,7 @@ async function handleListPackages(req: any, res: any) {
           c.name AS client_name,
           csp.package_plan_id,
           spp.title AS package_title,
-          csp.service_id,
+          spp.service_id,
           sv.title AS service_title,
           sv.duration_minutes AS service_duration_minutes,
           spp.sessions_count,

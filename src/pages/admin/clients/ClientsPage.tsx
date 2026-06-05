@@ -12,6 +12,7 @@ import {
   getAdminClients,
   toggleClientFavorite,
   updateClient,
+  updateClientReviewPermission,
 } from "../../../lib/api/adminClients";
 import { validatePreferredContactFields } from "../../../lib/preferredContact";
 import type {
@@ -19,6 +20,7 @@ import type {
   ClientStatus,
   CreateManualClientPayload,
   CrmClientRecord,
+  UpdateClientReviewPermissionPayload,
 } from "../../../types/client";
 import { clientStatuses } from "../../../types/client";
 import { ClientCreateForm } from "./ClientCreateForm";
@@ -464,6 +466,22 @@ export function ClientsPage() {
     }
   };
 
+  const handleUpdateClientReviewPermission = async (
+    payload: UpdateClientReviewPermissionPayload
+  ): Promise<CrmClientRecord> => {
+    const updatedClient = await updateClientReviewPermission(payload);
+
+    const replaceUpdatedClient = (clientList: CrmClientRecord[]) =>
+      clientList.map((item) =>
+        item.id === updatedClient.id ? updatedClient : item
+      );
+
+    setItems(replaceUpdatedClient);
+    setLastVisibleItems(replaceUpdatedClient);
+
+    return updatedClient;
+  };
+
   const handleResetView = () => {
     setSearchQuery("");
     setStatusFilter("all");
@@ -616,6 +634,7 @@ export function ClientsPage() {
           sourceLabels={clientSourceLabels}
           statusLabels={t.admin.clients.statusLabels}
           onClose={closeClientDetails}
+          onReviewPermissionChange={handleUpdateClientReviewPermission}
         />
       ) : null}
     </main>
