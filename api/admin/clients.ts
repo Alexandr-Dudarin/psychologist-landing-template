@@ -24,6 +24,11 @@ import {
   validatePreferredContactFields,
 } from "../../src/lib/preferredContact.js";
 import type { PreferredContactMethod } from "../../src/types/preferredContact.js";
+import type {
+  ClientReviewAdminRecord,
+  ClientReviewStatus,
+} from "../../src/types/reviews.js";
+import { clientReviewStatuses } from "../../src/types/reviews.js";
 
 const PACKAGE_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const PACKAGE_CODE_LENGTH = 10;
@@ -53,6 +58,12 @@ type ParsedToggleFavoritePayload = {
 };
 
 type ParsedAssignPackagePayload = AssignClientServicePackagePayload;
+
+type ParsedReviewModerationPayload = {
+  id: number;
+  status: ClientReviewStatus;
+  adminNote: string;
+};
 
 type RequestRow = {
   id: number;
@@ -94,6 +105,25 @@ type ClientServicePackageRow = {
   status: string;
   used_sessions_count: number | string;
   created_at: string;
+};
+
+type ClientReviewRow = {
+  id: number | string;
+  client_id: number | string;
+  client_name: string;
+  client_phone: string;
+  client_email: string;
+  eligibility_session_id: number | string | null;
+  public_name: string | null;
+  rating: number | string | null;
+  text: string;
+  status: string;
+  admin_note: string | null;
+  created_at: string;
+  updated_at: string;
+  published_at: string | null;
+  hidden_at: string | null;
+  deleted_at: string | null;
 };
 
 function toClientStatus(value: string): ClientStatus {
@@ -188,6 +218,37 @@ function mapClientServicePackage(
     code: row.code,
     status,
     createdAt: row.created_at,
+  };
+}
+
+function toClientReviewStatus(value: string): ClientReviewStatus {
+  if (clientReviewStatuses.includes(value as ClientReviewStatus)) {
+    return value as ClientReviewStatus;
+  }
+
+  return "pending";
+}
+
+function mapClientReview(row: ClientReviewRow): ClientReviewAdminRecord {
+  return {
+    id: Number(row.id),
+    clientId: Number(row.client_id),
+    clientName: row.client_name,
+    clientPhone: row.client_phone,
+    clientEmail: row.client_email,
+    eligibilitySessionId:
+      row.eligibility_session_id === null
+        ? null
+        : Number(row.eligibility_session_id),
+    publicName: row.public_name?.trim() || "Анонимный отзыв",
+    rating: row.rating === null ? null : Number(row.rating),
+    text: row.text,
+    status: toClientReviewStatus(row.status),
+    adminNote: row.admin_note ?? "",
+    createdAt: row.created_at,
+    publishedAt: row.published_at,
+    hiddenAt: row.hidden_at,
+    deletedAt: row.deleted_at,
   };
 }
 
@@ -395,6 +456,40 @@ function parseAssignPackageBody(
   return {
     clientId,
     packagePlanId,
+  };
+}
+
+function parseReviewModerationBody(
+  body: any
+): ParsedReviewModerationPayload | null {
+  let rawBody = body;
+
+  if (typeof rawBody === "string") {
+    try {
+      rawBody = JSON.parse(rawBody);
+    } catch {
+      return null;
+    }
+  }
+
+  const id = Number(rawBody?.id);
+  const status =
+    typeof rawBody?.status === "string" ? rawBody.status.trim() : "";
+  const adminNote =
+    typeof rawBody?.adminNote === "string" ? rawBody.adminNote.trim() : "";
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return null;
+  }
+
+  if (!clientReviewStatuses.includes(status as ClientReviewStatus)) {
+    return null;
+  }
+
+  return {
+    id,
+    status: status as ClientReviewStatus,
+    adminNote,
   };
 }
 
@@ -749,6 +844,154 @@ async function handleListPackages(req: any, res: any) {
   }
 }
 
+async function handleListReviews(req: any, res: any) {
+  const status = getSingleQueryValue(req.query?.status).trim();
+
+  const conditions: string[] = [];
+  const values: string[] = [];
+
+  if (status && status !== "all") {
+    if (!clientReviewStatuses.includes(status as ClientReviewStatus)) {
+      return res.status(400).json({ error: "Invalid review status filter" });
+    }
+
+    values.push(status);
+    conditions.push(`r.status = $${values.length}`);
+  }
+
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  try {
+    const result = await pool.query<ClientReviewRow>(
+      `
+        SELECT
+          r.id,
+          r.client_id,
+          c.name AS client_name,
+          c.phone AS client_phone,
+          c.email AS client_email,
+          r.eligibility_session_id,
+          r.public_name,
+          r.rating,
+          r.text,
+          r.status,
+          r.admin_note,
+          r.created_at,
+          r.updated_at,
+          r.published_at,
+          r.hidden_at,
+          r.deleted_at
+        FROM client_reviews r
+        INNER JOIN clients c ON c.id = r.client_id
+        ${whereClause}
+        ORDER BY
+          CASE
+            WHEN r.status = 'pending' THEN 0
+            WHEN r.status = 'published' THEN 1
+            WHEN r.status = 'hidden' THEN 2
+            WHEN r.status = 'deleted' THEN 3
+            ELSE 4
+          END,
+          r.created_at DESC
+      `,
+      values
+    );
+
+    return res.status(200).json({
+      items: result.rows.map(mapClientReview),
+    });
+  } catch (error) {
+    console.error("Client reviews admin list error:", error);
+    return res.status(500).json({ error: "Не удалось загрузить отзывы" });
+  }
+}
+
+async function handleModerateReview(req: any, res: any) {
+  const payload = parseReviewModerationBody(req.body);
+
+  if (!payload) {
+    return res.status(400).json({
+      error: "Некорректные данные для обновления отзыва.",
+    });
+  }
+
+  try {
+    const result = await pool.query<ClientReviewRow>(
+      `
+        UPDATE client_reviews
+        SET
+          status = $2,
+          admin_note = $3,
+          updated_at = NOW(),
+          published_at = CASE
+            WHEN $2 = 'published' THEN COALESCE(published_at, NOW())
+            ELSE published_at
+          END,
+          hidden_at = CASE
+            WHEN $2 = 'hidden' THEN NOW()
+            WHEN $2 = 'published' THEN NULL
+            ELSE hidden_at
+          END,
+          deleted_at = CASE
+            WHEN $2 = 'deleted' THEN NOW()
+            WHEN $2 IN ('pending', 'published', 'hidden') THEN NULL
+            ELSE deleted_at
+          END
+        WHERE id = $1
+        RETURNING
+          id,
+          client_id,
+          (
+            SELECT name
+            FROM clients
+            WHERE clients.id = client_reviews.client_id
+            LIMIT 1
+          ) AS client_name,
+          (
+            SELECT phone
+            FROM clients
+            WHERE clients.id = client_reviews.client_id
+            LIMIT 1
+          ) AS client_phone,
+          (
+            SELECT email
+            FROM clients
+            WHERE clients.id = client_reviews.client_id
+            LIMIT 1
+          ) AS client_email,
+          eligibility_session_id,
+          public_name,
+          rating,
+          text,
+          status,
+          admin_note,
+          created_at,
+          updated_at,
+          published_at,
+          hidden_at,
+          deleted_at
+      `,
+      [payload.id, payload.status, payload.adminNote]
+    );
+
+    const updatedReview = result.rows[0];
+
+    if (!updatedReview) {
+      return res.status(404).json({ error: "Отзыв не найден." });
+    }
+
+    return res.status(200).json({
+      success: true,
+      item: mapClientReview(updatedReview),
+      message: "Отзыв обновлён.",
+    });
+  } catch (error) {
+    console.error("Client review moderation error:", error);
+    return res.status(500).json({ error: "Не удалось обновить отзыв" });
+  }
+}
+
 async function handleCreate(req: any, res: any) {
   const payload = parseCreateBody(req.body);
 
@@ -1009,7 +1252,7 @@ async function handleUpdate(req: any, res: any) {
 
     const result = siteSettings.preferredContactMethod.enabled
       ? await pool.query<ClientRow>(
-          `
+        `
             UPDATE clients
             SET
               name = $2,
@@ -1035,19 +1278,19 @@ async function handleUpdate(req: any, res: any) {
               first_request_id,
               created_at
           `,
-          [
-            payload.id,
-            payload.name,
-            payload.phone,
-            payload.email,
-            payload.source,
-            payload.status,
-            preferredContact.preferredContactMethod,
-            preferredContact.preferredContactValue,
-          ]
-        )
+        [
+          payload.id,
+          payload.name,
+          payload.phone,
+          payload.email,
+          payload.source,
+          payload.status,
+          preferredContact.preferredContactMethod,
+          preferredContact.preferredContactValue,
+        ]
+      )
       : await pool.query<ClientRow>(
-          `
+        `
             UPDATE clients
             SET
               name = $2,
@@ -1071,15 +1314,15 @@ async function handleUpdate(req: any, res: any) {
               first_request_id,
               created_at
           `,
-          [
-            payload.id,
-            payload.name,
-            payload.phone,
-            payload.email,
-            payload.source,
-            payload.status,
-          ]
-        );
+        [
+          payload.id,
+          payload.name,
+          payload.phone,
+          payload.email,
+          payload.source,
+          payload.status,
+        ]
+      );
 
     const updatedClient = result.rows[0];
 
@@ -1267,6 +1510,10 @@ export default async function handler(req: any, res: any) {
       return handleListPackages(req, res);
     }
 
+    if (action === "list-reviews") {
+      return handleListReviews(req, res);
+    }
+
     return handleList(req, res);
   }
 
@@ -1296,6 +1543,10 @@ export default async function handler(req: any, res: any) {
 
   if (action === "assign-package") {
     return handleAssignPackage(req, res);
+  }
+
+  if (action === "update-review") {
+    return handleModerateReview(req, res);
   }
 
   return res.status(405).json({ error: "Method not allowed" });

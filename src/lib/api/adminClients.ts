@@ -7,6 +7,13 @@ import type {
   CrmClientServicePackageRecord,
   UpdateClientPayload,
 } from "../../types/client";
+import type {
+  ClientReviewAdminRecord,
+  ClientReviewAdminStatusFilter,
+  ClientReviewAdminUpdateSuccessResponse,
+  ClientReviewErrorResponse,
+  ClientReviewModerationPayload,
+} from "../../types/reviews";
 
 type ListClientsResponse = {
   items: CrmClientRecord[];
@@ -69,6 +76,10 @@ type AssignClientServicePackageResponse = {
 
 type AssignClientServicePackageErrorResponse = {
   error: string;
+};
+
+type ListClientReviewsAdminResponse = {
+  items: ClientReviewAdminRecord[];
 };
 
 export type AdminClientsFilters = {
@@ -302,4 +313,61 @@ export async function assignClientServicePackage(
   }
 
   throw new Error("Не удалось добавить пакет клиенту");
+}
+
+export async function getAdminClientReviews(
+  status: ClientReviewAdminStatusFilter = "all"
+): Promise<ClientReviewAdminRecord[]> {
+  const params = new URLSearchParams({
+    action: "list-reviews",
+    status,
+  });
+
+  const response = await fetch(`/api/admin/clients?${params.toString()}`);
+
+  const data = (await response.json().catch(() => null)) as
+    | ListClientReviewsAdminResponse
+    | ClientReviewErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data ? data.error : "Не удалось загрузить отзывы"
+    );
+  }
+
+  if (data && "items" in data) {
+    return data.items;
+  }
+
+  return [];
+}
+
+export async function updateAdminClientReview(
+  payload: ClientReviewModerationPayload
+): Promise<ClientReviewAdminRecord> {
+  const response = await fetch("/api/admin/clients?action=update-review", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | ClientReviewAdminUpdateSuccessResponse
+    | ClientReviewErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data ? data.error : "Не удалось обновить отзыв"
+    );
+  }
+
+  if (data && "item" in data) {
+    return data.item;
+  }
+
+  throw new Error("Не удалось обновить отзыв");
 }

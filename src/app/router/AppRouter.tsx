@@ -15,6 +15,7 @@ import { NotesPage } from "../../pages/admin/notes/NotesPage";
 import { SchedulePage } from "../../pages/admin/schedule/SchedulePage";
 import { PremiumSchedulerPage } from "../../pages/admin/scheduler/PremiumSchedulerPage";
 import { AdminHelpPage } from "../../pages/admin/help/AdminHelpPage";
+import { AdminReviewsPage } from "../../pages/admin/reviews/AdminReviewsPage";
 import { PaymentSuccessPage } from "../../pages/PaymentSuccessPage/PaymentSuccessPage";
 import { siteSettings } from "../../data/siteSettings";
 
@@ -43,6 +44,9 @@ export function AppRouter() {
         <Route index element={<AdminDashboardPage />} />
         <Route path="requests" element={<RequestsPage />} />
         <Route path="clients" element={<ClientsPage />} />
+        {siteSettings.clientReviews.enabled ? (
+          <Route path="reviews" element={<AdminReviewsPage />} />
+        ) : null}
         <Route path="services" element={<ServicesPage />} />
         <Route path="sessions" element={<SessionsPage />} />
         <Route path="notes" element={<NotesPage />} />

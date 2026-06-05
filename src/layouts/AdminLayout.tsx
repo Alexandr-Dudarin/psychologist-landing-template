@@ -78,6 +78,13 @@ export function AdminLayout() {
       },
     ];
 
+    if (siteSettings.clientReviews.enabled) {
+      items.push({
+        to: "/admin/reviews",
+        label: "Отзывы",
+      });
+    }
+
     if (siteSettings.premiumModules.scheduler.enabled) {
       items.push({
         to: "/admin/scheduler",
@@ -215,9 +222,8 @@ export function AdminLayout() {
           <div className={styles.mobileActions}>
             <button
               type="button"
-              className={`${styles.menuButton} ${
-                isMobileMenuOpen ? styles.menuButtonOpen : ""
-              }`}
+              className={`${styles.menuButton} ${isMobileMenuOpen ? styles.menuButtonOpen : ""
+                }`}
               aria-label={
                 isMobileMenuOpen
                   ? "Закрыть меню админки"
@@ -236,9 +242,8 @@ export function AdminLayout() {
 
         <div
           id={mobileMenuId}
-          className={`${styles.mobileMenu} ${
-            isMobileMenuOpen ? styles.mobileMenuOpen : ""
-          }`}
+          className={`${styles.mobileMenu} ${isMobileMenuOpen ? styles.mobileMenuOpen : ""
+            }`}
         >
           <div className={styles.mobileMenuInner}>
             <nav className={styles.mobileNav} aria-label="Навигация админки">
@@ -258,8 +263,7 @@ export function AdminLayout() {
                     to={item.to}
                     end={item.end}
                     className={({ isActive }) =>
-                      `${styles.mobileNavLink} ${
-                        isActive ? styles.mobileNavLinkActive : ""
+                      `${styles.mobileNavLink} ${isActive ? styles.mobileNavLinkActive : ""
                       }`
                     }
                     onClick={handleCloseMobileMenu}
@@ -291,9 +295,8 @@ export function AdminLayout() {
 
       <button
         type="button"
-        className={`${styles.overlay} ${
-          isMobileMenuOpen ? styles.overlayVisible : ""
-        }`}
+        className={`${styles.overlay} ${isMobileMenuOpen ? styles.overlayVisible : ""
+          }`}
         aria-label="Закрыть меню админки"
         onClick={handleCloseMobileMenu}
       />

@@ -19,6 +19,8 @@ export const clientReviewStatuses = [
 
 export type ClientReviewStatus = (typeof clientReviewStatuses)[number];
 
+export type ClientReviewAdminStatusFilter = ClientReviewStatus | "all";
+
 export type ClientReviewPublicRecord = {
   id: number;
   publicName: string;
@@ -48,6 +50,12 @@ export type ClientReviewCreatePayload = {
   consentAccepted: boolean;
 };
 
+export type ClientReviewModerationPayload = {
+  id: number;
+  status: ClientReviewStatus;
+  adminNote?: string;
+};
+
 export type ClientReviewCreateSuccessResponse = {
   success: true;
   item: ClientReviewPublicRecord;
@@ -56,6 +64,16 @@ export type ClientReviewCreateSuccessResponse = {
 
 export type ClientReviewListSuccessResponse = {
   items: ClientReviewPublicRecord[];
+};
+
+export type ClientReviewAdminListSuccessResponse = {
+  items: ClientReviewAdminRecord[];
+};
+
+export type ClientReviewAdminUpdateSuccessResponse = {
+  success: true;
+  item: ClientReviewAdminRecord;
+  message: string;
 };
 
 export type ClientReviewErrorResponse = {

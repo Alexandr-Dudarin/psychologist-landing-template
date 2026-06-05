@@ -1,0 +1,250 @@
+.summaryBar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-surface);
+}
+
+.summaryText {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.summaryTitle {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 1.08rem;
+  line-height: 1.25;
+}
+
+.summaryDescription {
+  max-width: 760px;
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.statusFilter {
+  composes: controlSelect from "../../../components/admin/adminUi.module.css";
+}
+
+.pendingCounter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface);
+  color: var(--admin-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.pendingCounter strong {
+  color: var(--admin-text);
+}
+
+.mutedText {
+  margin: 0;
+  color: var(--admin-text-muted);
+}
+
+.reviewsTable {
+  min-width: 1120px;
+  table-layout: fixed;
+}
+
+.reviewCell {
+  width: 28%;
+  min-width: 260px;
+}
+
+.clientCell {
+  width: 18%;
+  min-width: 210px;
+}
+
+.statusCell {
+  width: 126px;
+  min-width: 126px;
+  text-align: center;
+}
+
+.dateCell {
+  width: 180px;
+  min-width: 180px;
+}
+
+.noteCell {
+  width: 220px;
+  min-width: 220px;
+}
+
+.actionCell {
+  width: 136px;
+  min-width: 136px;
+  text-align: center;
+}
+
+.reviewPreview,
+.clientPreview,
+.dateStack {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.reviewHeader strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--admin-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reviewHeader span {
+  flex: 0 0 auto;
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+}
+
+.reviewText {
+  display: -webkit-box;
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+  color: var(--admin-text);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.clientPreview strong {
+  color: var(--admin-text);
+}
+
+.clientPreview span,
+.dateStack span {
+  min-width: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.eligibilityText {
+  color: var(--admin-accent) !important;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.statusBadgePending {
+  border-color: color-mix(in srgb, var(--admin-highlight-border) 28%, white);
+  background: var(--admin-highlight);
+  color: color-mix(in srgb, var(--admin-highlight-border) 82%, var(--admin-text));
+}
+
+.statusBadgePublished {
+  border-color: color-mix(in srgb, var(--admin-success) 24%, white);
+  background: var(--admin-success-soft);
+  color: var(--admin-success);
+}
+
+.statusBadgeHidden {
+  border-color: color-mix(in srgb, var(--admin-accent) 24%, white);
+  background: var(--admin-accent-soft);
+  color: var(--admin-accent);
+}
+
+.statusBadgeDeleted {
+  border-color: color-mix(in srgb, var(--admin-danger) 24%, white);
+  background: var(--admin-danger-soft);
+  color: var(--admin-danger);
+}
+
+.noteTextarea {
+  composes: scrollbarBase from "../../../components/admin/adminUi.module.css";
+  width: 100%;
+  min-height: 96px;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  font: inherit;
+  line-height: 1.35;
+  resize: vertical;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.noteTextarea:focus-visible {
+  outline: none;
+  border-color: var(--admin-accent);
+  box-shadow: 0 0 0 3px rgba(47, 93, 120, 0.14);
+}
+
+.noteTextarea:disabled {
+  background: var(--admin-surface-muted);
+  color: var(--admin-text-muted);
+}
+
+.actionsStack {
+  display: grid;
+  gap: 8px;
+  justify-items: stretch;
+}
+
+.actionsStack > * {
+  width: 100%;
+}
+
+.deletedRow td {
+  background: color-mix(in srgb, var(--admin-danger-soft) 34%, white);
+}
+
+@media (max-width: 760px) {
+  .summaryBar {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 14px;
+  }
+
+  .summaryBar > button {
+    width: 100%;
+  }
+
+  .statusFilter,
+  .pendingCounter {
+    width: 100%;
+  }
+}
