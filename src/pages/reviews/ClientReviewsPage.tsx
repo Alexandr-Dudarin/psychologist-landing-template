@@ -30,6 +30,24 @@ const initialForm: ReviewFormState = {
 };
 
 const ratingOptions = [1, 2, 3, 4, 5];
+const PUBLIC_NAME_MAX_LENGTH = 35;
+const PUBLIC_NAME_DIGITS_PATTERN = /\d/;
+const PUBLIC_NAME_LENGTH_ERROR = `Длина псевдонима — не более ${PUBLIC_NAME_MAX_LENGTH} символов.`;
+const PUBLIC_NAME_DIGITS_ERROR = "Псевдоним не должен содержать цифры.";
+
+function getPublicNameValidationError(value: string): string | undefined {
+    const publicName = value.trim();
+
+    if (publicName.length > PUBLIC_NAME_MAX_LENGTH) {
+        return PUBLIC_NAME_LENGTH_ERROR;
+    }
+
+    if (PUBLIC_NAME_DIGITS_PATTERN.test(publicName)) {
+        return PUBLIC_NAME_DIGITS_ERROR;
+    }
+
+    return undefined;
+}
 
 function validateForm(form: ReviewFormState): ReviewFormErrors {
     const errors: ReviewFormErrors = {};
@@ -42,8 +60,10 @@ function validateForm(form: ReviewFormState): ReviewFormErrors {
             "Укажите email или телефон, который вы использовали при записи.";
     }
 
-    if (publicName.length > 80) {
-        errors.publicName = "Псевдоним должен быть не длиннее 80 символов.";
+    const publicNameError = getPublicNameValidationError(publicName);
+
+    if (publicNameError) {
+        errors.publicName = publicNameError;
     }
 
     if (form.rating !== null && (form.rating < 1 || form.rating > 5)) {
@@ -148,7 +168,10 @@ export function ClientReviewsPage() {
 
         setErrors((current) => ({
             ...current,
-            [field]: undefined,
+            [field]:
+                field === "publicName"
+                    ? getPublicNameValidationError(String(value))
+                    : undefined,
         }));
 
         setSubmitError("");
@@ -280,14 +303,15 @@ export function ClientReviewsPage() {
                                     type="text"
                                     value={form.publicName}
                                     disabled={isSubmitting}
-                                    maxLength={80}
                                     onChange={(event) =>
                                         handleFieldChange("publicName", event.target.value)
                                     }
                                     placeholder="Например: Анна, Клиент, Анонимно"
                                     aria-invalid={Boolean(errors.publicName)}
                                     aria-describedby={
-                                        errors.publicName ? "review-public-name-error" : undefined
+                                        errors.publicName
+                                            ? "review-public-name-error"
+                                            : "review-public-name-hint"
                                     }
                                 />
                                 {errors.publicName ? (
@@ -298,9 +322,9 @@ export function ClientReviewsPage() {
                                         {errors.publicName}
                                     </span>
                                 ) : (
-                                    <span className={styles.fieldHint}>
-                                        Если оставить поле пустым, на сайте будет показано
-                                        «Анонимный отзыв».
+                                    <span id="review-public-name-hint" className={styles.fieldHint}>
+                                        Можно указать псевдоним до {PUBLIC_NAME_MAX_LENGTH} символов, без цифр.
+                                        Если оставить поле пустым, на сайте будет показано «Анонимный отзыв».
                                     </span>
                                 )}
                             </div>
