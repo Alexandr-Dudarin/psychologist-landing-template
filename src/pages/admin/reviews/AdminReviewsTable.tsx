@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useState } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
@@ -7,6 +7,7 @@ import type {
   ClientReviewStatus,
 } from "../../../types/reviews";
 import styles from "./AdminReviewsPage.module.css";
+import { ReviewDetailsModal } from "./ReviewDetailsModal";
 
 type AdminReviewsTableProps = {
   adminNoteDrafts: Record<number, string>;
@@ -18,12 +19,6 @@ type AdminReviewsTableProps = {
     item: ClientReviewAdminRecord,
     status: ClientReviewStatus
   ) => void | Promise<void>;
-};
-
-type ReviewDetailsModalProps = {
-  adminNote: string;
-  item: ClientReviewAdminRecord;
-  onClose: () => void;
 };
 
 const statusLabels: Record<ClientReviewStatus, string> = {
@@ -101,132 +96,6 @@ function getRowClassName(status: ClientReviewStatus): string | undefined {
   ].filter(Boolean);
 
   return classNames.length > 0 ? classNames.join(" ") : undefined;
-}
-
-function ReviewDetailsModal({
-  adminNote,
-  item,
-  onClose,
-}: ReviewDetailsModalProps) {
-  const titleId = useId();
-  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousDocumentOverflow = document.documentElement.style.overflow;
-
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    document.addEventListener("keydown", handleKeyDown);
-    closeButtonRef.current?.focus();
-
-    return () => {
-      document.body.style.overflow = previousBodyOverflow;
-      document.documentElement.style.overflow = previousDocumentOverflow;
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [onClose]);
-
-  return (
-    <div
-      className={styles.detailOverlay}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <section
-        aria-labelledby={titleId}
-        aria-modal="true"
-        className={styles.detailDialog}
-        role="dialog"
-      >
-        <header className={styles.detailHeader}>
-          <div>
-            <span className={styles.detailKicker}>Отзыв клиента</span>
-            <h3 id={titleId} className={styles.detailTitle}>
-              {getPublicName(item.publicName)}
-            </h3>
-          </div>
-
-          <button
-            ref={closeButtonRef}
-            aria-label="Закрыть"
-            className={styles.detailCloseButton}
-            type="button"
-            onClick={onClose}
-          >
-            ×
-          </button>
-        </header>
-
-        <div className={styles.detailBody}>
-          <div className={styles.detailMetaGrid}>
-            <div className={styles.detailMetaItem}>
-              <span>Оценка</span>
-              <strong>{getRatingLabel(item.rating)}</strong>
-            </div>
-
-            <div className={styles.detailMetaItem}>
-              <span>Статус</span>
-              <strong>{statusLabels[item.status]}</strong>
-            </div>
-
-            <div className={styles.detailMetaItem}>
-              <span>Клиент</span>
-              <strong>{item.clientName}</strong>
-            </div>
-
-            <div className={styles.detailMetaItem}>
-              <span>Телефон</span>
-              <strong>{item.clientPhone || "Не указан"}</strong>
-            </div>
-
-            <div className={styles.detailMetaItem}>
-              <span>Email</span>
-              <strong>{item.clientEmail || "Не указан"}</strong>
-            </div>
-
-            <div className={styles.detailMetaItem}>
-              <span>Создан</span>
-              <strong>{formatDateTime(item.createdAt)}</strong>
-            </div>
-
-            <div className={styles.detailMetaItem}>
-              <span>Опубликован</span>
-              <strong>{formatDateTime(item.publishedAt)}</strong>
-            </div>
-
-            <div className={styles.detailMetaItem}>
-              <span>Проверочная сессия</span>
-              <strong>
-                {item.eligibilitySessionId ? "Найдена" : "Не указана"}
-              </strong>
-            </div>
-          </div>
-
-          <div className={styles.detailBlock}>
-            <h4>Текст отзыва</h4>
-            <p className={styles.detailText}>{item.text}</p>
-          </div>
-
-          {adminNote.trim() ? (
-            <div className={styles.detailBlock}>
-              <h4>Заметка админа</h4>
-              <p className={styles.detailText}>{adminNote}</p>
-            </div>
-          ) : null}
-        </div>
-      </section>
-    </div>
-  );
 }
 
 export function AdminReviewsTable({
