@@ -279,6 +279,7 @@
 
 .noteTextarea {
   composes: scrollbarBase from "../../../components/admin/adminUi.module.css";
+  max-width: 100%;
   width: 100%;
   min-height: 88px;
   padding: 10px 12px;
@@ -307,7 +308,9 @@
 
 .actionsStack {
   display: grid;
-  width: min(122px, 100%);
+  width: 100%;
+  max-width: 122px;
+  min-width: 0;
   gap: 8px;
   justify-items: stretch;
   margin-left: auto;
@@ -317,30 +320,53 @@
   width: 100%;
 }
 
+.reviewsTable th,
+.reviewsTable td,
+.reviewCell,
+.ratingCell,
+.clientCell,
+.statusCell,
+.dateCell,
+.noteCell,
+.actionCell {
+  min-width: 0;
+}
+
+.actionsStack > *,
 .detailsButton {
-  display: none;
+  min-width: 0;
+}
+
+.detailsButton {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
-  padding: 6px 10px;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-sm);
-  background: var(--admin-surface);
-  color: var(--admin-text);
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid color-mix(in srgb, var(--admin-accent) 18%, var(--admin-border));
+  border-radius: var(--admin-radius-md);
+  background: color-mix(in srgb, var(--admin-accent-soft) 42%, var(--admin-surface));
+  color: var(--admin-accent);
   cursor: pointer;
   font: inherit;
   font-size: 0.9rem;
+  font-weight: 500;
   line-height: 1.2;
+  box-shadow: 0 8px 18px rgba(47, 93, 120, 0.06);
   transition:
     border-color 0.18s ease,
     background-color 0.18s ease,
-    color 0.18s ease;
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 }
 
 .detailsButton:hover {
+  transform: translateY(-1px);
   border-color: var(--admin-accent);
   background: var(--admin-accent-soft);
   color: var(--admin-accent);
+  box-shadow: 0 12px 24px rgba(47, 93, 120, 0.1);
 }
 
 .detailsButton:focus-visible {
@@ -512,7 +538,7 @@
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1323px) {
   .noteCell {
     display: none;
   }
@@ -524,19 +550,49 @@
   .clientCell {
     width: 20%;
   }
+
+  .dateCell {
+    width: 132px;
+  }
+
+  .actionCell {
+    width: 124px;
+  }
+
+  .reviewsTable th,
+  .reviewsTable td {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .actionsStack {
+    max-width: 112px;
+  }
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .dateCell {
     display: none;
   }
 
   .reviewCell {
-    width: 38%;
+    width: 40%;
   }
 
   .clientCell {
     width: 24%;
+  }
+
+  .statusCell {
+    width: 112px;
+  }
+
+  .actionCell {
+    width: 122px;
+  }
+
+  .actionsStack {
+    max-width: 110px;
   }
 }
 
@@ -549,7 +605,9 @@
   }
 
   .reviewsTable {
+    width: 100%;
     min-width: 0;
+    max-width: 100%;
   }
 
   .reviewCell {
@@ -557,20 +615,20 @@
   }
 
   .ratingCell {
-    width: 92px;
+    width: 86px;
   }
 
   .actionCell {
-    width: 136px;
+    width: 122px;
   }
 
   .reviewsTable th,
   .reviewsTable td {
-    padding: 12px 10px;
+    padding: 12px 8px;
   }
 
   .actionsStack {
-    width: 124px;
+    max-width: 108px;
   }
 }
 
@@ -596,41 +654,59 @@
 }
 
 @media (max-width: 600px) {
-  .reviewCell {
+  .reviewCell,
+  .clientCell,
+  .dateCell,
+  .noteCell {
     display: none;
   }
 
   .statusCell {
     display: table-cell;
-    width: 112px;
+    width: 106px;
   }
 
   .ratingCell {
-    width: 84px;
+    width: 74px;
+    text-align: left;
+  }
+
+  .reviewsTable th.ratingCell,
+  .reviewsTable td.ratingCell {
+    text-align: left;
   }
 
   .actionCell {
-    width: 124px;
+    width: 112px;
   }
 
   .reviewsTable th,
   .reviewsTable td {
-    padding: 11px 8px;
+    padding: 10px 6px;
   }
 
   .ratingBadge {
-    min-width: 56px;
-    padding: 4px 8px;
-    font-size: 0.86rem;
+    min-width: 52px;
+    padding: 4px 7px;
+    font-size: 0.84rem;
   }
 
   .statusBadge {
-    padding: 4px 8px;
-    font-size: 0.82rem;
+    padding: 4px 7px;
+    font-size: 0.8rem;
   }
 
   .actionsStack {
-    width: 116px;
+    max-width: 100px;
+    gap: 7px;
+  }
+
+  .actionsStack > *,
+  .detailsButton {
+    min-height: 32px;
+    padding-right: 7px;
+    padding-left: 7px;
+    font-size: 0.8rem;
   }
 
   .detailsButton {
@@ -663,31 +739,31 @@
 
 @media (max-width: 420px) {
   .ratingCell {
-    width: 76px;
+    width: 68px;
   }
 
   .statusCell {
-    width: 96px;
+    width: 92px;
   }
 
   .actionCell {
-    width: 106px;
+    width: 102px;
   }
 
   .reviewsTable th,
   .reviewsTable td {
-    padding: 10px 6px;
+    padding: 9px 5px;
   }
 
   .actionsStack {
-    width: 100px;
+    max-width: 94px;
   }
 
   .actionsStack > *,
   .detailsButton {
     min-height: 32px;
-    padding-right: 7px;
-    padding-left: 7px;
-    font-size: 0.8rem;
+    padding-right: 6px;
+    padding-left: 6px;
+    font-size: 0.78rem;
   }
 }
