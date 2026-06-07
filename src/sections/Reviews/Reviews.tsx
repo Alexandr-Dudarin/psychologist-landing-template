@@ -9,6 +9,9 @@ import { getPublishedClientReviews } from "../../lib/api/clientReviews";
 import type { ClientReviewPublicRecord, ReviewItem } from "../../types/reviews";
 import styles from "./Reviews.module.css";
 
+const CLIENT_REVIEW_TEXT_LIMIT_DESKTOP = 450;
+const CLIENT_REVIEW_TEXT_LIMIT_MOBILE = 200;
+
 function getVisibleCount(width: number, height: number) {
   if (width >= 980 && height <= 720) {
     return 3;
@@ -23,6 +26,26 @@ function getVisibleCount(width: number, height: number) {
   }
 
   return 1;
+}
+
+function getClientReviewsVisibleCount(width: number) {
+  if (width >= 1100) {
+    return 3;
+  }
+
+  if (width >= 700) {
+    return 2;
+  }
+
+  return 1;
+}
+
+function getClientReviewTextLimit(width: number) {
+  if (width <= 700) {
+    return CLIENT_REVIEW_TEXT_LIMIT_MOBILE;
+  }
+
+  return CLIENT_REVIEW_TEXT_LIMIT_DESKTOP;
 }
 
 function getPublicReviewName(review: ClientReviewPublicRecord) {
@@ -43,6 +66,16 @@ function formatReviewDate(value: string, language: string) {
     month: "long",
     year: "numeric",
   });
+}
+
+function getPreviewText(text: string, limit: number) {
+  const normalizedText = text.trim();
+
+  if (normalizedText.length <= limit) {
+    return normalizedText;
+  }
+
+  return `${normalizedText.slice(0, limit).trimEnd()}…`;
 }
 
 type ImageReviewsCarouselProps = {
@@ -310,9 +343,8 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
             <button
               key={index}
               type="button"
-              className={`${styles.dot} ${
-                index === activeIndex ? styles.dotActive : ""
-              }`}
+              className={`${styles.dot} ${index === activeIndex ? styles.dotActive : ""
+                }`}
               onClick={() => setActiveIndex(index)}
               aria-label={`${dotLabelPrefix} ${index + 1}`}
             />
@@ -384,43 +416,231 @@ type ClientReviewsPreviewProps = {
 };
 
 function ClientReviewsPreview({ items, language }: ClientReviewsPreviewProps) {
-  const visibleItems = items.slice(0, 6);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(() =>
+    typeof window === "undefined" ? 1 : getClientReviewsVisibleCount(window.innerWidth)
+  );
+  const [textLimit, setTextLimit] = useState(() =>
+    typeof window === "undefined"
+      ? CLIENT_REVIEW_TEXT_LIMIT_DESKTOP
+      : getClientReviewTextLimit(window.innerWidth)
+  );
+  const [expandedReviewIds, setExpandedReviewIds] = useState<Set<number>>(
+    () => new Set()
+  );
 
-  if (!visibleItems.length) {
-    return null;
-  }
+  const touchStartXRef = useRef<number | null>(null);
+  const touchDeltaXRef = useRef(0);
+
+  const actualVisibleCount = Math.min(visibleCount, items.length);
+  const maxIndex = Math.max(0, items.length - actualVisibleCount);
+  const hasNavigation = items.length > actualVisibleCount;
+  const pageCount = maxIndex + 1;
+  const slideWidthPercent = 100 / actualVisibleCount;
+  const isSingleReview = items.length === 1;
+
+  useEffect(() => {
+    const handleResize = () => {
+      setVisibleCount(getClientReviewsVisibleCount(window.innerWidth));
+      setTextLimit(getClientReviewTextLimit(window.innerWidth));
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (activeIndex > maxIndex) {
+      setActiveIndex(maxIndex);
+    }
+  }, [activeIndex, maxIndex]);
+
+  const goPrev = () => {
+    setActiveIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const goNext = () => {
+    setActiveIndex((prev) => Math.min(maxIndex, prev + 1));
+  };
+
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    touchStartXRef.current = event.touches[0]?.clientX ?? null;
+    touchDeltaXRef.current = 0;
+  };
+
+  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartXRef.current === null) {
+      return;
+    }
+
+    const currentX = event.touches[0]?.clientX ?? touchStartXRef.current;
+    touchDeltaXRef.current = currentX - touchStartXRef.current;
+  };
+
+  const handleTouchEnd = () => {
+    if (!hasNavigation) {
+      touchStartXRef.current = null;
+      touchDeltaXRef.current = 0;
+      return;
+    }
+
+    const threshold = 50;
+
+    if (touchDeltaXRef.current <= -threshold && activeIndex < maxIndex) {
+      goNext();
+    } else if (touchDeltaXRef.current >= threshold && activeIndex > 0) {
+      goPrev();
+    }
+
+    touchStartXRef.current = null;
+    touchDeltaXRef.current = 0;
+  };
+
+  const toggleExpandedReview = (reviewId: number) => {
+    setExpandedReviewIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+
+      if (nextIds.has(reviewId)) {
+        nextIds.delete(reviewId);
+      } else {
+        nextIds.add(reviewId);
+      }
+
+      return nextIds;
+    });
+  };
+
+  const prevLabel =
+    language === "ru" ? "Предыдущие отзывы" : "Previous reviews";
+  const nextLabel =
+    language === "ru" ? "Следующие отзывы" : "Next reviews";
+  const dotLabelPrefix =
+    language === "ru" ? "Перейти к отзывам" : "Go to reviews";
+  const moreLabel = language === "ru" ? "Ещё" : "More";
+  const collapseLabel = language === "ru" ? "Свернуть" : "Collapse";
 
   return (
-    <div className={styles.clientReviewsGrid}>
-      {visibleItems.map((review) => (
-        <article key={review.id} className={styles.clientReviewCard}>
-          <div className={styles.clientReviewHeader}>
-            <h3 className={styles.clientReviewName}>
-              {getPublicReviewName(review)}
-            </h3>
-
-            <span
-              className={
-                review.rating === null
-                  ? styles.clientReviewRatingEmpty
-                  : styles.clientReviewRating
-              }
-            >
-              {getReviewRatingLabel(review.rating)}
-            </span>
-          </div>
-
-          <p className={styles.clientReviewText}>{review.text}</p>
-
-          <time
-            className={styles.clientReviewDate}
-            dateTime={review.publishedAt ?? review.createdAt}
+    <>
+      <div
+        className={`${styles.clientReviewsCarouselShell} ${isSingleReview ? styles.clientReviewsCarouselShellSingle : ""
+          }`}
+      >
+        {hasNavigation && activeIndex > 0 ? (
+          <button
+            type="button"
+            className={`${styles.clientReviewsControlButton} ${styles.clientReviewsControlButtonLeft}`}
+            onClick={goPrev}
+            aria-label={prevLabel}
           >
-            {formatReviewDate(review.publishedAt ?? review.createdAt, language)}
-          </time>
-        </article>
-      ))}
-    </div>
+            <ChevronLeft size={18} />
+          </button>
+        ) : null}
+
+        <div
+          className={styles.clientReviewsCarousel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div
+            className={styles.clientReviewsTrack}
+            style={{
+              transform: `translateX(-${activeIndex * slideWidthPercent}%)`,
+            }}
+          >
+            {items.map((review) => {
+              const isExpanded = expandedReviewIds.has(review.id);
+              const isLongReview = review.text.trim().length > textLimit;
+              const reviewText =
+                isExpanded || !isLongReview
+                  ? review.text.trim()
+                  : getPreviewText(review.text, textLimit);
+
+              return (
+                <div
+                  key={review.id}
+                  className={styles.clientReviewSlide}
+                  style={{ flex: `0 0 ${slideWidthPercent}%` }}
+                >
+                  <article className={styles.clientReviewCard}>
+                    <div className={styles.clientReviewHeader}>
+                      <h3 className={styles.clientReviewName}>
+                        {getPublicReviewName(review)}
+                      </h3>
+
+                      <span
+                        className={
+                          review.rating === null
+                            ? styles.clientReviewRatingEmpty
+                            : styles.clientReviewRating
+                        }
+                      >
+                        {getReviewRatingLabel(review.rating)}
+                      </span>
+                    </div>
+
+                    <div className={styles.clientReviewTextBlock}>
+                      <p className={styles.clientReviewText}>{reviewText}</p>
+
+                      {isLongReview ? (
+                        <button
+                          type="button"
+                          className={styles.clientReviewMoreButton}
+                          onClick={() => toggleExpandedReview(review.id)}
+                          aria-expanded={isExpanded}
+                        >
+                          {isExpanded ? collapseLabel : moreLabel}
+                        </button>
+                      ) : null}
+                    </div>
+
+                    <time
+                      className={styles.clientReviewDate}
+                      dateTime={review.publishedAt ?? review.createdAt}
+                    >
+                      {formatReviewDate(
+                        review.publishedAt ?? review.createdAt,
+                        language
+                      )}
+                    </time>
+                  </article>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {hasNavigation && activeIndex < maxIndex ? (
+          <button
+            type="button"
+            className={`${styles.clientReviewsControlButton} ${styles.clientReviewsControlButtonRight}`}
+            onClick={goNext}
+            aria-label={nextLabel}
+          >
+            <ChevronRight size={18} />
+          </button>
+        ) : null}
+      </div>
+
+      {hasNavigation ? (
+        <div className={styles.clientReviewsDots}>
+          {Array.from({ length: pageCount }).map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              className={`${styles.clientReviewsDot} ${index === activeIndex ? styles.clientReviewsDotActive : ""
+                }`}
+              onClick={() => setActiveIndex(index)}
+              aria-label={`${dotLabelPrefix} ${index + 1}`}
+            />
+          ))}
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -521,8 +741,8 @@ export function Reviews() {
     language === "ru" ? "Загружаем отзывы..." : "Loading reviews...";
   const emptyLabel =
     language === "ru"
-      ? "Пока опубликованных отзывов нет. После модерации новые отзывы появятся здесь."
-      : "No published reviews yet. New reviews will appear here after moderation.";
+      ? "Станьте первым, кто оставит отзыв!"
+      : "Be the first to leave a review!";
   const errorLabel =
     language === "ru"
       ? "Отзывы временно не удалось загрузить."
@@ -553,8 +773,8 @@ export function Reviews() {
               ) : null}
 
               {!isClientReviewsLoading &&
-              !clientReviewsError &&
-              !hasClientReviews ? (
+                !clientReviewsError &&
+                !hasClientReviews ? (
                 <div className={styles.clientReviewsState}>{emptyLabel}</div>
               ) : null}
 
