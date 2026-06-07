@@ -7,6 +7,12 @@ import type {
   ClientReviewStatus,
 } from "../../../types/reviews";
 import styles from "./AdminReviewsPage.module.css";
+import {
+  clientReviewStatusLabels,
+  getPublicReviewName,
+  getReviewPreviewText,
+  getReviewRatingLabel,
+} from "./AdminReviewsTable.helpers";
 import { ReviewDetailsModal } from "./ReviewDetailsModal";
 
 type AdminReviewsTableProps = {
@@ -19,13 +25,6 @@ type AdminReviewsTableProps = {
     item: ClientReviewAdminRecord,
     status: ClientReviewStatus
   ) => void | Promise<void>;
-};
-
-const statusLabels: Record<ClientReviewStatus, string> = {
-  pending: "На проверке",
-  published: "Опубликован",
-  hidden: "Скрыт",
-  deleted: "Удалён",
 };
 
 function formatDateTime(value: string | null): string {
@@ -46,28 +45,6 @@ function formatDateTime(value: string | null): string {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
-}
-
-function getPublicName(value: string): string {
-  return value.trim() || "Анонимный отзыв";
-}
-
-function getRatingLabel(rating: number | null): string {
-  if (rating === null) {
-    return "Без оценки";
-  }
-
-  return `${rating} / 5`;
-}
-
-function getPreviewText(value: string, limit: number): string {
-  const normalizedValue = value.trim();
-
-  if (normalizedValue.length <= limit) {
-    return normalizedValue;
-  }
-
-  return `${normalizedValue.slice(0, limit).trimEnd()}…`;
 }
 
 function getStatusBadgeClassName(status: ClientReviewStatus): string {
@@ -137,18 +114,18 @@ export function AdminReviewsTable({
                     onClick={() => setSelectedReview(item)}
                   >
                     <span className={styles.reviewAuthor}>
-                      {getPublicName(item.publicName)}
+                      {getPublicReviewName(item.publicName)}
                     </span>
 
                     <span className={styles.reviewText}>
-                      {getPreviewText(item.text, previewLimit)}
+                      {getReviewPreviewText(item.text, previewLimit)}
                     </span>
                   </button>
                 </td>
 
                 <td className={styles.ratingCell}>
                   <span className={getRatingBadgeClassName(item.rating)}>
-                    {getRatingLabel(item.rating)}
+                    {getReviewRatingLabel(item.rating)}
                   </span>
                 </td>
 
@@ -173,7 +150,7 @@ export function AdminReviewsTable({
 
                 <td className={styles.statusCell}>
                   <span className={getStatusBadgeClassName(item.status)}>
-                    {statusLabels[item.status]}
+                    {clientReviewStatusLabels[item.status]}
                   </span>
                 </td>
 
