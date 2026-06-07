@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Container } from "../../components/Container/Container";
@@ -278,6 +278,10 @@ export function Reviews() {
                       className={styles.image}
                       loading="lazy"
                     />
+
+                    <span className={styles.zoomHint} aria-hidden="true">
+                      <Search size={18} />
+                    </span>
                   </button>
                 </div>
               ))}
@@ -302,9 +306,8 @@ export function Reviews() {
               <button
                 key={index}
                 type="button"
-                className={`${styles.dot} ${
-                  index === activeIndex ? styles.dotActive : ""
-                }`}
+                className={`${styles.dot} ${index === activeIndex ? styles.dotActive : ""
+                  }`}
                 onClick={() => setActiveIndex(index)}
                 aria-label={`${dotLabelPrefix} ${index + 1}`}
               />

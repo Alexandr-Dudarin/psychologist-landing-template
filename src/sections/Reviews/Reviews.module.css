@@ -81,7 +81,8 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.42)),
     var(--color-surface);
   box-shadow: var(--shadow-soft);
-  cursor: zoom-in;
+  position: relative;
+  cursor: pointer;
   transition:
     transform var(--transition-base),
     box-shadow var(--transition-base);
@@ -96,6 +97,35 @@
   display: block;
   width: 100%;
   height: auto;
+}
+
+.zoomHint {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 1;
+  width: 38px;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 78%, white 22%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 88%, white 12%);
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(4px) scale(0.96);
+  pointer-events: none;
+  box-shadow: var(--shadow-soft);
+  transition:
+    opacity var(--transition-base),
+    transform var(--transition-base),
+    background-color var(--transition-base);
+}
+
+.card:hover .zoomHint {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .dots {
@@ -423,6 +453,10 @@
   }
 
   .controlButton {
+    display: none;
+  }
+
+  .zoomHint {
     display: none;
   }
 
