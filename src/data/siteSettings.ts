@@ -69,10 +69,10 @@ export const siteSettings = {
     },
     reviews: {
       enabled: true,
-      mode: "images" as "images" | "client_reviews" | "mixed",
+      mode: "client_reviews" as "images" | "client_reviews" | "mixed",
       imageReviewsEnabled: true,
-      clientReviewsEnabled: false,
-      clientReviewFormLinkEnabled: false,
+      clientReviewsEnabled: true,
+      clientReviewFormLinkEnabled: true,
     },
   },
 

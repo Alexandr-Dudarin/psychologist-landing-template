@@ -1,10 +1,12 @@
 import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { siteSettings } from "../../data/siteSettings";
-import type { ReviewItem } from "../../types/reviews";
+import { getPublishedClientReviews } from "../../lib/api/clientReviews";
+import type { ClientReviewPublicRecord, ReviewItem } from "../../types/reviews";
 import styles from "./Reviews.module.css";
 
 function getVisibleCount(width: number, height: number) {
@@ -23,19 +25,32 @@ function getVisibleCount(width: number, height: number) {
   return 1;
 }
 
-export function Reviews() {
-  const { t, language } = useLanguage();
-  const { content } = t;
+function getPublicReviewName(review: ClientReviewPublicRecord) {
+  return review.publicName.trim() || "Анонимный отзыв";
+}
 
-  if (!siteSettings.sections.reviews.enabled) {
-    return null;
+function getReviewRatingLabel(rating: number | null) {
+  if (rating === null) {
+    return "Без оценки";
   }
 
-  const items = useMemo(
-    () => content.reviews.items as ReviewItem[],
-    [content.reviews.items]
-  );
+  return `${rating} / 5`;
+}
 
+function formatReviewDate(value: string, language: string) {
+  return new Date(value).toLocaleDateString(language === "ru" ? "ru-RU" : "en-US", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+type ImageReviewsCarouselProps = {
+  items: ReviewItem[];
+  language: string;
+};
+
+function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(() =>
@@ -50,6 +65,12 @@ export function Reviews() {
   const lightboxTouchStartXRef = useRef<number | null>(null);
   const lightboxTouchDeltaXRef = useRef(0);
 
+  const actualVisibleCount = Math.min(visibleCount, items.length);
+  const maxIndex = Math.max(0, items.length - actualVisibleCount);
+  const hasNavigation = items.length > actualVisibleCount;
+  const pageCount = maxIndex + 1;
+  const slideWidthPercent = 100 / actualVisibleCount;
+
   useEffect(() => {
     const handleResize = () => {
       setVisibleCount(getVisibleCount(window.innerWidth, window.innerHeight));
@@ -62,16 +83,6 @@ export function Reviews() {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-
-  if (!items.length) {
-    return null;
-  }
-
-  const actualVisibleCount = Math.min(visibleCount, items.length);
-  const maxIndex = Math.max(0, items.length - actualVisibleCount);
-  const hasNavigation = items.length > actualVisibleCount;
-  const pageCount = maxIndex + 1;
-  const slideWidthPercent = 100 / actualVisibleCount;
 
   useEffect(() => {
     if (activeIndex > maxIndex) {
@@ -219,102 +230,95 @@ export function Reviews() {
     language === "ru" ? "Открыть отзыв крупнее" : "Open review larger";
 
   return (
-    <section id="reviews" className={`${styles.section} section`}>
-      <Container>
-        <SectionTitle
-          eyebrow={content.reviews.eyebrow}
-          title={content.reviews.title}
-          description={content.reviews.description}
-        />
-
-        <div className={styles.carouselShell}>
-          {hasNavigation ? (
-            <button
-              type="button"
-              className={`${styles.controlButton} ${styles.controlButtonLeft}`}
-              onClick={goPrev}
-              aria-label={prevLabel}
-            >
-              <ChevronLeft size={18} />
-            </button>
-          ) : null}
-
-          <div
-            className={styles.carousel}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+    <>
+      <div className={styles.carouselShell}>
+        {hasNavigation ? (
+          <button
+            type="button"
+            className={`${styles.controlButton} ${styles.controlButtonLeft}`}
+            onClick={goPrev}
+            aria-label={prevLabel}
           >
-            <div
-              className={styles.track}
-              style={{
-                transform: `translateX(-${activeIndex * slideWidthPercent}%)`,
-              }}
-            >
-              {items.map((item, index) => (
-                <div
-                  key={item.image}
-                  className={styles.slide}
-                  style={{ flex: `0 0 ${slideWidthPercent}%` }}
+            <ChevronLeft size={18} />
+          </button>
+        ) : null}
+
+        <div
+          className={styles.carousel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div
+            className={styles.track}
+            style={{
+              transform: `translateX(-${activeIndex * slideWidthPercent}%)`,
+            }}
+          >
+            {items.map((item, index) => (
+              <div
+                key={item.image}
+                className={styles.slide}
+                style={{ flex: `0 0 ${slideWidthPercent}%` }}
+              >
+                <button
+                  type="button"
+                  className={styles.card}
+                  onClick={() => {
+                    if (
+                      typeof window !== "undefined" &&
+                      window.innerWidth <= 560
+                    ) {
+                      return;
+                    }
+
+                    setLightboxIndex(index);
+                  }}
+                  aria-label={openLabel}
                 >
-                  <button
-                    type="button"
-                    className={styles.card}
-                    onClick={() => {
-                      if (
-                        typeof window !== "undefined" &&
-                        window.innerWidth <= 560
-                      ) {
-                        return;
-                      }
+                  <img
+                    src={item.image}
+                    alt={item.alt}
+                    className={styles.image}
+                    loading="lazy"
+                  />
 
-                      setLightboxIndex(index);
-                    }}
-                    aria-label={openLabel}
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.alt}
-                      className={styles.image}
-                      loading="lazy"
-                    />
-
-                    <span className={styles.zoomHint} aria-hidden="true">
-                      <Search size={18} />
-                    </span>
-                  </button>
-                </div>
-              ))}
-            </div>
+                  <span className={styles.zoomHint} aria-hidden="true">
+                    <Search size={18} />
+                  </span>
+                </button>
+              </div>
+            ))}
           </div>
-
-          {hasNavigation ? (
-            <button
-              type="button"
-              className={`${styles.controlButton} ${styles.controlButtonRight}`}
-              onClick={goNext}
-              aria-label={nextLabel}
-            >
-              <ChevronRight size={18} />
-            </button>
-          ) : null}
         </div>
 
         {hasNavigation ? (
-          <div className={styles.dots}>
-            {Array.from({ length: pageCount }).map((_, index) => (
-              <button
-                key={index}
-                type="button"
-                className={`${styles.dot} ${index === activeIndex ? styles.dotActive : ""
-                  }`}
-                onClick={() => setActiveIndex(index)}
-                aria-label={`${dotLabelPrefix} ${index + 1}`}
-              />
-            ))}
-          </div>
+          <button
+            type="button"
+            className={`${styles.controlButton} ${styles.controlButtonRight}`}
+            onClick={goNext}
+            aria-label={nextLabel}
+          >
+            <ChevronRight size={18} />
+          </button>
         ) : null}
-      </Container>
+      </div>
+
+      {hasNavigation ? (
+        <div className={styles.dots}>
+          {Array.from({ length: pageCount }).map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              className={`${styles.dot} ${
+                index === activeIndex ? styles.dotActive : ""
+              }`}
+              onClick={() => setActiveIndex(index)}
+              aria-label={`${dotLabelPrefix} ${index + 1}`}
+            />
+          ))}
+        </div>
+      ) : null}
 
       {lightboxIndex !== null ? (
         <div
@@ -370,6 +374,214 @@ export function Reviews() {
           </div>
         </div>
       ) : null}
+    </>
+  );
+}
+
+type ClientReviewsPreviewProps = {
+  items: ClientReviewPublicRecord[];
+  language: string;
+};
+
+function ClientReviewsPreview({ items, language }: ClientReviewsPreviewProps) {
+  const visibleItems = items.slice(0, 6);
+
+  if (!visibleItems.length) {
+    return null;
+  }
+
+  return (
+    <div className={styles.clientReviewsGrid}>
+      {visibleItems.map((review) => (
+        <article key={review.id} className={styles.clientReviewCard}>
+          <div className={styles.clientReviewHeader}>
+            <h3 className={styles.clientReviewName}>
+              {getPublicReviewName(review)}
+            </h3>
+
+            <span
+              className={
+                review.rating === null
+                  ? styles.clientReviewRatingEmpty
+                  : styles.clientReviewRating
+              }
+            >
+              {getReviewRatingLabel(review.rating)}
+            </span>
+          </div>
+
+          <p className={styles.clientReviewText}>{review.text}</p>
+
+          <time
+            className={styles.clientReviewDate}
+            dateTime={review.publishedAt ?? review.createdAt}
+          >
+            {formatReviewDate(review.publishedAt ?? review.createdAt, language)}
+          </time>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+export function Reviews() {
+  const { t, language } = useLanguage();
+  const { content } = t;
+
+  const imageItems = useMemo(
+    () => content.reviews.items as ReviewItem[],
+    [content.reviews.items]
+  );
+
+  const [clientReviewItems, setClientReviewItems] = useState<
+    ClientReviewPublicRecord[]
+  >([]);
+  const [isClientReviewsLoading, setIsClientReviewsLoading] = useState(false);
+  const [clientReviewsError, setClientReviewsError] = useState("");
+
+  const reviewsSettings = siteSettings.sections.reviews;
+  const reviewsMode = reviewsSettings.mode;
+
+  const shouldShowImageReviews =
+    reviewsSettings.imageReviewsEnabled &&
+    (reviewsMode === "images" || reviewsMode === "mixed") &&
+    imageItems.length > 0;
+
+  const shouldShowClientReviews =
+    siteSettings.clientReviews.enabled &&
+    siteSettings.clientReviews.publicListEnabled &&
+    reviewsSettings.clientReviewsEnabled &&
+    (reviewsMode === "client_reviews" || reviewsMode === "mixed");
+
+  const shouldShowReviewFormLink =
+    siteSettings.clientReviews.enabled &&
+    siteSettings.clientReviews.publicFormEnabled &&
+    reviewsSettings.clientReviewFormLinkEnabled;
+
+  const hasClientReviews = clientReviewItems.length > 0;
+
+  useEffect(() => {
+    if (!shouldShowClientReviews) {
+      setClientReviewItems([]);
+      setIsClientReviewsLoading(false);
+      setClientReviewsError("");
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadClientReviews() {
+      try {
+        setIsClientReviewsLoading(true);
+        setClientReviewsError("");
+
+        const reviews = await getPublishedClientReviews();
+
+        if (isMounted) {
+          setClientReviewItems(reviews);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setClientReviewsError(
+            error instanceof Error
+              ? error.message
+              : "Не удалось загрузить отзывы."
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsClientReviewsLoading(false);
+        }
+      }
+    }
+
+    loadClientReviews();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [shouldShowClientReviews]);
+
+  if (!reviewsSettings.enabled) {
+    return null;
+  }
+
+  const shouldRenderSection =
+    shouldShowImageReviews ||
+    shouldShowClientReviews ||
+    shouldShowReviewFormLink;
+
+  if (!shouldRenderSection) {
+    return null;
+  }
+
+  const leaveReviewLabel =
+    language === "ru" ? "Оставить отзыв" : "Leave a review";
+  const loadingLabel =
+    language === "ru" ? "Загружаем отзывы..." : "Loading reviews...";
+  const emptyLabel =
+    language === "ru"
+      ? "Пока опубликованных отзывов нет. После модерации новые отзывы появятся здесь."
+      : "No published reviews yet. New reviews will appear here after moderation.";
+  const errorLabel =
+    language === "ru"
+      ? "Отзывы временно не удалось загрузить."
+      : "Reviews could not be loaded right now.";
+  const formLinkHint =
+    language === "ru"
+      ? "Уже были на консультации? Можно оставить отзыв — он попадёт специалисту на проверку."
+      : "Already had a session? You can leave a review for moderation.";
+
+  return (
+    <section id="reviews" className={`${styles.section} section`}>
+      <Container>
+        <SectionTitle
+          eyebrow={content.reviews.eyebrow}
+          title={content.reviews.title}
+          description={content.reviews.description}
+        />
+
+        <div className={styles.contentStack}>
+          {shouldShowClientReviews ? (
+            <div className={styles.clientReviewsBlock}>
+              {isClientReviewsLoading ? (
+                <div className={styles.clientReviewsState}>{loadingLabel}</div>
+              ) : null}
+
+              {!isClientReviewsLoading && clientReviewsError ? (
+                <div className={styles.clientReviewsState}>{errorLabel}</div>
+              ) : null}
+
+              {!isClientReviewsLoading &&
+              !clientReviewsError &&
+              !hasClientReviews ? (
+                <div className={styles.clientReviewsState}>{emptyLabel}</div>
+              ) : null}
+
+              {hasClientReviews ? (
+                <ClientReviewsPreview
+                  items={clientReviewItems}
+                  language={language}
+                />
+              ) : null}
+            </div>
+          ) : null}
+
+          {shouldShowImageReviews ? (
+            <ImageReviewsCarousel items={imageItems} language={language} />
+          ) : null}
+
+          {shouldShowReviewFormLink ? (
+            <div className={styles.reviewFormCta}>
+              <p>{formLinkHint}</p>
+
+              <Link to="/reviews" className={styles.reviewFormButton}>
+                {leaveReviewLabel}
+              </Link>
+            </div>
+          ) : null}
+        </div>
+      </Container>
     </section>
   );
 }
