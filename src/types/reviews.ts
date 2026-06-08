@@ -32,6 +32,7 @@ export type ClientReviewPublicRecord = {
 
 export type ClientReviewAdminRecord = ClientReviewPublicRecord & {
   status: ClientReviewStatus;
+  publicOrder: number | null;
   clientId: number;
   clientName: string;
   clientPhone: string;
@@ -54,6 +55,10 @@ export type ClientReviewModerationPayload = {
   id: number;
   status: ClientReviewStatus;
   adminNote?: string;
+};
+
+export type ClientReviewOrderPayload = {
+  orderedIds: number[];
 };
 
 export type ClientReviewCreateSuccessResponse = {
@@ -85,6 +90,17 @@ export type ClientReviewAdminListSuccessResponse = {
 export type ClientReviewAdminUpdateSuccessResponse = {
   success: true;
   item: ClientReviewAdminRecord;
+  message: string;
+};
+
+export type ClientReviewAdminOrderUpdateSuccessResponse = {
+  success: true;
+  items: ClientReviewAdminRecord[];
+  message: string;
+};
+
+export type ClientReviewAdminOrderResetSuccessResponse = {
+  success: true;
   message: string;
 };
 

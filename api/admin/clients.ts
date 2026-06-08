@@ -66,6 +66,10 @@ type ParsedReviewModerationPayload = {
   adminNote: string;
 };
 
+type ParsedReviewOrderPayload = {
+  orderedIds: number[];
+};
+
 type ParsedReviewPermissionPayload = UpdateClientReviewPermissionPayload;
 
 type RequestRow = {
@@ -115,6 +119,7 @@ type ClientServicePackageRow = {
 type ClientReviewRow = {
   id: number | string;
   client_id: number | string;
+  public_order?: number | string | null;
   client_name: string;
   client_phone: string;
   client_email: string;
@@ -240,6 +245,10 @@ function mapClientReview(row: ClientReviewRow): ClientReviewAdminRecord {
   return {
     id: Number(row.id),
     clientId: Number(row.client_id),
+    publicOrder:
+      row.public_order === null || row.public_order === undefined
+        ? null
+        : Number(row.public_order),
     clientName: row.client_name,
     clientPhone: row.client_phone,
     clientEmail: row.client_email,
@@ -497,6 +506,41 @@ function parseReviewModerationBody(
     id,
     status: status as ClientReviewStatus,
     adminNote,
+  };
+}
+
+function parseReviewOrderBody(body: any): ParsedReviewOrderPayload | null {
+  let rawBody = body;
+
+  if (typeof rawBody === "string") {
+    try {
+      rawBody = JSON.parse(rawBody);
+    } catch {
+      return null;
+    }
+  }
+
+  if (!Array.isArray(rawBody?.orderedIds)) {
+    return null;
+  }
+
+  const orderedIds = rawBody.orderedIds.map((value: unknown) => Number(value));
+
+  if (
+    orderedIds.length === 0 ||
+    orderedIds.some((id: number) => !Number.isInteger(id) || id <= 0)
+  ) {
+    return null;
+  }
+
+  const uniqueIds = new Set(orderedIds);
+
+  if (uniqueIds.size !== orderedIds.length) {
+    return null;
+  }
+
+  return {
+    orderedIds,
   };
 }
 
@@ -898,6 +942,50 @@ async function handleListPackages(req: any, res: any) {
   }
 }
 
+async function selectPublishedReviewsByIds(
+  orderedIds: number[]
+): Promise<ClientReviewRow[]> {
+  if (orderedIds.length === 0) {
+    return [];
+  }
+
+  const result = await pool.query<ClientReviewRow>(
+    `
+      SELECT
+        r.id,
+        r.client_id,
+        r.public_order,
+        c.name AS client_name,
+        c.phone AS client_phone,
+        c.email AS client_email,
+        r.eligibility_session_id,
+        r.public_name,
+        r.rating,
+        r.text,
+        r.status,
+        r.admin_note,
+        r.created_at,
+        r.updated_at,
+        r.published_at,
+        r.hidden_at,
+        r.deleted_at
+      FROM client_reviews r
+      INNER JOIN clients c ON c.id = r.client_id
+      WHERE r.status = 'published'
+        AND r.deleted_at IS NULL
+        AND r.id = ANY($1::int[])
+      ORDER BY
+        r.public_order ASC NULLS LAST,
+        r.published_at DESC NULLS LAST,
+        r.created_at DESC,
+        r.id DESC
+    `,
+    [orderedIds]
+  );
+
+  return result.rows;
+}
+
 async function handleListReviews(req: any, res: any) {
   const status = getSingleQueryValue(req.query?.status).trim();
   const limitRaw = getSingleQueryValue(req.query?.limit).trim();
@@ -959,6 +1047,7 @@ async function handleListReviews(req: any, res: any) {
         SELECT
           r.id,
           r.client_id,
+          r.public_order,
           c.name AS client_name,
           c.phone AS client_phone,
           c.email AS client_email,
@@ -984,7 +1073,10 @@ async function handleListReviews(req: any, res: any) {
             WHEN r.status = 'deleted' THEN 3
             ELSE 4
           END,
-          r.created_at DESC
+          CASE WHEN r.status = 'published' THEN r.public_order END ASC NULLS LAST,
+          CASE WHEN r.status = 'published' THEN r.published_at END DESC NULLS LAST,
+          r.created_at DESC,
+          r.id DESC
         ${paginationClause}
       `,
       values
@@ -1033,11 +1125,16 @@ async function handleModerateReview(req: any, res: any) {
             WHEN $2 = 'deleted' THEN NOW()
             WHEN $2 IN ('pending', 'published', 'hidden') THEN NULL
             ELSE deleted_at
+          END,
+          public_order = CASE
+            WHEN $2 = 'published' THEN public_order
+            ELSE NULL
           END
         WHERE id = $1
         RETURNING
           id,
           client_id,
+          public_order,
           (
             SELECT name
             FROM clients
@@ -1085,6 +1182,82 @@ async function handleModerateReview(req: any, res: any) {
   } catch (error) {
     console.error("Client review moderation error:", error);
     return res.status(500).json({ error: "Не удалось обновить отзыв" });
+  }
+}
+
+async function handleUpdateReviewOrder(req: any, res: any) {
+  const payload = parseReviewOrderBody(req.body);
+
+  if (!payload) {
+    return res.status(400).json({
+      error: "Некорректный порядок отзывов.",
+    });
+  }
+
+  try {
+    await pool.query("BEGIN");
+
+    await pool.query(
+      `
+        UPDATE client_reviews
+        SET public_order = NULL
+        WHERE status = 'published'
+      `
+    );
+
+    for (const [index, reviewId] of payload.orderedIds.entries()) {
+      await pool.query(
+        `
+          UPDATE client_reviews
+          SET public_order = $2
+          WHERE id = $1
+            AND status = 'published'
+            AND deleted_at IS NULL
+        `,
+        [reviewId, index + 1]
+      );
+    }
+
+    await pool.query("COMMIT");
+
+    const rows = await selectPublishedReviewsByIds(payload.orderedIds);
+
+    return res.status(200).json({
+      success: true,
+      items: rows.map(mapClientReview),
+      message: "Порядок отзывов обновлён.",
+    });
+  } catch (error) {
+    await pool.query("ROLLBACK").catch(() => undefined);
+
+    console.error("Client review order update error:", error);
+
+    return res.status(500).json({
+      error: "Не удалось обновить порядок отзывов",
+    });
+  }
+}
+
+async function handleResetReviewOrder(_req: any, res: any) {
+  try {
+    await pool.query(
+      `
+        UPDATE client_reviews
+        SET public_order = NULL
+        WHERE status = 'published'
+      `
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Порядок отзывов сброшен.",
+    });
+  } catch (error) {
+    console.error("Client review order reset error:", error);
+
+    return res.status(500).json({
+      error: "Не удалось сбросить порядок отзывов",
+    });
   }
 }
 
@@ -1738,6 +1911,14 @@ export default async function handler(req: any, res: any) {
 
   if (action === "update-review") {
     return handleModerateReview(req, res);
+  }
+
+  if (action === "update-review-order") {
+    return handleUpdateReviewOrder(req, res);
+  }
+
+  if (action === "reset-review-order") {
+    return handleResetReviewOrder(req, res);
   }
 
   if (action === "update-review-permission") {

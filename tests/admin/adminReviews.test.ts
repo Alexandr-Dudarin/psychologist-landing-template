@@ -25,6 +25,7 @@ type QueryLogEntry = {
 type ClientReviewRow = {
   id: number | string;
   client_id: number | string;
+  public_order?: number | string | null;
   client_name: string;
   client_phone: string;
   client_email: string;
@@ -126,6 +127,7 @@ describe("admin client reviews API", () => {
         {
           id: 42,
           clientId: 77,
+          publicOrder: null,
           clientName: "Ирина Петрова",
           clientPhone: "+79189990099",
           clientEmail: "irina@example.com",
@@ -143,6 +145,7 @@ describe("admin client reviews API", () => {
         {
           id: 43,
           clientId: 78,
+          publicOrder: null,
           clientName: "Ирина Петрова",
           clientPhone: "+79189990099",
           clientEmail: "irina@example.com",

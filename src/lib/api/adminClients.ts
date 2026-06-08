@@ -9,11 +9,14 @@ import type {
   UpdateClientReviewPermissionPayload,
 } from "../../types/client";
 import type {
+  ClientReviewAdminOrderResetSuccessResponse,
+  ClientReviewAdminOrderUpdateSuccessResponse,
   ClientReviewAdminRecord,
   ClientReviewAdminStatusFilter,
   ClientReviewAdminUpdateSuccessResponse,
   ClientReviewErrorResponse,
   ClientReviewModerationPayload,
+  ClientReviewOrderPayload,
 } from "../../types/reviews";
 
 type ListClientsResponse = {
@@ -448,4 +451,63 @@ export async function updateAdminClientReview(
   }
 
   throw new Error("Не удалось обновить отзыв");
+}
+
+export async function updateAdminClientReviewOrder(
+  payload: ClientReviewOrderPayload
+): Promise<ClientReviewAdminRecord[]> {
+  const response = await fetch("/api/admin/clients?action=update-review-order", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | ClientReviewAdminOrderUpdateSuccessResponse
+    | ClientReviewErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data
+        ? data.error
+        : "Не удалось обновить порядок отзывов"
+    );
+  }
+
+  if (data && "items" in data) {
+    return data.items;
+  }
+
+  throw new Error("Не удалось обновить порядок отзывов");
+}
+
+export async function resetAdminClientReviewOrder(): Promise<string> {
+  const response = await fetch("/api/admin/clients?action=reset-review-order", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | ClientReviewAdminOrderResetSuccessResponse
+    | ClientReviewErrorResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data && "error" in data
+        ? data.error
+        : "Не удалось сбросить порядок отзывов"
+    );
+  }
+
+  if (data && "message" in data) {
+    return data.message;
+  }
+
+  return "Порядок отзывов сброшен.";
 }
