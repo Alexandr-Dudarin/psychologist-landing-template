@@ -6,13 +6,15 @@ import { AdminFiltersRow } from "../../../components/admin/AdminFiltersRow";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import {
   getAdminClientReviewsPage,
+  resetAdminClientReviewOrder,
   updateAdminClientReview,
+  updateAdminClientReviewOrder,
 } from "../../../lib/api/adminClients";
 import type {
   ClientReviewAdminRecord,
   ClientReviewStatus,
 } from "../../../types/reviews";
-import { AdminReviewsTable } from "./AdminReviewsTable";
+import { AdminReviewsTable, type ReviewOrderAction } from "./AdminReviewsTable";
 import styles from "./AdminReviewsPage.module.css";
 
 const REVIEW_PAGE_SIZE = 10;
@@ -91,6 +93,33 @@ function removeReview(
   return items.filter((currentItem) => currentItem.id !== itemId);
 }
 
+function getManualPublishedOrderIds(
+  items: ClientReviewAdminRecord[]
+): number[] {
+  return items
+    .filter(
+      (item) => item.status === "published" && item.publicOrder !== null
+    )
+    .sort((firstItem, secondItem) => {
+      const firstOrder = firstItem.publicOrder ?? Number.MAX_SAFE_INTEGER;
+      const secondOrder = secondItem.publicOrder ?? Number.MAX_SAFE_INTEGER;
+
+      return firstOrder - secondOrder;
+    })
+    .map((item) => item.id);
+}
+
+function swapItems<T>(items: T[], fromIndex: number, toIndex: number): T[] {
+  const nextItems = [...items];
+  const fromItem = nextItems[fromIndex];
+  const toItem = nextItems[toIndex];
+
+  nextItems[fromIndex] = toItem;
+  nextItems[toIndex] = fromItem;
+
+  return nextItems;
+}
+
 export function AdminReviewsPage() {
   const previewLimit = useReviewPreviewLimit();
 
@@ -105,6 +134,7 @@ export function AdminReviewsPage() {
   const [isPendingLoading, setIsPendingLoading] = useState(true);
   const [isPublishedLoading, setIsPublishedLoading] = useState(false);
   const [isHiddenLoading, setIsHiddenLoading] = useState(false);
+  const [isReviewOrderUpdating, setIsReviewOrderUpdating] = useState(false);
 
   const [isPublishedOpen, setIsPublishedOpen] = useState(false);
   const [isHiddenOpen, setIsHiddenOpen] = useState(false);
@@ -349,6 +379,109 @@ export function AdminReviewsPage() {
     }
   };
 
+  const savePublishedOrder = async (
+    orderedIds: number[],
+    message: string
+  ) => {
+    setIsReviewOrderUpdating(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      if (orderedIds.length === 0) {
+        await resetAdminClientReviewOrder();
+      } else {
+        await updateAdminClientReviewOrder({ orderedIds });
+      }
+
+      await loadPublishedReviews("replace");
+      setSuccessMessage(message);
+    } catch (orderError) {
+      setError(
+        orderError instanceof Error
+          ? orderError.message
+          : "Не удалось обновить порядок отзывов"
+      );
+    } finally {
+      setIsReviewOrderUpdating(false);
+    }
+  };
+
+  const handlePublishedOrderAction = async (
+    item: ClientReviewAdminRecord,
+    action: ReviewOrderAction
+  ) => {
+    if (publishedHasMore) {
+      setError(
+        "Чтобы менять порядок показа, сначала загрузите все опубликованные отзывы."
+      );
+      setSuccessMessage("");
+      return;
+    }
+
+    const currentOrderIds = getManualPublishedOrderIds(publishedItems);
+    let nextOrderIds = currentOrderIds;
+
+    if (action === "pin") {
+      if (currentOrderIds.includes(item.id)) {
+        return;
+      }
+
+      nextOrderIds = [...currentOrderIds, item.id];
+    }
+
+    if (action === "unpin") {
+      nextOrderIds = currentOrderIds.filter((reviewId) => reviewId !== item.id);
+    }
+
+    if (action === "move-up" || action === "move-down") {
+      const currentIndex = currentOrderIds.indexOf(item.id);
+
+      if (currentIndex === -1) {
+        return;
+      }
+
+      const targetIndex =
+        action === "move-up" ? currentIndex - 1 : currentIndex + 1;
+
+      if (targetIndex < 0 || targetIndex >= currentOrderIds.length) {
+        return;
+      }
+
+      nextOrderIds = swapItems(currentOrderIds, currentIndex, targetIndex);
+    }
+
+    const message =
+      action === "pin"
+        ? "Отзыв добавлен в первые отзывы."
+        : action === "unpin"
+          ? "Отзыв убран из первых отзывов."
+          : "Порядок опубликованных отзывов обновлён.";
+
+    await savePublishedOrder(nextOrderIds, message);
+  };
+
+  const handleResetPublishedOrder = async () => {
+    setIsReviewOrderUpdating(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      const message = await resetAdminClientReviewOrder();
+
+      await loadPublishedReviews("replace");
+      setSuccessMessage(message);
+    } catch (resetError) {
+      setError(
+        resetError instanceof Error
+          ? resetError.message
+          : "Не удалось сбросить порядок отзывов"
+      );
+    } finally {
+      setIsReviewOrderUpdating(false);
+    }
+  };
+
   return (
     <main>
       <h1>Отзывы клиентов</h1>
@@ -368,7 +501,12 @@ export function AdminReviewsPage() {
           type="button"
           variant="secondary"
           onClick={() => void handleRefresh()}
-          disabled={isPendingLoading || isPublishedLoading || isHiddenLoading}
+          disabled={
+            isPendingLoading ||
+            isPublishedLoading ||
+            isHiddenLoading ||
+            isReviewOrderUpdating
+          }
         >
           {isPendingLoading ? "Обновление..." : "Обновить"}
         </AdminButton>
@@ -424,14 +562,33 @@ export function AdminReviewsPage() {
             </p>
           </div>
 
-          <AdminButton
-            type="button"
-            variant="secondary"
-            onClick={handleTogglePublished}
-            disabled={isPublishedLoading}
-          >
-            {isPublishedOpen ? "Скрыть опубликованные" : "Показать опубликованные"}
-          </AdminButton>
+          <div className={styles.reviewsGroupActions}>
+            {isPublishedOpen ? (
+              <AdminButton
+                type="button"
+                variant="secondary"
+                onClick={() => void handleResetPublishedOrder()}
+                disabled={
+                  isPublishedLoading ||
+                  isReviewOrderUpdating ||
+                  publishedItems.length === 0
+                }
+              >
+                {isReviewOrderUpdating ? "Сохранение..." : "Сбросить порядок"}
+              </AdminButton>
+            ) : null}
+
+            <AdminButton
+              type="button"
+              variant="secondary"
+              onClick={handleTogglePublished}
+              disabled={isPublishedLoading || isReviewOrderUpdating}
+            >
+              {isPublishedOpen
+                ? "Скрыть опубликованные"
+                : "Показать опубликованные"}
+            </AdminButton>
+          </div>
         </div>
 
         {isPublishedOpen ? (
@@ -443,14 +600,26 @@ export function AdminReviewsPage() {
                 Опубликованных отзывов пока нет.
               </p>
             ) : (
-              <AdminReviewsTable
-                adminNoteDrafts={adminNoteDrafts}
-                items={publishedItems}
-                previewLimit={previewLimit}
-                updatingId={updatingId}
-                onAdminNoteChange={handleAdminNoteChange}
-                onUpdateReview={handleUpdateReview}
-              />
+              <>
+                {publishedHasMore ? (
+                  <p className={styles.orderHint}>
+                    Чтобы менять порядок показа, сначала загрузите все
+                    опубликованные отзывы.
+                  </p>
+                ) : null}
+
+                <AdminReviewsTable
+                  adminNoteDrafts={adminNoteDrafts}
+                  items={publishedItems}
+                  previewLimit={previewLimit}
+                  updatingId={updatingId}
+                  showOrderControls={!publishedHasMore}
+                  isOrderUpdating={isReviewOrderUpdating}
+                  onAdminNoteChange={handleAdminNoteChange}
+                  onOrderAction={handlePublishedOrderAction}
+                  onUpdateReview={handleUpdateReview}
+                />
+              </>
             )}
 
             {publishedHasMore ? (
@@ -459,7 +628,7 @@ export function AdminReviewsPage() {
                   type="button"
                   variant="secondary"
                   onClick={() => void loadPublishedReviews("append")}
-                  disabled={isPublishedLoading}
+                  disabled={isPublishedLoading || isReviewOrderUpdating}
                 >
                   {isPublishedLoading
                     ? "Загрузка..."
@@ -484,7 +653,7 @@ export function AdminReviewsPage() {
             type="button"
             variant="secondary"
             onClick={handleToggleHidden}
-            disabled={isHiddenLoading}
+            disabled={isHiddenLoading || isReviewOrderUpdating}
           >
             {isHiddenOpen ? "Скрыть скрытые" : "Показать скрытые"}
           </AdminButton>
@@ -513,7 +682,7 @@ export function AdminReviewsPage() {
                   type="button"
                   variant="secondary"
                   onClick={() => void loadHiddenReviews("append")}
-                  disabled={isHiddenLoading}
+                  disabled={isHiddenLoading || isReviewOrderUpdating}
                 >
                   {isHiddenLoading
                     ? "Загрузка..."

@@ -63,6 +63,14 @@
   margin-bottom: 16px;
 }
 
+.reviewsGroupActions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .reviewsGroupTitle {
   margin: 0;
   color: var(--admin-text);
@@ -81,6 +89,17 @@
   display: flex;
   justify-content: center;
   margin-top: 14px;
+}
+
+.orderHint {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--admin-accent) 18%, var(--admin-border));
+  border-radius: var(--admin-radius-md);
+  background: color-mix(in srgb, var(--admin-accent-soft) 38%, var(--admin-surface));
+  color: var(--admin-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
 }
 
 .reviewsTable {
@@ -133,7 +152,7 @@
 }
 
 .actionCell {
-  width: 132px;
+  width: 146px;
   text-align: right;
 }
 
@@ -309,7 +328,7 @@
 .actionsStack {
   display: grid;
   width: 100%;
-  max-width: 122px;
+  max-width: 136px;
   min-width: 0;
   gap: 8px;
   justify-items: stretch;
@@ -318,6 +337,59 @@
 
 .actionsStack > * {
   width: 100%;
+}
+
+.orderControls {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.orderBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--admin-accent) 16%, var(--admin-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--admin-accent-soft) 34%, var(--admin-surface));
+  color: var(--admin-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.orderButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in srgb, var(--admin-accent) 18%, var(--admin-border));
+  border-radius: var(--admin-radius-sm);
+  background: color-mix(in srgb, var(--admin-surface-muted) 72%, white);
+  color: var(--admin-accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.orderButton:hover:not(:disabled) {
+  border-color: var(--admin-accent);
+  background: var(--admin-accent-soft);
+}
+
+.orderButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
 }
 
 .reviewsTable th,
@@ -556,7 +628,7 @@
   }
 
   .actionCell {
-    width: 124px;
+    width: 136px;
   }
 
   .reviewsTable th,
@@ -566,7 +638,7 @@
   }
 
   .actionsStack {
-    max-width: 112px;
+    max-width: 126px;
   }
 }
 
@@ -588,11 +660,11 @@
   }
 
   .actionCell {
-    width: 122px;
+    width: 132px;
   }
 
   .actionsStack {
-    max-width: 110px;
+    max-width: 122px;
   }
 }
 
@@ -619,7 +691,7 @@
   }
 
   .actionCell {
-    width: 122px;
+    width: 128px;
   }
 
   .reviewsTable th,
@@ -628,7 +700,7 @@
   }
 
   .actionsStack {
-    max-width: 108px;
+    max-width: 118px;
   }
 }
 
@@ -642,6 +714,14 @@
 
   .summaryBar > button,
   .reviewsGroupHeader > button {
+    width: 100%;
+  }
+
+  .reviewsGroupActions {
+    width: 100%;
+  }
+
+  .reviewsGroupActions > button {
     width: 100%;
   }
 
@@ -677,7 +757,7 @@
   }
 
   .actionCell {
-    width: 112px;
+    width: 116px;
   }
 
   .reviewsTable th,
@@ -699,6 +779,24 @@
   .actionsStack {
     max-width: 100px;
     gap: 7px;
+  }
+
+  .orderControls {
+    gap: 5px;
+  }
+
+  .orderBadge {
+    min-height: 26px;
+    padding-right: 6px;
+    padding-left: 6px;
+    font-size: 0.72rem;
+  }
+
+  .orderButton {
+    min-height: 30px;
+    padding-right: 6px;
+    padding-left: 6px;
+    font-size: 0.74rem;
   }
 
   .actionsStack > *,
@@ -747,7 +845,7 @@
   }
 
   .actionCell {
-    width: 102px;
+    width: 108px;
   }
 
   .reviewsTable th,

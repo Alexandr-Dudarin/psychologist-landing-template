@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
@@ -15,12 +15,20 @@ import {
 } from "./AdminReviewsTable.helpers";
 import { ReviewDetailsModal } from "./ReviewDetailsModal";
 
+export type ReviewOrderAction = "pin" | "unpin" | "move-up" | "move-down";
+
 type AdminReviewsTableProps = {
   adminNoteDrafts: Record<number, string>;
   items: ClientReviewAdminRecord[];
   previewLimit: number;
   updatingId: number | null;
+  showOrderControls?: boolean;
+  isOrderUpdating?: boolean;
   onAdminNoteChange: (id: number, value: string) => void;
+  onOrderAction?: (
+    item: ClientReviewAdminRecord,
+    action: ReviewOrderAction
+  ) => void | Promise<void>;
   onUpdateReview: (
     item: ClientReviewAdminRecord,
     status: ClientReviewStatus
@@ -75,16 +83,35 @@ function getRowClassName(status: ClientReviewStatus): string | undefined {
   return classNames.length > 0 ? classNames.join(" ") : undefined;
 }
 
+function getManualOrderIds(items: ClientReviewAdminRecord[]): number[] {
+  return items
+    .filter(
+      (item) => item.status === "published" && item.publicOrder !== null
+    )
+    .sort((firstItem, secondItem) => {
+      const firstOrder = firstItem.publicOrder ?? Number.MAX_SAFE_INTEGER;
+      const secondOrder = secondItem.publicOrder ?? Number.MAX_SAFE_INTEGER;
+
+      return firstOrder - secondOrder;
+    })
+    .map((item) => item.id);
+}
+
 export function AdminReviewsTable({
   adminNoteDrafts,
   items,
   previewLimit,
   updatingId,
+  showOrderControls = false,
+  isOrderUpdating = false,
   onAdminNoteChange,
+  onOrderAction,
   onUpdateReview,
 }: AdminReviewsTableProps) {
   const [selectedReview, setSelectedReview] =
     useState<ClientReviewAdminRecord | null>(null);
+
+  const manualOrderIds = useMemo(() => getManualOrderIds(items), [items]);
 
   return (
     <>
@@ -104,6 +131,16 @@ export function AdminReviewsTable({
         <tbody>
           {items.map((item) => {
             const isUpdating = updatingId === item.id;
+            const manualOrderIndex = manualOrderIds.indexOf(item.id);
+            const hasManualOrder = manualOrderIndex !== -1;
+            const canMoveUp = manualOrderIndex > 0;
+            const canMoveDown =
+              manualOrderIndex >= 0 &&
+              manualOrderIndex < manualOrderIds.length - 1;
+            const shouldShowOrderControls =
+              showOrderControls &&
+              item.status === "published" &&
+              Boolean(onOrderAction);
 
             return (
               <tr key={item.id} className={getRowClassName(item.status)}>
@@ -180,6 +217,66 @@ export function AdminReviewsTable({
 
                 <td className={styles.actionCell}>
                   <div className={styles.actionsStack}>
+                    {shouldShowOrderControls ? (
+                      <div className={styles.orderControls}>
+                        <span className={styles.orderBadge}>
+                          {hasManualOrder
+                            ? `№ ${item.publicOrder}`
+                            : "По умолчанию"}
+                        </span>
+
+                        {hasManualOrder ? (
+                          <>
+                            <button
+                              className={styles.orderButton}
+                              type="button"
+                              disabled={
+                                !canMoveUp || isOrderUpdating || isUpdating
+                              }
+                              onClick={() =>
+                                void onOrderAction?.(item, "move-up")
+                              }
+                            >
+                              ↑ Выше
+                            </button>
+
+                            <button
+                              className={styles.orderButton}
+                              type="button"
+                              disabled={
+                                !canMoveDown || isOrderUpdating || isUpdating
+                              }
+                              onClick={() =>
+                                void onOrderAction?.(item, "move-down")
+                              }
+                            >
+                              ↓ Ниже
+                            </button>
+
+                            <button
+                              className={styles.orderButton}
+                              type="button"
+                              disabled={isOrderUpdating || isUpdating}
+                              onClick={() =>
+                                void onOrderAction?.(item, "unpin")
+                              }
+                            >
+                              Убрать
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            className={styles.orderButton}
+                            type="button"
+                            disabled={isOrderUpdating || isUpdating}
+                            onClick={() => void onOrderAction?.(item, "pin")}
+                          >
+                            В первые
+                          </button>
+                        )}
+                      </div>
+                    ) : null}
+
                     <button
                       className={styles.detailsButton}
                       type="button"
