@@ -1,395 +1,429 @@
 .summaryBar {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 0 0 18px;
-  padding: 16px 18px;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-lg);
-  background: var(--admin-surface);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 18px;
+    padding: 16px 18px;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-lg);
+    background: var(--admin-surface);
 }
 
 .summaryText {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
+    display: grid;
+    gap: 6px;
+    min-width: 0;
 }
 
 .summaryTitle {
-  margin: 0;
-  color: var(--admin-text);
-  font-size: 1.08rem;
-  line-height: 1.25;
+    margin: 0;
+    color: var(--admin-text);
+    font-size: 1.08rem;
+    line-height: 1.25;
 }
 
 .summaryDescription {
-  max-width: 860px;
-  margin: 0;
-  color: var(--admin-text-muted);
-  font-size: 0.95rem;
-  line-height: 1.45;
+    max-width: 860px;
+    margin: 0;
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.45;
 }
 
 .pendingCounter,
 .visibleCounter {
-  display: inline-flex;
-  align-items: center;
-  min-height: 46px;
-  padding: 9px 12px;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-md);
-  background: var(--admin-surface);
-  color: var(--admin-text-muted);
-  font-size: 0.95rem;
-  line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    min-height: 46px;
+    padding: 9px 12px;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-surface);
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.2;
 }
 
 .pendingCounter strong,
 .visibleCounter strong {
-  color: var(--admin-text);
+    color: var(--admin-text);
 }
 
 .mutedText {
-  margin: 0;
-  color: var(--admin-text-muted);
+    margin: 0;
+    color: var(--admin-text-muted);
 }
 
 .reviewsGroupHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
 }
 
 .reviewsGroupActions {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
 .reviewsGroupTitle {
-  margin: 0;
-  color: var(--admin-text);
-  font-size: 1.08rem;
-  line-height: 1.25;
+    margin: 0;
+    color: var(--admin-text);
+    font-size: 1.08rem;
+    line-height: 1.25;
 }
 
 .reviewsGroupDescription {
-  margin: 6px 0 0;
-  color: var(--admin-text-muted);
-  font-size: 0.94rem;
-  line-height: 1.4;
+    margin: 6px 0 0;
+    color: var(--admin-text-muted);
+    font-size: 0.94rem;
+    line-height: 1.4;
 }
 
 .loadMoreRow {
-  display: flex;
-  justify-content: center;
-  margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    margin-top: 14px;
 }
 
 .orderHint {
-  margin: 0 0 12px;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--admin-accent) 18%, var(--admin-border));
-  border-radius: var(--admin-radius-md);
-  background: color-mix(in srgb, var(--admin-accent-soft) 38%, var(--admin-surface));
-  color: var(--admin-text-muted);
-  font-size: 0.92rem;
-  line-height: 1.4;
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--admin-accent) 18%, var(--admin-border));
+    border-radius: var(--admin-radius-md);
+    background: color-mix(in srgb, var(--admin-accent-soft) 38%, var(--admin-surface));
+    color: var(--admin-text-muted);
+    font-size: 0.92rem;
+    line-height: 1.4;
 }
 
 .reviewsTable {
-  width: 100%;
-  min-width: 0;
-  table-layout: fixed;
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
 }
 
 .reviewsTable th,
 .reviewsTable td {
-  padding: 14px 12px;
-  text-align: center;
+    padding: 14px 12px;
+    text-align: center;
 }
 
 .reviewsTable th {
-  vertical-align: middle;
+    vertical-align: middle;
 }
 
 .reviewsTable td {
-  vertical-align: top;
+    vertical-align: top;
 }
 
 .reviewsTable th.reviewCell,
 .reviewsTable td.reviewCell {
-  text-align: left;
+    text-align: left;
 }
 
 .reviewCell {
-  width: 28%;
+    width: 28%;
 }
 
 .ratingCell {
-  width: 88px;
+    width: 88px;
 }
 
 .clientCell {
-  width: 17%;
+    width: 17%;
 }
 
 .statusCell {
-  width: 118px;
+    width: 118px;
 }
 
 .dateCell {
-  width: 140px;
+    width: 140px;
 }
 
 .noteCell {
-  width: 180px;
+    width: 180px;
 }
 
 .actionCell {
-  width: 146px;
-  text-align: right;
+    width: 146px;
+    text-align: right;
 }
 
 .reviewsTable th.actionCell,
 .reviewsTable td.actionCell {
-  text-align: right;
+    text-align: right;
 }
 
 .reviewPreviewButton {
-  display: grid;
-  width: 100%;
-  min-width: 0;
-  gap: 8px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
 }
 
 .reviewPreviewButton:focus-visible {
-  outline: 3px solid rgba(47, 93, 120, 0.18);
-  outline-offset: 4px;
-  border-radius: var(--admin-radius-sm);
+    outline: 3px solid rgba(47, 93, 120, 0.18);
+    outline-offset: 4px;
+    border-radius: var(--admin-radius-sm);
 }
 
 .reviewPreviewButton:hover .reviewAuthor {
-  color: var(--admin-accent);
+    color: var(--admin-accent);
 }
 
 .reviewAuthor {
-  display: block;
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-  color: var(--admin-text);
-  font-weight: 700;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: color 0.18s ease;
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--admin-text);
+    font-weight: 700;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.18s ease;
 }
 
 .reviewText {
-  display: block;
-  max-width: 100%;
-  margin: 0;
-  overflow: hidden;
-  color: var(--admin-text);
-  line-height: 1.45;
-  overflow-wrap: anywhere;
+    display: block;
+    max-width: 100%;
+    margin: 0;
+    overflow: hidden;
+    color: var(--admin-text);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
 }
 
 .clientPreview,
 .dateStack {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
+    display: grid;
+    gap: 8px;
+    min-width: 0;
 }
 
 .ratingBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 28px;
-  min-width: 62px;
-  padding: 4px 10px;
-  border: 1px solid color-mix(in srgb, var(--admin-accent) 20%, white);
-  border-radius: 999px;
-  background: var(--admin-accent-soft);
-  color: var(--admin-accent);
-  font-size: 0.88rem;
-  font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    min-width: 62px;
+    padding: 4px 10px;
+    border: 1px solid color-mix(in srgb, var(--admin-accent) 20%, white);
+    border-radius: 999px;
+    background: var(--admin-accent-soft);
+    color: var(--admin-accent);
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
 }
 
 .ratingBadgeEmpty {
-  border-color: color-mix(in srgb, var(--admin-text-muted) 22%, white);
-  background: color-mix(in srgb, var(--admin-surface-muted) 82%, white);
-  color: var(--admin-text-muted);
-  font-weight: 500;
+    border-color: color-mix(in srgb, var(--admin-text-muted) 22%, white);
+    background: color-mix(in srgb, var(--admin-surface-muted) 82%, white);
+    color: var(--admin-text-muted);
+    font-weight: 500;
 }
 
 .clientPreview strong {
-  min-width: 0;
-  color: var(--admin-text);
-  line-height: 1.35;
-  overflow-wrap: anywhere;
+    min-width: 0;
+    color: var(--admin-text);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
 }
 
 .clientPreview span,
 .dateStack span {
-  min-width: 0;
-  color: var(--admin-text-muted);
-  font-size: 0.9rem;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
+    min-width: 0;
+    color: var(--admin-text-muted);
+    font-size: 0.9rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
 }
 
 .eligibilityText {
-  color: var(--admin-accent) !important;
+    color: var(--admin-accent) !important;
 }
 
 .statusBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 28px;
-  padding: 4px 10px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  font-size: 0.86rem;
-  line-height: 1.2;
-  white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 4px 10px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.86rem;
+    line-height: 1.2;
+    white-space: nowrap;
 }
 
 .statusBadgePending {
-  border-color: color-mix(in srgb, var(--admin-highlight-border) 28%, white);
-  background: var(--admin-highlight);
-  color: color-mix(in srgb, var(--admin-highlight-border) 82%, var(--admin-text));
+    border-color: color-mix(in srgb, var(--admin-highlight-border) 28%, white);
+    background: var(--admin-highlight);
+    color: color-mix(in srgb, var(--admin-highlight-border) 82%, var(--admin-text));
 }
 
 .statusBadgePublished {
-  border-color: color-mix(in srgb, var(--admin-success) 24%, white);
-  background: var(--admin-success-soft);
-  color: var(--admin-success);
+    border-color: color-mix(in srgb, var(--admin-success) 24%, white);
+    background: var(--admin-success-soft);
+    color: var(--admin-success);
 }
 
 .statusBadgeHidden {
-  border-color: color-mix(in srgb, var(--admin-accent) 24%, white);
-  background: var(--admin-accent-soft);
-  color: var(--admin-accent);
+    border-color: color-mix(in srgb, var(--admin-accent) 24%, white);
+    background: var(--admin-accent-soft);
+    color: var(--admin-accent);
 }
 
 .statusBadgeDeleted {
-  border-color: color-mix(in srgb, var(--admin-danger) 24%, white);
-  background: var(--admin-danger-soft);
-  color: var(--admin-danger);
+    border-color: color-mix(in srgb, var(--admin-danger) 24%, white);
+    background: var(--admin-danger-soft);
+    color: var(--admin-danger);
 }
 
 .noteTextarea {
-  composes: scrollbarBase from "../../../components/admin/adminUi.module.css";
-  max-width: 100%;
-  width: 100%;
-  min-height: 88px;
-  padding: 10px 12px;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-md);
-  background: var(--admin-surface);
-  color: var(--admin-text);
-  font: inherit;
-  line-height: 1.35;
-  resize: vertical;
-  transition:
-    border-color 0.18s ease,
-    box-shadow 0.18s ease;
+    composes: scrollbarBase from "../../../components/admin/adminUi.module.css";
+    max-width: 100%;
+    width: 100%;
+    min-height: 88px;
+    padding: 10px 12px;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-surface);
+    color: var(--admin-text);
+    font: inherit;
+    line-height: 1.35;
+    resize: vertical;
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
 }
 
 .noteTextarea:focus-visible {
-  outline: none;
-  border-color: var(--admin-accent);
-  box-shadow: 0 0 0 3px rgba(47, 93, 120, 0.14);
+    outline: none;
+    border-color: var(--admin-accent);
+    box-shadow: 0 0 0 3px rgba(47, 93, 120, 0.14);
 }
 
 .noteTextarea:disabled {
-  background: var(--admin-surface-muted);
-  color: var(--admin-text-muted);
+    background: var(--admin-surface-muted);
+    color: var(--admin-text-muted);
 }
 
 .actionsStack {
-  display: grid;
-  width: 100%;
-  max-width: 136px;
-  min-width: 0;
-  gap: 8px;
-  justify-items: stretch;
-  margin-left: auto;
+    display: grid;
+    width: 100%;
+    max-width: 136px;
+    min-width: 0;
+    gap: 8px;
+    justify-items: stretch;
+    margin-left: auto;
 }
 
-.actionsStack > * {
-  width: 100%;
+.actionsStack>* {
+    width: 100%;
 }
 
 .orderControls {
-  display: grid;
-  gap: 6px;
-  width: 100%;
+    display: grid;
+    gap: 7px;
+    width: 100%;
 }
 
 .orderBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 28px;
-  padding: 4px 8px;
-  border: 1px solid color-mix(in srgb, var(--admin-accent) 16%, var(--admin-border));
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--admin-accent-soft) 34%, var(--admin-surface));
-  color: var(--admin-text-muted);
-  font-size: 0.78rem;
-  font-weight: 700;
-  line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    max-width: 100%;
+    padding: 5px 10px;
+    border: 1px solid color-mix(in srgb, var(--admin-accent) 16%, var(--admin-border));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--admin-accent-soft) 34%, var(--admin-surface));
+    color: var(--admin-text-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    white-space: nowrap;
 }
 
 .orderButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 32px;
-  padding: 6px 9px;
-  border: 1px solid color-mix(in srgb, var(--admin-accent) 18%, var(--admin-border));
-  border-radius: var(--admin-radius-sm);
-  background: color-mix(in srgb, var(--admin-surface-muted) 72%, white);
-  color: var(--admin-accent);
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
-  line-height: 1.2;
-  transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    color 0.18s ease,
-    opacity 0.18s ease;
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 6px 10px;
+    border: 1px solid color-mix(in srgb, var(--admin-accent) 18%, var(--admin-border));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--admin-surface-muted) 68%, white);
+    color: var(--admin-accent);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.2;
+    box-shadow: 0 6px 14px rgba(47, 93, 120, 0.05);
+    transition:
+        border-color 0.18s ease,
+        background-color 0.18s ease,
+        color 0.18s ease,
+        box-shadow 0.18s ease,
+        opacity 0.18s ease,
+        transform 0.18s ease;
+}
+
+.orderButtonPrimary {
+    border-color: color-mix(in srgb, var(--admin-accent) 28%, var(--admin-border));
+    background: color-mix(in srgb, var(--admin-accent-soft) 72%, white);
+    color: var(--admin-accent);
+}
+
+.orderButtonDanger {
+    border-color: color-mix(in srgb, var(--admin-danger) 18%, var(--admin-border));
+    background: color-mix(in srgb, var(--admin-danger-soft) 58%, white);
+    color: var(--admin-danger);
 }
 
 .orderButton:hover:not(:disabled) {
-  border-color: var(--admin-accent);
-  background: var(--admin-accent-soft);
+    transform: translateY(-1px);
+    border-color: var(--admin-accent);
+    background: var(--admin-accent-soft);
+    box-shadow: 0 10px 22px rgba(47, 93, 120, 0.09);
+}
+
+.orderButtonDanger:hover:not(:disabled) {
+    border-color: var(--admin-danger);
+    background: var(--admin-danger-soft);
+    box-shadow: 0 10px 22px rgba(180, 72, 67, 0.08);
+}
+
+.orderButton:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(47, 93, 120, 0.14);
 }
 
 .orderButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.48;
+    cursor: not-allowed;
+    opacity: 0.46;
+    transform: none;
+    box-shadow: none;
 }
 
 .reviewsTable th,
@@ -401,57 +435,57 @@
 .dateCell,
 .noteCell,
 .actionCell {
-  min-width: 0;
+    min-width: 0;
 }
 
-.actionsStack > *,
+.actionsStack>*,
 .detailsButton {
-  min-width: 0;
+    min-width: 0;
 }
 
 .detailsButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 36px;
-  padding: 7px 12px;
-  border: 1px solid color-mix(in srgb, var(--admin-accent) 18%, var(--admin-border));
-  border-radius: var(--admin-radius-md);
-  background: color-mix(in srgb, var(--admin-accent-soft) 42%, var(--admin-surface));
-  color: var(--admin-accent);
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.9rem;
-  font-weight: 500;
-  line-height: 1.2;
-  box-shadow: 0 8px 18px rgba(47, 93, 120, 0.06);
-  transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    color 0.18s ease,
-    box-shadow 0.18s ease,
-    transform 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 7px 12px;
+    border: 1px solid color-mix(in srgb, var(--admin-accent) 18%, var(--admin-border));
+    border-radius: var(--admin-radius-md);
+    background: color-mix(in srgb, var(--admin-accent-soft) 42%, var(--admin-surface));
+    color: var(--admin-accent);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.2;
+    box-shadow: 0 8px 18px rgba(47, 93, 120, 0.06);
+    transition:
+        border-color 0.18s ease,
+        background-color 0.18s ease,
+        color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.18s ease;
 }
 
 .detailsButton:hover {
-  transform: translateY(-1px);
-  border-color: var(--admin-accent);
-  background: var(--admin-accent-soft);
-  color: var(--admin-accent);
-  box-shadow: 0 12px 24px rgba(47, 93, 120, 0.1);
+    transform: translateY(-1px);
+    border-color: var(--admin-accent);
+    background: var(--admin-accent-soft);
+    color: var(--admin-accent);
+    box-shadow: 0 12px 24px rgba(47, 93, 120, 0.1);
 }
 
 .detailsButton:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(47, 93, 120, 0.14);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(47, 93, 120, 0.14);
 }
 
 .pendingRow td {
-  background: color-mix(in srgb, var(--admin-highlight) 62%, white);
+    background: color-mix(in srgb, var(--admin-highlight) 62%, white);
 }
 
 .hiddenRow td {
-  background: color-mix(in srgb, var(--admin-surface-muted) 76%, white);
+    background: color-mix(in srgb, var(--admin-surface-muted) 76%, white);
 }
 
 .hiddenRow .reviewAuthor,
@@ -459,409 +493,410 @@
 .hiddenRow .clientPreview strong,
 .hiddenRow .clientPreview span,
 .hiddenRow .dateStack span {
-  color: var(--admin-text-muted);
+    color: var(--admin-text-muted);
 }
 
 .deletedRow td {
-  background: color-mix(in srgb, var(--admin-danger-soft) 34%, white);
+    background: color-mix(in srgb, var(--admin-danger-soft) 34%, white);
 }
 
 .detailOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  background: rgba(20, 28, 34, 0.58);
-  backdrop-filter: blur(6px);
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(20, 28, 34, 0.58);
+    backdrop-filter: blur(6px);
 }
 
 .detailDialog {
-  composes: scrollbarBase from "../../../components/admin/adminUi.module.css";
-  width: min(720px, 100%);
-  max-height: min(760px, calc(100vh - 40px));
-  overflow: auto;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-lg);
-  background: var(--admin-surface);
-  box-shadow: 0 24px 80px rgba(20, 28, 34, 0.24);
+    composes: scrollbarBase from "../../../components/admin/adminUi.module.css";
+    width: min(720px, 100%);
+    max-height: min(760px, calc(100vh - 40px));
+    overflow: auto;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-lg);
+    background: var(--admin-surface);
+    box-shadow: 0 24px 80px rgba(20, 28, 34, 0.24);
 }
 
 .detailHeader {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--admin-border);
-  background: var(--admin-surface);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--admin-border);
+    background: var(--admin-surface);
 }
 
 .detailKicker {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--admin-text-muted);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  line-height: 1.2;
-  text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+    color: var(--admin-text-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
 }
 
 .detailTitle {
-  margin: 0;
-  color: var(--admin-text);
-  font-size: 1.35rem;
-  line-height: 1.2;
+    margin: 0;
+    color: var(--admin-text);
+    font-size: 1.35rem;
+    line-height: 1.2;
 }
 
 .detailCloseButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
-  border: 1px solid color-mix(in srgb, var(--admin-danger) 32%, white);
-  border-radius: 999px;
-  background: var(--admin-danger-soft);
-  color: var(--admin-danger);
-  cursor: pointer;
-  font: inherit;
-  font-size: 1.35rem;
-  line-height: 1;
-  transition:
-    background-color 0.18s ease,
-    border-color 0.18s ease,
-    transform 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    border: 1px solid color-mix(in srgb, var(--admin-danger) 32%, white);
+    border-radius: 999px;
+    background: var(--admin-danger-soft);
+    color: var(--admin-danger);
+    cursor: pointer;
+    font: inherit;
+    font-size: 1.35rem;
+    line-height: 1;
+    transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        transform 0.18s ease;
 }
 
 .detailCloseButton:hover {
-  transform: translateY(-1px);
-  border-color: var(--admin-danger);
+    transform: translateY(-1px);
+    border-color: var(--admin-danger);
 }
 
 .detailCloseButton:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(180, 72, 67, 0.16);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(180, 72, 67, 0.16);
 }
 
 .detailBody {
-  display: grid;
-  gap: 16px;
-  padding: 18px 20px 22px;
+    display: grid;
+    gap: 16px;
+    padding: 18px 20px 22px;
 }
 
 .detailMetaGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
 }
 
 .detailMetaItem {
-  display: grid;
-  gap: 5px;
-  min-width: 0;
-  padding: 12px;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-md);
-  background: var(--admin-surface-muted);
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-surface-muted);
 }
 
 .detailMetaItem span {
-  color: var(--admin-text-muted);
-  font-size: 0.84rem;
-  line-height: 1.25;
+    color: var(--admin-text-muted);
+    font-size: 0.84rem;
+    line-height: 1.25;
 }
 
 .detailMetaItem strong {
-  min-width: 0;
-  color: var(--admin-text);
-  font-size: 0.95rem;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
+    min-width: 0;
+    color: var(--admin-text);
+    font-size: 0.95rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
 }
 
 .detailBlock {
-  display: grid;
-  gap: 8px;
-  padding: 14px;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-md);
-  background: var(--admin-surface);
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-md);
+    background: var(--admin-surface);
 }
 
 .detailBlock h4 {
-  margin: 0;
-  color: var(--admin-text);
-  font-size: 1rem;
-  line-height: 1.3;
+    margin: 0;
+    color: var(--admin-text);
+    font-size: 1rem;
+    line-height: 1.3;
 }
 
 .detailText {
-  margin: 0;
-  color: var(--admin-text);
-  line-height: 1.55;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+    margin: 0;
+    color: var(--admin-text);
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 @media (max-width: 1323px) {
-  .noteCell {
-    display: none;
-  }
+    .noteCell {
+        display: none;
+    }
 
-  .reviewCell {
-    width: 34%;
-  }
+    .reviewCell {
+        width: 34%;
+    }
 
-  .clientCell {
-    width: 20%;
-  }
+    .clientCell {
+        width: 20%;
+    }
 
-  .dateCell {
-    width: 132px;
-  }
+    .dateCell {
+        width: 132px;
+    }
 
-  .actionCell {
-    width: 136px;
-  }
+    .actionCell {
+        width: 136px;
+    }
 
-  .reviewsTable th,
-  .reviewsTable td {
-    padding-right: 10px;
-    padding-left: 10px;
-  }
+    .reviewsTable th,
+    .reviewsTable td {
+        padding-right: 10px;
+        padding-left: 10px;
+    }
 
-  .actionsStack {
-    max-width: 126px;
-  }
+    .actionsStack {
+        max-width: 126px;
+    }
 }
 
 @media (max-width: 1100px) {
-  .dateCell {
-    display: none;
-  }
+    .dateCell {
+        display: none;
+    }
 
-  .reviewCell {
-    width: 40%;
-  }
+    .reviewCell {
+        width: 40%;
+    }
 
-  .clientCell {
-    width: 24%;
-  }
+    .clientCell {
+        width: 24%;
+    }
 
-  .statusCell {
-    width: 112px;
-  }
+    .statusCell {
+        width: 112px;
+    }
 
-  .actionCell {
-    width: 132px;
-  }
+    .actionCell {
+        width: 132px;
+    }
 
-  .actionsStack {
-    max-width: 122px;
-  }
+    .actionsStack {
+        max-width: 122px;
+    }
 }
 
 @media (max-width: 839px) {
-  .clientCell,
-  .dateCell,
-  .noteCell,
-  .statusCell {
-    display: none;
-  }
 
-  .reviewsTable {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-  }
+    .clientCell,
+    .dateCell,
+    .noteCell,
+    .statusCell {
+        display: none;
+    }
 
-  .reviewCell {
-    width: auto;
-  }
+    .reviewsTable {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
 
-  .ratingCell {
-    width: 86px;
-  }
+    .reviewCell {
+        width: auto;
+    }
 
-  .actionCell {
-    width: 128px;
-  }
+    .ratingCell {
+        width: 86px;
+    }
 
-  .reviewsTable th,
-  .reviewsTable td {
-    padding: 12px 8px;
-  }
+    .actionCell {
+        width: 128px;
+    }
 
-  .actionsStack {
-    max-width: 118px;
-  }
+    .reviewsTable th,
+    .reviewsTable td {
+        padding: 12px 8px;
+    }
+
+    .actionsStack {
+        max-width: 118px;
+    }
 }
 
 @media (max-width: 760px) {
-  .summaryBar,
-  .reviewsGroupHeader {
-    align-items: stretch;
-    flex-direction: column;
-    padding: 14px;
-  }
 
-  .summaryBar > button,
-  .reviewsGroupHeader > button {
-    width: 100%;
-  }
+    .summaryBar,
+    .reviewsGroupHeader {
+        align-items: stretch;
+        flex-direction: column;
+        padding: 14px;
+    }
 
-  .reviewsGroupActions {
-    width: 100%;
-  }
+    .summaryBar>button,
+    .reviewsGroupHeader>button {
+        width: 100%;
+    }
 
-  .reviewsGroupActions > button {
-    width: 100%;
-  }
+    .reviewsGroupActions {
+        width: 100%;
+    }
 
-  .pendingCounter,
-  .visibleCounter {
-    width: 100%;
-    min-width: 0;
-    max-width: none;
-  }
+    .reviewsGroupActions>button {
+        width: 100%;
+    }
+
+    .pendingCounter,
+    .visibleCounter {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+    }
 }
 
 @media (max-width: 600px) {
-  .reviewCell,
-  .clientCell,
-  .dateCell,
-  .noteCell {
-    display: none;
-  }
 
-  .statusCell {
-    display: table-cell;
-    width: 106px;
-  }
+    .reviewCell,
+    .clientCell,
+    .dateCell,
+    .noteCell {
+        display: none;
+    }
 
-  .ratingCell {
-    width: 74px;
-    text-align: left;
-  }
+    .statusCell {
+        display: table-cell;
+        width: 106px;
+    }
 
-  .reviewsTable th.ratingCell,
-  .reviewsTable td.ratingCell {
-    text-align: left;
-  }
+    .ratingCell {
+        width: 74px;
+        text-align: left;
+    }
 
-  .actionCell {
-    width: 116px;
-  }
+    .reviewsTable th.ratingCell,
+    .reviewsTable td.ratingCell {
+        text-align: left;
+    }
 
-  .reviewsTable th,
-  .reviewsTable td {
-    padding: 10px 6px;
-  }
+    .actionCell {
+        width: 116px;
+    }
 
-  .ratingBadge {
-    min-width: 52px;
-    padding: 4px 7px;
-    font-size: 0.84rem;
-  }
+    .reviewsTable th,
+    .reviewsTable td {
+        padding: 10px 6px;
+    }
 
-  .statusBadge {
-    padding: 4px 7px;
-    font-size: 0.8rem;
-  }
+    .ratingBadge {
+        min-width: 52px;
+        padding: 4px 7px;
+        font-size: 0.84rem;
+    }
 
-  .actionsStack {
-    max-width: 100px;
-    gap: 7px;
-  }
+    .statusBadge {
+        padding: 4px 7px;
+        font-size: 0.8rem;
+    }
 
-  .orderControls {
-    gap: 5px;
-  }
+    .actionsStack {
+        max-width: 100px;
+        gap: 7px;
+    }
 
-  .orderBadge {
-    min-height: 26px;
-    padding-right: 6px;
-    padding-left: 6px;
-    font-size: 0.72rem;
-  }
+    .orderControls {
+        gap: 5px;
+    }
 
-  .orderButton {
-    min-height: 30px;
-    padding-right: 6px;
-    padding-left: 6px;
-    font-size: 0.74rem;
-  }
+    .orderBadge {
+        min-height: 24px;
+        padding: 4px 7px;
+        font-size: 0.68rem;
+    }
 
-  .actionsStack > *,
-  .detailsButton {
-    min-height: 32px;
-    padding-right: 7px;
-    padding-left: 7px;
-    font-size: 0.8rem;
-  }
+    .orderButton {
+        min-height: 29px;
+        padding: 5px 7px;
+        font-size: 0.72rem;
+    }
 
-  .detailsButton {
-    display: inline-flex;
-  }
+    .actionsStack>*,
+    .detailsButton {
+        min-height: 32px;
+        padding-right: 7px;
+        padding-left: 7px;
+        font-size: 0.8rem;
+    }
 
-  .detailOverlay {
-    align-items: end;
-    padding: 12px;
-  }
+    .detailsButton {
+        display: inline-flex;
+    }
 
-  .detailDialog {
-    width: 100%;
-    max-height: calc(100vh - 24px);
-    border-radius: var(--admin-radius-lg) var(--admin-radius-lg) 0 0;
-  }
+    .detailOverlay {
+        align-items: end;
+        padding: 12px;
+    }
 
-  .detailHeader {
-    padding: 16px;
-  }
+    .detailDialog {
+        width: 100%;
+        max-height: calc(100vh - 24px);
+        border-radius: var(--admin-radius-lg) var(--admin-radius-lg) 0 0;
+    }
 
-  .detailBody {
-    padding: 16px;
-  }
+    .detailHeader {
+        padding: 16px;
+    }
 
-  .detailMetaGrid {
-    grid-template-columns: 1fr;
-  }
+    .detailBody {
+        padding: 16px;
+    }
+
+    .detailMetaGrid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 420px) {
-  .ratingCell {
-    width: 68px;
-  }
+    .ratingCell {
+        width: 68px;
+    }
 
-  .statusCell {
-    width: 92px;
-  }
+    .statusCell {
+        width: 92px;
+    }
 
-  .actionCell {
-    width: 108px;
-  }
+    .actionCell {
+        width: 108px;
+    }
 
-  .reviewsTable th,
-  .reviewsTable td {
-    padding: 9px 5px;
-  }
+    .reviewsTable th,
+    .reviewsTable td {
+        padding: 9px 5px;
+    }
 
-  .actionsStack {
-    max-width: 94px;
-  }
+    .actionsStack {
+        max-width: 94px;
+    }
 
-  .actionsStack > *,
-  .detailsButton {
-    min-height: 32px;
-    padding-right: 6px;
-    padding-left: 6px;
-    font-size: 0.78rem;
-  }
+    .actionsStack>*,
+    .detailsButton {
+        min-height: 32px;
+        padding-right: 6px;
+        padding-left: 6px;
+        font-size: 0.78rem;
+    }
 }
