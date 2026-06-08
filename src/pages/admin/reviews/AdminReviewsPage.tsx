@@ -140,6 +140,7 @@ export function AdminReviewsPage() {
     const [isHiddenOpen, setIsHiddenOpen] = useState(false);
 
     const [publishedHasMore, setPublishedHasMore] = useState(false);
+    const [publishedDefaultItemsCount, setPublishedDefaultItemsCount] = useState(0);
     const [hiddenHasMore, setHiddenHasMore] = useState(false);
 
     const [adminNoteDrafts, setAdminNoteDrafts] = useState<
@@ -210,16 +211,52 @@ export function AdminReviewsPage() {
             setSuccessMessage("");
 
             try {
-                const offset = mode === "append" ? publishedItems.length : 0;
+                if (mode === "replace") {
+                    const [pinnedResult, defaultResult] = await Promise.all([
+                        getAdminClientReviewsPage({
+                            status: "published",
+                            order: "pinned",
+                        }),
+                        getAdminClientReviewsPage({
+                            status: "published",
+                            order: "default",
+                            limit: REVIEW_PAGE_SIZE,
+                            offset: 0,
+                        }),
+                    ]);
+
+                    const pinnedIds = new Set(pinnedResult.items.map((item) => item.id));
+                    const defaultItems = defaultResult.items.filter(
+                        (item) => !pinnedIds.has(item.id)
+                    );
+                    const nextItems = [...pinnedResult.items, ...defaultItems];
+
+                    setPublishedItems(nextItems);
+                    setPublishedDefaultItemsCount(defaultItems.length);
+                    setPublishedHasMore(defaultResult.hasMore);
+                    mergeAdminNoteDrafts(nextItems);
+
+                    return;
+                }
 
                 const result = await getAdminClientReviewsPage({
                     status: "published",
+                    order: "default",
                     limit: REVIEW_PAGE_SIZE,
-                    offset,
+                    offset: publishedDefaultItemsCount,
                 });
 
-                setPublishedItems((currentItems) =>
-                    mode === "append" ? [...currentItems, ...result.items] : result.items
+                setPublishedItems((currentItems) => {
+                    const existingIds = new Set(currentItems.map((item) => item.id));
+                    const newItems = result.items.filter(
+                        (item) => !existingIds.has(item.id)
+                    );
+
+                    return [...currentItems, ...newItems];
+                });
+
+                setPublishedDefaultItemsCount(
+                    (currentCount) => currentCount + result.items.length
                 );
                 setPublishedHasMore(result.hasMore);
                 mergeAdminNoteDrafts(result.items);
@@ -233,7 +270,7 @@ export function AdminReviewsPage() {
                 setIsPublishedLoading(false);
             }
         },
-        [mergeAdminNoteDrafts, publishedItems.length]
+        [mergeAdminNoteDrafts, publishedDefaultItemsCount]
     );
 
     const loadHiddenReviews = useCallback(
@@ -411,13 +448,6 @@ export function AdminReviewsPage() {
         item: ClientReviewAdminRecord,
         action: ReviewOrderAction
     ) => {
-        if (publishedHasMore) {
-            setError(
-                "Чтобы менять порядок показа, сначала загрузите все опубликованные отзывы."
-            );
-            setSuccessMessage("");
-            return;
-        }
 
         const currentOrderIds = getManualPublishedOrderIds(publishedItems);
         let nextOrderIds = currentOrderIds;
@@ -462,6 +492,14 @@ export function AdminReviewsPage() {
     };
 
     const handleResetPublishedOrder = async () => {
+        const isConfirmed = window.confirm(
+            "Точно сбросить порядок отображения отзывов? Все закреплённые отзывы вернутся в обычный порядок. Восстанавливать ручной порядок потом придётся заново."
+        );
+
+        if (!isConfirmed) {
+            return;
+        }
+
         setIsReviewOrderUpdating(true);
         setError("");
         setSuccessMessage("");
@@ -567,7 +605,7 @@ export function AdminReviewsPage() {
                         {isPublishedOpen ? (
                             <AdminButton
                                 type="button"
-                                variant="secondary"
+                                variant="danger"
                                 onClick={() => void handleResetPublishedOrder()}
                                 disabled={
                                     isPublishedLoading ||
@@ -602,19 +640,13 @@ export function AdminReviewsPage() {
                             </p>
                         ) : (
                             <>
-                                {publishedHasMore ? (
-                                    <p className={styles.orderHint}>
-                                        Чтобы закреплять отзывы и менять их порядок, сначала загрузите все
-                                        опубликованные отзывы.
-                                    </p>
-                                ) : null}
 
                                 <AdminReviewsTable
                                     adminNoteDrafts={adminNoteDrafts}
                                     items={publishedItems}
                                     previewLimit={previewLimit}
                                     updatingId={updatingId}
-                                    showOrderControls={!publishedHasMore}
+                                    showOrderControls
                                     isOrderUpdating={isReviewOrderUpdating}
                                     onAdminNoteChange={handleAdminNoteChange}
                                     onOrderAction={handlePublishedOrderAction}

@@ -26,10 +26,17 @@ import {
 } from "../../src/lib/preferredContact.js";
 import type { PreferredContactMethod } from "../../src/types/preferredContact.js";
 import type {
+  ClientReviewAdminOrderFilter,
   ClientReviewAdminRecord,
   ClientReviewStatus,
 } from "../../src/types/reviews.js";
 import { clientReviewStatuses } from "../../src/types/reviews.js";
+
+const clientReviewAdminOrderFilters = [
+  "all",
+  "pinned",
+  "default",
+] as const;
 
 const PACKAGE_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const PACKAGE_CODE_LENGTH = 10;
@@ -988,19 +995,56 @@ async function selectPublishedReviewsByIds(
 
 async function handleListReviews(req: any, res: any) {
   const status = getSingleQueryValue(req.query?.status).trim();
+  const orderRaw = getSingleQueryValue(req.query?.order).trim();
   const limitRaw = getSingleQueryValue(req.query?.limit).trim();
   const offsetRaw = getSingleQueryValue(req.query?.offset).trim();
 
   const conditions: string[] = [];
   const values: Array<string | number> = [];
 
+  let normalizedStatus: ClientReviewStatus | null = null;
+
   if (status && status !== "all") {
     if (!clientReviewStatuses.includes(status as ClientReviewStatus)) {
       return res.status(400).json({ error: "Invalid review status filter" });
     }
 
-    values.push(status);
+    normalizedStatus = status as ClientReviewStatus;
+    values.push(normalizedStatus);
     conditions.push(`r.status = $${values.length}`);
+  }
+
+  const orderFilter: ClientReviewAdminOrderFilter = orderRaw
+    ? (orderRaw as ClientReviewAdminOrderFilter)
+    : "all";
+
+  if (
+    orderRaw &&
+    !clientReviewAdminOrderFilters.includes(
+      orderRaw as ClientReviewAdminOrderFilter
+    )
+  ) {
+    return res.status(400).json({ error: "Invalid review order filter" });
+  }
+
+  if (orderFilter !== "all") {
+    if (normalizedStatus && normalizedStatus !== "published") {
+      return res.status(400).json({
+        error: "Review order filter is available only for published reviews",
+      });
+    }
+
+    if (!normalizedStatus) {
+      normalizedStatus = "published";
+      values.push(normalizedStatus);
+      conditions.push(`r.status = $${values.length}`);
+    }
+
+    conditions.push(
+      orderFilter === "pinned"
+        ? "r.public_order IS NOT NULL"
+        : "r.public_order IS NULL"
+    );
   }
 
   let limit: number | null = null;
@@ -1082,8 +1126,7 @@ async function handleListReviews(req: any, res: any) {
       values
     );
 
-    const rows =
-      limit === null ? result.rows : result.rows.slice(0, limit);
+    const rows = limit === null ? result.rows : result.rows.slice(0, limit);
 
     return res.status(200).json({
       items: rows.map(mapClientReview),

@@ -21,6 +21,8 @@ export type ClientReviewStatus = (typeof clientReviewStatuses)[number];
 
 export type ClientReviewAdminStatusFilter = ClientReviewStatus | "all";
 
+export type ClientReviewAdminOrderFilter = "all" | "pinned" | "default";
+
 export type ClientReviewPublicRecord = {
   id: number;
   publicName: string;

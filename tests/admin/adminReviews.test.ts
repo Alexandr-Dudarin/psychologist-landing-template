@@ -183,6 +183,7 @@ describe("admin client reviews API", () => {
         query: {
           action: "list-reviews",
           status: "published",
+          order: "default",
           limit: "2",
           offset: "4",
         },
@@ -194,6 +195,7 @@ describe("admin client reviews API", () => {
     expect(res.jsonBody).toMatchObject({ hasMore: true });
     expect((res.jsonBody as { items: unknown[] }).items).toHaveLength(2);
     expect(queryLog[0]?.sql).toContain("r.status = $1");
+    expect(queryLog[0]?.sql).toContain("r.public_order IS NULL");
     expect(queryLog[0]?.sql).toContain("LIMIT $2 OFFSET $3");
     expect(queryLog[0]?.values).toEqual(["published", 3, 4]);
   });

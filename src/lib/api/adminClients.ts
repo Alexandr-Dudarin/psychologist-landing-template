@@ -12,6 +12,7 @@ import type {
   ClientReviewAdminOrderResetSuccessResponse,
   ClientReviewAdminOrderUpdateSuccessResponse,
   ClientReviewAdminRecord,
+  ClientReviewAdminOrderFilter,
   ClientReviewAdminStatusFilter,
   ClientReviewAdminUpdateSuccessResponse,
   ClientReviewErrorResponse,
@@ -104,6 +105,7 @@ export type AdminClientsFilters = {
 
 export type AdminClientReviewsPageOptions = {
   status?: ClientReviewAdminStatusFilter;
+  order?: ClientReviewAdminOrderFilter;
   limit?: number;
   offset?: number;
 };
@@ -381,6 +383,10 @@ export async function getAdminClientReviewsPage(
     action: "list-reviews",
     status: options.status ?? "all",
   });
+
+    if (options.order) {
+    params.set("order", options.order);
+  }
 
   if (typeof options.limit === "number") {
     params.set("limit", String(options.limit));
