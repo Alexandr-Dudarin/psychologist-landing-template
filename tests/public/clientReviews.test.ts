@@ -408,6 +408,7 @@ describe("public client reviews", () => {
             createdAt: "2026-06-01T10:00:00.000Z",
           },
         ],
+        hasMore: false,
       },
     });
   });

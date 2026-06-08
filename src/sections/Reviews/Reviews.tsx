@@ -1,16 +1,18 @@
 import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { siteSettings } from "../../data/siteSettings";
-import { getPublishedClientReviews } from "../../lib/api/clientReviews";
+import { getPublishedClientReviewsPage } from "../../lib/api/clientReviews";
 import type { ClientReviewPublicRecord, ReviewItem } from "../../types/reviews";
 import styles from "./Reviews.module.css";
 
 const CLIENT_REVIEW_TEXT_LIMIT_DESKTOP = 450;
 const CLIENT_REVIEW_TEXT_LIMIT_MOBILE = 200;
+const CLIENT_REVIEWS_INITIAL_LIMIT = 6;
+const CLIENT_REVIEWS_LOAD_MORE_LIMIT = 3;
 
 function getVisibleCount(width: number, height: number) {
   if (width >= 980 && height <= 720) {
@@ -61,11 +63,14 @@ function getReviewRatingLabel(rating: number | null) {
 }
 
 function formatReviewDate(value: string, language: string) {
-  return new Date(value).toLocaleDateString(language === "ru" ? "ru-RU" : "en-US", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  return new Date(value).toLocaleDateString(
+    language === "ru" ? "ru-RU" : "en-US",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }
+  );
 }
 
 function getPreviewText(text: string, limit: number) {
@@ -343,8 +348,9 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
             <button
               key={index}
               type="button"
-              className={`${styles.dot} ${index === activeIndex ? styles.dotActive : ""
-                }`}
+              className={`${styles.dot} ${
+                index === activeIndex ? styles.dotActive : ""
+              }`}
               onClick={() => setActiveIndex(index)}
               aria-label={`${dotLabelPrefix} ${index + 1}`}
             />
@@ -413,12 +419,23 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
 type ClientReviewsPreviewProps = {
   items: ClientReviewPublicRecord[];
   language: string;
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  onLoadMore: () => void;
 };
 
-function ClientReviewsPreview({ items, language }: ClientReviewsPreviewProps) {
+function ClientReviewsPreview({
+  items,
+  language,
+  hasMore,
+  isLoadingMore,
+  onLoadMore,
+}: ClientReviewsPreviewProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(() =>
-    typeof window === "undefined" ? 1 : getClientReviewsVisibleCount(window.innerWidth)
+    typeof window === "undefined"
+      ? 1
+      : getClientReviewsVisibleCount(window.innerWidth)
   );
   const [textLimit, setTextLimit] = useState(() =>
     typeof window === "undefined"
@@ -458,6 +475,28 @@ function ClientReviewsPreview({ items, language }: ClientReviewsPreviewProps) {
       setActiveIndex(maxIndex);
     }
   }, [activeIndex, maxIndex]);
+
+  useEffect(() => {
+    if (!hasNavigation || !hasMore || isLoadingMore) {
+      return;
+    }
+
+    const loadMoreStartIndex = Math.max(
+      0,
+      items.length - CLIENT_REVIEWS_LOAD_MORE_LIMIT
+    );
+
+    if (activeIndex >= loadMoreStartIndex) {
+      onLoadMore();
+    }
+  }, [
+    activeIndex,
+    hasMore,
+    hasNavigation,
+    isLoadingMore,
+    items.length,
+    onLoadMore,
+  ]);
 
   const goPrev = () => {
     setActiveIndex((prev) => Math.max(0, prev - 1));
@@ -526,8 +565,9 @@ function ClientReviewsPreview({ items, language }: ClientReviewsPreviewProps) {
   return (
     <>
       <div
-        className={`${styles.clientReviewsCarouselShell} ${isSingleReview ? styles.clientReviewsCarouselShellSingle : ""
-          }`}
+        className={`${styles.clientReviewsCarouselShell} ${
+          isSingleReview ? styles.clientReviewsCarouselShellSingle : ""
+        }`}
       >
         {hasNavigation && activeIndex > 0 ? (
           <button
@@ -632,8 +672,9 @@ function ClientReviewsPreview({ items, language }: ClientReviewsPreviewProps) {
             <button
               key={index}
               type="button"
-              className={`${styles.clientReviewsDot} ${index === activeIndex ? styles.clientReviewsDotActive : ""
-                }`}
+              className={`${styles.clientReviewsDot} ${
+                index === activeIndex ? styles.clientReviewsDotActive : ""
+              }`}
               onClick={() => setActiveIndex(index)}
               aria-label={`${dotLabelPrefix} ${index + 1}`}
             />
@@ -657,6 +698,9 @@ export function Reviews() {
     ClientReviewPublicRecord[]
   >([]);
   const [isClientReviewsLoading, setIsClientReviewsLoading] = useState(false);
+  const [isClientReviewsLoadingMore, setIsClientReviewsLoadingMore] =
+    useState(false);
+  const [clientReviewsHasMore, setClientReviewsHasMore] = useState(false);
   const [clientReviewsError, setClientReviewsError] = useState("");
 
   const reviewsSettings = siteSettings.sections.reviews;
@@ -680,10 +724,54 @@ export function Reviews() {
 
   const hasClientReviews = clientReviewItems.length > 0;
 
+  const loadMoreClientReviews = useCallback(async () => {
+    if (
+      isClientReviewsLoading ||
+      isClientReviewsLoadingMore ||
+      !clientReviewsHasMore
+    ) {
+      return;
+    }
+
+    try {
+      setIsClientReviewsLoadingMore(true);
+      setClientReviewsError("");
+
+      const result = await getPublishedClientReviewsPage({
+        limit: CLIENT_REVIEWS_LOAD_MORE_LIMIT,
+        offset: clientReviewItems.length,
+      });
+
+      setClientReviewItems((currentItems) => {
+        const existingIds = new Set(currentItems.map((item) => item.id));
+        const newItems = result.items.filter((item) => !existingIds.has(item.id));
+
+        return [...currentItems, ...newItems];
+      });
+
+      setClientReviewsHasMore(result.hasMore);
+    } catch (error) {
+      setClientReviewsError(
+        error instanceof Error
+          ? error.message
+          : "Не удалось загрузить отзывы."
+      );
+    } finally {
+      setIsClientReviewsLoadingMore(false);
+    }
+  }, [
+    clientReviewItems.length,
+    clientReviewsHasMore,
+    isClientReviewsLoading,
+    isClientReviewsLoadingMore,
+  ]);
+
   useEffect(() => {
     if (!shouldShowClientReviews) {
       setClientReviewItems([]);
       setIsClientReviewsLoading(false);
+      setIsClientReviewsLoadingMore(false);
+      setClientReviewsHasMore(false);
       setClientReviewsError("");
       return;
     }
@@ -693,15 +781,22 @@ export function Reviews() {
     async function loadClientReviews() {
       try {
         setIsClientReviewsLoading(true);
+        setIsClientReviewsLoadingMore(false);
+        setClientReviewsHasMore(false);
         setClientReviewsError("");
 
-        const reviews = await getPublishedClientReviews();
+        const result = await getPublishedClientReviewsPage({
+          limit: CLIENT_REVIEWS_INITIAL_LIMIT,
+          offset: 0,
+        });
 
         if (isMounted) {
-          setClientReviewItems(reviews);
+          setClientReviewItems(result.items);
+          setClientReviewsHasMore(result.hasMore);
         }
       } catch (error) {
         if (isMounted) {
+          setClientReviewsHasMore(false);
           setClientReviewsError(
             error instanceof Error
               ? error.message
@@ -773,8 +868,8 @@ export function Reviews() {
               ) : null}
 
               {!isClientReviewsLoading &&
-                !clientReviewsError &&
-                !hasClientReviews ? (
+              !clientReviewsError &&
+              !hasClientReviews ? (
                 <div className={styles.clientReviewsState}>{emptyLabel}</div>
               ) : null}
 
@@ -782,6 +877,9 @@ export function Reviews() {
                 <ClientReviewsPreview
                   items={clientReviewItems}
                   language={language}
+                  hasMore={clientReviewsHasMore}
+                  isLoadingMore={isClientReviewsLoadingMore}
+                  onLoadMore={loadMoreClientReviews}
                 />
               ) : null}
             </div>

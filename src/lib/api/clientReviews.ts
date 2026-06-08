@@ -2,14 +2,28 @@ import type {
   ClientReviewCreatePayload,
   ClientReviewCreateSuccessResponse,
   ClientReviewErrorResponse,
+  ClientReviewListPageOptions,
+  ClientReviewListPageResult,
   ClientReviewListSuccessResponse,
   ClientReviewPublicRecord,
 } from "../../types/reviews";
 
-export async function getPublishedClientReviews(): Promise<
-  ClientReviewPublicRecord[]
-> {
-  const response = await fetch("/api/requests/create?action=list-reviews");
+export async function getPublishedClientReviewsPage(
+  options: ClientReviewListPageOptions = {}
+): Promise<ClientReviewListPageResult> {
+  const params = new URLSearchParams({
+    action: "list-reviews",
+  });
+
+  if (typeof options.limit === "number") {
+    params.set("limit", String(options.limit));
+  }
+
+  if (typeof options.offset === "number") {
+    params.set("offset", String(options.offset));
+  }
+
+  const response = await fetch(`/api/requests/create?${params.toString()}`);
 
   const data = (await response.json().catch(() => null)) as
     | ClientReviewListSuccessResponse
@@ -23,10 +37,24 @@ export async function getPublishedClientReviews(): Promise<
   }
 
   if (data && "items" in data) {
-    return data.items;
+    return {
+      items: data.items,
+      hasMore: data.hasMore === true,
+    };
   }
 
-  return [];
+  return {
+    items: [],
+    hasMore: false,
+  };
+}
+
+export async function getPublishedClientReviews(
+  options: ClientReviewListPageOptions = {}
+): Promise<ClientReviewPublicRecord[]> {
+  const result = await getPublishedClientReviewsPage(options);
+
+  return result.items;
 }
 
 export async function createClientReview(

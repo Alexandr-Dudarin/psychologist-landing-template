@@ -64,6 +64,17 @@ export type ClientReviewCreateSuccessResponse = {
 
 export type ClientReviewListSuccessResponse = {
   items: ClientReviewPublicRecord[];
+  hasMore?: boolean;
+};
+
+export type ClientReviewListPageOptions = {
+  limit?: number;
+  offset?: number;
+};
+
+export type ClientReviewListPageResult = {
+  items: ClientReviewPublicRecord[];
+  hasMore: boolean;
 };
 
 export type ClientReviewAdminListSuccessResponse = {

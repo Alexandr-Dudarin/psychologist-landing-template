@@ -33,6 +33,14 @@ type EligibleClientRow = {
     eligibility_session_id: number | string | null;
 };
 
+type ListPublishedClientReviewsOptions = {
+    limit?: number;
+    offset?: number;
+};
+
+const PUBLIC_REVIEWS_DEFAULT_LIMIT = 6;
+const PUBLIC_REVIEWS_MAX_LIMIT = 12;
+
 const PUBLIC_NAME_MAX_LENGTH = 35;
 const PUBLIC_NAME_DIGITS_PATTERN = /\d/;
 const PUBLIC_NAME_LENGTH_ERROR = `Длина псевдонима — не более ${PUBLIC_NAME_MAX_LENGTH} символов.`;
@@ -78,6 +86,26 @@ function getContactType(value: string): "email" | "phone" | null {
     }
 
     return "phone";
+}
+
+function normalizePublicReviewsLimit(value: unknown): number {
+    const numericValue = typeof value === "number" ? value : Number(value);
+
+    if (!Number.isInteger(numericValue) || numericValue <= 0) {
+        return PUBLIC_REVIEWS_DEFAULT_LIMIT;
+    }
+
+    return Math.min(numericValue, PUBLIC_REVIEWS_MAX_LIMIT);
+}
+
+function normalizePublicReviewsOffset(value: unknown): number {
+    const numericValue = typeof value === "number" ? value : Number(value);
+
+    if (!Number.isInteger(numericValue) || numericValue < 0) {
+        return 0;
+    }
+
+    return numericValue;
 }
 
 function parseCreateReviewPayload(
@@ -217,7 +245,9 @@ async function findEligibleClientByContact(
     return result.rows[0] ?? null;
 }
 
-export async function listPublishedClientReviews(): Promise<ProcessClientReviewResult> {
+export async function listPublishedClientReviews(
+    options: ListPublishedClientReviewsOptions = {}
+): Promise<ProcessClientReviewResult> {
     if (
         !siteSettings.clientReviews.enabled ||
         !siteSettings.clientReviews.publicListEnabled
@@ -226,9 +256,13 @@ export async function listPublishedClientReviews(): Promise<ProcessClientReviewR
             status: 200,
             body: {
                 items: [],
+                hasMore: false,
             },
         };
     }
+
+    const limit = normalizePublicReviewsLimit(options.limit);
+    const offset = normalizePublicReviewsOffset(options.offset);
 
     try {
         const result = await pool.query<ClientReviewRow>(
@@ -243,15 +277,25 @@ export async function listPublishedClientReviews(): Promise<ProcessClientReviewR
         FROM client_reviews
         WHERE status = 'published'
           AND deleted_at IS NULL
-        ORDER BY published_at DESC NULLS LAST, created_at DESC, id DESC
-        LIMIT 50
-      `
+        ORDER BY
+          public_order ASC NULLS LAST,
+          published_at DESC NULLS LAST,
+          created_at DESC,
+          id DESC
+        LIMIT $1
+        OFFSET $2
+      `,
+            [limit + 1, offset]
         );
+
+        const rows = result.rows.slice(0, limit);
+        const hasMore = result.rows.length > limit;
 
         return {
             status: 200,
             body: {
-                items: result.rows.map(mapPublicReview),
+                items: rows.map(mapPublicReview),
+                hasMore,
             },
         };
     } catch (error) {
