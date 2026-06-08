@@ -71,6 +71,10 @@
     gap: 10px;
 }
 
+.reviewsGroupActions>button {
+    min-width: 190px;
+}
+
 .reviewsGroupTitle {
     margin: 0;
     color: var(--admin-text);
@@ -644,6 +648,62 @@
     overflow-wrap: anywhere;
 }
 
+.confirmOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(20, 28, 34, 0.56);
+    backdrop-filter: blur(6px);
+}
+
+.confirmDialog {
+    width: min(460px, 100%);
+    padding: 20px;
+    border: 1px solid color-mix(in srgb, var(--admin-danger) 18%, var(--admin-border));
+    border-radius: var(--admin-radius-lg);
+    background: var(--admin-surface);
+    box-shadow: 0 24px 80px rgba(20, 28, 34, 0.24);
+}
+
+.confirmHeader {
+    display: grid;
+    gap: 5px;
+    margin-bottom: 12px;
+}
+
+.confirmKicker {
+    color: var(--admin-danger);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.confirmTitle {
+    margin: 0;
+    color: var(--admin-text);
+    font-size: 1.28rem;
+    line-height: 1.2;
+}
+
+.confirmText {
+    margin: 0;
+    color: var(--admin-text-muted);
+    font-size: 0.96rem;
+    line-height: 1.5;
+}
+
+.confirmActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+
 @media (max-width: 1323px) {
     .noteCell {
         display: none;
@@ -739,6 +799,21 @@
     }
 }
 
+@media (min-width: 761px) and (max-width: 1024px) {
+    .reviewsGroupActions {
+        display: grid;
+        width: min(260px, 100%);
+        justify-content: stretch;
+        justify-items: stretch;
+        margin-left: auto;
+    }
+
+    .reviewsGroupActions>button {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
 @media (max-width: 760px) {
 
     .summaryBar,
@@ -755,6 +830,7 @@
 
     .reviewsGroupActions {
         width: 100%;
+        margin-left: 0;
     }
 
     .reviewsGroupActions>button {
@@ -867,6 +943,25 @@
 
     .detailMetaGrid {
         grid-template-columns: 1fr;
+    }
+
+    .confirmOverlay {
+        align-items: end;
+        padding: 12px;
+    }
+
+    .confirmDialog {
+        width: 100%;
+        padding: 18px;
+        border-radius: var(--admin-radius-lg) var(--admin-radius-lg) 0 0;
+    }
+
+    .confirmActions {
+        display: grid;
+    }
+
+    .confirmActions>button {
+        width: 100%;
     }
 }
 

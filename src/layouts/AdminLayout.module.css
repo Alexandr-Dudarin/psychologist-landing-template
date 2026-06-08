@@ -254,17 +254,20 @@
 
     .mobileMenuInner {
         display: grid;
+        grid-template-rows: minmax(0, 1fr) auto;
         min-height: 0;
         max-height: inherit;
-        overflow-y: auto;
-        overscroll-behavior: contain;
+        overflow: hidden;
     }
 
     .mobileNav {
+        composes: scrollbarBase from "../components/admin/adminUi.module.css";
         display: grid;
         min-height: 0;
         gap: 6px;
         padding: 12px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
     }
 
     .mobileNavLink {
@@ -306,7 +309,9 @@
     .mobileMenuFooter {
         display: grid;
         min-height: 0;
-        padding: 0 12px 12px;
+        padding: 12px;
+        border-top: 1px solid var(--admin-border);
+        background: color-mix(in srgb, var(--admin-surface) 98%, white);
     }
 
     .mobileMenuLogoutButton.mobileMenuLogoutButton {
@@ -358,7 +363,7 @@
     }
 
     .mobileMenuFooter {
-        padding: 0 12px 10px;
+        padding: 10px 12px;
     }
 }
 

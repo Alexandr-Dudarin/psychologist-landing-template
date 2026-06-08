@@ -149,6 +149,7 @@ export function AdminReviewsPage() {
     const [updatingId, setUpdatingId] = useState<number | null>(null);
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
+    const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
     const pendingCount = pendingItems.length;
 
@@ -491,15 +492,19 @@ export function AdminReviewsPage() {
         await savePublishedOrder(nextOrderIds, message);
     };
 
-    const handleResetPublishedOrder = async () => {
-        const isConfirmed = window.confirm(
-            "Точно сбросить порядок отображения отзывов? Все закреплённые отзывы вернутся в обычный порядок. Восстанавливать ручной порядок потом придётся заново."
-        );
+    const handleResetPublishedOrder = () => {
+        setIsResetConfirmOpen(true);
+    };
 
-        if (!isConfirmed) {
+    const handleCancelResetPublishedOrder = () => {
+        if (isReviewOrderUpdating) {
             return;
         }
 
+        setIsResetConfirmOpen(false);
+    };
+
+    const handleConfirmResetPublishedOrder = async () => {
         setIsReviewOrderUpdating(true);
         setError("");
         setSuccessMessage("");
@@ -509,6 +514,7 @@ export function AdminReviewsPage() {
 
             await loadPublishedReviews("replace");
             setSuccessMessage(message);
+            setIsResetConfirmOpen(false);
         } catch (resetError) {
             setError(
                 resetError instanceof Error
@@ -606,7 +612,7 @@ export function AdminReviewsPage() {
                             <AdminButton
                                 type="button"
                                 variant="danger"
-                                onClick={() => void handleResetPublishedOrder()}
+                                onClick={handleResetPublishedOrder}
                                 disabled={
                                     isPublishedLoading ||
                                     isReviewOrderUpdating ||
@@ -726,6 +732,53 @@ export function AdminReviewsPage() {
                     </>
                 ) : null}
             </AdminSection>
+            {isResetConfirmOpen ? (
+                <div
+                    className={styles.confirmOverlay}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="reset-review-order-title"
+                    onClick={handleCancelResetPublishedOrder}
+                >
+                    <div
+                        className={styles.confirmDialog}
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <div className={styles.confirmHeader}>
+                            <span className={styles.confirmKicker}>Опасное действие</span>
+                            <h2 id="reset-review-order-title" className={styles.confirmTitle}>
+                                Сбросить порядок отзывов?
+                            </h2>
+                        </div>
+
+                        <p className={styles.confirmText}>
+                            Все закреплённые отзывы вернутся в обычный порядок. Если вы
+                            уже расставляли отзывы вручную, восстанавливать этот порядок
+                            потом придётся заново.
+                        </p>
+
+                        <div className={styles.confirmActions}>
+                            <AdminButton
+                                type="button"
+                                variant="secondary"
+                                onClick={handleCancelResetPublishedOrder}
+                                disabled={isReviewOrderUpdating}
+                            >
+                                Отмена
+                            </AdminButton>
+
+                            <AdminButton
+                                type="button"
+                                variant="danger"
+                                onClick={() => void handleConfirmResetPublishedOrder()}
+                                disabled={isReviewOrderUpdating}
+                            >
+                                {isReviewOrderUpdating ? "Сбрасываем..." : "Да, сбросить"}
+                            </AdminButton>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
         </main>
     );
 }
