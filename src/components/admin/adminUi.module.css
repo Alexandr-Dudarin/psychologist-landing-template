@@ -20,9 +20,9 @@
   --admin-success-soft: #eef8f1;
   --admin-highlight: #fff0b8;
   --admin-highlight-border: #d6a700;
-  --admin-scrollbar-track: color-mix(in srgb, var(--admin-surface-muted) 74%, white);
-  --admin-scrollbar-thumb: color-mix(in srgb, var(--admin-accent) 34%, var(--admin-border-strong));
-  --admin-scrollbar-thumb-hover: color-mix(in srgb, var(--admin-accent) 52%, var(--admin-border-strong));
+  --admin-scrollbar-track: transparent;
+  --admin-scrollbar-thumb: color-mix(in srgb, var(--admin-accent) 38%, transparent);
+  --admin-scrollbar-thumb-hover: color-mix(in srgb, var(--admin-accent) 52%, transparent);
   --admin-radius-md: 10px;
   --admin-radius-lg: 14px;
   --admin-gap-sm: 8px;
@@ -32,7 +32,7 @@
 
 .scrollbarBase {
   scrollbar-width: thin;
-  scrollbar-color: var(--admin-scrollbar-thumb) var(--admin-scrollbar-track);
+  scrollbar-color: var(--admin-scrollbar-thumb) transparent;
 }
 
 .scrollbarBase::-webkit-scrollbar {
@@ -42,17 +42,20 @@
 
 .scrollbarBase::-webkit-scrollbar-track {
   border-radius: 999px;
-  background: var(--admin-scrollbar-track);
+  background: transparent;
 }
 
 .scrollbarBase::-webkit-scrollbar-thumb {
-  border: 2px solid var(--admin-scrollbar-track);
+  min-height: 36px;
+  border: 2px solid transparent;
   border-radius: 999px;
   background: var(--admin-scrollbar-thumb);
+  background-clip: padding-box;
 }
 
 .scrollbarBase::-webkit-scrollbar-thumb:hover {
   background: var(--admin-scrollbar-thumb-hover);
+  background-clip: padding-box;
 }
 
 .scrollbarBase::-webkit-scrollbar-corner {
@@ -212,24 +215,20 @@
   line-height: 1.45;
 }
 
-.createToggleBarOpen > button {
+.createToggleBarOpen>button {
   border-color: color-mix(in srgb, var(--admin-accent) 52%, white);
-  background: color-mix(
-    in srgb,
-    var(--admin-accent-soft) 62%,
-    var(--admin-accent) 16%
-  );
+  background: color-mix(in srgb,
+      var(--admin-accent-soft) 62%,
+      var(--admin-accent) 16%);
   color: var(--admin-accent);
   box-shadow: 0 8px 22px rgba(47, 93, 120, 0.16);
 }
 
-.createToggleBarOpen > button:hover:not(:disabled) {
+.createToggleBarOpen>button:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--admin-accent) 66%, white);
-  background: color-mix(
-    in srgb,
-    var(--admin-accent-soft) 52%,
-    var(--admin-accent) 24%
-  );
+  background: color-mix(in srgb,
+      var(--admin-accent-soft) 52%,
+      var(--admin-accent) 24%);
   color: var(--admin-accent);
   box-shadow: 0 10px 26px rgba(47, 93, 120, 0.2);
 }
@@ -289,12 +288,13 @@
     padding: 14px;
   }
 
-  .createToggleBar > button {
+  .createToggleBar>button {
     width: 100%;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .createPanel,
   .createPanelOpen {
     transition: none;

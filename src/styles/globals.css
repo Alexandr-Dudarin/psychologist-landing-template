@@ -4,9 +4,51 @@
   box-sizing: border-box;
 }
 
+:root {
+  --site-scrollbar-thumb: color-mix(in srgb,
+      var(--color-accent, #b08a7a) 42%,
+      transparent);
+  --site-scrollbar-thumb-hover: color-mix(in srgb,
+      var(--color-accent, #b08a7a) 58%,
+      transparent);
+}
+
 html {
   scroll-behavior: smooth;
   scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--site-scrollbar-thumb) transparent;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  min-height: 40px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--site-scrollbar-thumb);
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background: var(--site-scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 body {
@@ -17,11 +59,9 @@ body {
   color: var(--color-text);
   background:
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.12), transparent 35%),
-    linear-gradient(
-      180deg,
+    linear-gradient(180deg,
       var(--color-bg-gradient-start) 0%,
-      var(--color-bg-gradient-end) 100%
-    );
+      var(--color-bg-gradient-end) 100%);
   transition:
     background var(--transition-base),
     color var(--transition-base);
@@ -56,6 +96,7 @@ a {
     padding: 72px 0;
   }
 }
+
 @media (max-width: 1200px) {
   .section {
     padding: 84px 0;
