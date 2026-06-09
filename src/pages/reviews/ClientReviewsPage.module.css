@@ -379,17 +379,17 @@
 
 .reviewsTable th,
 .reviewsTable td {
-  padding: 18px;
-  border-bottom: 1px solid rgba(173, 143, 130, 0.14);
-  text-align: center;
+    padding: 18px;
+    border-bottom: 1px solid rgba(173, 143, 130, 0.14);
+    text-align: center;
 }
 
 .reviewsTable th {
-  vertical-align: middle;
+    vertical-align: middle;
 }
 
 .reviewsTable td {
-  vertical-align: top;
+    vertical-align: top;
 }
 
 .reviewsTable th.reviewAuthorCell,
@@ -452,6 +452,33 @@
     white-space: pre-wrap;
 }
 
+.publicReviewToggle {
+    width: fit-content;
+    margin-top: 8px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-accent, #ad8f82);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.96rem;
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: left;
+}
+
+.publicReviewToggle:hover {
+    color: var(--color-accent, #ad8f82);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+.publicReviewToggle:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--color-accent, #ad8f82) 55%, white);
+    outline-offset: 3px;
+    border-radius: 8px;
+}
+
 .publicReviewRatingBadge,
 .publicReviewRatingEmpty {
     display: inline-flex;
@@ -495,33 +522,6 @@
     .infoCard {
         position: static;
     }
-}
-
-@media (max-width: 640px) {
-    .page {
-        padding: 40px 14px 64px;
-    }
-
-    .backLink {
-        width: 100%;
-        justify-content: center;
-        min-height: 48px;
-    }
-
-    .formCard,
-    .infoCard,
-    .reviewsSection {
-        border-radius: 24px;
-    }
-
-    .notice {
-        border-radius: 20px;
-    }
-
-    .ratingButton {
-        width: 40px;
-        height: 40px;
-    }
 
     .reviewsTableShell {
         overflow: visible;
@@ -551,7 +551,7 @@
         display: grid;
         gap: 12px;
         margin-bottom: 14px;
-        padding: 16px;
+        padding: 18px;
         border: 1px solid rgba(173, 143, 130, 0.14);
         border-radius: 22px;
         background: rgba(255, 255, 255, 0.68);
@@ -563,7 +563,7 @@
 
     .reviewsTable td {
         display: grid;
-        grid-template-columns: 94px minmax(0, 1fr);
+        grid-template-columns: 110px minmax(0, 1fr);
         gap: 12px;
         width: 100%;
         padding: 0;
@@ -584,7 +584,25 @@
     .reviewsTable td.reviewTextCell,
     .reviewsTable td.reviewRatingCell,
     .reviewsTable td.reviewDateCell {
+        width: 100%;
+        min-width: 0;
         text-align: left;
+    }
+
+    .reviewAuthorCell {
+        order: 1;
+    }
+
+    .reviewRatingCell {
+        order: 2;
+    }
+
+    .reviewTextCell {
+        order: 3;
+    }
+
+    .reviewDateCell {
+        order: 4;
     }
 
     .publicReviewText {
@@ -596,6 +614,33 @@
     .publicReviewRatingBadge,
     .publicReviewRatingEmpty {
         justify-self: start;
+    }
+}
+
+@media (max-width: 640px) {
+    .page {
+        padding: 40px 14px 64px;
+    }
+
+    .backLink {
+        width: 100%;
+        justify-content: center;
+        min-height: 48px;
+    }
+
+    .formCard,
+    .infoCard,
+    .reviewsSection {
+        border-radius: 24px;
+    }
+
+    .notice {
+        border-radius: 20px;
+    }
+
+    .ratingButton {
+        width: 40px;
+        height: 40px;
     }
 }
 
