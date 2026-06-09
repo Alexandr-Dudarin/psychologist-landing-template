@@ -59,7 +59,14 @@ describe("admin auth", () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.jsonBody).toEqual({ success: true });
-    expect(String(res.headers["Set-Cookie"])).toContain("admin_session=");
+
+    const cookie = String(res.headers["Set-Cookie"]);
+
+    expect(cookie).toContain("admin_session=");
+    expect(cookie).toContain("HttpOnly");
+    expect(cookie).toContain("SameSite=Lax");
+    expect(cookie).toContain("Max-Age=604800");
+    expect(cookie).toContain("Expires=");
   });
 
   it("rejects login with the wrong password", async () => {
@@ -94,6 +101,14 @@ describe("admin auth", () => {
     expect(authorizedRes.statusCode).toBe(200);
     expect(authorizedRes.jsonBody).toEqual({ isAuthorized: true });
 
+    const refreshedCookie = String(authorizedRes.headers["Set-Cookie"]);
+
+    expect(refreshedCookie).toContain("admin_session=");
+    expect(refreshedCookie).toContain("HttpOnly");
+    expect(refreshedCookie).toContain("SameSite=Lax");
+    expect(refreshedCookie).toContain("Max-Age=604800");
+    expect(refreshedCookie).toContain("Expires=");
+
     const anonymousReq = createMockRequest({
       method: "GET",
       headers: {},
@@ -104,6 +119,7 @@ describe("admin auth", () => {
 
     expect(anonymousRes.statusCode).toBe(200);
     expect(anonymousRes.jsonBody).toEqual({ isAuthorized: false });
+    expect(anonymousRes.headers["Set-Cookie"]).toBeUndefined();
   });
 
   it("clears access on logout", async () => {
@@ -119,7 +135,9 @@ describe("admin auth", () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.jsonBody).toEqual({ success: true });
-    expect(String(res.headers["Set-Cookie"])).toBe(buildClearedAdminSessionCookie());
+    expect(String(res.headers["Set-Cookie"])).toBe(
+      buildClearedAdminSessionCookie()
+    );
 
     const meReq = createMockRequest({
       method: "GET",

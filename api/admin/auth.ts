@@ -88,10 +88,14 @@ async function handleMe(req: any, res: any) {
       return res.status(200).json({ isAuthorized: false });
     }
 
-    const isAuthorized = verifyAdminSessionToken(
-      token,
-      getAdminSessionSecret()
-    );
+    const sessionSecret = getAdminSessionSecret();
+    const isAuthorized = verifyAdminSessionToken(token, sessionSecret);
+
+    if (isAuthorized) {
+      const refreshedToken = createAdminSessionToken(sessionSecret);
+
+      res.setHeader("Set-Cookie", buildAdminSessionCookie(refreshedToken));
+    }
 
     return res.status(200).json({ isAuthorized });
   } catch (error) {
