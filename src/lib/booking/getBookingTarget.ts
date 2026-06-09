@@ -25,9 +25,12 @@ export function getPricingSourceMode() {
 }
 
 export function canRenderFloatingBookingCta(pathname: string) {
+  const isReviewsPage = pathname === "/reviews" || pathname.startsWith("/reviews/");
+
   return (
     siteSettings.booking.floatingCta.enabled &&
     !pathname.startsWith("/admin") &&
-    pathname !== "/book"
+    pathname !== "/book" &&
+    !isReviewsPage
   );
 }

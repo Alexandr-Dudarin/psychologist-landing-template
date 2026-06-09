@@ -113,7 +113,7 @@
 .formCard,
 .infoCard,
 .reviewsSection {
-    border: 1px solid rgba(173, 143, 130, 0.18);
+    border: 1px solid color-mix(in srgb, var(--color-accent, #ad8f82) 26%, rgba(47, 35, 31, 0.16));
     border-radius: 30px;
     background: rgba(255, 255, 255, 0.78);
     box-shadow: 0 24px 70px rgba(71, 48, 37, 0.1);
@@ -366,7 +366,7 @@
 .reviewsTableShell {
     width: 100%;
     overflow-x: auto;
-    border: 1px solid rgba(173, 143, 130, 0.16);
+    border: 1px solid color-mix(in srgb, var(--color-accent, #ad8f82) 26%, rgba(47, 35, 31, 0.16));
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.58);
 }
@@ -380,7 +380,7 @@
 .reviewsTable th,
 .reviewsTable td {
     padding: 18px;
-    border-bottom: 1px solid rgba(173, 143, 130, 0.14);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-accent, #ad8f82) 28%, rgba(47, 35, 31, 0.14));
     text-align: center;
 }
 
@@ -552,7 +552,7 @@
         gap: 12px;
         margin-bottom: 14px;
         padding: 18px;
-        border: 1px solid rgba(173, 143, 130, 0.14);
+        border: 1px solid color-mix(in srgb, var(--color-accent, #ad8f82) 28%, rgba(47, 35, 31, 0.16));
         border-radius: 22px;
         background: rgba(255, 255, 255, 0.68);
     }

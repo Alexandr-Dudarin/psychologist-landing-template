@@ -30,6 +30,7 @@ const initialForm: ReviewFormState = {
 };
 
 const ratingOptions = [1, 2, 3, 4, 5];
+const PUBLIC_REVIEWS_PAGE_LIMIT = 5;
 const PUBLIC_NAME_MAX_LENGTH = 35;
 const PUBLIC_NAME_DIGITS_PATTERN = /\d/;
 const PUBLIC_NAME_LENGTH_ERROR = `Длина псевдонима — не более ${PUBLIC_NAME_MAX_LENGTH} символов.`;
@@ -130,7 +131,10 @@ export function ClientReviewsPage() {
                 setIsLoading(true);
                 setLoadError("");
 
-                const reviews = await getPublishedClientReviews();
+                const reviews = await getPublishedClientReviews({
+                    limit: PUBLIC_REVIEWS_PAGE_LIMIT,
+                    offset: 0,
+                });
 
                 if (isMounted) {
                     setItems(reviews);
