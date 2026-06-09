@@ -119,7 +119,10 @@ export function getAdminSessionFromRequest(req: {
 }
 
 export function buildAdminSessionCookie(token: string): string {
-  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  const secure = process.env.NODE_ENV === "production" ? "Secure" : "";
+  const expires = new Date(
+    Date.now() + ADMIN_SESSION_TTL_SECONDS * 1000
+  ).toUTCString();
 
   return [
     `${ADMIN_SESSION_COOKIE_NAME}=${token}`,
@@ -127,12 +130,15 @@ export function buildAdminSessionCookie(token: string): string {
     "HttpOnly",
     "SameSite=Lax",
     `Max-Age=${ADMIN_SESSION_TTL_SECONDS}`,
+    `Expires=${expires}`,
     secure,
-  ].join("; ");
+  ]
+    .filter(Boolean)
+    .join("; ");
 }
 
 export function buildClearedAdminSessionCookie(): string {
-  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  const secure = process.env.NODE_ENV === "production" ? "Secure" : "";
 
   return [
     `${ADMIN_SESSION_COOKIE_NAME}=`,
@@ -140,6 +146,9 @@ export function buildClearedAdminSessionCookie(): string {
     "HttpOnly",
     "SameSite=Lax",
     "Max-Age=0",
+    "Expires=Thu, 01 Jan 1970 00:00:00 GMT",
     secure,
-  ].join("; ");
+  ]
+    .filter(Boolean)
+    .join("; ");
 }
