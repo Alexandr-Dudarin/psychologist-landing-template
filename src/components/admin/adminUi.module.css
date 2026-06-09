@@ -21,8 +21,12 @@
   --admin-highlight: #fff0b8;
   --admin-highlight-border: #d6a700;
   --admin-scrollbar-track: transparent;
-  --admin-scrollbar-thumb: color-mix(in srgb, var(--admin-accent) 38%, transparent);
-  --admin-scrollbar-thumb-hover: color-mix(in srgb, var(--admin-accent) 52%, transparent);
+  --admin-scrollbar-thumb: color-mix(in srgb,
+      var(--color-accent, #b08a7a) 42%,
+      transparent);
+  --admin-scrollbar-thumb-hover: color-mix(in srgb,
+      var(--color-accent, #b08a7a) 58%,
+      transparent);
   --admin-radius-md: 10px;
   --admin-radius-lg: 14px;
   --admin-gap-sm: 8px;
