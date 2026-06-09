@@ -95,6 +95,10 @@
     margin-top: 14px;
 }
 
+.loadMoreButton {
+    width: min(260px, 100%);
+}
+
 .orderHint {
     margin: 0 0 12px;
     padding: 10px 12px;
@@ -946,14 +950,17 @@
     }
 
     .confirmOverlay {
-        align-items: end;
-        padding: 12px;
+        align-items: center;
+        padding:
+            max(16px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
     }
 
     .confirmDialog {
-        width: 100%;
+        width: min(420px, 100%);
+        max-height: calc(100dvh - 32px);
+        overflow: auto;
         padding: 18px;
-        border-radius: var(--admin-radius-lg) var(--admin-radius-lg) 0 0;
+        border-radius: var(--admin-radius-lg);
     }
 
     .confirmActions {

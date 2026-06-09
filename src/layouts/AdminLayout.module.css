@@ -261,13 +261,20 @@
     }
 
     .mobileNav {
-        composes: scrollbarBase from "../components/admin/adminUi.module.css";
         display: grid;
         min-height: 0;
         gap: 6px;
         padding: 12px;
         overflow-y: auto;
         overscroll-behavior: contain;
+
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .mobileNav::-webkit-scrollbar {
+        width: 0;
+        height: 0;
     }
 
     .mobileNavLink {

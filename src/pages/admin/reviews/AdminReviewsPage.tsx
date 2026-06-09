@@ -666,6 +666,7 @@ export function AdminReviewsPage() {
                                 <AdminButton
                                     type="button"
                                     variant="secondary"
+                                    className={styles.loadMoreButton}
                                     onClick={() => void loadPublishedReviews("append")}
                                     disabled={isPublishedLoading || isReviewOrderUpdating}
                                 >
@@ -720,6 +721,7 @@ export function AdminReviewsPage() {
                                 <AdminButton
                                     type="button"
                                     variant="secondary"
+                                    className={styles.loadMoreButton}
                                     onClick={() => void loadHiddenReviews("append")}
                                     disabled={isHiddenLoading || isReviewOrderUpdating}
                                 >
