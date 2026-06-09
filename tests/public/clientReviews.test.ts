@@ -1,13 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { poolQueryMock } = vi.hoisted(() => ({
+import { siteSettings } from "../../src/data/siteSettings";
+
+const { poolQueryMock, neutralTermHashes } = vi.hoisted(() => ({
   poolQueryMock: vi.fn(),
+  neutralTermHashes: [
+    "06a312de2b09dc0b1819b5185a03706d20f075d292e39b2695c9be3342141d42",
+    "790fde32813df77564bfb2169791f0da6a30e99beb5dd25fd89c06f1ae3ad98d",
+    "b95989a942ec7136daaca5527cf5b24af66e6bd0053418b7cdc5df9acaebec4d",
+  ],
 }));
 
 vi.mock("../../server/db/pool", () => ({
   pool: {
     query: poolQueryMock,
   },
+}));
+
+vi.mock("../../server/moderation/prohibitedReviewTermHashes", () => ({
+  prohibitedReviewTermHashes: neutralTermHashes,
 }));
 
 type QueryLogEntry = {
@@ -98,6 +109,10 @@ describe("public client reviews", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => undefined);
+    siteSettings.clientReviews.prohibitedContentFilter.enabled = true;
+    siteSettings.clientReviews.prohibitedContentFilter.mode = "strict";
+    siteSettings.clientReviews.prohibitedContentFilter.maxRepeatedCharacterCount = 15;
+    siteSettings.clientReviews.prohibitedContentFilter.maxRepeatedWordCount = 10;
   });
 
   it("accepts an empty public name and displays the review as anonymous", async () => {
@@ -177,6 +192,203 @@ describe("public client reviews", () => {
       error: "Псевдоним не должен содержать цифры.",
     });
     expect(poolQueryMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a configured neutral term in review text before database access", async () => {
+    const { createClientReview } = await loadClientReviewsService();
+
+    const result = await createClientReview(
+      createValidReviewPayload({
+        text: "Очень с о к рядом.",
+      })
+    );
+
+    expect(result).toEqual({
+      status: 400,
+      body: {
+        error:
+          "Отзыв содержит недопустимые слова или спам-повторы. Измените текст и попробуйте ещё раз.",
+        code: "invalid_payload",
+      },
+    });
+    expect(poolQueryMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a configured neutral term in public name before database access", async () => {
+    const { createClientReview } = await loadClientReviewsService();
+
+    const result = await createClientReview(
+      createValidReviewPayload({
+        publicName: "сок",
+      })
+    );
+
+    expect(result).toEqual({
+      status: 400,
+      body: {
+        error:
+          "Псевдоним содержит недопустимые слова или спам-повторы. Измените псевдоним.",
+        code: "invalid_payload",
+      },
+    });
+    expect(poolQueryMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects mixed visual substitutions for a configured neutral term", async () => {
+    const { createClientReview } = await loadClientReviewsService();
+
+    const result = await createClientReview(
+      createValidReviewPayload({
+        text: "Очень cоk рядом.",
+      })
+    );
+
+    expect(result.status).toBe(400);
+    expect(result.body).toMatchObject({ code: "invalid_payload" });
+    expect(poolQueryMock).not.toHaveBeenCalled();
+  });
+
+  it("normalizes ё and е when checking configured neutral terms", async () => {
+    const { createClientReview } = await loadClientReviewsService();
+
+    const result = await createClientReview(
+      createValidReviewPayload({
+        text: "Очень ёлка рядом.",
+      })
+    );
+
+    expect(result.status).toBe(400);
+    expect(result.body).toMatchObject({ code: "invalid_payload" });
+    expect(poolQueryMock).not.toHaveBeenCalled();
+  });
+
+  it("normalizes й and и when checking configured neutral terms", async () => {
+    const { createClientReview } = await loadClientReviewsService();
+
+    const result = await createClientReview(
+      createValidReviewPayload({
+        text: "Очень край рядом.",
+      })
+    );
+
+    expect(result.status).toBe(400);
+    expect(result.body).toMatchObject({ code: "invalid_payload" });
+    expect(poolQueryMock).not.toHaveBeenCalled();
+  });
+
+  it.each(["с о к", "с.о.к", "с/о/к", "с*о*к"])(
+    "rejects a configured neutral term split by separators: %s",
+    async (textPart) => {
+      const { createClientReview } = await loadClientReviewsService();
+
+      const result = await createClientReview(
+        createValidReviewPayload({
+          text: `Очень ${textPart} рядом.`,
+        })
+      );
+
+      expect(result.status).toBe(400);
+      expect(result.body).toMatchObject({ code: "invalid_payload" });
+      expect(poolQueryMock).not.toHaveBeenCalled();
+    }
+  );
+
+  it("rejects a stretched configured neutral term", async () => {
+    const { createClientReview } = await loadClientReviewsService();
+
+    const result = await createClientReview(
+      createValidReviewPayload({
+        text: "Очень ссооокк рядом.",
+      })
+    );
+
+    expect(result.status).toBe(400);
+    expect(result.body).toMatchObject({ code: "invalid_payload" });
+    expect(poolQueryMock).not.toHaveBeenCalled();
+  });
+
+  it("allows a longer normal word that only contains a configured neutral term as a part", async () => {
+    mockSuccessfulReviewCreate();
+    const { createClientReview } = await loadClientReviewsService();
+
+    const result = await createClientReview(
+      createValidReviewPayload({
+        text: "Соковыжималка стоит на кухне.",
+      })
+    );
+
+    expect(result.status).toBe(200);
+  });
+
+  it("rejects more than 15 repeated normalized letters", async () => {
+    const { createClientReview } = await loadClientReviewsService();
+
+    const result = await createClientReview(
+      createValidReviewPayload({
+        text: `${"о".repeat(16)} хорошо`,
+      })
+    );
+
+    expect(result.status).toBe(400);
+    expect(result.body).toMatchObject({ code: "invalid_payload" });
+    expect(poolQueryMock).not.toHaveBeenCalled();
+  });
+
+  it("allows 15 repeated normalized letters by the anti-spam threshold", async () => {
+    mockSuccessfulReviewCreate();
+    const { createClientReview } = await loadClientReviewsService();
+
+    const result = await createClientReview(
+      createValidReviewPayload({
+        text: `${"о".repeat(15)} хорошо`,
+      })
+    );
+
+    expect(result.status).toBe(200);
+  });
+
+  it("rejects more than 10 repeated normalized words across separators", async () => {
+    const { createClientReview } = await loadClientReviewsService();
+    const repeatedWords = Array.from({ length: 11 }, () => "очень").join(",.-");
+
+    const result = await createClientReview(
+      createValidReviewPayload({
+        text: repeatedWords,
+      })
+    );
+
+    expect(result.status).toBe(400);
+    expect(result.body).toMatchObject({ code: "invalid_payload" });
+    expect(poolQueryMock).not.toHaveBeenCalled();
+  });
+
+  it("allows 10 repeated normalized words by the anti-spam threshold", async () => {
+    mockSuccessfulReviewCreate();
+    const { createClientReview } = await loadClientReviewsService();
+    const repeatedWords = Array.from({ length: 10 }, () => "очень").join(", ");
+
+    const result = await createClientReview(
+      createValidReviewPayload({
+        text: repeatedWords,
+      })
+    );
+
+    expect(result.status).toBe(200);
+  });
+
+  it("does not block review content when the premium filter is disabled", async () => {
+    siteSettings.clientReviews.prohibitedContentFilter.enabled = false;
+    mockSuccessfulReviewCreate();
+    const { createClientReview } = await loadClientReviewsService();
+
+    const result = await createClientReview(
+      createValidReviewPayload({
+        publicName: "сок",
+        text: "Очень с о к рядом.",
+      })
+    );
+
+    expect(result.status).toBe(200);
   });
 
   it("allows an omitted rating but rejects ratings outside the allowed range", async () => {

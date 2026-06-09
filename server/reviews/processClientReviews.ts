@@ -2,6 +2,7 @@
 
 import { pool } from "../db/pool.js";
 import { siteSettings } from "../../src/data/siteSettings.js";
+import { checkProhibitedContent } from "../moderation/prohibitedContent.js";
 import type {
     ClientReviewCreatePayload,
     ClientReviewCreateSuccessResponse,
@@ -45,6 +46,10 @@ const PUBLIC_NAME_MAX_LENGTH = 35;
 const PUBLIC_NAME_DIGITS_PATTERN = /\d/;
 const PUBLIC_NAME_LENGTH_ERROR = `Длина псевдонима — не более ${PUBLIC_NAME_MAX_LENGTH} символов.`;
 const PUBLIC_NAME_DIGITS_ERROR = "Псевдоним не должен содержать цифры.";
+const PUBLIC_NAME_PROHIBITED_CONTENT_ERROR =
+    "Псевдоним содержит недопустимые слова или спам-повторы. Измените псевдоним.";
+const REVIEW_TEXT_PROHIBITED_CONTENT_ERROR =
+    "Отзыв содержит недопустимые слова или спам-повторы. Измените текст и попробуйте ещё раз.";
 
 function parseJsonBody(body: unknown): unknown {
     if (typeof body !== "string") {
@@ -193,6 +198,30 @@ function getReviewValidationError(payload: ClientReviewCreatePayload): string | 
     return null;
 }
 
+function getProhibitedContentValidationError(
+    payload: ClientReviewCreatePayload
+): string | null {
+    const filterSettings = siteSettings.clientReviews.prohibitedContentFilter;
+    const publicName = payload.publicName?.trim() ?? "";
+    const text = payload.text.trim();
+
+    if (publicName) {
+        const publicNameResult = checkProhibitedContent(publicName, filterSettings);
+
+        if (!publicNameResult.ok) {
+            return PUBLIC_NAME_PROHIBITED_CONTENT_ERROR;
+        }
+    }
+
+    const textResult = checkProhibitedContent(text, filterSettings);
+
+    if (!textResult.ok) {
+        return REVIEW_TEXT_PROHIBITED_CONTENT_ERROR;
+    }
+
+    return null;
+}
+
 async function findEligibleClientByContact(
     contact: string
 ): Promise<EligibleClientRow | null> {
@@ -333,6 +362,18 @@ export async function createClientReview(
             status: 400,
             body: {
                 error: validationError,
+                code: "invalid_payload",
+            },
+        };
+    }
+
+    const prohibitedContentError = getProhibitedContentValidationError(payload);
+
+    if (prohibitedContentError) {
+        return {
+            status: 400,
+            body: {
+                error: prohibitedContentError,
                 code: "invalid_payload",
             },
         };

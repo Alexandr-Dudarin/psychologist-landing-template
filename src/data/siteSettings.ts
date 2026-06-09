@@ -29,6 +29,12 @@ export const siteSettings = {
     publicFormEnabled: true,
     moderationEnabled: true,
     rewardCodesEnabled: false,
+    prohibitedContentFilter: {
+      enabled: true,
+      mode: "strict" as "strict",
+      maxRepeatedCharacterCount: 15,
+      maxRepeatedWordCount: 10,
+    },
   },
 
   premiumModules: {

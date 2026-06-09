@@ -26,5 +26,8 @@ dist-ssr
 .vercel
 .env*.local
 
+# Local private moderation dictionaries
+private/*.local.txt
+
 database-full.backup
 database-schema.sql
