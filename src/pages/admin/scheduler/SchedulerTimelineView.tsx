@@ -96,7 +96,18 @@ function shouldUseLongPressInteraction(): boolean {
     return false;
   }
 
-  return window.matchMedia("(max-width: 640px), (pointer: coarse)").matches;
+  return window.matchMedia("(max-width: 640px) and (pointer: coarse)").matches;
+}
+
+function clearNativeTouchSelection() {
+  window.getSelection?.()?.removeAllRanges();
+
+  if (
+    document.activeElement instanceof HTMLElement &&
+    !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)
+  ) {
+    document.activeElement.blur();
+  }
 }
 
 function getEmptySlotSelection(params: {
@@ -154,11 +165,11 @@ export function SchedulerTimelineView({
   const effectiveHeaderHeight =
     viewMode === "day"
       ? Math.max(
-          headerHeight,
-          hasDayOverrideInsight
-            ? DAY_VIEW_OVERRIDE_HEADER_HEIGHT
-            : DAY_VIEW_COMPACT_HEADER_HEIGHT
-        )
+        headerHeight,
+        hasDayOverrideInsight
+          ? DAY_VIEW_OVERRIDE_HEADER_HEIGHT
+          : DAY_VIEW_COMPACT_HEADER_HEIGHT
+      )
       : headerHeight;
 
   const clearLongPressTimer = () => {
@@ -173,6 +184,14 @@ export function SchedulerTimelineView({
     gridBody: HTMLDivElement,
     clientY: number
   ) => {
+    if (shouldUseLongPressInteraction()) {
+      clearNativeTouchSelection();
+
+      window.requestAnimationFrame(() => {
+        clearNativeTouchSelection();
+      });
+    }
+
     onEmptySlotSelect(
       getEmptySlotSelection({
         clientY,
@@ -263,9 +282,8 @@ export function SchedulerTimelineView({
       </div>
 
       <div
-        className={`${styles.columns} ${
-          viewMode === "week" ? styles.columnsWeek : styles.columnsDay
-        }`}
+        className={`${styles.columns} ${viewMode === "week" ? styles.columnsWeek : styles.columnsDay
+          }`}
       >
         {daySummaries.map((day) => {
           const dayItems = overlayItems.filter(
@@ -290,27 +308,24 @@ export function SchedulerTimelineView({
           return (
             <section
               key={day.dateKey}
-              className={`${styles.dayColumn} ${
-                day.workingStateTone === "override-working"
-                  ? styles.dayColumnOverride
-                  : day.workingStateTone === "override-day-off"
-                    ? styles.dayColumnOverrideOff
-                    : day.workingStateTone === "day-off"
-                      ? styles.dayColumnDayOff
-                      : ""
-              } ${viewMode === "day" ? styles.dayColumnExpanded : ""}`}
+              className={`${styles.dayColumn} ${day.workingStateTone === "override-working"
+                ? styles.dayColumnOverride
+                : day.workingStateTone === "override-day-off"
+                  ? styles.dayColumnOverrideOff
+                  : day.workingStateTone === "day-off"
+                    ? styles.dayColumnDayOff
+                    : ""
+                } ${viewMode === "day" ? styles.dayColumnExpanded : ""}`}
             >
               <header
                 role="button"
                 tabIndex={0}
                 aria-label={`Открыть детали дня: ${day.fullLabel}`}
-                className={`${styles.dayHeader} ${
-                  styles.dayHeaderInteractive
-                } ${
-                  viewMode === "week"
+                className={`${styles.dayHeader} ${styles.dayHeaderInteractive
+                  } ${viewMode === "week"
                     ? styles.dayHeaderWeek
                     : styles.dayHeaderDay
-                }`}
+                  }`}
                 onClick={openDayDetail}
                 onKeyDown={handleDayHeaderKeyDown}
               >
@@ -348,16 +363,14 @@ export function SchedulerTimelineView({
                 </div>
 
                 <div
-                  className={`${styles.dayMeta} ${
-                    viewMode === "day"
-                      ? styles.dayMetaDay
-                      : styles.dayMetaWeek
-                  }`}
+                  className={`${styles.dayMeta} ${viewMode === "day"
+                    ? styles.dayMetaDay
+                    : styles.dayMetaWeek
+                    }`}
                 >
                   <span
-                    className={`${styles.metaBadge} ${
-                      viewMode === "day" ? styles.sessionsMetaBadge : ""
-                    }`}
+                    className={`${styles.metaBadge} ${viewMode === "day" ? styles.sessionsMetaBadge : ""
+                      }`}
                   >
                     Сессии: {day.sessionsCount}
                   </span>
@@ -400,6 +413,11 @@ export function SchedulerTimelineView({
               <div
                 className={styles.gridBody}
                 onClick={(event) => handleGridClick(event, day)}
+                onContextMenu={(event) => {
+                  if (shouldUseLongPressInteraction()) {
+                    event.preventDefault();
+                  }
+                }}
                 onPointerCancel={handleGridPointerEnd}
                 onPointerDown={(event) => handleGridPointerDown(event, day)}
                 onPointerLeave={handleGridPointerEnd}
@@ -407,22 +425,20 @@ export function SchedulerTimelineView({
                 onPointerUp={handleGridPointerEnd}
               >
                 {day.workStartMinutes !== null &&
-                day.workEndMinutes !== null &&
-                day.isWorking ? (
+                  day.workEndMinutes !== null &&
+                  day.isWorking ? (
                   <div
                     className={styles.workingHoursBand}
                     style={{
-                      top: `${
-                        ((day.workStartMinutes -
-                          GRID_START_HOUR * MINUTES_IN_HOUR) /
-                          MINUTES_IN_HOUR) *
+                      top: `${((day.workStartMinutes -
+                        GRID_START_HOUR * MINUTES_IN_HOUR) /
+                        MINUTES_IN_HOUR) *
                         rowHeight
-                      }px`,
-                      height: `${
-                        ((day.workEndMinutes - day.workStartMinutes) /
-                          MINUTES_IN_HOUR) *
+                        }px`,
+                      height: `${((day.workEndMinutes - day.workStartMinutes) /
+                        MINUTES_IN_HOUR) *
                         rowHeight
-                      }px`,
+                        }px`,
                     }}
                   />
                 ) : null}

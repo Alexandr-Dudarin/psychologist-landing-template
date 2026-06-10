@@ -274,6 +274,13 @@
       transparent var(--scheduler-row-height));
 }
 
+.gridBody,
+.dayHeaderInteractive {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .workingHoursBand,
 .nonWorkingOverlay,
 .dayOffOverlay {

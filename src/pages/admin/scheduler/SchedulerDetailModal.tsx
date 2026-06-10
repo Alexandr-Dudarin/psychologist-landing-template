@@ -24,6 +24,14 @@ function getDetailKindLabel(detail: SchedulerDetail): string {
   return "День";
 }
 
+function shouldAutoFocusCloseButton(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+}
+
 export function SchedulerDetailModal({
   detail,
   isDayActionSaving = false,
@@ -51,7 +59,11 @@ export function SchedulerDetailModal({
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
     document.addEventListener("keydown", handleKeyDown);
-    closeButtonRef.current?.focus();
+    if (shouldAutoFocusCloseButton()) {
+      closeButtonRef.current?.focus();
+    } else {
+      window.getSelection?.()?.removeAllRanges();
+    }
 
     return () => {
       document.body.style.overflow = previousBodyOverflow;

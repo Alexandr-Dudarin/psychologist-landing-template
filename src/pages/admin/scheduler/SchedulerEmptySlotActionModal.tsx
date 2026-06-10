@@ -11,6 +11,14 @@ type SchedulerEmptySlotActionModalProps = {
   onCreateSession: () => void;
 };
 
+function shouldAutoFocusCloseButton(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+}
+
 function formatDateKey(dateKey: string): string {
   const [year, month, day] = dateKey.split("-").map(Number);
 
@@ -52,7 +60,11 @@ export function SchedulerEmptySlotActionModal({
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
     document.addEventListener("keydown", handleKeyDown);
-    closeButtonRef.current?.focus();
+    if (shouldAutoFocusCloseButton()) {
+      closeButtonRef.current?.focus();
+    } else {
+      window.getSelection?.()?.removeAllRanges();
+    }
 
     return () => {
       document.body.style.overflow = previousBodyOverflow;

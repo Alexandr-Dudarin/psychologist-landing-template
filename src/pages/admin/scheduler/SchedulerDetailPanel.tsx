@@ -90,6 +90,7 @@ export function SchedulerDetailPanel({
                   <AdminButton
                     type="button"
                     variant="secondary"
+                    className={`${styles.dayActionButton} ${styles.dayWarningActionButton}`}
                     onClick={() => onMakeDayNonWorking(detail.dateKey!)}
                     disabled={isDayActionSaving}
                   >
@@ -101,6 +102,7 @@ export function SchedulerDetailPanel({
                   <AdminButton
                     type="button"
                     variant="primary"
+                    className={styles.dayActionButton}
                     onClick={() => onMakeDayWorking(detail.dateKey!)}
                     disabled={isDayActionSaving}
                   >

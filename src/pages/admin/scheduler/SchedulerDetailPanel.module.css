@@ -139,6 +139,26 @@
   transform: translateY(-1px);
 }
 
+.dayActionButton.dayActionButton {
+  width: 100%;
+  font-weight: 700;
+}
+
+.dayWarningActionButton.dayWarningActionButton {
+  border-color: color-mix(in srgb, #c48a2a 42%, white);
+  background: color-mix(in srgb, #fff4dc 88%, white);
+  color: #795018;
+  font-weight: 700;
+  box-shadow: 0 8px 18px rgba(196, 138, 42, 0.08);
+}
+
+.dayWarningActionButton.dayWarningActionButton:hover:not(:disabled),
+.dayWarningActionButton.dayWarningActionButton:focus-visible {
+  border-color: color-mix(in srgb, #c48a2a 62%, white);
+  background: color-mix(in srgb, #ffeac0 88%, white);
+  color: #68440f;
+}
+
 @media (max-width: 820px) {
   .detailCard {
     padding-bottom: 24px;

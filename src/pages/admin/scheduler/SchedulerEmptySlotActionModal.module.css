@@ -11,7 +11,7 @@
 
 .dialog {
   composes: scrollbarBase from "../../../components/admin/adminUi.module.css";
-  width: min(480px, 100%);
+  width: min(520px, 100%);
   max-height: calc(100vh - 48px);
   overflow-y: auto;
   border: 1px solid var(--admin-border);
@@ -88,17 +88,19 @@
 
 .summaryBox {
   display: grid;
-  gap: 4px;
-  padding: 12px 14px;
+  gap: 6px;
+  padding: 14px 16px;
   border: 1px solid var(--admin-border);
   border-radius: 16px;
-  background: color-mix(in srgb, var(--admin-surface-muted) 74%, white);
+  background: color-mix(in srgb, var(--admin-surface-muted) 76%, white);
 }
 
 .summaryLabel {
   color: var(--admin-text-muted);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.25;
 }
 
 .summaryValue {
@@ -112,11 +114,6 @@
   gap: 10px;
 }
 
-.actionsGrid button {
-  width: 100%;
-  justify-content: center;
-}
-
 .hint {
   margin: 0;
   color: var(--admin-text-muted);
@@ -124,16 +121,17 @@
   line-height: 1.45;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .overlay {
-    align-items: flex-end;
-    padding: 12px 12px env(safe-area-inset-bottom);
+    align-items: center;
+    padding:
+      max(14px, env(safe-area-inset-top)) 12px max(88px, calc(env(safe-area-inset-bottom) + 72px));
   }
 
   .dialog {
     width: 100%;
-    max-height: min(86vh, 720px);
-    border-radius: 22px 22px 0 0;
+    max-height: min(82svh, 680px);
+    border-radius: 22px;
   }
 
   .header {
