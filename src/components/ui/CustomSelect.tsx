@@ -5,6 +5,8 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 
 import styles from "./CustomSelect.module.css";
@@ -98,6 +100,10 @@ function getNextHighlightedIndex(
   return enabledIndexes[nextPosition];
 }
 
+function isTouchLikePointer(event: ReactPointerEvent<HTMLElement>): boolean {
+  return event.pointerType === "touch" || event.pointerType === "pen";
+}
+
 export function CustomSelect({
   value,
   options,
@@ -119,6 +125,8 @@ export function CustomSelect({
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const shouldScrollToSelectedOnOpenRef = useRef(false);
+  const suppressNextTriggerClickRef = useRef(false);
+  const suppressNextTriggerClickTimerRef = useRef<number | null>(null);
 
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(() =>
@@ -155,6 +163,19 @@ export function CustomSelect({
     .filter(Boolean)
     .join(" ");
 
+  const suppressNextTriggerClick = () => {
+    suppressNextTriggerClickRef.current = true;
+
+    if (suppressNextTriggerClickTimerRef.current !== null) {
+      window.clearTimeout(suppressNextTriggerClickTimerRef.current);
+    }
+
+    suppressNextTriggerClickTimerRef.current = window.setTimeout(() => {
+      suppressNextTriggerClickRef.current = false;
+      suppressNextTriggerClickTimerRef.current = null;
+    }, 450);
+  };
+
   const openDropdown = () => {
     if (disabled) {
       return;
@@ -170,10 +191,16 @@ export function CustomSelect({
     setIsOpen(false);
   };
 
-  const selectOption = (option: CustomSelectOption, index: number) => {
+  const selectOption = (
+    option: CustomSelectOption,
+    index: number,
+    settings: { shouldFocusTrigger?: boolean } = {}
+  ) => {
     if (!isSelectableOption(option)) {
       return;
     }
+
+    const shouldFocusTrigger = settings.shouldFocusTrigger ?? true;
 
     setHighlightedIndex(index);
 
@@ -182,11 +209,23 @@ export function CustomSelect({
     }
 
     closeDropdown();
-    triggerRef.current?.focus();
+
+    if (shouldFocusTrigger) {
+      triggerRef.current?.focus();
+    } else {
+      triggerRef.current?.blur();
+    }
   };
 
-  const handleTriggerClick = () => {
+  const handleTriggerClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
     if (disabled) {
+      return;
+    }
+
+    if (suppressNextTriggerClickRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      suppressNextTriggerClickRef.current = false;
       return;
     }
 
@@ -307,11 +346,35 @@ export function CustomSelect({
   }, [isOpen, options, value]);
 
   useEffect(() => {
+    if (
+      !isOpen ||
+      highlightedIndex < 0 ||
+      shouldScrollToSelectedOnOpenRef.current
+    ) {
+      return;
+    }
+
+    const animationFrameId = window.requestAnimationFrame(() => {
+      const highlightedOptionElement = optionRefs.current[highlightedIndex];
+
+      highlightedOptionElement?.scrollIntoView({
+        block: "nearest",
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+    };
+  }, [highlightedIndex, isOpen]);
+
+  useEffect(() => {
     if (!isOpen) {
       return;
     }
 
-    function handleDocumentPointerDown(event: MouseEvent | TouchEvent) {
+    function handleDocumentPointerDown(
+      event: globalThis.MouseEvent | globalThis.TouchEvent
+    ) {
       if (!rootRef.current) {
         return;
       }
@@ -351,6 +414,14 @@ export function CustomSelect({
       closeDropdown();
     }
   }, [disabled]);
+
+  useEffect(() => {
+    return () => {
+      if (suppressNextTriggerClickTimerRef.current !== null) {
+        window.clearTimeout(suppressNextTriggerClickTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div ref={rootRef} className={rootClassName}>
@@ -431,8 +502,25 @@ export function CustomSelect({
                       setHighlightedIndex(index);
                     }
                   }}
+                  onPointerDown={(event) => {
+                    if (
+                      !isTouchLikePointer(event) ||
+                      !isSelectableOption(option)
+                    ) {
+                      return;
+                    }
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    suppressNextTriggerClick();
+                    selectOption(option, index, { shouldFocusTrigger: false });
+                  }}
                   onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => selectOption(option, index)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    selectOption(option, index);
+                  }}
                 >
                   <span className={styles.optionLabel}>{option.label}</span>
 

@@ -155,6 +155,38 @@
   box-shadow: 0 18px 42px rgba(20, 30, 40, 0.18);
 }
 
+.rootAdmin .dropdown {
+  scrollbar-width: thin;
+  scrollbar-color: var(--admin-scrollbar-thumb) transparent;
+}
+
+.rootAdmin .dropdown::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.rootAdmin .dropdown::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: transparent;
+}
+
+.rootAdmin .dropdown::-webkit-scrollbar-thumb {
+  min-height: 36px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--admin-scrollbar-thumb);
+  background-clip: padding-box;
+}
+
+.rootAdmin .dropdown::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+.rootAdmin .dropdown::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 .rootPublic .dropdown {
   border-color: var(--color-border);
   background: color-mix(in srgb, var(--color-surface) 96%, white);
