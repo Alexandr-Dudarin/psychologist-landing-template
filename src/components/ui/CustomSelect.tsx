@@ -49,6 +49,8 @@ const layoutClassNames: Record<CustomSelectLayout, string> = {
   full: styles.rootFull,
 };
 
+const TOUCH_OPTION_SELECT_MOVE_THRESHOLD_PX = 10;
+
 function isSelectableOption(option: CustomSelectOption | undefined): boolean {
   return Boolean(option && option.kind !== "group" && !option.disabled);
 }
@@ -127,6 +129,15 @@ export function CustomSelect({
   const shouldScrollToSelectedOnOpenRef = useRef(false);
   const suppressNextTriggerClickRef = useRef(false);
   const suppressNextTriggerClickTimerRef = useRef<number | null>(null);
+  const optionPointerStateRef = useRef<{
+    pointerId: number;
+    index: number;
+    startX: number;
+    startY: number;
+    moved: boolean;
+  } | null>(null);
+  const ignoreNextOptionClickRef = useRef(false);
+  const ignoreNextOptionClickTimerRef = useRef<number | null>(null);
 
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(() =>
@@ -173,6 +184,19 @@ export function CustomSelect({
     suppressNextTriggerClickTimerRef.current = window.setTimeout(() => {
       suppressNextTriggerClickRef.current = false;
       suppressNextTriggerClickTimerRef.current = null;
+    }, 450);
+  };
+
+  const ignoreNextOptionClick = () => {
+    ignoreNextOptionClickRef.current = true;
+
+    if (ignoreNextOptionClickTimerRef.current !== null) {
+      window.clearTimeout(ignoreNextOptionClickTimerRef.current);
+    }
+
+    ignoreNextOptionClickTimerRef.current = window.setTimeout(() => {
+      ignoreNextOptionClickRef.current = false;
+      ignoreNextOptionClickTimerRef.current = null;
     }, 450);
   };
 
@@ -420,6 +444,10 @@ export function CustomSelect({
       if (suppressNextTriggerClickTimerRef.current !== null) {
         window.clearTimeout(suppressNextTriggerClickTimerRef.current);
       }
+
+      if (ignoreNextOptionClickTimerRef.current !== null) {
+        window.clearTimeout(ignoreNextOptionClickTimerRef.current);
+      }
     };
   }, []);
 
@@ -510,15 +538,78 @@ export function CustomSelect({
                       return;
                     }
 
+                    optionPointerStateRef.current = {
+                      pointerId: event.pointerId,
+                      index,
+                      startX: event.clientX,
+                      startY: event.clientY,
+                      moved: false,
+                    };
+                  }}
+                  onPointerMove={(event) => {
+                    const pointerState = optionPointerStateRef.current;
+
+                    if (
+                      !pointerState ||
+                      pointerState.pointerId !== event.pointerId
+                    ) {
+                      return;
+                    }
+
+                    const distanceX = Math.abs(
+                      event.clientX - pointerState.startX
+                    );
+                    const distanceY = Math.abs(
+                      event.clientY - pointerState.startY
+                    );
+
+                    if (
+                      distanceX > TOUCH_OPTION_SELECT_MOVE_THRESHOLD_PX ||
+                      distanceY > TOUCH_OPTION_SELECT_MOVE_THRESHOLD_PX
+                    ) {
+                      pointerState.moved = true;
+                    }
+                  }}
+                  onPointerUp={(event) => {
+                    const pointerState = optionPointerStateRef.current;
+
+                    if (
+                      !pointerState ||
+                      pointerState.pointerId !== event.pointerId
+                    ) {
+                      return;
+                    }
+
+                    optionPointerStateRef.current = null;
+                    ignoreNextOptionClick();
+
+                    if (
+                      pointerState.moved ||
+                      pointerState.index !== index ||
+                      !isSelectableOption(option)
+                    ) {
+                      return;
+                    }
+
                     event.preventDefault();
                     event.stopPropagation();
 
                     suppressNextTriggerClick();
                     selectOption(option, index, { shouldFocusTrigger: false });
                   }}
+                  onPointerCancel={() => {
+                    optionPointerStateRef.current = null;
+                  }}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={(event) => {
                     event.stopPropagation();
+
+                    if (ignoreNextOptionClickRef.current) {
+                      event.preventDefault();
+                      ignoreNextOptionClickRef.current = false;
+                      return;
+                    }
+
                     selectOption(option, index);
                   }}
                 >
