@@ -129,6 +129,7 @@ export function CustomSelect({
   const shouldScrollToSelectedOnOpenRef = useRef(false);
   const suppressNextTriggerClickRef = useRef(false);
   const suppressNextTriggerClickTimerRef = useRef<number | null>(null);
+  const delayedCloseTimerRef = useRef<number | null>(null);
   const optionPointerStateRef = useRef<{
     pointerId: number;
     index: number;
@@ -218,13 +219,27 @@ export function CustomSelect({
   const selectOption = (
     option: CustomSelectOption,
     index: number,
-    settings: { shouldFocusTrigger?: boolean } = {}
+    settings: {
+      shouldFocusTrigger?: boolean;
+      closeDelayMs?: number;
+    } = {}
   ) => {
     if (!isSelectableOption(option)) {
       return;
     }
 
     const shouldFocusTrigger = settings.shouldFocusTrigger ?? true;
+    const closeDelayMs = settings.closeDelayMs ?? 0;
+
+    const finishClose = () => {
+      closeDropdown();
+
+      if (shouldFocusTrigger) {
+        triggerRef.current?.focus();
+      } else {
+        triggerRef.current?.blur();
+      }
+    };
 
     setHighlightedIndex(index);
 
@@ -232,13 +247,20 @@ export function CustomSelect({
       onChange(option.value);
     }
 
-    closeDropdown();
+    if (closeDelayMs > 0) {
+      if (delayedCloseTimerRef.current !== null) {
+        window.clearTimeout(delayedCloseTimerRef.current);
+      }
 
-    if (shouldFocusTrigger) {
-      triggerRef.current?.focus();
-    } else {
-      triggerRef.current?.blur();
+      delayedCloseTimerRef.current = window.setTimeout(() => {
+        delayedCloseTimerRef.current = null;
+        finishClose();
+      }, closeDelayMs);
+
+      return;
     }
+
+    finishClose();
   };
 
   const handleTriggerClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
@@ -445,6 +467,10 @@ export function CustomSelect({
         window.clearTimeout(suppressNextTriggerClickTimerRef.current);
       }
 
+      if (delayedCloseTimerRef.current !== null) {
+        window.clearTimeout(delayedCloseTimerRef.current);
+      }
+
       if (ignoreNextOptionClickTimerRef.current !== null) {
         window.clearTimeout(ignoreNextOptionClickTimerRef.current);
       }
@@ -595,7 +621,10 @@ export function CustomSelect({
                     event.stopPropagation();
 
                     suppressNextTriggerClick();
-                    selectOption(option, index, { shouldFocusTrigger: false });
+                    selectOption(option, index, {
+                      shouldFocusTrigger: false,
+                      closeDelayMs: 120,
+                    });
                   }}
                   onPointerCancel={() => {
                     optionPointerStateRef.current = null;
