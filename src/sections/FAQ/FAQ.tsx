@@ -25,6 +25,7 @@ export function FAQ() {
         <div className={styles.list}>
           {content.faq.items.map((item, index) => {
             const isOpen = activeIndex === index;
+            const answerId = `faq-answer-${index}`;
 
             return (
               <div
@@ -36,13 +37,23 @@ export function FAQ() {
                   className={styles.question}
                   onClick={() => toggle(index)}
                   aria-expanded={isOpen}
+                  aria-controls={answerId}
                 >
                   {item.question}
-                  <span className={styles.icon}>{isOpen ? "−" : "+"}</span>
+                  <span className={styles.icon} aria-hidden="true">
+                    {isOpen ? "−" : "+"}
+                  </span>
                 </button>
 
-                <div className={styles.answerWrapper}>
-                  <p className={styles.answer}>{item.answer}</p>
+                <div
+                  id={answerId}
+                  className={styles.answerWrapper}
+                  role="region"
+                  aria-hidden={!isOpen}
+                >
+                  <div className={styles.answerInner}>
+                    <p className={styles.answer}>{item.answer}</p>
+                  </div>
                 </div>
               </div>
             );
