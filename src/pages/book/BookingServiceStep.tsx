@@ -57,8 +57,7 @@ export function BookingServiceStep({
 }: BookingServiceStepProps) {
   const isPackageMode = bookingMode === "package";
   const isBuyPackageMode = bookingMode === "buy-package";
-  const packageBookingMobileLabel =
-    currentLanguage === "ru" ? "Запись по пакету" : copy.packageBookingLabel;
+  const packageBookingMobileLabel = copy.packageBookingMobileLabel;
 
   return (
     <div className={pageStyles.section}>

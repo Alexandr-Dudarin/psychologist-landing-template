@@ -153,7 +153,7 @@ export function BookingPageContent({
     <Container>
       <div className={styles.topbar}>
         <Link to="/" className={styles.backLink}>
-          {currentLanguage === "ru" ? "← Вернуться на сайт" : "← Back to site"}
+          {copy.backToSite}
         </Link>
       </div>
 
@@ -236,9 +236,7 @@ export function BookingPageContent({
                       </span>
 
                       <span className={styles.timezoneNoticeText}>
-                        {currentLanguage === "ru"
-                          ? `Время указано по часовому поясу записи: ${timezoneLabel}. Пожалуйста, учитывайте это при выборе слота.`
-                          : `Times are shown in the booking timezone: ${timezoneLabel}. Please keep this in mind when choosing a slot.`}
+                        {copy.timezoneNotice.replace("{timezone}", timezoneLabel)}
                       </span>
                     </div>
                   ) : null}

@@ -6,6 +6,7 @@ export const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     title: "Выберите услугу, дату и удобный слот",
     description:
       "Выберите свободное время и сразу отправьте запрос на бронирование. Перед созданием записи сервер ещё раз проверит слот по актуальному расписанию.",
+    backToSite: "← Вернуться на сайт",
 
     bookingModeTitle: "Как вы хотите записаться?",
     bookingModeHint:
@@ -13,6 +14,7 @@ export const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     regularBookingLabel: "Обычная запись",
     packageBookingLabel: "По пакету",
     packagePurchaseLabel: "Купить пакет",
+    packageBookingMobileLabel: "Запись по пакету",
 
     packageLookupTitle: "Запись по коду пакета",
     packageLookupHint:
@@ -41,6 +43,17 @@ export const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     packagePurchaseSelectedHint: "Пакет выбран",
     packageBaseService: "Базовая услуга",
     packageSessionsCount: "Сессий в пакете",
+    packagePurchaseServiceTitle: "1. Пакет услуг",
+    packagePurchaseServiceHint:
+      "Выберите пакет консультаций. После оплаты вы получите код для записи.",
+    packagePurchaseFormTitle: "2. Данные для покупки пакета",
+    packagePurchaseFormHint:
+      "Укажите данные клиента. После оплаты пакет будет привязан к этому клиенту, а код придёт на email.",
+    packagePurchaseFormDisabled:
+      "Выберите пакет, чтобы заполнить данные и перейти к оплате.",
+    packagePurchaseSummaryFootnote:
+      "После оплаты пакет будет создан в CRM, а код можно будет использовать для записи на консультации.",
+    packagePaymentUnavailableError: "Оплата пакетов сейчас недоступна.",
 
     serviceTitle: "1. Услуга",
     serviceHint: "Показываются только активные услуги из текущей CRM.",
@@ -82,6 +95,8 @@ export const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     consentAriaLabel: "Согласие на обработку персональных данных",
     submitIdle: "Подтвердить запись",
     submitLoading: "Отправляем запись...",
+    paymentSubmitIdle: "Перейти к оплате",
+    paymentSubmitLoading: "Переходим к оплате...",
     submitSuccess:
       "Запись создана. Я свяжусь с вами, если понадобится дополнительное подтверждение.",
     submitConflict:
@@ -97,12 +112,15 @@ export const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     calendarUnavailableHint: "На выбранную дату сейчас нет свободных слотов.",
     calendarDisabledLabel: "Недоступно",
     calendarDisabledHint: "Этот день недоступен для онлайн-записи.",
+    timezoneNotice:
+      "Время указано по часовому поясу записи: {timezone}. Пожалуйста, учитывайте это при выборе слота.",
   },
   en: {
     eyebrow: "Booking",
     title: "Choose a service, date, and available slot",
     description:
       "Pick an open time and submit your booking request right away. The server will re-check the slot against the latest schedule before creating anything.",
+    backToSite: "← Back to site",
 
     bookingModeTitle: "How would you like to book?",
     bookingModeHint:
@@ -110,6 +128,7 @@ export const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     regularBookingLabel: "Regular booking",
     packageBookingLabel: "Use package",
     packagePurchaseLabel: "Buy package",
+    packageBookingMobileLabel: "Use package",
 
     packageLookupTitle: "Book with a package code",
     packageLookupHint:
@@ -138,6 +157,17 @@ export const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     packagePurchaseSelectedHint: "Package selected",
     packageBaseService: "Base service",
     packageSessionsCount: "Sessions in package",
+    packagePurchaseServiceTitle: "1. Package",
+    packagePurchaseServiceHint:
+      "Choose a consultation package. After payment, you will receive a booking code.",
+    packagePurchaseFormTitle: "2. Package purchase details",
+    packagePurchaseFormHint:
+      "Enter client details. After payment, the package will be linked to this client and the code will be sent by email.",
+    packagePurchaseFormDisabled:
+      "Choose a package to fill in your details and proceed to payment.",
+    packagePurchaseSummaryFootnote:
+      "After payment, the package will be created in CRM and the code can be used for booking sessions.",
+    packagePaymentUnavailableError: "Package payments are currently unavailable.",
 
     serviceTitle: "1. Service",
     serviceHint: "Only active services from the current CRM are shown here.",
@@ -178,6 +208,8 @@ export const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     consentAriaLabel: "Consent to personal data processing",
     submitIdle: "Confirm booking",
     submitLoading: "Creating booking...",
+    paymentSubmitIdle: "Proceed to payment",
+    paymentSubmitLoading: "Redirecting to payment...",
     submitSuccess:
       "Your booking has been created. I will reach out if any extra confirmation is needed.",
     submitConflict:
@@ -192,5 +224,7 @@ export const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
     calendarUnavailableHint: "This selected date currently has no open slots.",
     calendarDisabledLabel: "Closed",
     calendarDisabledHint: "This day is not bookable online.",
+    timezoneNotice:
+      "Times are shown in the booking timezone: {timezone}. Please keep this in mind when choosing a slot.",
   },
 };

@@ -122,44 +122,28 @@ export function BookingPage() {
   const copy: BookingPageCopy = {
     ...baseCopy,
     serviceTitle: isPackagePurchaseMode
-      ? currentLanguage === "ru"
-        ? "1. Пакет услуг"
-        : "1. Package"
+      ? baseCopy.packagePurchaseServiceTitle
       : baseCopy.serviceTitle,
     serviceHint: isPackagePurchaseMode
-      ? currentLanguage === "ru"
-        ? "Выберите пакет консультаций. После оплаты вы получите код для записи."
-        : "Choose a consultation package. After payment, you will receive a booking code."
+      ? baseCopy.packagePurchaseServiceHint
       : baseCopy.serviceHint,
     formTitle: isPackagePurchaseMode
-      ? currentLanguage === "ru"
-        ? "2. Данные для покупки пакета"
-        : "2. Package purchase details"
+      ? baseCopy.packagePurchaseFormTitle
       : baseCopy.formTitle,
     formHint: isPackagePurchaseMode
-      ? currentLanguage === "ru"
-        ? "Укажите данные клиента. После оплаты пакет будет привязан к этому клиенту, а код придёт на email."
-        : "Enter client details. After payment, the package will be linked to this client and the code will be sent by email."
+      ? baseCopy.packagePurchaseFormHint
       : baseCopy.formHint,
     formDisabled: isPackagePurchaseMode
-      ? currentLanguage === "ru"
-        ? "Выберите пакет, чтобы заполнить данные и перейти к оплате."
-        : "Choose a package to fill in your details and proceed to payment."
+      ? baseCopy.packagePurchaseFormDisabled
       : baseCopy.formDisabled,
     summaryFootnote: isPackagePurchaseMode
-      ? currentLanguage === "ru"
-        ? "После оплаты пакет будет создан в CRM, а код можно будет использовать для записи на консультации."
-        : "After payment, the package will be created in CRM and the code can be used for booking sessions."
+      ? baseCopy.packagePurchaseSummaryFootnote
       : baseCopy.summaryFootnote,
     submitIdle: shouldSubmitThroughPayment
-      ? currentLanguage === "ru"
-        ? "Перейти к оплате"
-        : "Proceed to payment"
+      ? baseCopy.paymentSubmitIdle
       : baseCopy.submitIdle,
     submitLoading: shouldSubmitThroughPayment
-      ? currentLanguage === "ru"
-        ? "Переходим к оплате..."
-        : "Redirecting to payment..."
+      ? baseCopy.paymentSubmitLoading
       : baseCopy.submitLoading,
   };
 
@@ -597,9 +581,7 @@ export function BookingPage() {
 
     if (!isPaymentEnabled) {
       setSubmitError(
-        currentLanguage === "ru"
-          ? "Оплата пакетов сейчас недоступна."
-          : "Package payments are currently unavailable."
+        copy.packagePaymentUnavailableError
       );
       return;
     }

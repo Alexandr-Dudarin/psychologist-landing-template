@@ -11,12 +11,14 @@ export type BookingPageCopy = {
   eyebrow: string;
   title: string;
   description: string;
+  backToSite: string;
 
   bookingModeTitle: string;
   bookingModeHint: string;
   regularBookingLabel: string;
   packageBookingLabel: string;
   packagePurchaseLabel: string;
+  packageBookingMobileLabel: string;
 
   packageLookupTitle: string;
   packageLookupHint: string;
@@ -41,6 +43,13 @@ export type BookingPageCopy = {
   packagePurchaseSelectedHint: string;
   packageBaseService: string;
   packageSessionsCount: string;
+  packagePurchaseServiceTitle: string;
+  packagePurchaseServiceHint: string;
+  packagePurchaseFormTitle: string;
+  packagePurchaseFormHint: string;
+  packagePurchaseFormDisabled: string;
+  packagePurchaseSummaryFootnote: string;
+  packagePaymentUnavailableError: string;
 
   serviceTitle: string;
   serviceHint: string;
@@ -76,6 +85,8 @@ export type BookingPageCopy = {
   consentAriaLabel: string;
   submitIdle: string;
   submitLoading: string;
+  paymentSubmitIdle: string;
+  paymentSubmitLoading: string;
   submitSuccess: string;
   submitConflict: string;
   submitErrorFallback: string;
@@ -87,6 +98,7 @@ export type BookingPageCopy = {
   calendarUnavailableHint: string;
   calendarDisabledLabel: string;
   calendarDisabledHint: string;
+  timezoneNotice: string;
 };
 
 export type BookingFormState = PreferredContactFields & {
