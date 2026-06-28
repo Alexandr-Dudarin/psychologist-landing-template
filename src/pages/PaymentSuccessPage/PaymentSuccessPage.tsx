@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import { Button } from "../../components/Button/Button";
 import { Container } from "../../components/Container/Container";
 import {
@@ -13,6 +14,7 @@ import {
   getPaymentStatus,
   type PaymentStatusResponse,
 } from "../../lib/api/payment";
+import { paymentSuccessPageCopy } from "./paymentSuccessPage.copy";
 import styles from "./PaymentSuccessPage.module.css";
 
 const POLL_INTERVAL_MS = 3000;
@@ -38,6 +40,7 @@ function getPackageBookingTarget(params: {
 }
 
 export function PaymentSuccessPage() {
+  const { language } = useLanguage();
   const [searchParams] = useSearchParams();
   const [payment, setPayment] = useState<PaymentStatusResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,9 +48,12 @@ export function PaymentSuccessPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [didReachPollLimit, setDidReachPollLimit] = useState(false);
 
-  const locale = "ru-RU";
+  const currentLanguage = language === "en" ? "en" : "ru";
+  const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
+  const copy = paymentSuccessPageCopy[currentLanguage];
+
   const bookingTimezone = payment?.timezone ?? getDefaultBookingTimezone();
-  const timezoneLabel = getTimezoneLabel(bookingTimezone, "ru");
+  const timezoneLabel = getTimezoneLabel(bookingTimezone, currentLanguage);
 
   const requestId = useMemo(() => {
     const raw = searchParams.get("requestId");
@@ -68,7 +74,9 @@ export function PaymentSuccessPage() {
         }
 
         setPayment(status);
-        setErrorMessage(status.errorMessage ?? null);
+        setErrorMessage(
+          currentLanguage === "ru" ? status.errorMessage ?? null : null
+        );
 
         if (status.status !== "pending") {
           setDidReachPollLimit(false);
@@ -84,9 +92,9 @@ export function PaymentSuccessPage() {
         }
 
         setErrorMessage(
-          error instanceof Error
+          currentLanguage === "ru" && error instanceof Error
             ? error.message
-            : "Не удалось загрузить статус оплаты."
+            : copy.loadStatusError
         );
 
         if (intervalId !== null) {
@@ -101,7 +109,7 @@ export function PaymentSuccessPage() {
     }
 
     if (!requestId) {
-      setErrorMessage("Не удалось найти данные оплаты.");
+      setErrorMessage(copy.missingPaymentData);
       setIsLoading(false);
 
       return () => {
@@ -138,7 +146,12 @@ export function PaymentSuccessPage() {
         window.clearInterval(intervalId);
       }
     };
-  }, [requestId]);
+  }, [
+    copy.loadStatusError,
+    copy.missingPaymentData,
+    currentLanguage,
+    requestId,
+  ]);
 
   useEffect(() => {
     if (payment?.status !== "paid") {
@@ -179,16 +192,16 @@ export function PaymentSuccessPage() {
     isLoading || payment?.status === "paid" || isPending ? "🎉" : "⚠️";
 
   const title = isLoading
-    ? "Проверяем статус оплаты..."
+    ? copy.checkingTitle
     : isPaidPackage
-      ? "Пакет оплачен"
+      ? copy.packagePaidTitle
       : isPaidBooking
-        ? "Запись подтверждена"
+        ? copy.bookingConfirmedTitle
         : isCancelled
-          ? "Оплата не завершена"
+          ? copy.cancelledTitle
           : isPending
-            ? "Проверяем статус оплаты"
-            : "Не удалось подтвердить оплату";
+            ? copy.pendingTitle
+            : copy.failedTitle;
 
   return (
     <section className={styles.section}>
@@ -204,31 +217,31 @@ export function PaymentSuccessPage() {
 
           <div className={styles.contentWrapper}>
             {isLoading ? (
-              <p className={styles.fallback}>
-                Пожалуйста, подождите: мы проверяем статус оплаты.
-              </p>
+              <p className={styles.fallback}>{copy.loadingText}</p>
             ) : isPaidPackage && servicePackage ? (
               <div className={`${styles.details} ${styles.packageDetails}`}>
                 <p>
-                  <strong>Пакет:</strong> {servicePackage.packageTitle}
+                  <strong>{copy.packageLabel}:</strong>{" "}
+                  {servicePackage.packageTitle}
                 </p>
 
                 {servicePackage.serviceTitle ? (
                   <p>
-                    <strong>Услуга:</strong> {servicePackage.serviceTitle}
+                    <strong>{copy.serviceLabel}:</strong>{" "}
+                    {servicePackage.serviceTitle}
                   </p>
                 ) : null}
 
                 {servicePackage.sessionsCount ? (
                   <p>
-                    <strong>Количество сессий:</strong>{" "}
+                    <strong>{copy.sessionsCountLabel}:</strong>{" "}
                     {servicePackage.sessionsCount}
                   </p>
                 ) : null}
 
                 <p>
-                  <strong>Имя:</strong> {servicePackage.firstName}{" "}
-                  {servicePackage.lastName}
+                  <strong>{copy.nameLabel}:</strong>{" "}
+                  {servicePackage.firstName} {servicePackage.lastName}
                 </p>
 
                 {servicePackage.email ? (
@@ -239,34 +252,33 @@ export function PaymentSuccessPage() {
 
                 {servicePackage.code ? (
                   <div className={styles.codeBox}>
-                    <span className={styles.codeLabel}>Код пакета</span>
+                    <span className={styles.codeLabel}>
+                      {copy.packageCodeLabel}
+                    </span>
                     <strong className={styles.codeValue}>
                       {servicePackage.code}
                     </strong>
                   </div>
                 ) : null}
 
-                <p className={styles.packageHint}>
-                  Код также будет отправлен на email. Используйте его на
-                  странице онлайн-записи, чтобы записываться по пакету.
-                </p>
+                <p className={styles.packageHint}>{copy.packageHint}</p>
               </div>
             ) : isPaidBooking && bookingStartsAt ? (
               <div className={styles.details}>
                 <p>
-                  <strong>Дата:</strong>{" "}
+                  <strong>{copy.dateLabel}:</strong>{" "}
                   {formatBookingDate(bookingStartsAt, locale, bookingTimezone)}
                 </p>
 
                 <p>
-                  <strong>Время:</strong>{" "}
+                  <strong>{copy.timeLabel}:</strong>{" "}
                   {formatBookingTime(bookingStartsAt, locale, bookingTimezone)} (
                   {timezoneLabel})
                 </p>
 
                 <p>
-                  <strong>Имя:</strong> {payment.booking.firstName}{" "}
-                  {payment.booking.lastName}
+                  <strong>{copy.nameLabel}:</strong>{" "}
+                  {payment.booking.firstName} {payment.booking.lastName}
                 </p>
 
                 {payment.booking.email ? (
@@ -277,40 +289,25 @@ export function PaymentSuccessPage() {
               </div>
             ) : isCancelled ? (
               <p className={styles.fallback}>
-                {errorMessage ||
-                  "Оплата была отменена или не завершилась. Вы можете вернуться на сайт и попробовать снова."}
+                {errorMessage || copy.cancelledText}
               </p>
             ) : isPending && didReachPollLimit ? (
-              <p className={styles.fallback}>
-                Мы пока не получили финальный статус оплаты. Если вы отменили
-                оплату или закрыли окно оплаты, действие не будет завершено. Если
-                платёж был успешно завершён, обновите страницу через несколько
-                секунд.
-              </p>
+              <p className={styles.fallback}>{copy.pendingLimitText}</p>
             ) : isPending ? (
-              <p className={styles.fallback}>
-                Мы проверяем статус оплаты. Если вы отменили оплату или закрыли
-                окно оплаты, действие не будет завершено. Обычно статус
-                обновляется автоматически меньше чем за минуту.
-              </p>
+              <p className={styles.fallback}>{copy.pendingText}</p>
             ) : (
               <p className={styles.fallback}>
-                {errorMessage ||
-                  "Не удалось подтвердить оплату или завершить действие."}
+                {errorMessage || copy.failedText}
               </p>
             )}
           </div>
 
           {isPaidBooking ? (
-            <p className={styles.note}>
-              Я свяжусь с вами в ближайшее время для подтверждения деталей.
-            </p>
+            <p className={styles.note}>{copy.paidBookingNote}</p>
           ) : null}
 
           {isPaidPackage ? (
-            <p className={styles.note}>
-              Сохраните код пакета: он понадобится для записи на консультации.
-            </p>
+            <p className={styles.note}>{copy.paidPackageNote}</p>
           ) : null}
 
           {!isLoading ? (
@@ -318,26 +315,26 @@ export function PaymentSuccessPage() {
               {isRetryAvailable ? (
                 <div className={styles.actionLinks}>
                   <Link to="/book" className={styles.retryLink}>
-                    Попробовать снова
+                    {copy.retryButton}
                   </Link>
 
                   <Button href="/" variant="premium">
-                    На главную
+                    {copy.homeButton}
                   </Button>
                 </div>
               ) : isPaidPackage ? (
                 <div className={styles.actionLinks}>
                   <Button href={packageBookingTarget} variant="premium">
-                    Записаться по пакету
+                    {copy.bookWithPackageButton}
                   </Button>
 
                   <Button href="/" variant="premium">
-                    На главную
+                    {copy.homeButton}
                   </Button>
                 </div>
               ) : (
                 <Button href="/" variant="premium">
-                  На главную
+                  {copy.homeButton}
                 </Button>
               )}
             </div>
