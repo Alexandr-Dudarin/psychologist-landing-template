@@ -40,6 +40,17 @@ type BookingFormStepProps = {
   ) => void;
 };
 
+const bookingFormErrorIds = {
+  firstName: "booking-first-name-error",
+  lastName: "booking-last-name-error",
+  phone: "booking-phone-error",
+  email: "booking-email-error",
+  preferredContactMethod: "booking-preferred-contact-method-error",
+  preferredContactValue: "booking-preferred-contact-value-error",
+  message: "booking-message-error",
+  consent: "booking-consent-error",
+} as const;
+
 function getPreferredContactOptions(
   copy: BookingPageCopy
 ): CustomSelectOption[] {
@@ -83,7 +94,11 @@ export function BookingFormStep({
       </div>
 
       {submitSuccess ? (
-        <div className={`${pageStyles.stateBox} ${pageStyles.successBox}`}>
+        <div
+          className={`${pageStyles.stateBox} ${pageStyles.successBox}`}
+          role="status"
+          aria-live="polite"
+        >
           {submitSuccess}
         </div>
       ) : null}
@@ -107,9 +122,20 @@ export function BookingFormStep({
                 onFieldChange("firstName", event.target.value)
               }
               placeholder={bookingContent.placeholders.firstName}
+              aria-invalid={Boolean(formErrors.firstName)}
+              aria-describedby={
+                formErrors.firstName
+                  ? bookingFormErrorIds.firstName
+                  : undefined
+              }
             />
             {formErrors.firstName ? (
-              <span className={styles.fieldError}>{formErrors.firstName}</span>
+              <span
+                id={bookingFormErrorIds.firstName}
+                className={styles.fieldError}
+              >
+                {formErrors.firstName}
+              </span>
             ) : null}
           </div>
 
@@ -126,9 +152,18 @@ export function BookingFormStep({
                 onFieldChange("lastName", event.target.value)
               }
               placeholder={bookingContent.placeholders.lastName}
+              aria-invalid={Boolean(formErrors.lastName)}
+              aria-describedby={
+                formErrors.lastName ? bookingFormErrorIds.lastName : undefined
+              }
             />
             {formErrors.lastName ? (
-              <span className={styles.fieldError}>{formErrors.lastName}</span>
+              <span
+                id={bookingFormErrorIds.lastName}
+                className={styles.fieldError}
+              >
+                {formErrors.lastName}
+              </span>
             ) : null}
           </div>
 
@@ -143,9 +178,18 @@ export function BookingFormStep({
               disabled={isLocked}
               onChange={(event) => onFieldChange("phone", event.target.value)}
               placeholder={bookingContent.placeholders.phone}
+              aria-invalid={Boolean(formErrors.phone)}
+              aria-describedby={
+                formErrors.phone ? bookingFormErrorIds.phone : undefined
+              }
             />
             {formErrors.phone ? (
-              <span className={styles.fieldError}>{formErrors.phone}</span>
+              <span
+                id={bookingFormErrorIds.phone}
+                className={styles.fieldError}
+              >
+                {formErrors.phone}
+              </span>
             ) : null}
           </div>
 
@@ -158,9 +202,18 @@ export function BookingFormStep({
               disabled={isLocked}
               onChange={(event) => onFieldChange("email", event.target.value)}
               placeholder={bookingContent.placeholders.email}
+              aria-invalid={Boolean(formErrors.email)}
+              aria-describedby={
+                formErrors.email ? bookingFormErrorIds.email : undefined
+              }
             />
             {formErrors.email ? (
-              <span className={styles.fieldError}>{formErrors.email}</span>
+              <span
+                id={bookingFormErrorIds.email}
+                className={styles.fieldError}
+              >
+                {formErrors.email}
+              </span>
             ) : null}
           </div>
 
@@ -185,7 +238,10 @@ export function BookingFormStep({
                   className={styles.preferredContactSelect}
                 />
                 {formErrors.preferredContactMethod ? (
-                  <span className={styles.fieldError}>
+                  <span
+                    id={bookingFormErrorIds.preferredContactMethod}
+                    className={styles.fieldError}
+                  >
                     {formErrors.preferredContactMethod}
                   </span>
                 ) : null}
@@ -215,9 +271,18 @@ export function BookingFormStep({
                     placeholder={
                       preferredContactPlaceholders[form.preferredContactMethod]
                     }
+                    aria-invalid={Boolean(formErrors.preferredContactValue)}
+                    aria-describedby={
+                      formErrors.preferredContactValue
+                        ? bookingFormErrorIds.preferredContactValue
+                        : undefined
+                    }
                   />
                   {formErrors.preferredContactValue ? (
-                    <span className={styles.fieldError}>
+                    <span
+                      id={bookingFormErrorIds.preferredContactValue}
+                      className={styles.fieldError}
+                    >
                       {formErrors.preferredContactValue}
                     </span>
                   ) : null}
@@ -235,12 +300,17 @@ export function BookingFormStep({
               value={form.message}
               disabled={isLocked}
               aria-invalid={Boolean(messageError)}
-              aria-describedby={messageError ? "booking-message-error" : undefined}
+              aria-describedby={
+                messageError ? bookingFormErrorIds.message : undefined
+              }
               onChange={(event) => onFieldChange("message", event.target.value)}
               placeholder={bookingContent.placeholders.message}
             />
             {messageError ? (
-              <span id="booking-message-error" className={styles.fieldError}>
+              <span
+                id={bookingFormErrorIds.message}
+                className={styles.fieldError}
+              >
                 {messageError}
               </span>
             ) : null}
@@ -263,7 +333,12 @@ export function BookingFormStep({
               </span>
             </CustomCheckbox>
             {formErrors.consent ? (
-              <span className={styles.fieldError}>{formErrors.consent}</span>
+              <span
+                id={bookingFormErrorIds.consent}
+                className={styles.fieldError}
+              >
+                {formErrors.consent}
+              </span>
             ) : null}
           </div>
 
@@ -281,6 +356,7 @@ export function BookingFormStep({
           {submitError ? (
             <div
               className={`${pageStyles.stateBox} ${pageStyles.errorBox} ${styles.submitError}`}
+              role="alert"
             >
               {submitError}
             </div>
