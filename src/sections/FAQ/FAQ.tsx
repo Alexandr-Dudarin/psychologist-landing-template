@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { useLanguage } from "../../app/providers/LanguageProvider";
@@ -6,6 +6,7 @@ import styles from "./FAQ.module.css";
 
 export function FAQ() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const generatedId = useId();
   const { t } = useLanguage();
   const { content } = t;
 
@@ -25,7 +26,8 @@ export function FAQ() {
         <div className={styles.list}>
           {content.faq.items.map((item, index) => {
             const isOpen = activeIndex === index;
-            const answerId = `faq-answer-${index}`;
+            const questionId = `${generatedId}-question-${index}`;
+            const answerId = `${generatedId}-answer-${index}`;
 
             return (
               <div
@@ -33,6 +35,7 @@ export function FAQ() {
                 className={`${styles.card} ${isOpen ? styles.open : ""}`}
               >
                 <button
+                  id={questionId}
                   type="button"
                   className={styles.question}
                   onClick={() => toggle(index)}
@@ -40,15 +43,14 @@ export function FAQ() {
                   aria-controls={answerId}
                 >
                   {item.question}
-                  <span className={styles.icon} aria-hidden="true">
-                    {isOpen ? "−" : "+"}
-                  </span>
+                  <span className={styles.icon} aria-hidden="true" />
                 </button>
 
                 <div
                   id={answerId}
                   className={styles.answerWrapper}
                   role="region"
+                  aria-labelledby={questionId}
                   aria-hidden={!isOpen}
                 >
                   <div className={styles.answerInner}>

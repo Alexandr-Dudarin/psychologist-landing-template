@@ -40,6 +40,11 @@
   line-height: 1.35;
 }
 
+.question:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
 .icon {
   position: relative;
   display: inline-grid;
@@ -130,7 +135,7 @@
   .icon {
     width: 26px;
     height: 26px;
-    font-size: 20px;
+    font-size: 0px;
   }
 
   .answer {
