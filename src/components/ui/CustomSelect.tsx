@@ -9,6 +9,10 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
+import {
+  DEFAULT_CUSTOM_SELECT_EMPTY_LABEL,
+  DEFAULT_CUSTOM_SELECT_PLACEHOLDER,
+} from "./CustomSelect.copy";
 import styles from "./CustomSelect.module.css";
 
 export type CustomSelectOption = {
@@ -30,6 +34,7 @@ type CustomSelectProps = {
   onChange: (value: string) => void;
   ariaLabel: string;
   placeholder?: string;
+  emptyLabel?: string;
   disabled?: boolean;
   className?: string;
   variant?: CustomSelectVariant;
@@ -111,7 +116,8 @@ export function CustomSelect({
   options,
   onChange,
   ariaLabel,
-  placeholder = "Выберите значение",
+  placeholder = DEFAULT_CUSTOM_SELECT_PLACEHOLDER,
+  emptyLabel = DEFAULT_CUSTOM_SELECT_EMPTY_LABEL,
   disabled = false,
   className = "",
   variant = "admin",
@@ -653,7 +659,7 @@ export function CustomSelect({
               );
             })
           ) : (
-            <div className={styles.emptyOption}>Нет вариантов</div>
+            <div className={styles.emptyOption}>{emptyLabel}</div>
           )}
         </div>
       ) : null}
