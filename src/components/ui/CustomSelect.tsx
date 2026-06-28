@@ -128,6 +128,7 @@ export function CustomSelect({
   const generatedId = useId();
   const triggerId = `${generatedId}-trigger`;
   const listboxId = `${generatedId}-listbox`;
+  const getOptionId = (index: number) => `${generatedId}-option-${index}`;
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -161,6 +162,11 @@ export function CustomSelect({
 
   const selectedLabel = selectedOption?.label ?? placeholder;
   const hasSelectedOption = selectedOption !== null;
+  const highlightedOption = options[highlightedIndex];
+  const activeDescendantId =
+    isOpen && isSelectableOption(highlightedOption)
+      ? getOptionId(highlightedIndex)
+      : undefined;
 
   const rootClassName = [
     styles.root,
@@ -489,11 +495,13 @@ export function CustomSelect({
         ref={triggerRef}
         id={triggerId}
         type="button"
+        role="combobox"
         className={styles.trigger}
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={listboxId}
+        aria-activedescendant={activeDescendantId}
         disabled={disabled}
         onClick={handleTriggerClick}
         onKeyDown={handleTriggerKeyDown}
@@ -546,9 +554,11 @@ export function CustomSelect({
                   ref={(element) => {
                     optionRefs.current[index] = element;
                   }}
+                  id={getOptionId(index)}
                   type="button"
                   role="option"
                   aria-selected={isSelected}
+                  aria-disabled={option.disabled || undefined}
                   disabled={option.disabled}
                   className={[
                     styles.option,
