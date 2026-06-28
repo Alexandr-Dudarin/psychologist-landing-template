@@ -349,6 +349,7 @@ function ImageReviewsCarousel({ items, copy }: ImageReviewsCarouselProps) {
               }`}
               onClick={() => setActiveIndex(index)}
               aria-label={`${copy.imageDotLabelPrefix} ${index + 1}`}
+              aria-current={index === activeIndex ? "page" : undefined}
             />
           ))}
         </div>
@@ -588,6 +589,7 @@ function ClientReviewsPreview({
                 isExpanded || !isLongReview
                   ? review.text.trim()
                   : getPreviewText(review.text, textLimit);
+              const reviewTextId = `client-review-text-${review.id}`;
 
               return (
                 <div
@@ -619,7 +621,9 @@ function ClientReviewsPreview({
                     </div>
 
                     <div className={styles.clientReviewTextBlock}>
-                      <p className={styles.clientReviewText}>{reviewText}</p>
+                      <p id={reviewTextId} className={styles.clientReviewText}>
+                        {reviewText}
+                      </p>
 
                       {isLongReview ? (
                         <button
@@ -627,6 +631,7 @@ function ClientReviewsPreview({
                           className={styles.clientReviewMoreButton}
                           onClick={() => toggleExpandedReview(review.id)}
                           aria-expanded={isExpanded}
+                          aria-controls={reviewTextId}
                         >
                           {isExpanded ? copy.collapseLabel : copy.moreLabel}
                         </button>
@@ -672,6 +677,7 @@ function ClientReviewsPreview({
               }`}
               onClick={() => setActiveIndex(index)}
               aria-label={`${copy.clientDotLabelPrefix} ${index + 1}`}
+              aria-current={index === activeIndex ? "page" : undefined}
             />
           ))}
         </div>
@@ -833,13 +839,17 @@ export function Reviews() {
           {shouldShowClientReviews ? (
             <div className={styles.clientReviewsBlock}>
               {isClientReviewsLoading ? (
-                <div className={styles.clientReviewsState}>
+                <div
+                  className={styles.clientReviewsState}
+                  role="status"
+                  aria-live="polite"
+                >
                   {copy.loadingLabel}
                 </div>
               ) : null}
 
               {!isClientReviewsLoading && clientReviewsError ? (
-                <div className={styles.clientReviewsState}>
+                <div className={styles.clientReviewsState} role="alert">
                   {copy.errorLabel}
                 </div>
               ) : null}

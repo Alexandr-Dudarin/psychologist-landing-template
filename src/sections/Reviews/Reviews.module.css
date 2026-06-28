@@ -539,6 +539,28 @@
   right: -64px;
 }
 
+.clientReviewsControlButton:focus-visible,
+.controlButton:focus-visible,
+.lightboxClose:focus-visible,
+.lightboxControl:focus-visible,
+.card:focus-visible,
+.reviewFormButton:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-accent) 42%, transparent);
+  outline-offset: 4px;
+}
+
+.clientReviewsDot:focus-visible,
+.dot:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-accent) 42%, transparent);
+  outline-offset: 4px;
+}
+
+.clientReviewMoreButton:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 48%, transparent);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
 @media (min-width: 1101px) and (max-width: 1200px) {
   .carouselShell {
     max-width: 980px;
