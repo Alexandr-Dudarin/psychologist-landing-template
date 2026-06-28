@@ -48,6 +48,7 @@ export function CustomCheckbox({
 }: CustomCheckboxProps) {
   const generatedId = useId();
   const inputId = id ?? `${generatedId}-checkbox`;
+  const descriptionId = description ? `${generatedId}-description` : undefined;
   const hasText = Boolean(children || description);
 
   return (
@@ -65,7 +66,7 @@ export function CustomCheckbox({
         .join(" ")}
       htmlFor={inputId}
     >
-      <span className={styles.control} aria-hidden="true">
+      <span className={styles.control}>
         <input
           id={inputId}
           type="checkbox"
@@ -74,12 +75,13 @@ export function CustomCheckbox({
           required={required}
           name={name}
           value={value}
-          aria-label={ariaLabel}
+          aria-label={!hasText ? ariaLabel : undefined}
+          aria-describedby={descriptionId}
           className={styles.input}
           onChange={(event) => onChange(event.target.checked)}
         />
 
-        <span className={styles.box}>
+        <span className={styles.box} aria-hidden="true">
           <span className={styles.mark}>✓</span>
         </span>
       </span>
@@ -88,7 +90,9 @@ export function CustomCheckbox({
         <span className={styles.copy}>
           {children ? <span className={styles.label}>{children}</span> : null}
           {description ? (
-            <span className={styles.description}>{description}</span>
+            <span id={descriptionId} className={styles.description}>
+              {description}
+            </span>
           ) : null}
         </span>
       ) : null}
