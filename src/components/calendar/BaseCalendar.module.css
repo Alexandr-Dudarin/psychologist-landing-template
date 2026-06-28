@@ -433,6 +433,7 @@
   0% {
     transform: scale(0.96);
   }
+
   100% {
     transform: scale(1);
   }
@@ -515,6 +516,29 @@
     height: 18px;
     padding: 0 5px;
     font-size: 10px;
+  }
+
+  .calendarPublic .day {
+    text-align: center;
+  }
+
+  .calendarPublic .dayTop {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .calendarPublic .dayNumber {
+    line-height: 1;
+  }
+
+  .calendarPublic .badge {
+    min-width: 16px;
+    height: 16px;
+    padding: 0 5px;
+    font-size: 9px;
+    line-height: 1;
   }
 
   .label,
