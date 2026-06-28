@@ -7,6 +7,10 @@ import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { siteSettings } from "../../data/siteSettings";
 import { getPublishedClientReviewsPage } from "../../lib/api/clientReviews";
 import type { ClientReviewPublicRecord, ReviewItem } from "../../types/reviews";
+import {
+  reviewsCopyByLanguage,
+  type ReviewsSectionCopy,
+} from "./reviews.copy";
 import styles from "./Reviews.module.css";
 
 const CLIENT_REVIEW_TEXT_LIMIT_DESKTOP = 450;
@@ -50,19 +54,22 @@ function getClientReviewTextLimit(width: number) {
   return CLIENT_REVIEW_TEXT_LIMIT_DESKTOP;
 }
 
-function getPublicReviewName(review: ClientReviewPublicRecord) {
-  return review.publicName.trim() || "Анонимный отзыв";
+function getPublicReviewName(
+  review: ClientReviewPublicRecord,
+  anonymousReviewName: string
+) {
+  return review.publicName.trim() || anonymousReviewName;
 }
 
-function getReviewRatingLabel(rating: number | null) {
+function getReviewRatingLabel(rating: number | null, noRatingLabel: string) {
   if (rating === null) {
-    return "Без оценки";
+    return noRatingLabel;
   }
 
   return `${rating} / 5`;
 }
 
-function formatReviewDate(value: string, language: string) {
+function formatReviewDate(value: string, language: "ru" | "en") {
   return new Date(value).toLocaleDateString(
     language === "ru" ? "ru-RU" : "en-US",
     {
@@ -85,10 +92,10 @@ function getPreviewText(text: string, limit: number) {
 
 type ImageReviewsCarouselProps = {
   items: ReviewItem[];
-  language: string;
+  copy: ReviewsSectionCopy;
 };
 
-function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
+function ImageReviewsCarousel({ items, copy }: ImageReviewsCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(() =>
@@ -256,17 +263,6 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
     lightboxTouchDeltaXRef.current = 0;
   };
 
-  const prevLabel =
-    language === "ru" ? "Предыдущие отзывы" : "Previous reviews";
-  const nextLabel =
-    language === "ru" ? "Следующие отзывы" : "Next reviews";
-  const dotLabelPrefix =
-    language === "ru" ? "Перейти к слайду" : "Go to slide";
-  const closeLabel =
-    language === "ru" ? "Закрыть просмотр" : "Close preview";
-  const openLabel =
-    language === "ru" ? "Открыть отзыв крупнее" : "Open review larger";
-
   return (
     <>
       <div className={styles.carouselShell}>
@@ -275,7 +271,7 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
             type="button"
             className={`${styles.controlButton} ${styles.controlButtonLeft}`}
             onClick={goPrev}
-            aria-label={prevLabel}
+            aria-label={copy.imagePrevLabel}
           >
             <ChevronLeft size={18} />
           </button>
@@ -312,7 +308,7 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
 
                     setLightboxIndex(index);
                   }}
-                  aria-label={openLabel}
+                  aria-label={copy.imageOpenLabel}
                 >
                   <img
                     src={item.image}
@@ -335,7 +331,7 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
             type="button"
             className={`${styles.controlButton} ${styles.controlButtonRight}`}
             onClick={goNext}
-            aria-label={nextLabel}
+            aria-label={copy.imageNextLabel}
           >
             <ChevronRight size={18} />
           </button>
@@ -352,7 +348,7 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
                 index === activeIndex ? styles.dotActive : ""
               }`}
               onClick={() => setActiveIndex(index)}
-              aria-label={`${dotLabelPrefix} ${index + 1}`}
+              aria-label={`${copy.imageDotLabelPrefix} ${index + 1}`}
             />
           ))}
         </div>
@@ -363,7 +359,7 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
           className={styles.lightbox}
           role="dialog"
           aria-modal="true"
-          aria-label={openLabel}
+          aria-label={copy.imageOpenLabel}
           onClick={() => setLightboxIndex(null)}
         >
           <div
@@ -377,7 +373,7 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
               type="button"
               className={styles.lightboxClose}
               onClick={() => setLightboxIndex(null)}
-              aria-label={closeLabel}
+              aria-label={copy.imageCloseLabel}
             >
               <X size={18} />
             </button>
@@ -388,7 +384,7 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
                   type="button"
                   className={`${styles.lightboxControl} ${styles.lightboxControlLeft}`}
                   onClick={goLightboxPrev}
-                  aria-label={prevLabel}
+                  aria-label={copy.imagePrevLabel}
                 >
                   <ChevronLeft size={20} />
                 </button>
@@ -397,7 +393,7 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
                   type="button"
                   className={`${styles.lightboxControl} ${styles.lightboxControlRight}`}
                   onClick={goLightboxNext}
-                  aria-label={nextLabel}
+                  aria-label={copy.imageNextLabel}
                 >
                   <ChevronRight size={20} />
                 </button>
@@ -418,7 +414,8 @@ function ImageReviewsCarousel({ items, language }: ImageReviewsCarouselProps) {
 
 type ClientReviewsPreviewProps = {
   items: ClientReviewPublicRecord[];
-  language: string;
+  language: "ru" | "en";
+  copy: ReviewsSectionCopy;
   hasMore: boolean;
   isLoadingMore: boolean;
   onLoadMore: () => void;
@@ -427,6 +424,7 @@ type ClientReviewsPreviewProps = {
 function ClientReviewsPreview({
   items,
   language,
+  copy,
   hasMore,
   isLoadingMore,
   onLoadMore,
@@ -553,15 +551,6 @@ function ClientReviewsPreview({
     });
   };
 
-  const prevLabel =
-    language === "ru" ? "Предыдущие отзывы" : "Previous reviews";
-  const nextLabel =
-    language === "ru" ? "Следующие отзывы" : "Next reviews";
-  const dotLabelPrefix =
-    language === "ru" ? "Перейти к отзывам" : "Go to reviews";
-  const moreLabel = language === "ru" ? "Ещё" : "More";
-  const collapseLabel = language === "ru" ? "Свернуть" : "Collapse";
-
   return (
     <>
       <div
@@ -574,7 +563,7 @@ function ClientReviewsPreview({
             type="button"
             className={`${styles.clientReviewsControlButton} ${styles.clientReviewsControlButtonLeft}`}
             onClick={goPrev}
-            aria-label={prevLabel}
+            aria-label={copy.clientPrevLabel}
           >
             <ChevronLeft size={18} />
           </button>
@@ -609,7 +598,10 @@ function ClientReviewsPreview({
                   <article className={styles.clientReviewCard}>
                     <div className={styles.clientReviewHeader}>
                       <h3 className={styles.clientReviewName}>
-                        {getPublicReviewName(review)}
+                        {getPublicReviewName(
+                          review,
+                          copy.anonymousReviewName
+                        )}
                       </h3>
 
                       <span
@@ -619,7 +611,10 @@ function ClientReviewsPreview({
                             : styles.clientReviewRating
                         }
                       >
-                        {getReviewRatingLabel(review.rating)}
+                        {getReviewRatingLabel(
+                          review.rating,
+                          copy.noRatingLabel
+                        )}
                       </span>
                     </div>
 
@@ -633,7 +628,7 @@ function ClientReviewsPreview({
                           onClick={() => toggleExpandedReview(review.id)}
                           aria-expanded={isExpanded}
                         >
-                          {isExpanded ? collapseLabel : moreLabel}
+                          {isExpanded ? copy.collapseLabel : copy.moreLabel}
                         </button>
                       ) : null}
                     </div>
@@ -659,7 +654,7 @@ function ClientReviewsPreview({
             type="button"
             className={`${styles.clientReviewsControlButton} ${styles.clientReviewsControlButtonRight}`}
             onClick={goNext}
-            aria-label={nextLabel}
+            aria-label={copy.clientNextLabel}
           >
             <ChevronRight size={18} />
           </button>
@@ -676,7 +671,7 @@ function ClientReviewsPreview({
                 index === activeIndex ? styles.clientReviewsDotActive : ""
               }`}
               onClick={() => setActiveIndex(index)}
-              aria-label={`${dotLabelPrefix} ${index + 1}`}
+              aria-label={`${copy.clientDotLabelPrefix} ${index + 1}`}
             />
           ))}
         </div>
@@ -687,6 +682,8 @@ function ClientReviewsPreview({
 
 export function Reviews() {
   const { t, language } = useLanguage();
+  const currentLanguage = language === "en" ? "en" : "ru";
+  const copy = reviewsCopyByLanguage[currentLanguage];
   const { content } = t;
 
   const imageItems = useMemo(
@@ -750,18 +747,15 @@ export function Reviews() {
       });
 
       setClientReviewsHasMore(result.hasMore);
-    } catch (error) {
-      setClientReviewsError(
-        error instanceof Error
-          ? error.message
-          : "Не удалось загрузить отзывы."
-      );
+    } catch {
+      setClientReviewsError(copy.loadError);
     } finally {
       setIsClientReviewsLoadingMore(false);
     }
   }, [
     clientReviewItems.length,
     clientReviewsHasMore,
+    copy.loadError,
     isClientReviewsLoading,
     isClientReviewsLoadingMore,
   ]);
@@ -794,14 +788,10 @@ export function Reviews() {
           setClientReviewItems(result.items);
           setClientReviewsHasMore(result.hasMore);
         }
-      } catch (error) {
+      } catch {
         if (isMounted) {
           setClientReviewsHasMore(false);
-          setClientReviewsError(
-            error instanceof Error
-              ? error.message
-              : "Не удалось загрузить отзывы."
-          );
+          setClientReviewsError(copy.loadError);
         }
       } finally {
         if (isMounted) {
@@ -815,7 +805,7 @@ export function Reviews() {
     return () => {
       isMounted = false;
     };
-  }, [shouldShowClientReviews]);
+  }, [copy.loadError, shouldShowClientReviews]);
 
   if (!reviewsSettings.enabled) {
     return null;
@@ -830,23 +820,6 @@ export function Reviews() {
     return null;
   }
 
-  const leaveReviewLabel =
-    language === "ru" ? "Оставить отзыв" : "Leave a review";
-  const loadingLabel =
-    language === "ru" ? "Загружаем отзывы..." : "Loading reviews...";
-  const emptyLabel =
-    language === "ru"
-      ? "Станьте первым, кто оставит отзыв!"
-      : "Be the first to leave a review!";
-  const errorLabel =
-    language === "ru"
-      ? "Отзывы временно не удалось загрузить."
-      : "Reviews could not be loaded right now.";
-  const formLinkHint =
-    language === "ru"
-      ? "Уже были на консультации? Можно оставить отзыв — он попадёт специалисту на проверку."
-      : "Already had a session? You can leave a review for moderation.";
-
   return (
     <section id="reviews" className={`${styles.section} section`}>
       <Container>
@@ -860,23 +833,30 @@ export function Reviews() {
           {shouldShowClientReviews ? (
             <div className={styles.clientReviewsBlock}>
               {isClientReviewsLoading ? (
-                <div className={styles.clientReviewsState}>{loadingLabel}</div>
+                <div className={styles.clientReviewsState}>
+                  {copy.loadingLabel}
+                </div>
               ) : null}
 
               {!isClientReviewsLoading && clientReviewsError ? (
-                <div className={styles.clientReviewsState}>{errorLabel}</div>
+                <div className={styles.clientReviewsState}>
+                  {copy.errorLabel}
+                </div>
               ) : null}
 
               {!isClientReviewsLoading &&
               !clientReviewsError &&
               !hasClientReviews ? (
-                <div className={styles.clientReviewsState}>{emptyLabel}</div>
+                <div className={styles.clientReviewsState}>
+                  {copy.emptyLabel}
+                </div>
               ) : null}
 
               {hasClientReviews ? (
                 <ClientReviewsPreview
                   items={clientReviewItems}
-                  language={language}
+                  language={currentLanguage}
+                  copy={copy}
                   hasMore={clientReviewsHasMore}
                   isLoadingMore={isClientReviewsLoadingMore}
                   onLoadMore={loadMoreClientReviews}
@@ -886,15 +866,15 @@ export function Reviews() {
           ) : null}
 
           {shouldShowImageReviews ? (
-            <ImageReviewsCarousel items={imageItems} language={language} />
+            <ImageReviewsCarousel items={imageItems} copy={copy} />
           ) : null}
 
           {shouldShowReviewFormLink ? (
             <div className={styles.reviewFormCta}>
-              <p>{formLinkHint}</p>
+              <p>{copy.formLinkHint}</p>
 
               <Link to="/reviews" className={styles.reviewFormButton}>
-                {leaveReviewLabel}
+                {copy.leaveReviewLabel}
               </Link>
             </div>
           ) : null}
