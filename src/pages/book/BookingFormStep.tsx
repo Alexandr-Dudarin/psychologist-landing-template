@@ -40,16 +40,20 @@ type BookingFormStepProps = {
   ) => void;
 };
 
-const preferredContactOptions: CustomSelectOption[] = [
-  {
-    value: "",
-    label: "Не указано",
-  },
-  ...preferredContactMethods.map((method) => ({
-    value: method,
-    label: preferredContactMethodLabels[method],
-  })),
-];
+function getPreferredContactOptions(
+  copy: BookingPageCopy
+): CustomSelectOption[] {
+  return [
+    {
+      value: "",
+      label: copy.preferredContactEmptyLabel,
+    },
+    ...preferredContactMethods.map((method) => ({
+      value: method,
+      label: preferredContactMethodLabels[method],
+    })),
+  ];
+}
 
 export function BookingFormStep({
   copy,
@@ -69,6 +73,7 @@ export function BookingFormStep({
   const isLocked = isCompleted || isSubmitting;
   const liveMessageLengthError = getBookingMessageLengthError(form.message);
   const messageError = formErrors.message ?? liveMessageLengthError;
+  const preferredContactOptions = getPreferredContactOptions(copy);
 
   return (
     <div className={pageStyles.section}>
@@ -162,7 +167,7 @@ export function BookingFormStep({
           {showPreferredContact ? (
             <>
               <div className={styles.field}>
-                <label>Предпочтительный способ связи</label>
+                <label>{copy.preferredContactMethodLabel}</label>
                 <CustomSelect
                   value={form.preferredContactMethod}
                   options={preferredContactOptions}
@@ -172,7 +177,7 @@ export function BookingFormStep({
                       nextMethod as BookingFormState["preferredContactMethod"]
                     )
                   }
-                  ariaLabel="Предпочтительный способ связи"
+                  ariaLabel={copy.preferredContactMethodAriaLabel}
                   disabled={isLocked}
                   variant="public"
                   layout="form"
@@ -189,7 +194,7 @@ export function BookingFormStep({
               {form.preferredContactMethod ? (
                 <div className={styles.field}>
                   <label htmlFor="booking-preferred-contact-value">
-                    Контакт для связи
+                    {copy.preferredContactValueLabel}
                   </label>
                   <input
                     id="booking-preferred-contact-value"
@@ -248,7 +253,7 @@ export function BookingFormStep({
               onChange={(checked) => onFieldChange("consent", checked)}
               className={styles.checkboxLabel}
               variant="public"
-              ariaLabel="Согласие на обработку персональных данных"
+              ariaLabel={copy.consentAriaLabel}
             >
               <span>
                 {bookingContent.fields.consent}{" "}

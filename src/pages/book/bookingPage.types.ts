@@ -69,6 +69,11 @@ export type BookingPageCopy = {
   formTitle: string;
   formHint: string;
   formDisabled: string;
+  preferredContactMethodLabel: string;
+  preferredContactMethodAriaLabel: string;
+  preferredContactValueLabel: string;
+  preferredContactEmptyLabel: string;
+  consentAriaLabel: string;
   submitIdle: string;
   submitLoading: string;
   submitSuccess: string;

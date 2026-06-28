@@ -75,6 +75,11 @@ export const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
       "Форма откроется после выбора слота. Запрос создаст или переиспользует клиента и создаст сессию в CRM без двойного бронирования.",
     formDisabled:
       "Выберите слот, чтобы заполнить форму и отправить запрос на бронирование.",
+    preferredContactMethodLabel: "Предпочтительный способ связи",
+    preferredContactMethodAriaLabel: "Предпочтительный способ связи",
+    preferredContactValueLabel: "Контакт для связи",
+    preferredContactEmptyLabel: "Не указано",
+    consentAriaLabel: "Согласие на обработку персональных данных",
     submitIdle: "Подтвердить запись",
     submitLoading: "Отправляем запись...",
     submitSuccess:
@@ -166,6 +171,11 @@ export const copyByLanguage: Record<"ru" | "en", BookingPageCopy> = {
       "The form opens after you choose a slot. The request will create or reuse a client and create a session in CRM without double-booking an occupied time.",
     formDisabled:
       "Choose a slot to fill in your details and submit the booking request.",
+    preferredContactMethodLabel: "Preferred contact method",
+    preferredContactMethodAriaLabel: "Preferred contact method",
+    preferredContactValueLabel: "Contact for communication",
+    preferredContactEmptyLabel: "Not specified",
+    consentAriaLabel: "Consent to personal data processing",
     submitIdle: "Confirm booking",
     submitLoading: "Creating booking...",
     submitSuccess:
