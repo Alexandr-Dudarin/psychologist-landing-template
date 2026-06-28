@@ -1,31 +1,40 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type { ClientReviewPublicRecord } from "../../types/reviews";
+import type { ClientReviewsTableCopy } from "./clientReviewsPage.copy";
 import styles from "./ClientReviewsPage.module.css";
 
 type ClientReviewsTableProps = {
   items: ClientReviewPublicRecord[];
+  copy: ClientReviewsTableCopy;
+  locale: string;
 };
 
 const DESKTOP_REVIEW_PREVIEW_LENGTH = 450;
 const MOBILE_REVIEW_PREVIEW_LENGTH = 200;
 const MOBILE_REVIEW_PREVIEW_MEDIA = "(max-width: 640px)";
 
-function getPublicReviewName(review: ClientReviewPublicRecord) {
-  return review.publicName.trim() || "Анонимный отзыв";
+function getPublicReviewName(
+  review: ClientReviewPublicRecord,
+  copy: ClientReviewsTableCopy
+) {
+  return review.publicName.trim() || copy.anonymousReview;
 }
 
-function formatReviewDate(value: string) {
-  return new Date(value).toLocaleDateString("ru-RU", {
+function formatReviewDate(value: string, locale: string) {
+  return new Date(value).toLocaleDateString(locale, {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
 }
 
-function getReviewRatingLabel(rating: number | null) {
+function getReviewRatingLabel(
+  rating: number | null,
+  copy: ClientReviewsTableCopy
+) {
   if (rating === null) {
-    return "Без оценки";
+    return copy.noRating;
   }
 
   return `${rating}/5`;
@@ -83,7 +92,11 @@ function useReviewPreviewLength() {
     : DESKTOP_REVIEW_PREVIEW_LENGTH;
 }
 
-export function ClientReviewsTable({ items }: ClientReviewsTableProps) {
+export function ClientReviewsTable({
+  items,
+  copy,
+  locale,
+}: ClientReviewsTableProps) {
   const previewLength = useReviewPreviewLength();
   const [expandedReviewIds, setExpandedReviewIds] = useState<
     Set<ClientReviewPublicRecord["id"]>
@@ -124,10 +137,10 @@ export function ClientReviewsTable({ items }: ClientReviewsTableProps) {
       <table className={styles.reviewsTable}>
         <thead>
           <tr>
-            <th className={styles.reviewAuthorCell}>Автор</th>
-            <th className={styles.reviewTextCell}>Отзыв</th>
-            <th className={styles.reviewRatingCell}>Оценка</th>
-            <th className={styles.reviewDateCell}>Дата</th>
+            <th className={styles.reviewAuthorCell}>{copy.author}</th>
+            <th className={styles.reviewTextCell}>{copy.review}</th>
+            <th className={styles.reviewRatingCell}>{copy.rating}</th>
+            <th className={styles.reviewDateCell}>{copy.date}</th>
           </tr>
         </thead>
 
@@ -142,13 +155,16 @@ export function ClientReviewsTable({ items }: ClientReviewsTableProps) {
 
             return (
               <tr key={review.id}>
-                <td className={styles.reviewAuthorCell} data-label="Автор">
+                <td
+                  className={styles.reviewAuthorCell}
+                  data-label={copy.author}
+                >
                   <span className={styles.publicReviewName}>
-                    {getPublicReviewName(review)}
+                    {getPublicReviewName(review, copy)}
                   </span>
                 </td>
 
-                <td className={styles.reviewTextCell} data-label="Отзыв">
+                <td className={styles.reviewTextCell} data-label={copy.review}>
                   <div className={styles.publicReviewText}>
                     <span>{visibleText}</span>
 
@@ -159,13 +175,16 @@ export function ClientReviewsTable({ items }: ClientReviewsTableProps) {
                         onClick={() => toggleReview(review.id)}
                         aria-expanded={isExpanded}
                       >
-                        {isExpanded ? "Свернуть ↑" : "Ещё ↓"}
+                        {isExpanded ? copy.collapse : copy.more}
                       </button>
                     ) : null}
                   </div>
                 </td>
 
-                <td className={styles.reviewRatingCell} data-label="Оценка">
+                <td
+                  className={styles.reviewRatingCell}
+                  data-label={copy.rating}
+                >
                   <span
                     className={
                       review.rating === null
@@ -173,13 +192,16 @@ export function ClientReviewsTable({ items }: ClientReviewsTableProps) {
                         : styles.publicReviewRatingBadge
                     }
                   >
-                    {getReviewRatingLabel(review.rating)}
+                    {getReviewRatingLabel(review.rating, copy)}
                   </span>
                 </td>
 
-                <td className={styles.reviewDateCell} data-label="Дата">
+                <td className={styles.reviewDateCell} data-label={copy.date}>
                   <span className={styles.publicReviewDate}>
-                    {formatReviewDate(review.publishedAt ?? review.createdAt)}
+                    {formatReviewDate(
+                      review.publishedAt ?? review.createdAt,
+                      locale
+                    )}
                   </span>
                 </td>
               </tr>

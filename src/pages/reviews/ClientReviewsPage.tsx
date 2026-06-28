@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 
+import { useLanguage } from "../../app/providers/LanguageProvider";
 import { CustomCheckbox } from "../../components/ui/CustomCheckbox";
 import { siteSettings } from "../../data/siteSettings";
 import {
@@ -8,6 +9,10 @@ import {
     getPublishedClientReviews,
 } from "../../lib/api/clientReviews";
 import type { ClientReviewPublicRecord } from "../../types/reviews";
+import {
+    clientReviewsPageCopy,
+    type ClientReviewsPageCopy,
+} from "./clientReviewsPage.copy";
 import styles from "./ClientReviewsPage.module.css";
 import { ClientReviewsTable } from "./ClientReviewsTable";
 
@@ -33,61 +38,68 @@ const ratingOptions = [1, 2, 3, 4, 5];
 const PUBLIC_REVIEWS_PAGE_LIMIT = 5;
 const PUBLIC_NAME_MAX_LENGTH = 35;
 const PUBLIC_NAME_DIGITS_PATTERN = /\d/;
-const PUBLIC_NAME_LENGTH_ERROR = `Длина псевдонима — не более ${PUBLIC_NAME_MAX_LENGTH} символов.`;
-const PUBLIC_NAME_DIGITS_ERROR = "Псевдоним не должен содержать цифры.";
 
-function getPublicNameValidationError(value: string): string | undefined {
+function getPublicNameValidationError(
+    value: string,
+    copy: ClientReviewsPageCopy
+): string | undefined {
     const publicName = value.trim();
 
     if (publicName.length > PUBLIC_NAME_MAX_LENGTH) {
-        return PUBLIC_NAME_LENGTH_ERROR;
+        return copy.publicNameLengthError;
     }
 
     if (PUBLIC_NAME_DIGITS_PATTERN.test(publicName)) {
-        return PUBLIC_NAME_DIGITS_ERROR;
+        return copy.publicNameDigitsError;
     }
 
     return undefined;
 }
 
-function validateForm(form: ReviewFormState): ReviewFormErrors {
+function validateForm(
+    form: ReviewFormState,
+    copy: ClientReviewsPageCopy
+): ReviewFormErrors {
     const errors: ReviewFormErrors = {};
     const contact = form.contact.trim();
     const publicName = form.publicName.trim();
     const text = form.text.trim();
 
     if (!contact) {
-        errors.contact =
-            "Укажите email или телефон, который вы использовали при записи.";
+        errors.contact = copy.contactRequiredError;
     }
 
-    const publicNameError = getPublicNameValidationError(publicName);
+    const publicNameError = getPublicNameValidationError(publicName, copy);
 
     if (publicNameError) {
         errors.publicName = publicNameError;
     }
 
     if (form.rating !== null && (form.rating < 1 || form.rating > 5)) {
-        errors.rating = "Выберите оценку от 1 до 5 или оставьте поле пустым.";
+        errors.rating = copy.ratingError;
     }
 
     if (text.length < 10) {
-        errors.text = "Отзыв должен быть не короче 10 символов.";
+        errors.text = copy.textMinError;
     }
 
     if (text.length > 2000) {
-        errors.text = "Отзыв должен быть не длиннее 2000 символов.";
+        errors.text = copy.textMaxError;
     }
 
     if (!form.consentAccepted) {
-        errors.consentAccepted =
-            "Подтвердите согласие на обработку данных для проверки клиента.";
+        errors.consentAccepted = copy.consentRequiredError;
     }
 
     return errors;
 }
 
 export function ClientReviewsPage() {
+    const { language } = useLanguage();
+    const currentLanguage = language === "en" ? "en" : "ru";
+    const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
+    const copy = clientReviewsPageCopy[currentLanguage];
+
     const [form, setForm] = useState<ReviewFormState>(initialForm);
     const [errors, setErrors] = useState<ReviewFormErrors>({});
     const [items, setItems] = useState<ClientReviewPublicRecord[]>([]);
@@ -112,11 +124,11 @@ export function ClientReviewsPage() {
 
     const formTitle = useMemo(() => {
         if (!isFeatureEnabled) {
-            return "Отзывы сейчас не принимаются";
+            return copy.formDisabledTitle;
         }
 
-        return "Оставить отзыв";
-    }, [isFeatureEnabled]);
+        return copy.formTitle;
+    }, [copy.formDisabledTitle, copy.formTitle, isFeatureEnabled]);
 
     useEffect(() => {
         if (!isPublicListEnabled) {
@@ -142,9 +154,7 @@ export function ClientReviewsPage() {
             } catch (error) {
                 if (isMounted) {
                     setLoadError(
-                        error instanceof Error
-                            ? error.message
-                            : "Не удалось загрузить отзывы."
+                        error instanceof Error ? error.message : copy.loadErrorFallback
                     );
                 }
             } finally {
@@ -159,7 +169,7 @@ export function ClientReviewsPage() {
         return () => {
             isMounted = false;
         };
-    }, [isPublicListEnabled]);
+    }, [copy.loadErrorFallback, isPublicListEnabled]);
 
     const handleFieldChange = <Field extends keyof ReviewFormState>(
         field: Field,
@@ -174,7 +184,7 @@ export function ClientReviewsPage() {
             ...current,
             [field]:
                 field === "publicName"
-                    ? getPublicNameValidationError(String(value))
+                    ? getPublicNameValidationError(String(value), copy)
                     : undefined,
         }));
 
@@ -186,16 +196,16 @@ export function ClientReviewsPage() {
         event.preventDefault();
 
         if (!isFeatureEnabled) {
-            setSubmitError("Форма отзывов сейчас отключена.");
+            setSubmitError(copy.formDisabledError);
             return;
         }
 
-        const nextErrors = validateForm(form);
+        const nextErrors = validateForm(form, copy);
 
         setErrors(nextErrors);
 
         if (Object.keys(nextErrors).length > 0) {
-            setSubmitError("Проверьте поля формы и попробуйте ещё раз.");
+            setSubmitError(copy.validationError);
             return;
         }
 
@@ -212,14 +222,16 @@ export function ClientReviewsPage() {
                 consentAccepted: form.consentAccepted,
             });
 
-            setSubmitSuccess(result.message);
+            setSubmitSuccess(
+                currentLanguage === "ru"
+                    ? result.message || copy.submitSuccess
+                    : copy.submitSuccess
+            );
             setForm(initialForm);
             setErrors({});
         } catch (error) {
             setSubmitError(
-                error instanceof Error
-                    ? error.message
-                    : "Не удалось отправить отзыв. Попробуйте ещё раз позже."
+                error instanceof Error ? error.message : copy.submitErrorFallback
             );
         } finally {
             setIsSubmitting(false);
@@ -231,22 +243,15 @@ export function ClientReviewsPage() {
             <section className={styles.hero}>
                 <div className={styles.heroContent}>
                     <Link to="/" className={styles.backLink}>
-                        ← Вернуться на сайт
+                        {copy.backToSite}
                     </Link>
 
-                    <p className={styles.eyebrow}>Отзывы клиентов</p>
-                    <h1 className={styles.title}>Поделитесь впечатлением о работе</h1>
-                    <p className={styles.description}>
-                        Отзыв можно оставить только после консультации. Для проверки нужно
-                        указать email или телефон, который вы использовали при записи. Эти
-                        данные не будут опубликованы на сайте.
-                    </p>
+                    <p className={styles.eyebrow}>{copy.heroEyebrow}</p>
+                    <h1 className={styles.title}>{copy.heroTitle}</h1>
+                    <p className={styles.description}>{copy.heroDescription}</p>
 
                     <div className={styles.notice}>
-                        <strong>Конфиденциальность:</strong> имя и фамилия из CRM не
-                        подтягиваются и не показываются публично. Можно указать псевдоним
-                        или оставить поле пустым — тогда отзыв будет отображаться как
-                        «Анонимный отзыв».
+                        <strong>{copy.noticeTitle}</strong> {copy.noticeText}
                     </div>
                 </div>
             </section>
@@ -254,24 +259,19 @@ export function ClientReviewsPage() {
             <section className={styles.contentGrid}>
                 <div className={styles.formCard}>
                     <div className={styles.sectionHeader}>
-                        <p className={styles.eyebrow}>Форма</p>
+                        <p className={styles.eyebrow}>{copy.formEyebrow}</p>
                         <h2 className={styles.sectionTitle}>{formTitle}</h2>
                         <p className={styles.sectionDescription}>
-                            Отзыв сначала попадёт специалисту на проверку и появится на сайте
-                            только после публикации.
+                            {copy.formDescription}
                         </p>
                     </div>
 
                     {!isFeatureEnabled ? (
-                        <div className={styles.stateBox}>
-                            Сейчас возможность оставить отзыв отключена.
-                        </div>
+                        <div className={styles.stateBox}>{copy.formDisabledMessage}</div>
                     ) : (
                         <form className={styles.form} onSubmit={handleSubmit}>
                             <div className={styles.field}>
-                                <label htmlFor="review-contact">
-                                    Email или телефон для проверки
-                                </label>
+                                <label htmlFor="review-contact">{copy.contactLabel}</label>
                                 <input
                                     id="review-contact"
                                     type="text"
@@ -280,7 +280,7 @@ export function ClientReviewsPage() {
                                     onChange={(event) =>
                                         handleFieldChange("contact", event.target.value)
                                     }
-                                    placeholder="example@mail.com или +7..."
+                                    placeholder={copy.contactPlaceholder}
                                     aria-invalid={Boolean(errors.contact)}
                                     aria-describedby={
                                         errors.contact ? "review-contact-error" : undefined
@@ -291,16 +291,13 @@ export function ClientReviewsPage() {
                                         {errors.contact}
                                     </span>
                                 ) : (
-                                    <span className={styles.fieldHint}>
-                                        Контакт нужен только для проверки, что вы действительно были
-                                        клиентом.
-                                    </span>
+                                    <span className={styles.fieldHint}>{copy.contactHint}</span>
                                 )}
                             </div>
 
                             <div className={styles.field}>
                                 <label htmlFor="review-public-name">
-                                    Псевдоним <span>необязательно</span>
+                                    {copy.publicNameLabel} <span>{copy.optionalLabel}</span>
                                 </label>
                                 <input
                                     id="review-public-name"
@@ -310,7 +307,7 @@ export function ClientReviewsPage() {
                                     onChange={(event) =>
                                         handleFieldChange("publicName", event.target.value)
                                     }
-                                    placeholder="Например: Анна, Клиент, Анонимно"
+                                    placeholder={copy.publicNamePlaceholder}
                                     aria-invalid={Boolean(errors.publicName)}
                                     aria-describedby={
                                         errors.publicName
@@ -327,17 +324,20 @@ export function ClientReviewsPage() {
                                     </span>
                                 ) : (
                                     <span id="review-public-name-hint" className={styles.fieldHint}>
-                                        Можно указать псевдоним до {PUBLIC_NAME_MAX_LENGTH} символов, без цифр.
-                                        Если оставить поле пустым, на сайте будет показано «Анонимный отзыв».
+                                        {copy.publicNameHint}
                                     </span>
                                 )}
                             </div>
 
                             <div className={styles.field}>
                                 <span className={styles.fieldLabel}>
-                                    Оценка <span>необязательно</span>
+                                    {copy.ratingLabel} <span>{copy.optionalLabel}</span>
                                 </span>
-                                <div className={styles.ratingGroup} role="group">
+                                <div
+                                    className={styles.ratingGroup}
+                                    role="group"
+                                    aria-label={copy.ratingAriaLabel}
+                                >
                                     {ratingOptions.map((rating) => (
                                         <button
                                             key={rating}
@@ -360,14 +360,12 @@ export function ClientReviewsPage() {
                                 {errors.rating ? (
                                     <span className={styles.fieldError}>{errors.rating}</span>
                                 ) : (
-                                    <span className={styles.fieldHint}>
-                                        Можно выбрать оценку от 1 до 5 или оставить без оценки.
-                                    </span>
+                                    <span className={styles.fieldHint}>{copy.ratingHint}</span>
                                 )}
                             </div>
 
                             <div className={styles.field}>
-                                <label htmlFor="review-text">Текст отзыва</label>
+                                <label htmlFor="review-text">{copy.textLabel}</label>
                                 <textarea
                                     id="review-text"
                                     value={form.text}
@@ -376,7 +374,7 @@ export function ClientReviewsPage() {
                                     onChange={(event) =>
                                         handleFieldChange("text", event.target.value)
                                     }
-                                    placeholder="Расскажите, что было для вас важным, полезным или ценным в работе."
+                                    placeholder={copy.textPlaceholder}
                                     aria-invalid={Boolean(errors.text)}
                                     aria-describedby={
                                         errors.text ? "review-text-error" : "review-text-hint"
@@ -388,7 +386,7 @@ export function ClientReviewsPage() {
                                     </span>
                                 ) : (
                                     <span id="review-text-hint" className={styles.fieldHint}>
-                                        {textLength}/2000 символов
+                                        {textLength}/2000
                                     </span>
                                 )}
                             </div>
@@ -401,15 +399,14 @@ export function ClientReviewsPage() {
                                         handleFieldChange("consentAccepted", checked)
                                     }
                                     variant="public"
-                                    ariaLabel="Согласие на обработку данных для проверки клиента"
+                                    ariaLabel={copy.consentAriaLabel}
                                 >
                                     <span>
-                                        Я согласен/согласна на обработку email или телефона для
-                                        проверки клиента и принимаю{" "}
+                                        {copy.consentTextBeforePrivacy}{" "}
                                         <a href="/#privacy" className={styles.inlineLink}>
-                                            политику конфиденциальности
+                                            {copy.privacyLinkText}
                                         </a>
-                                        .
+                                        {copy.consentTextAfterPrivacy}
                                     </span>
                                 </CustomCheckbox>
 
@@ -437,40 +434,33 @@ export function ClientReviewsPage() {
                                 className={styles.submitButton}
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? "Отправляем..." : "Отправить отзыв"}
+                                {isSubmitting ? copy.submitLoading : copy.submitIdle}
                             </button>
                         </form>
                     )}
                 </div>
 
                 <aside className={styles.infoCard}>
-                    <h2 className={styles.infoTitle}>Кто может оставить отзыв</h2>
+                    <h2 className={styles.infoTitle}>{copy.infoTitle}</h2>
                     <ul className={styles.infoList}>
-                        <li>Клиент, найденный в CRM по email или телефону.</li>
-                        <li>Клиент, у которого есть проведённая консультация.</li>
-                        <li>
-                            Также подойдёт прошедшая по времени запись, если специалист ещё
-                            не успел вручную поставить статус «Проведена».
-                        </li>
-                        <li>Будущая запись, отмена или неявка не дают право оставить отзыв.</li>
+                        {copy.infoItems.map((item) => (
+                            <li key={item}>{item}</li>
+                        ))}
                     </ul>
 
-                    <div className={styles.infoNote}>
-                        Публично будут видны только псевдоним, текст отзыва и оценка, если
-                        она указана. Контакты не публикуются.
-                    </div>
+                    <div className={styles.infoNote}>{copy.infoNote}</div>
                 </aside>
             </section>
 
             {isPublicListEnabled ? (
                 <section className={styles.reviewsSection}>
                     <div className={styles.sectionHeader}>
-                        <p className={styles.eyebrow}>Опубликованные отзывы</p>
-                        <h2 className={styles.sectionTitle}>Что уже написали клиенты</h2>
+                        <p className={styles.eyebrow}>{copy.publishedEyebrow}</p>
+                        <h2 className={styles.sectionTitle}>{copy.publishedTitle}</h2>
                     </div>
 
                     {isLoading ? (
-                        <div className={styles.stateBox}>Загружаем отзывы...</div>
+                        <div className={styles.stateBox}>{copy.loadingReviews}</div>
                     ) : null}
 
                     {loadError ? (
@@ -480,13 +470,16 @@ export function ClientReviewsPage() {
                     ) : null}
 
                     {!isLoading && !loadError && !hasPublishedReviews ? (
-                        <div className={styles.stateBox}>
-                            Пока опубликованных отзывов нет. Новые отзывы появятся здесь после
-                            проверки специалистом.
-                        </div>
+                        <div className={styles.stateBox}>{copy.emptyReviews}</div>
                     ) : null}
 
-                    {hasPublishedReviews ? <ClientReviewsTable items={items} /> : null}
+                    {hasPublishedReviews ? (
+                        <ClientReviewsTable
+                            items={items}
+                            copy={copy.table}
+                            locale={locale}
+                        />
+                    ) : null}
                 </section>
             ) : null}
         </main>
