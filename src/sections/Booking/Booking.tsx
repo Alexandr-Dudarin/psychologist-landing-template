@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Container } from "../../components/Container/Container";
 import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { Button } from "../../components/Button/Button";
@@ -12,7 +12,8 @@ import { CustomCheckbox } from "../../components/ui/CustomCheckbox";
 import { createPublicRequest } from "../../lib/api/requests";
 import {
   preferredContactMethodLabels,
-  preferredContactPlaceholders,
+  preferredContactPlaceholdersByLanguage,
+  preferredContactValidationMessagesByLanguage,
   validatePreferredContactFields,
 } from "../../lib/preferredContact";
 import { preferredContactMethods } from "../../types/preferredContact";
@@ -42,22 +43,68 @@ type Errors = {
   consent?: string;
 };
 
-const preferredContactOptions: CustomSelectOption[] = [
-  {
-    value: "",
-    label: "Не указано",
+type InlineBookingCopy = {
+  preferredContactMethodLabel: string;
+  preferredContactMethodAriaLabel: string;
+  preferredContactValueLabel: string;
+  preferredContactEmptyLabel: string;
+  consentAriaLabel: string;
+  consentTextBeforePrivacy: string;
+  consentTextAfterPrivacy: string;
+};
+
+const inlineBookingCopy: Record<"ru" | "en", InlineBookingCopy> = {
+  ru: {
+    preferredContactMethodLabel: "Предпочтительный способ связи",
+    preferredContactMethodAriaLabel: "Предпочтительный способ связи",
+    preferredContactValueLabel: "Контакт для связи",
+    preferredContactEmptyLabel: "Не указано",
+    consentAriaLabel: "Согласие на обработку персональных данных",
+    consentTextBeforePrivacy:
+      "Я соглашаюсь на обработку персональных данных и принимаю",
+    consentTextAfterPrivacy: "",
   },
-  ...preferredContactMethods.map((method) => ({
-    value: method,
-    label: preferredContactMethodLabels[method],
-  })),
-];
+  en: {
+    preferredContactMethodLabel: "Preferred contact method",
+    preferredContactMethodAriaLabel: "Preferred contact method",
+    preferredContactValueLabel: "Contact for communication",
+    preferredContactEmptyLabel: "Not specified",
+    consentAriaLabel: "Consent to personal data processing",
+    consentTextBeforePrivacy:
+      "I agree to the processing of my personal data and accept the",
+    consentTextAfterPrivacy: "",
+  },
+};
+
+function getPreferredContactOptions(
+  emptyLabel: string
+): CustomSelectOption[] {
+  return [
+    {
+      value: "",
+      label: emptyLabel,
+    },
+    ...preferredContactMethods.map((method) => ({
+      value: method,
+      label: preferredContactMethodLabels[method],
+    })),
+  ];
+}
 
 export function Booking() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const currentLanguage = language === "en" ? "en" : "ru";
+  const copy = inlineBookingCopy[currentLanguage];
   const { content, ui } = t;
   const booking = content.booking;
   const preferredContactSettings = siteSettings.preferredContactMethod;
+  const preferredContactOptions = getPreferredContactOptions(
+    copy.preferredContactEmptyLabel
+  );
+  const preferredContactPlaceholders =
+    preferredContactPlaceholdersByLanguage[currentLanguage];
+  const preferredContactValidationMessages =
+    preferredContactValidationMessagesByLanguage[currentLanguage];
 
   const [form, setForm] = useState<FormData>({
     firstName: "",
@@ -106,7 +153,11 @@ export function Booking() {
 
     Object.assign(
       newErrors,
-      validatePreferredContactFields(form, preferredContactSettings)
+      validatePreferredContactFields(
+        form,
+        preferredContactSettings,
+        preferredContactValidationMessages
+      )
     );
 
     return newErrors;
@@ -133,7 +184,7 @@ export function Booking() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setSubmitError("");
@@ -256,7 +307,7 @@ export function Booking() {
             {preferredContactSettings.enabled ? (
               <>
                 <div className={styles.field}>
-                  <label>Предпочтительный способ связи</label>
+                  <label>{copy.preferredContactMethodLabel}</label>
                   <CustomSelect
                     value={form.preferredContactMethod}
                     options={preferredContactOptions}
@@ -266,7 +317,7 @@ export function Booking() {
                         nextMethod as FormData["preferredContactMethod"]
                       )
                     }
-                    ariaLabel="Предпочтительный способ связи"
+                    ariaLabel={copy.preferredContactMethodAriaLabel}
                     variant="public"
                     layout="form"
                     dropdownWidth="trigger"
@@ -282,7 +333,7 @@ export function Booking() {
                 {form.preferredContactMethod ? (
                   <div className={styles.field}>
                     <label htmlFor="preferredContactValue">
-                      Контакт для связи
+                      {copy.preferredContactValueLabel}
                     </label>
                     <input
                       id="preferredContactValue"
@@ -293,7 +344,7 @@ export function Booking() {
                       }
                       inputMode={
                         form.preferredContactMethod === "whatsapp" ||
-                          form.preferredContactMethod === "sms"
+                        form.preferredContactMethod === "sms"
                           ? "tel"
                           : undefined
                       }
@@ -303,7 +354,7 @@ export function Booking() {
                       }
                       placeholder={
                         preferredContactPlaceholders[
-                        form.preferredContactMethod
+                          form.preferredContactMethod
                         ]
                       }
                     />
@@ -333,13 +384,14 @@ export function Booking() {
                 onChange={(checked) => handleChange("consent", checked)}
                 className={styles.checkboxLabel}
                 variant="public"
-                ariaLabel="Согласие на обработку персональных данных"
+                ariaLabel={copy.consentAriaLabel}
               >
                 <span>
-                  {booking.fields.consent}{" "}
+                  {copy.consentTextBeforePrivacy}{" "}
                   <a href="#privacy" className={styles.policyLink}>
                     {ui.booking.privacyLinkText}
                   </a>
+                  {copy.consentTextAfterPrivacy}
                 </span>
               </CustomCheckbox>
               {errors.consent && (
