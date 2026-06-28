@@ -22,6 +22,7 @@ import {
   trackFormStart,
   trackFormSubmit,
 } from "../../lib/analytics/trackers";
+import { inlineBookingCopyByLanguage } from "./booking.copy";
 import styles from "./Booking.module.css";
 
 type FormData = PreferredContactFields & {
@@ -43,39 +44,6 @@ type Errors = {
   consent?: string;
 };
 
-type InlineBookingCopy = {
-  preferredContactMethodLabel: string;
-  preferredContactMethodAriaLabel: string;
-  preferredContactValueLabel: string;
-  preferredContactEmptyLabel: string;
-  consentAriaLabel: string;
-  consentTextBeforePrivacy: string;
-  consentTextAfterPrivacy: string;
-};
-
-const inlineBookingCopy: Record<"ru" | "en", InlineBookingCopy> = {
-  ru: {
-    preferredContactMethodLabel: "Предпочтительный способ связи",
-    preferredContactMethodAriaLabel: "Предпочтительный способ связи",
-    preferredContactValueLabel: "Контакт для связи",
-    preferredContactEmptyLabel: "Не указано",
-    consentAriaLabel: "Согласие на обработку персональных данных",
-    consentTextBeforePrivacy:
-      "Я соглашаюсь на обработку персональных данных и принимаю",
-    consentTextAfterPrivacy: "",
-  },
-  en: {
-    preferredContactMethodLabel: "Preferred contact method",
-    preferredContactMethodAriaLabel: "Preferred contact method",
-    preferredContactValueLabel: "Contact for communication",
-    preferredContactEmptyLabel: "Not specified",
-    consentAriaLabel: "Consent to personal data processing",
-    consentTextBeforePrivacy:
-      "I agree to the processing of my personal data and accept the",
-    consentTextAfterPrivacy: "",
-  },
-};
-
 function getPreferredContactOptions(
   emptyLabel: string
 ): CustomSelectOption[] {
@@ -94,7 +62,7 @@ function getPreferredContactOptions(
 export function Booking() {
   const { t, language } = useLanguage();
   const currentLanguage = language === "en" ? "en" : "ru";
-  const copy = inlineBookingCopy[currentLanguage];
+  const copy = inlineBookingCopyByLanguage[currentLanguage];
   const { content, ui } = t;
   const booking = content.booking;
   const preferredContactSettings = siteSettings.preferredContactMethod;
