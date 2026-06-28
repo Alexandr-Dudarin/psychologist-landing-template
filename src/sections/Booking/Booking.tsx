@@ -44,6 +44,16 @@ type Errors = {
   consent?: string;
 };
 
+const bookingErrorIds = {
+  firstName: "booking-first-name-error",
+  lastName: "booking-last-name-error",
+  phone: "booking-phone-error",
+  email: "booking-email-error",
+  preferredContactMethod: "booking-preferred-contact-method-error",
+  preferredContactValue: "booking-preferred-contact-value-error",
+  consent: "booking-consent-error",
+} as const;
+
 function getPreferredContactOptions(
   emptyLabel: string
 ): CustomSelectOption[] {
@@ -224,9 +234,15 @@ export function Booking() {
                 value={form.firstName}
                 onChange={(e) => handleChange("firstName", e.target.value)}
                 placeholder={booking.placeholders.firstName}
+                aria-invalid={Boolean(errors.firstName)}
+                aria-describedby={
+                  errors.firstName ? bookingErrorIds.firstName : undefined
+                }
               />
               {errors.firstName && (
-                <span className={styles.error}>{errors.firstName}</span>
+                <span id={bookingErrorIds.firstName} className={styles.error}>
+                  {errors.firstName}
+                </span>
               )}
             </div>
 
@@ -238,9 +254,15 @@ export function Booking() {
                 value={form.lastName}
                 onChange={(e) => handleChange("lastName", e.target.value)}
                 placeholder={booking.placeholders.lastName}
+                aria-invalid={Boolean(errors.lastName)}
+                aria-describedby={
+                  errors.lastName ? bookingErrorIds.lastName : undefined
+                }
               />
               {errors.lastName && (
-                <span className={styles.error}>{errors.lastName}</span>
+                <span id={bookingErrorIds.lastName} className={styles.error}>
+                  {errors.lastName}
+                </span>
               )}
             </div>
 
@@ -252,9 +274,15 @@ export function Booking() {
                 value={form.phone}
                 onChange={(e) => handleChange("phone", e.target.value)}
                 placeholder={booking.placeholders.phone}
+                aria-invalid={Boolean(errors.phone)}
+                aria-describedby={
+                  errors.phone ? bookingErrorIds.phone : undefined
+                }
               />
               {errors.phone && (
-                <span className={styles.error}>{errors.phone}</span>
+                <span id={bookingErrorIds.phone} className={styles.error}>
+                  {errors.phone}
+                </span>
               )}
             </div>
 
@@ -266,9 +294,15 @@ export function Booking() {
                 value={form.email}
                 onChange={(e) => handleChange("email", e.target.value)}
                 placeholder={booking.placeholders.email}
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={
+                  errors.email ? bookingErrorIds.email : undefined
+                }
               />
               {errors.email && (
-                <span className={styles.error}>{errors.email}</span>
+                <span id={bookingErrorIds.email} className={styles.error}>
+                  {errors.email}
+                </span>
               )}
             </div>
 
@@ -292,7 +326,10 @@ export function Booking() {
                     className={styles.preferredContactSelect}
                   />
                   {errors.preferredContactMethod && (
-                    <span className={styles.error}>
+                    <span
+                      id={bookingErrorIds.preferredContactMethod}
+                      className={styles.error}
+                    >
                       {errors.preferredContactMethod}
                     </span>
                   )}
@@ -325,9 +362,18 @@ export function Booking() {
                           form.preferredContactMethod
                         ]
                       }
+                      aria-invalid={Boolean(errors.preferredContactValue)}
+                      aria-describedby={
+                        errors.preferredContactValue
+                          ? bookingErrorIds.preferredContactValue
+                          : undefined
+                      }
                     />
                     {errors.preferredContactValue && (
-                      <span className={styles.error}>
+                      <span
+                        id={bookingErrorIds.preferredContactValue}
+                        className={styles.error}
+                      >
                         {errors.preferredContactValue}
                       </span>
                     )}
@@ -363,7 +409,9 @@ export function Booking() {
                 </span>
               </CustomCheckbox>
               {errors.consent && (
-                <span className={styles.error}>{errors.consent}</span>
+                <span id={bookingErrorIds.consent} className={styles.error}>
+                  {errors.consent}
+                </span>
               )}
             </div>
 
@@ -379,11 +427,15 @@ export function Booking() {
             </div>
 
             {submitError && (
-              <div className={styles.errorMessage}>{submitError}</div>
+              <div className={styles.errorMessage} role="alert">
+                {submitError}
+              </div>
             )}
 
             {isSuccess && (
-              <div className={styles.success}>{booking.messages.success}</div>
+              <div className={styles.success} role="status" aria-live="polite">
+                {booking.messages.success}
+              </div>
             )}
           </form>
         </div>
