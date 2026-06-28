@@ -6,10 +6,13 @@ import { SectionTitle } from "../../components/SectionTitle/SectionTitle";
 import { siteSettings } from "../../data/siteSettings";
 import { trackPhoneClick, trackTelegramClick } from "../../lib/analytics/trackers";
 import type { SocialLink } from "../../types/config";
+import { contactsCopyByLanguage } from "./contacts.copy";
 import styles from "./Contacts.module.css";
 
 export function Contacts() {
   const { t, language } = useLanguage();
+  const currentLanguage = language === "en" ? "en" : "ru";
+  const copy = contactsCopyByLanguage[currentLanguage];
   const { config, content, ui } = t;
 
   const showContactsSection = siteSettings.sections.contacts.enabled;
@@ -29,9 +32,9 @@ export function Contacts() {
         ? "WhatsApp"
         : "WhatsApp";
 
-  const phoneLabel = language === "ru" ? "Телефон" : "Phone";
+  const phoneLabel = copy.phoneLabel;
   const telegramLabel = "Telegram";
-  const formatLabel = language === "ru" ? "Формат" : "Format";
+  const formatLabel = copy.formatLabel;
 
   const contactsContent = content.contacts as typeof content.contacts & {
     socialTitle?: string;
@@ -39,16 +42,12 @@ export function Contacts() {
   };
 
   const socialTitle =
-    contactsContent.socialTitle ??
-    (language === "ru" ? "Мои соцсети" : "My social media");
+    contactsContent.socialTitle ?? copy.socialTitleFallback;
 
   const socialDescription =
-    contactsContent.socialDescription ??
-    (language === "ru"
-      ? "Здесь можно быстро перейти в социальные сети специалиста."
-      : "Here you can quickly open the specialist’s social media profiles.");
+    contactsContent.socialDescription ?? copy.socialDescriptionFallback;
 
-        if (!showContactsSection) {
+  if (!showContactsSection) {
     return null;
   }
 
@@ -75,7 +74,9 @@ export function Contacts() {
               <div className={styles.socialsBlock}>
                 <div className={styles.socialsHeader}>
                   <h3 className={styles.socialsTitle}>{socialTitle}</h3>
-                  <p className={styles.socialsDescription}>{socialDescription}</p>
+                  <p className={styles.socialsDescription}>
+                    {socialDescription}
+                  </p>
                 </div>
 
                 <div className={styles.socialsList}>
@@ -97,8 +98,12 @@ export function Contacts() {
                       </span>
 
                       <span className={styles.socialBody}>
-                        <span className={styles.socialLabel}>{social.label}</span>
-                        <span className={styles.socialUsername}>{social.username}</span>
+                        <span className={styles.socialLabel}>
+                          {social.label}
+                        </span>
+                        <span className={styles.socialUsername}>
+                          {social.username}
+                        </span>
                       </span>
                     </a>
                   ))}
@@ -167,7 +172,9 @@ export function Contacts() {
                   onClick={trackTelegramClick}
                 >
                   <Send size={18} />
-                  <span className={styles.linkText}>{config.telegramUsername}</span>
+                  <span className={styles.linkText}>
+                    {config.telegramUsername}
+                  </span>
                 </a>
               </div>
 
