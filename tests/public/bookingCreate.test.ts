@@ -2,12 +2,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockRequest, createMockResponse } from "../helpers/http";
 
 const connectMock = vi.fn();
+const poolQueryMock = vi.fn(async () => ({
+  rows: [{ request_count: 1 }],
+}));
 const validateBookableSlotMock = vi.fn();
 const sendBookingNotificationsBoundedMock = vi.fn();
 
 vi.mock("../../server/db/pool", () => ({
   pool: {
     connect: connectMock,
+    query: poolQueryMock,
   },
 }));
 

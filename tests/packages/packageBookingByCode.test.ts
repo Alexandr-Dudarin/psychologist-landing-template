@@ -5,10 +5,14 @@ import { createMockRequest, createMockResponse } from "../helpers/http";
 
 const {
   connectMock,
+  poolQueryMock,
   validateBookableSlotMock,
   sendBookingNotificationsBoundedMock,
 } = vi.hoisted(() => ({
   connectMock: vi.fn(),
+  poolQueryMock: vi.fn(async () => ({
+    rows: [{ request_count: 1 }],
+  })),
   validateBookableSlotMock: vi.fn(),
   sendBookingNotificationsBoundedMock: vi.fn(),
 }));
@@ -16,6 +20,7 @@ const {
 vi.mock("../../server/db/pool", () => ({
   pool: {
     connect: connectMock,
+    query: poolQueryMock,
   },
 }));
 

@@ -19,6 +19,11 @@ import {
 import { pool } from "../server/db/pool.js";
 import { isCreateBookingServiceError } from "../server/services/createBookingService.js";
 import { getBookingSettingsTimezone } from "../server/utils/getBookingSettingsTimezone.js";
+import {
+  checkRateLimit,
+  sendRateLimitResponse,
+  type RateLimitActionKey,
+} from "../server/utils/rateLimit.js";
 
 type PaymentKind = "booking" | "service_package";
 
@@ -100,6 +105,12 @@ const YOOKASSA_WEBHOOK_IPV4_RANGES = [
 ] as const;
 
 const YOOKASSA_WEBHOOK_IPV6_PREFIX = "2a02:5180::/32";
+
+const PAYMENT_CREATE_RATE_LIMIT = {
+  actionKey: "payment_create",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+} as const;
 
 class YooKassaApiError extends Error {
   status: number;
@@ -190,6 +201,30 @@ function getHeaderValue(
   }
 
   return value;
+}
+
+async function ensureRateLimit(
+  req: VercelRequest,
+  res: VercelResponse,
+  options: {
+    actionKey: RateLimitActionKey;
+    limit: number;
+    windowMs: number;
+  }
+): Promise<boolean> {
+  const result = await checkRateLimit({
+    req,
+    actionKey: options.actionKey,
+    limit: options.limit,
+    windowMs: options.windowMs,
+  });
+
+  if (!result.allowed) {
+    sendRateLimitResponse(res, result);
+    return false;
+  }
+
+  return true;
 }
 
 function normalizeRequestIp(value: string): string {
@@ -1242,6 +1277,16 @@ export default async function handler(
   const action = getSingleQueryValue(req.query?.action).trim();
 
   if (req.method === "POST" && action === "create") {
+    const isAllowed = await ensureRateLimit(
+      req,
+      res,
+      PAYMENT_CREATE_RATE_LIMIT
+    );
+
+    if (!isAllowed) {
+      return;
+    }
+
     return handleCreate(req, res);
   }
 
