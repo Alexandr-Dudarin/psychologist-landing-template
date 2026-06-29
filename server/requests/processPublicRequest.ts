@@ -24,12 +24,27 @@ type ExistingClientRow = {
   id: number | string;
 };
 
-function isValidPayload(body: any): body is PublicRequestPayload {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isOptionalString(value: unknown): value is string | undefined {
+  return typeof value === "undefined" || typeof value === "string";
+}
+
+function isValidPayload(body: unknown): body is PublicRequestPayload {
+  if (!isRecord(body)) {
+    return false;
+  }
+
   return (
-    typeof body?.firstName === "string" &&
-    typeof body?.lastName === "string" &&
-    typeof body?.phone === "string" &&
-    typeof body?.email === "string"
+    typeof body.firstName === "string" &&
+    typeof body.lastName === "string" &&
+    typeof body.phone === "string" &&
+    typeof body.email === "string" &&
+    isOptionalString(body.message) &&
+    isOptionalString(body.preferredContactMethod) &&
+    isOptionalString(body.preferredContactValue)
   );
 }
 
@@ -45,6 +60,15 @@ function buildFullName(firstName: string, lastName: string): string {
 
 function normalizePhoneDigits(value: string): string {
   return value.replace(/\D/g, "");
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 async function findExistingClientIdByContacts(
@@ -93,6 +117,8 @@ export async function processPublicRequest(
   body: unknown
 ): Promise<ProcessPublicRequestResult> {
   const resendApiKey = process.env.RESEND_API_KEY;
+  const resendFromEmail =
+    process.env.RESEND_FROM_EMAIL ?? "Website <onboarding@resend.dev>";
   const telegramToken = process.env.TELEGRAM_TOKEN;
   const telegramChatId = process.env.TELEGRAM_CHAT_ID;
   const ownerEmail = process.env.OWNER_EMAIL;
@@ -217,7 +243,6 @@ export async function processPublicRequest(
         existingClientId,
       ]
     );
-
   } catch (dbError) {
     console.error("Request insert error:", dbError);
 
@@ -273,23 +298,33 @@ export async function processPublicRequest(
     }
   }
 
+  const safeName = escapeHtml(name);
+  const safePhone = escapeHtml(phone);
+  const safeEmail = escapeHtml(email);
+  const safePreferredContactText = escapeHtml(preferredContactText);
+  const safeMessage = escapeHtml(message || "-");
+  const safeTelegramStatus = telegramOk ? "отправлено" : "не отправлено";
+  const safeTelegramErrorMessage = escapeHtml(
+    telegramErrorMessage || "нет связи с Telegram API"
+  );
+
   try {
     const ownerResult = await resend.emails.send({
-      from: "Website <onboarding@resend.dev>",
+      from: resendFromEmail,
       to: [ownerEmail],
       subject: "Новая заявка с сайта",
       html: `
         <h2>Новая заявка</h2>
-        <p><strong>Имя:</strong> ${name}</p>
-        <p><strong>Телефон:</strong> ${phone}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Предпочтительный способ связи:</strong> ${preferredContactText}</p>
-        <p><strong>Сообщение:</strong> ${message || "-"}</p>
-        <p><strong>Telegram:</strong> ${telegramOk ? "отправлено" : "не отправлено"}</p>
+        <p><strong>Имя:</strong> ${safeName}</p>
+        <p><strong>Телефон:</strong> ${safePhone}</p>
+        <p><strong>Email:</strong> ${safeEmail}</p>
+        <p><strong>Предпочтительный способ связи:</strong> ${safePreferredContactText}</p>
+        <p><strong>Сообщение:</strong> ${safeMessage}</p>
+        <p><strong>Telegram:</strong> ${safeTelegramStatus}</p>
         ${
           telegramOk
             ? ""
-            : `<p><strong>Telegram error:</strong> ${telegramErrorMessage || "нет связи с Telegram API"}</p>`
+            : `<p><strong>Telegram error:</strong> ${safeTelegramErrorMessage}</p>`
         }
       `,
     });
@@ -306,11 +341,11 @@ export async function processPublicRequest(
     }
 
     const clientResult = await resend.emails.send({
-      from: "Website <onboarding@resend.dev>",
+      from: resendFromEmail,
       to: [email],
       subject: "Ваша заявка принята",
       html: `
-        <h2>Здравствуйте, ${name}!</h2>
+        <h2>Здравствуйте, ${safeName}!</h2>
         <p>Спасибо за заявку. Она успешно получена.</p>
         <p>Я свяжусь с вами в ближайшее время, чтобы согласовать детали консультации.</p>
       `,
