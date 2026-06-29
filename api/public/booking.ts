@@ -14,6 +14,11 @@ import {
   createBookingService,
   isCreateBookingServiceError,
 } from "../../server/services/createBookingService.js";
+import {
+  checkRateLimit,
+  sendRateLimitResponse,
+  type RateLimitActionKey,
+} from "../../server/utils/rateLimit.js";
 import type {
   PublicBookingPackageInfo,
   PublicBookingPackageLookupPayload,
@@ -42,6 +47,18 @@ type PackageLookupRow = {
   status: string;
   used_sessions_count: number | string;
 };
+
+const PACKAGE_LOOKUP_RATE_LIMIT = {
+  actionKey: "package_lookup",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+} as const;
+
+const BOOKING_CREATE_RATE_LIMIT = {
+  actionKey: "booking_create",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+} as const;
 
 function isAvailabilityError(
   result: Awaited<ReturnType<typeof getPublicBookingAvailabilityData>>
@@ -106,6 +123,30 @@ function mapPackageLookup(row: PackageLookupRow): PublicBookingPackageInfo {
     usedSessions,
     remainingSessions,
   };
+}
+
+async function ensureRateLimit(
+  req: any,
+  res: any,
+  options: {
+    actionKey: RateLimitActionKey;
+    limit: number;
+    windowMs: number;
+  }
+): Promise<boolean> {
+  const result = await checkRateLimit({
+    req,
+    actionKey: options.actionKey,
+    limit: options.limit,
+    windowMs: options.windowMs,
+  });
+
+  if (!result.allowed) {
+    sendRateLimitResponse(res, result);
+    return false;
+  }
+
+  return true;
 }
 
 async function handleAvailability(req: any, res: any) {
@@ -313,10 +354,30 @@ export default async function handler(req: any, res: any) {
   }
 
   if (action === "lookup-package") {
+    const isAllowed = await ensureRateLimit(
+      req,
+      res,
+      PACKAGE_LOOKUP_RATE_LIMIT
+    );
+
+    if (!isAllowed) {
+      return;
+    }
+
     return handleLookupPackage(req, res);
   }
 
   if (action === "create") {
+    const isAllowed = await ensureRateLimit(
+      req,
+      res,
+      BOOKING_CREATE_RATE_LIMIT
+    );
+
+    if (!isAllowed) {
+      return;
+    }
+
     return handleCreate(req, res);
   }
 
