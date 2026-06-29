@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
+import { getResendFromEmail } from "../utils/getResendFromEmail.js";
 import { escapeHtml } from "../utils/escapeHtml.js";
 import { getTimezoneLabel } from "../../src/lib/booking/getTimezoneLabel.js";
 import {
@@ -246,7 +247,7 @@ async function sendOwnerEmail(
 ): Promise<BookingNotificationChannelResult> {
   try {
     const result = await resend.emails.send({
-      from: "Website <onboarding@resend.dev>",
+      from: getResendFromEmail(),
       to: [ownerEmail],
       subject: "Новая online booking запись",
       html: getOwnerEmailHtml(payload),
@@ -276,7 +277,7 @@ async function sendClientEmail(
 ): Promise<BookingNotificationChannelResult> {
   try {
     const result = await resend.emails.send({
-      from: "Website <onboarding@resend.dev>",
+      from: getResendFromEmail(),
       to: [payload.clientEmail],
       subject: "Подтверждение записи",
       html: getClientEmailHtml(payload),

@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
+import { getResendFromEmail } from "../utils/getResendFromEmail.js";
 import { escapeHtml } from "../utils/escapeHtml.js";
 import { getTimezoneLabel } from "../../src/lib/booking/getTimezoneLabel.js";
 import {
@@ -226,7 +227,7 @@ async function sendOwnerReminderEmail(
 
   try {
     const result = await resend.emails.send({
-      from: "Website <onboarding@resend.dev>",
+      from: getResendFromEmail(),
       to: [ownerEmail],
       subject: getSubject(reminderType, payload),
       html: getSpecialistEmailHtml(reminderType, payload),
@@ -271,7 +272,7 @@ async function sendClientReminderEmail(
 
   try {
     const result = await resend.emails.send({
-      from: "Website <onboarding@resend.dev>",
+      from: getResendFromEmail(),
       to: [payload.clientEmail],
       subject: getSubject(reminderType, payload),
       html: getClientEmailHtml(reminderType, payload),

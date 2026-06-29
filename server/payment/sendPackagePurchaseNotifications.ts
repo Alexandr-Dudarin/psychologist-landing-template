@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
+import { getResendFromEmail } from "../utils/getResendFromEmail.js";
 import { escapeHtml } from "../utils/escapeHtml.js";
 
 export type PackagePurchaseNotificationPayload = {
@@ -160,7 +161,7 @@ async function sendClientEmail(
 ): Promise<PackagePurchaseNotificationResult["clientEmail"]> {
   try {
     const result = await resend.emails.send({
-      from: "Website <onboarding@resend.dev>",
+      from: getResendFromEmail(),
       to: [payload.clientEmail],
       subject: "Код вашего пакета консультаций",
       html: getClientEmailHtml(payload),
@@ -192,7 +193,7 @@ async function sendOwnerEmail(
 ): Promise<PackagePurchaseNotificationResult["ownerEmail"]> {
   try {
     const result = await resend.emails.send({
-      from: "Website <onboarding@resend.dev>",
+      from: getResendFromEmail(),
       to: [ownerEmail],
       subject: "Новая покупка пакета услуг",
       html: getOwnerEmailHtml(payload),

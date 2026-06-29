@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
+import { getResendFromEmail } from "../utils/getResendFromEmail.js";
 import { escapeHtml } from "../utils/escapeHtml.js";
 import { pool } from "../db/pool.js";
 import type {
@@ -109,8 +110,7 @@ export async function processPublicRequest(
   body: unknown
 ): Promise<ProcessPublicRequestResult> {
   const resendApiKey = process.env.RESEND_API_KEY;
-  const resendFromEmail =
-    process.env.RESEND_FROM_EMAIL ?? "Website <onboarding@resend.dev>";
+  const resendFromEmail = getResendFromEmail();
   const telegramToken = process.env.TELEGRAM_TOKEN;
   const telegramChatId = process.env.TELEGRAM_CHAT_ID;
   const ownerEmail = process.env.OWNER_EMAIL;
