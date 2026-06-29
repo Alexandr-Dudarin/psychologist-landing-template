@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
+import { escapeHtml } from "../utils/escapeHtml.js";
 import { getTimezoneLabel } from "../../src/lib/booking/getTimezoneLabel.js";
 import {
   formatBookingDate,
@@ -41,15 +42,6 @@ export type SendSessionReminderNotificationsPayload = {
   timezone: string;
   notes: string;
 };
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 function isSpecialistReminderType(reminderType: SessionReminderType): boolean {
   return (

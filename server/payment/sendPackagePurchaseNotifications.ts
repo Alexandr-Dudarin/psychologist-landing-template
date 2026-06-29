@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
+import { escapeHtml } from "../utils/escapeHtml.js";
 
 export type PackagePurchaseNotificationPayload = {
   clientName: string;
@@ -45,15 +46,6 @@ type PackagePurchaseNotificationsBoundedResult =
     };
 
 const PACKAGE_PURCHASE_NOTIFICATIONS_TIMEOUT_MS = 1500;
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 export function formatPrice(value: number): string {
   return new Intl.NumberFormat("ru-RU", {

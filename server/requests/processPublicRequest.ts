@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
+import { escapeHtml } from "../utils/escapeHtml.js";
 import { pool } from "../db/pool.js";
 import type {
   PublicRequestPayload,
@@ -60,15 +61,6 @@ function buildFullName(firstName: string, lastName: string): string {
 
 function normalizePhoneDigits(value: string): string {
   return value.replace(/\D/g, "");
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
 
 async function findExistingClientIdByContacts(

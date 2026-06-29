@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import { Resend } from "resend";
+import { escapeHtml } from "../utils/escapeHtml.js";
 import { getTimezoneLabel } from "../../src/lib/booking/getTimezoneLabel.js";
 import {
   formatBookingDate,
@@ -61,15 +62,6 @@ function isIncompleteNotificationsResult(
   result: SendBookingNotificationsBoundedResult
 ): result is SendBookingNotificationsBoundedIncompleteResult {
   return result.completed === false;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 
 function getClientKindLabel(alreadyExistedClient: boolean): string {
