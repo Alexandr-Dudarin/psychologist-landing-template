@@ -6,18 +6,21 @@ import App from "./app/App";
 import { LanguageProvider } from "./app/providers/LanguageProvider";
 import { ThemeProvider } from "./app/providers/ThemeProvider";
 import { ScrollToTop } from "./app/router/ScrollToTop";
+import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
 import "./styles/variables.css";
 import "./styles/globals.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <ScrollToTop />
-      <ThemeProvider>
-        <LanguageProvider>
-          <App />
-        </LanguageProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ScrollToTop />
+        <ThemeProvider>
+          <LanguageProvider>
+            <App />
+          </LanguageProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>
 );
