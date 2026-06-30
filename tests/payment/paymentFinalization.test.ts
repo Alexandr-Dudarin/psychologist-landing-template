@@ -336,7 +336,7 @@ describe("finalizeSuccessfulPayment", () => {
       packagePlanId: 42,
       firstName: "Irina",
       lastName: "Petrova",
-      phone: "+7 (999) 123-45-67",
+      phone: "+79991234567",
       email: "irina@example.com",
       preferredContactMethod: "whatsapp",
       preferredContactValue: "+7 999 123-45-67",

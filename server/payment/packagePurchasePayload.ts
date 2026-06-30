@@ -3,6 +3,12 @@ import {
   normalizePreferredContactFields,
   validatePreferredContactFields,
 } from "../../src/lib/preferredContact.js";
+import {
+  getContactNameValidationError,
+  isValidContactEmail,
+  normalizeContactNamePart,
+  normalizeRussianPhoneForStorage,
+} from "../../src/lib/contactValidation.js";
 import type { PreferredContactMethod } from "../../src/types/preferredContact.js";
 
 export type ServicePackagePurchasePayload = {
@@ -15,14 +21,6 @@ export type ServicePackagePurchasePayload = {
   preferredContactValue?: string;
   consent: boolean;
 };
-
-function normalizePhoneDigits(value: string): string {
-  return value.replace(/\D/g, "");
-}
-
-function isValidEmail(value: string): boolean {
-  return /^\S+@\S+\.\S+$/.test(value);
-}
 
 export function parseServicePackagePurchasePayload(
   body: any
@@ -39,10 +37,16 @@ export function parseServicePackagePurchasePayload(
 
   const packagePlanId = Number(rawBody?.packagePlanId);
   const firstName =
-    typeof rawBody?.firstName === "string" ? rawBody.firstName.trim() : "";
+    typeof rawBody?.firstName === "string"
+      ? normalizeContactNamePart(rawBody.firstName)
+      : "";
   const lastName =
-    typeof rawBody?.lastName === "string" ? rawBody.lastName.trim() : "";
-  const phone = typeof rawBody?.phone === "string" ? rawBody.phone.trim() : "";
+    typeof rawBody?.lastName === "string"
+      ? normalizeContactNamePart(rawBody.lastName)
+      : "";
+  const rawPhone =
+    typeof rawBody?.phone === "string" ? rawBody.phone.trim() : "";
+  const phone = normalizeRussianPhoneForStorage(rawPhone) ?? rawPhone;
   const email = typeof rawBody?.email === "string" ? rawBody.email.trim() : "";
   const preferredContact = normalizePreferredContactFields(
     rawBody?.preferredContactMethod,
@@ -54,7 +58,7 @@ export function parseServicePackagePurchasePayload(
     return null;
   }
 
-  if (!firstName || !lastName || !phone || !email || !consent) {
+  if (!firstName || !lastName || !rawPhone || !email || !consent) {
     return null;
   }
 
@@ -85,11 +89,20 @@ export function getServicePackagePurchaseValidationError(
     return "Введите фамилию.";
   }
 
-  if (normalizePhoneDigits(payload.phone).length < 10) {
+  const nameValidationError = getContactNameValidationError({
+    firstName: payload.firstName.trim(),
+    lastName: payload.lastName.trim(),
+  });
+
+  if (nameValidationError) {
+    return nameValidationError;
+  }
+
+  if (!normalizeRussianPhoneForStorage(payload.phone)) {
     return "Введите корректный телефон.";
   }
 
-  if (!isValidEmail(payload.email)) {
+  if (!isValidContactEmail(payload.email)) {
     return "Введите корректный email.";
   }
 
