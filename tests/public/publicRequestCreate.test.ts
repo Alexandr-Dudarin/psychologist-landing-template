@@ -59,7 +59,7 @@ describe("public request create flow", () => {
     });
     expect(poolQueryMock.mock.calls[1][1]).toEqual([
       "Irina Maria Petrova",
-      "+7 (999) 123-45-67",
+      "+79991234567",
       "irina@example.com",
       "Need a consultation",
       "telegram",

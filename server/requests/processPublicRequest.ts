@@ -16,6 +16,13 @@ import {
   normalizePreferredContactForStorage,
   validatePreferredContactFields,
 } from "../../src/lib/preferredContact.js";
+import {
+  CONTACT_MESSAGE_MAX_LENGTH,
+  normalizeContactNamePart,
+  normalizeRussianPhoneForStorage,
+  isValidContactEmail,
+  getContactNameValidationError,
+} from "../../src/lib/contactValidation.js";
 
 type ProcessPublicRequestResult = {
   status: number;
@@ -50,14 +57,8 @@ function isValidPayload(body: unknown): body is PublicRequestPayload {
   );
 }
 
-function normalizeNamePart(value: string): string {
-  return value.trim().replace(/\s+/g, " ");
-}
-
 function buildFullName(firstName: string, lastName: string): string {
-  return [normalizeNamePart(firstName), normalizeNamePart(lastName)]
-    .filter(Boolean)
-    .join(" ");
+  return [firstName, lastName].filter(Boolean).join(" ");
 }
 
 function normalizePhoneDigits(value: string): string {
@@ -133,10 +134,11 @@ export async function processPublicRequest(
     };
   }
 
-  const firstName = normalizeNamePart(body.firstName);
-  const lastName = normalizeNamePart(body.lastName);
+  const firstName = normalizeContactNamePart(body.firstName);
+  const lastName = normalizeContactNamePart(body.lastName);
   const name = buildFullName(firstName, lastName);
-  const phone = body.phone.trim();
+  const rawPhone = body.phone.trim();
+  const normalizedPhone = normalizeRussianPhoneForStorage(rawPhone);
   const email = body.email.trim();
   const message = body.message?.trim() ?? "";
   const preferredContact = normalizePreferredContactFields(
@@ -157,7 +159,7 @@ export async function processPublicRequest(
     "-"
   );
 
-  if (!firstName || !lastName || !name || !phone || !email) {
+  if (!firstName || !lastName || !name || !rawPhone || !email) {
     return {
       status: 400,
       body: {
@@ -165,6 +167,50 @@ export async function processPublicRequest(
       },
     };
   }
+
+  const nameValidationError = getContactNameValidationError({
+    firstName,
+    lastName,
+  });
+
+  if (nameValidationError) {
+    return {
+      status: 400,
+      body: {
+        error: nameValidationError,
+      },
+    };
+  }
+
+  if (!normalizedPhone) {
+    return {
+      status: 400,
+      body: {
+        error:
+          "Телефон должен начинаться с +7 или 8 и содержать ещё ровно 10 цифр. Например: +79188816789 или 89188816789.",
+      },
+    };
+  }
+
+  if (!isValidContactEmail(email)) {
+    return {
+      status: 400,
+      body: {
+        error: "Введите корректный email.",
+      },
+    };
+  }
+
+  if (message.length > CONTACT_MESSAGE_MAX_LENGTH) {
+    return {
+      status: 400,
+      body: {
+        error: `Сообщение не должно быть длиннее ${CONTACT_MESSAGE_MAX_LENGTH} символов.`,
+      },
+    };
+  }
+
+  const phone = normalizedPhone;
 
   const preferredContactErrors = validatePreferredContactFields(
     preferredContact,
