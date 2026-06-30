@@ -87,7 +87,7 @@ function createPackageBookingRequest(overrides: Record<string, unknown> = {}) {
       startsAt: "2026-04-20T12:00:00.000Z",
       firstName: "  Irina  ",
       lastName: "  Petrova  ",
-      phone: "+7 (999) 123-45-67",
+      phone: "+79991234567",
       email: "Irina@Example.COM",
       preferredContactMethod: "telegram",
       preferredContactValue: " @irina_test ",
@@ -266,7 +266,7 @@ describe("public package booking by code", () => {
     expect(findQuery(queryLog, "INSERT INTO clients")).toBeUndefined();
     expect(findQuery(queryLog, "INSERT INTO requests")?.values).toEqual([
       "Irina Petrova",
-      "+7 (999) 123-45-67",
+      "+79991234567",
       "Irina@Example.COM",
       "Package booking",
       "telegram",

@@ -56,7 +56,7 @@ function createValidRequest(overrides: Record<string, unknown> = {}) {
       startsAt: "2026-04-20T12:00",
       firstName: "  Irina   Maria  ",
       lastName: "  Petrova  ",
-      phone: "+7 (999) 123-45-67",
+      phone: "+79991234567",
       email: "irina@example.com",
       preferredContactMethod: "telegram",
       preferredContactValue: "@irina_test",
@@ -204,7 +204,7 @@ describe("public booking create handler", () => {
     expect(sendBookingNotificationsBoundedMock).toHaveBeenCalledWith({
       sessionId: 901,
       clientName: "Irina Maria Petrova",
-      clientPhone: "+7 (999) 123-45-67",
+      clientPhone: "+79991234567",
       clientEmail: "irina@example.com",
       preferredContact: "Telegram: @irina_test",
       serviceTitle: "Consultation",
@@ -213,6 +213,7 @@ describe("public booking create handler", () => {
       timezone: "Asia/Tomsk",
       comment: "Primary consultation",
       alreadyExistedClient: false,
+      clientPackage: undefined,
     });
 
     const clientInsert = poolClient.queryLog.find((entry) =>
@@ -233,7 +234,7 @@ describe("public booking create handler", () => {
     expect(clientInsert).toBeDefined();
     expect(requestInsert?.values).toEqual([
       "Irina Maria Petrova",
-      "+7 (999) 123-45-67",
+      "+79991234567",
       "irina@example.com",
       "Primary consultation",
       "telegram",
@@ -273,7 +274,7 @@ describe("public booking create handler", () => {
 
     const handler = await loadHandler();
     const req = createValidRequest({
-      phone: "+7 (999) 000-00-00",
+      phone: "+79990000000",
       email: "existing@example.com",
     });
     req.query = { action: "create" };
@@ -303,7 +304,7 @@ describe("public booking create handler", () => {
       )?.values
     ).toEqual([
       "Irina Maria Petrova",
-      "+7 (999) 000-00-00",
+      "+79990000000",
       "existing@example.com",
       "",
       "telegram",

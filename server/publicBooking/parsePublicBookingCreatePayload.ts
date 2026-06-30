@@ -6,16 +6,13 @@ import {
   normalizePreferredContactFields,
   validatePreferredContactFields,
 } from "../../src/lib/preferredContact.js";
-
-const PUBLIC_BOOKING_MESSAGE_MAX_LENGTH = 400;
-
-function normalizePhoneDigits(value: string): string {
-  return value.replace(/\D/g, "");
-}
-
-function isValidEmail(value: string): boolean {
-  return /^\S+@\S+\.\S+$/.test(value);
-}
+import {
+  CONTACT_MESSAGE_MAX_LENGTH,
+  getContactNameValidationError,
+  isValidContactEmail,
+  normalizeContactNamePart,
+  normalizeRussianPhoneForStorage,
+} from "../../src/lib/contactValidation.js";
 
 function getRussianSymbolWord(count: number) {
   const normalizedCount = Math.abs(count);
@@ -39,14 +36,13 @@ function getRussianSymbolWord(count: number) {
 
 function getPublicBookingMessageLengthError(message: string): string | null {
   const normalizedMessageLength = message.trim().length;
-  const extraCharacters =
-    normalizedMessageLength - PUBLIC_BOOKING_MESSAGE_MAX_LENGTH;
+  const extraCharacters = normalizedMessageLength - CONTACT_MESSAGE_MAX_LENGTH;
 
   if (extraCharacters <= 0) {
     return null;
   }
 
-  return `Сообщение не должно быть длиннее ${PUBLIC_BOOKING_MESSAGE_MAX_LENGTH} символов. Сократите его на ${extraCharacters} ${getRussianSymbolWord(
+  return `Сообщение не должно быть длиннее ${CONTACT_MESSAGE_MAX_LENGTH} символов. Сократите его на ${extraCharacters} ${getRussianSymbolWord(
     extraCharacters
   )}.`;
 }
@@ -68,10 +64,16 @@ export function parsePublicBookingCreatePayload(
   const startsAt =
     typeof rawBody?.startsAt === "string" ? rawBody.startsAt.trim() : "";
   const firstName =
-    typeof rawBody?.firstName === "string" ? rawBody.firstName.trim() : "";
+    typeof rawBody?.firstName === "string"
+      ? normalizeContactNamePart(rawBody.firstName)
+      : "";
   const lastName =
-    typeof rawBody?.lastName === "string" ? rawBody.lastName.trim() : "";
-  const phone = typeof rawBody?.phone === "string" ? rawBody.phone.trim() : "";
+    typeof rawBody?.lastName === "string"
+      ? normalizeContactNamePart(rawBody.lastName)
+      : "";
+  const rawPhone =
+    typeof rawBody?.phone === "string" ? rawBody.phone.trim() : "";
+  const phone = normalizeRussianPhoneForStorage(rawPhone) ?? rawPhone;
   const email = typeof rawBody?.email === "string" ? rawBody.email.trim() : "";
   const message =
     typeof rawBody?.message === "string" ? rawBody.message.trim() : "";
@@ -93,7 +95,7 @@ export function parsePublicBookingCreatePayload(
     return null;
   }
 
-  if (!startsAt || !firstName || !lastName || !phone || !email || !consent) {
+  if (!startsAt || !firstName || !lastName || !rawPhone || !email || !consent) {
     return null;
   }
 
@@ -128,11 +130,20 @@ export function getPublicBookingValidationError(
     return "Введите фамилию.";
   }
 
-  if (normalizePhoneDigits(payload.phone).length < 10) {
+  const nameValidationError = getContactNameValidationError({
+    firstName: payload.firstName.trim(),
+    lastName: payload.lastName.trim(),
+  });
+
+  if (nameValidationError) {
+    return nameValidationError;
+  }
+
+  if (!normalizeRussianPhoneForStorage(payload.phone)) {
     return "Введите корректный телефон.";
   }
 
-  if (!isValidEmail(payload.email)) {
+  if (!isValidContactEmail(payload.email)) {
     return "Введите корректный email.";
   }
 
