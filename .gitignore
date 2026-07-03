@@ -31,3 +31,7 @@ private/*.local.txt
 
 database-full.backup
 database-schema.sql
+
+test-results/
+playwright-report/
+blob-report/
