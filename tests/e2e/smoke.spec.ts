@@ -1,20 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-function collectPageErrors(page: Page) {
-  const errors: string[] = [];
-
-  page.on("pageerror", (error) => {
-    errors.push(error.message);
-  });
-
-  return errors;
-}
-
-async function expectNoErrorBoundary(page: Page) {
-  await expect(
-    page.getByRole("heading", { name: "Что-то пошло не так" })
-  ).toHaveCount(0);
-}
+import {
+  collectPageErrors,
+  expectNoErrorBoundary,
+} from "./helpers/pageHealth";
 
 test.describe("Public smoke", () => {
   test("landing page opens and has booking entry point", async ({ page }) => {
@@ -67,7 +56,9 @@ test.describe("Admin smoke", () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test("admin area redirects unauthenticated user to login", async ({ page }) => {
+  test("admin area redirects unauthenticated user to login", async ({
+    page,
+  }) => {
     const pageErrors = collectPageErrors(page);
 
     await page.goto("/admin", { waitUntil: "domcontentloaded" });

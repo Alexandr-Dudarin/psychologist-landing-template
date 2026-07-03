@@ -1,20 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 
-function collectPageErrors(page: Page) {
-  const errors: string[] = [];
-
-  page.on("pageerror", (error) => {
-    errors.push(error.message);
-  });
-
-  return errors;
-}
-
-async function expectNoErrorBoundary(page: Page) {
-  await expect(
-    page.getByRole("heading", { name: "Что-то пошло не так" })
-  ).toHaveCount(0);
-}
+import {
+  collectPageErrors,
+  expectNoErrorBoundary,
+  expectNoHorizontalOverflow,
+} from "./helpers/pageHealth";
 
 async function expectBookingPageIsHealthy(page: Page) {
   await expect(page).toHaveURL(/\/book/);
@@ -91,12 +81,8 @@ test.describe("Booking modes", () => {
     await page.goto("/book", { waitUntil: "domcontentloaded" });
 
     await expectBookingPageIsHealthy(page);
+    await expectNoHorizontalOverflow(page);
 
-    const hasHorizontalOverflow = await page.evaluate(() => {
-      return document.documentElement.scrollWidth > window.innerWidth + 2;
-    });
-
-    expect(hasHorizontalOverflow).toBe(false);
     expect(pageErrors).toEqual([]);
   });
 });
