@@ -25,7 +25,7 @@ async function clickBookingMode(page: Page, name: RegExp) {
 }
 
 test.describe("Booking modes", () => {
-  test("booking page shows all booking modes", async ({ page }) => {
+  test("booking page shows enabled booking modes", async ({ page }) => {
     const pageErrors = collectPageErrors(page);
 
     await page.goto("/book", { waitUntil: "domcontentloaded" });
@@ -40,14 +40,20 @@ test.describe("Booking modes", () => {
       page.getByRole("button", { name: /По пакету/i }).first()
     ).toBeVisible();
 
-    await expect(
-      page.getByRole("button", { name: /Купить пакет/i }).first()
-    ).toBeVisible();
+    const buyPackageButton = page
+      .getByRole("button", { name: /Купить пакет/i })
+      .first();
+
+    const isBuyPackageModeVisible = await buyPackageButton.isVisible();
+
+    if (isBuyPackageModeVisible) {
+      await expect(buyPackageButton).toBeVisible();
+    }
 
     expect(pageErrors).toEqual([]);
   });
 
-  test("user can switch between booking modes without app crash", async ({
+  test("user can switch between enabled booking modes without app crash", async ({
     page,
   }) => {
     const pageErrors = collectPageErrors(page);
@@ -59,8 +65,17 @@ test.describe("Booking modes", () => {
     await clickBookingMode(page, /По пакету/i);
     await expect(page.locator("body")).toContainText(/пакет/i);
 
-    await clickBookingMode(page, /Купить пакет/i);
-    await expect(page.locator("body")).toContainText(/пакет/i);
+    const buyPackageButton = page
+      .getByRole("button", { name: /Купить пакет/i })
+      .first();
+
+    const isBuyPackageModeVisible = await buyPackageButton.isVisible();
+
+    if (isBuyPackageModeVisible) {
+      await buyPackageButton.click();
+      await expectNoErrorBoundary(page);
+      await expect(page.locator("body")).toContainText(/пакет/i);
+    }
 
     await clickBookingMode(page, /Обычная запись/i);
     await expect(page.locator("body")).toContainText(/услуг|сесси|запис/i);

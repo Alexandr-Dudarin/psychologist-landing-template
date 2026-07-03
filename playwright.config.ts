@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
@@ -6,18 +8,15 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   workers: 1,
-  reporter: [
-    ["list"],
-    ["html", { open: "never" }],
-  ],
+  reporter: [["list"]],
   expect: {
     timeout: 10_000,
   },
   use: {
     baseURL: "http://127.0.0.1:3001",
-    trace: "on-first-retry",
+    trace: process.env.CI ? "on-first-retry" : "off",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    video: "off",
     actionTimeout: 10_000,
     navigationTimeout: 15_000,
   },
