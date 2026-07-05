@@ -133,4 +133,30 @@ test.describe("WebKit public navigation", () => {
 
         expect(pageErrors).toEqual([]);
     });
+
+        test("floating booking CTA opens separate booking page without layout regressions", async ({
+        page,
+    }) => {
+        const pageErrors = collectPageErrors(page);
+
+        await page.goto("/", { waitUntil: "networkidle" });
+        await expectPublicPageIsHealthy(page);
+
+        const floatingBookingCta = page
+            .getByRole("link", { name: /^Записаться$|^Book$/i })
+            .last();
+
+        await expect(floatingBookingCta).toBeVisible();
+
+        await floatingBookingCta.click();
+
+        await expect(page).toHaveURL(/\/book/);
+        await expect(page.locator("body")).toContainText(
+            /ОНЛАЙН-ЗАПИСЬ|Онлайн-запись|Выберите услугу|Book/i
+        );
+
+        await expectPublicPageIsHealthy(page);
+
+        expect(pageErrors).toEqual([]);
+    });
 });
