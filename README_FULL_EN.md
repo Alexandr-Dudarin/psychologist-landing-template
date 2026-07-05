@@ -491,6 +491,9 @@ The admin requests page currently supports:
 - stable refresh state while filters update
 - reset filters button
 - old requests loading as a separate section
+- temporary visual highlighting of new requests since the previous page view
+- a separate “new requests” block that helps the specialist notice fresh incoming requests
+- after refresh, navigation away, or returning to the page, those requests move back into the regular request list
 
 Old requests are handled separately from the main list.
 
@@ -1277,7 +1280,6 @@ Planned / possible future directions include:
 - cross-browser compatibility audit
 - premium Cyrillic-compatible font selection
 - better handling of very large historical CRM datasets
-- optional notification / unread-like logic for new requests
 - more E2E coverage for admin CRM, scheduler interactions, pinned review ordering, and public review loading behavior
 - optional promo code logic for first review
 - optional custom confirm modals in more dangerous admin actions

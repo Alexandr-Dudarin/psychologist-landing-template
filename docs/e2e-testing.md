@@ -256,10 +256,22 @@ npm run test:e2e
 npm run test:e2e -- --workers=1 --reporter=list
 ```
 
+Запустить весь WebKit-набор:
+
+```bash
+npm run test:e2e -- tests/e2e/webkit --project=webkit-responsive --workers=1 --reporter=list
+```
+
 Запустить только WebKit responsive smoke:
 
 ```bash
 npm run test:e2e -- tests/e2e/webkit/webkitResponsive.spec.ts --project=webkit-responsive --workers=1 --reporter=list
+```
+
+Запустить только WebKit-проверку обычной записи на `/book`:
+
+```bash
+npm run test:e2e -- tests/e2e/webkit/webkitBookingRegularFlow.spec.ts --project=webkit-responsive --workers=1 --reporter=list
 ```
 
 ## Рекомендуемая проверка перед важным коммитом
@@ -296,7 +308,7 @@ Remove-Item -Recurse -Force test-results, playwright-report, blob-report -ErrorA
 
 - Vitest закрывает бизнес-логику, API и backend-сценарии;
 - Chromium Playwright закрывает основные пользовательские E2E-сценарии;
-- WebKit Playwright закрывает легкий Safari-like responsive smoke;
+- WebKit Playwright закрывает Safari-like responsive и interaction-проверки для публичных страниц, `/book`, mobile navigation, темы и языка;
 - ручная проверка остается для визуальной полировки, сложных admin-flow и premium scheduler.
 
 Такой баланс дает хорошее покрытие без чрезмерного утяжеления проекта и локальной разработки.
