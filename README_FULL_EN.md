@@ -1128,6 +1128,12 @@ npm run test
 npm run build
 ```
 
+A human-readable overview of the E2E coverage is available in:
+
+```text
+docs/e2e-testing.md
+```
+
 ## Deployment
 
 This project is designed to be deployed on **Vercel**.
