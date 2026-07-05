@@ -101,6 +101,8 @@ This makes the project closer to a **landing + CRM + booking + reviews template*
 - Includes reusable admin UI primitives
 - Configurable through centralized data files and feature flags
 - Prepared for Vercel deployment
+- Includes Vitest coverage for business logic and API flows
+- Includes Playwright E2E coverage for key public booking and payment scenarios
 - Designed with reusability and future expansion in mind
 
 ## Public Website Features
@@ -584,6 +586,7 @@ Recent maintenance and polish work included:
 - Telegram Bot API
 - Resend
 - Vitest
+- Playwright
 
 ## What This Project Demonstrates
 
@@ -594,6 +597,7 @@ Recent maintenance and polish work included:
 - Working with production-oriented form delivery flows
 - Building a public booking and schedule foundation
 - Supporting package / multi-session service logic
+- Testing key booking, package, payment, API, and business-logic flows
 - Building moderated public review flows
 - Supporting progressive loading for public-facing content
 - Improving maintainability through bounded refactoring and shared UI primitives
@@ -925,11 +929,29 @@ The project includes a payment integration foundation through:
 - `api/payment.ts`
 - client-side payment helpers
 - payment success page
-- package purchase flow foundation
+- package purchase flow
+- YooKassa payment foundation
+- webhook event handling
+- payment finalization logic
 
-This currently acts as a reusable architecture layer and mock / extensible integration point for future real client projects.
+The current payment architecture supports:
 
-The payment layer is intended to be extended later with a real payment provider, webhook confirmation, idempotency, and safe booking / package creation after payment confirmation.
+- creating a payment request
+- redirecting the user to a confirmation URL
+- returning to the payment success page
+- checking payment status
+- finalizing successful payments
+- creating a client package after confirmed package payment
+- protecting against repeated finalization of the same payment
+- rolling back finalization if booking or package creation fails
+- webhook security checks for provider events
+
+The payment flow is currently used for:
+
+- regular booking payment
+- service package purchase payment
+
+The architecture is designed to be reusable and extensible for future real client projects.
 
 ## Analytics
 
@@ -1052,32 +1074,56 @@ The project may show a Vite chunk-size warning after a successful build. This is
 
 ## Tests
 
-The project uses Vitest for automated tests.
+The project uses Vitest and Playwright for automated testing.
 
-Run tests:
+Vitest is used for unit and integration-style coverage of business logic, API behavior, validation, payment flow, reminders, notifications, and helper logic.
+
+Playwright is used for browser-level E2E coverage of key user-facing flows.
+
+Run unit / integration tests:
 
 ```bash
 npm run test
 ```
 
+Run E2E tests:
+
+```bash
+npm run test:e2e
+```
+
 Relevant tested areas include:
 
 - admin API behavior
+- admin auth
+- protected admin routes
 - public booking behavior
+- `/book` validation
+- regular booking payment flow
+- package-code booking flow
+- package purchase payment flow
+- payment success page
 - package booking logic
-- payment-related foundations
+- payment finalization
+- webhook security
+- repeated payment finalization protection
 - reminders
+- notification formatting
 - public client review creation
 - public client review list mapping
 - review content filtering
 - review pseudonym validation
 - review anti-spam thresholds
 - admin review moderation helpers
+- ErrorBoundary
+- contact validation
+- responsive smoke checks for public pages
 - helper logic
 
 Before committing important CRM / booking / API changes, the recommended baseline is:
 
 ```bash
+npm run test:e2e
 npm run test
 npm run build
 ```
@@ -1211,7 +1257,7 @@ Planned / possible future directions include:
 - client archive / unarchive flow improvements
 - stronger duplicate prevention for clients
 - reminders and notifications
-- real payment provider integration
+- deeper real payment provider polish and production hardening
 - complete package / multi-session purchase logic
 - preferred contact method polish across all notifications
 - QR code entry point for real projects
@@ -1226,7 +1272,7 @@ Planned / possible future directions include:
 - premium Cyrillic-compatible font selection
 - better handling of very large historical CRM datasets
 - optional notification / unread-like logic for new requests
-- more tests for pinned review ordering and public review loading behavior
+- more E2E coverage for admin CRM, scheduler interactions, pinned review ordering, and public review loading behavior
 - optional promo code logic for first review
 - optional custom confirm modals in more dangerous admin actions
 - optional sounds by feature flag for selected CTA/payment events
