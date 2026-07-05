@@ -149,7 +149,42 @@ function getMockPackageLookupResponse(data: MockBookingData) {
     };
 }
 
-function getMockPaymentStatusResponse(data: MockBookingData, requestId: string) {
+function getMockPaymentStatusResponse(
+    data: MockBookingData,
+    requestId: string,
+    paymentKind: "booking" | "service_package"
+) {
+    if (paymentKind === "service_package") {
+        return {
+            requestId,
+            paymentKind: "service_package",
+            status: "paid",
+            amount: 10000,
+            currency: "RUB",
+            sessionId: null,
+            clientPackageId: data.clientPackageId,
+            errorMessage: null,
+            paidAt: "2026-01-01T12:00:00.000Z",
+            timezone: data.timezone,
+            booking: {
+                startsAt: data.slotStart,
+                firstName: "Анна",
+                lastName: "Петрова",
+                email: "anna@example.com",
+            },
+            servicePackage: {
+                packagePlanId: data.packagePlanId,
+                packageTitle: "Пакет из 4 консультаций",
+                serviceTitle: "Онлайн-консультация",
+                sessionsCount: 4,
+                code: data.packageCode,
+                firstName: "Анна",
+                lastName: "Петрова",
+                email: "anna@example.com",
+            },
+        };
+    }
+
     return {
         requestId,
         paymentKind: "booking",
@@ -173,6 +208,7 @@ function getMockPaymentStatusResponse(data: MockBookingData, requestId: string) 
 
 export async function mockBookingApis(page: Page) {
     const data = createMockBookingData();
+    let lastPaymentKind: "booking" | "service_package" = "booking";
 
     await page.route("**/api/public/services", async (route) => {
         await route.fulfill({
@@ -256,7 +292,14 @@ export async function mockBookingApis(page: Page) {
             const action = url.searchParams.get("action");
 
             if (request.method() === "POST" && action === "create") {
-                const body = request.postDataJSON() as { requestId?: string } | null;
+                const body = request.postDataJSON() as {
+                    requestId?: string;
+                    paymentKind?: "booking" | "service_package";
+                } | null;
+
+                lastPaymentKind =
+                    body?.paymentKind === "service_package" ? "service_package" : "booking";
+
                 const requestId =
                     typeof body?.requestId === "string" ? body.requestId : "mock-payment";
 
@@ -280,7 +323,9 @@ export async function mockBookingApis(page: Page) {
                 await route.fulfill({
                     status: 200,
                     contentType: "application/json",
-                    body: JSON.stringify(getMockPaymentStatusResponse(data, requestId)),
+                    body: JSON.stringify(
+                        getMockPaymentStatusResponse(data, requestId, lastPaymentKind)
+                    ),
                 });
 
                 return;
