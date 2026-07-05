@@ -29,7 +29,15 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
+      testIgnore: /.*webkit\/.*\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "webkit-responsive",
+      testMatch: /.*webkit\/.*\.spec\.ts/,
+      use: {
+        browserName: "webkit",
+      },
     },
   ],
 });
