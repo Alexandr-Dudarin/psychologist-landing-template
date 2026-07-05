@@ -3,6 +3,10 @@ import type { Page } from "@playwright/test";
 type MockBookingData = {
   serviceId: number;
   packagePlanId: number;
+  clientPackageId: number;
+  clientId: number;
+  packageCode: string;
+  packageContact: string;
   date: string;
   visibleMonth: string;
   slotStart: string;
@@ -31,6 +35,10 @@ export function createMockBookingData(): MockBookingData {
   return {
     serviceId: 101,
     packagePlanId: 201,
+    clientPackageId: 301,
+    clientId: 401,
+    packageCode: "PKGTEST001",
+    packageContact: "anna@example.com",
     date,
     visibleMonth: date.slice(0, 7),
     slotStart: `${date}T10:00:00+03:00`,
@@ -118,6 +126,29 @@ function getMockServicesResponse(data: MockBookingData) {
   };
 }
 
+function getMockPackageLookupResponse(data: MockBookingData) {
+  return {
+    success: true,
+    package: {
+      clientPackageId: data.clientPackageId,
+      clientId: data.clientId,
+      clientName: "Анна Иванова",
+      clientPhone: "+79991234567",
+      clientEmail: "anna@example.com",
+      preferredContactMethod: "whatsapp",
+      preferredContactValue: "+79991234567",
+      code: data.packageCode,
+      packageTitle: "Пакет из 4 консультаций",
+      serviceId: data.serviceId,
+      serviceTitle: "Онлайн-консультация",
+      serviceDurationMinutes: 70,
+      totalSessions: 4,
+      usedSessions: 1,
+      remainingSessions: 3,
+    },
+  };
+}
+
 export async function mockBookingApis(page: Page) {
   const data = createMockBookingData();
 
@@ -145,6 +176,19 @@ export async function mockBookingApis(page: Page) {
 
     if (
       request.method() === "POST" &&
+      url.searchParams.get("action") === "lookup-package"
+    ) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(getMockPackageLookupResponse(data)),
+      });
+
+      return;
+    }
+
+    if (
+      request.method() === "POST" &&
       url.searchParams.get("action") === "create"
     ) {
       await route.fulfill({
@@ -154,13 +198,19 @@ export async function mockBookingApis(page: Page) {
           success: true,
           booking: {
             sessionId: 9001,
-            clientId: 8001,
+            clientId: data.clientId,
             serviceId: data.serviceId,
             serviceTitle: "Онлайн-консультация",
             startsAt: data.slotStart,
             endsAt: data.slotEnd,
+            clientPackage: {
+              id: data.clientPackageId,
+              code: data.packageCode,
+              packageTitle: "Пакет из 4 консультаций",
+              remainingSessions: 2,
+            },
           },
-          alreadyExistedClient: false,
+          alreadyExistedClient: true,
         }),
       });
 
