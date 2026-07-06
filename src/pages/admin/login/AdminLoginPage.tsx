@@ -92,14 +92,38 @@ export function AdminLoginPage() {
         {!isCheckingSession ? (
           <form
             onSubmit={handleSubmit}
+            autoComplete="on"
             style={{ display: "grid", gap: "12px" }}
           >
             <input
+              type="text"
+              name="username"
+              value="admin"
+              autoComplete="username"
+              readOnly
+              aria-hidden="true"
+              tabIndex={-1}
+              style={{
+                position: "absolute",
+                width: "1px",
+                height: "1px",
+                padding: 0,
+                margin: "-1px",
+                overflow: "hidden",
+                clip: "rect(0 0 0 0)",
+                whiteSpace: "nowrap",
+                border: 0,
+              }}
+            />
+
+            <input
               type="password"
+              name="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Пароль администратора"
               autoComplete="current-password"
+              enterKeyHint="done"
               style={{
                 padding: "12px 14px",
                 border: "1px solid #ccc",
