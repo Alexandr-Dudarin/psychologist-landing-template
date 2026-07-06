@@ -6,6 +6,8 @@ import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { getAdminSession, loginAdmin } from "../../../lib/api/adminAuth";
 
+import styles from "./AdminLoginPage.module.css";
+
 type LocationState = {
   from?: string;
 };
@@ -74,15 +76,8 @@ export function AdminLoginPage() {
   };
 
   return (
-    <main style={{ minHeight: "100vh", padding: "40px 20px" }}>
-      <div
-        style={{
-          maxWidth: "420px",
-          margin: "0 auto",
-          display: "grid",
-          gap: "16px",
-        }}
-      >
+    <main className={styles.page}>
+      <div className={styles.inner}>
         <div>
           <h1>{t.admin.login.title}</h1>
         </div>
@@ -91,11 +86,12 @@ export function AdminLoginPage() {
 
         {!isCheckingSession ? (
           <form
+            className={styles.form}
             onSubmit={handleSubmit}
             autoComplete="on"
-            style={{ display: "grid", gap: "12px" }}
           >
             <input
+              className={styles.visuallyHiddenInput}
               type="text"
               name="username"
               value="admin"
@@ -103,20 +99,10 @@ export function AdminLoginPage() {
               readOnly
               aria-hidden="true"
               tabIndex={-1}
-              style={{
-                position: "absolute",
-                width: "1px",
-                height: "1px",
-                padding: 0,
-                margin: "-1px",
-                overflow: "hidden",
-                clip: "rect(0 0 0 0)",
-                whiteSpace: "nowrap",
-                border: 0,
-              }}
             />
 
             <input
+              className={styles.passwordInput}
               type="password"
               name="password"
               value={password}
@@ -124,12 +110,6 @@ export function AdminLoginPage() {
               placeholder="Пароль администратора"
               autoComplete="current-password"
               enterKeyHint="done"
-              style={{
-                padding: "12px 14px",
-                border: "1px solid #ccc",
-                borderRadius: "10px",
-                font: "inherit",
-              }}
             />
 
             <AdminFeedback message={error} tone="error" />
