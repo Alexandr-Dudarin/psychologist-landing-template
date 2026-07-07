@@ -22,6 +22,10 @@ import {
   trackFormStart,
   trackFormSubmit,
 } from "../../lib/analytics/trackers";
+import {
+  playBookingSuccessSound,
+  prepareSoundEffects,
+} from "../../lib/sound/soundEffects";
 import { inlineBookingCopyByLanguage } from "./booking.copy";
 import styles from "./Booking.module.css";
 
@@ -165,6 +169,8 @@ export function Booking() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    prepareSoundEffects();
+
     setSubmitError("");
     setIsSuccess(false);
 
@@ -191,6 +197,7 @@ export function Booking() {
       });
 
       setIsSuccess(true);
+      playBookingSuccessSound();
       setForm({
         firstName: "",
         lastName: "",

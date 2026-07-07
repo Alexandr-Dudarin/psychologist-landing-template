@@ -9,6 +9,15 @@ export const siteSettings = {
     enabled: false,
   },
 
+  soundEffects: {
+    enabled: true,
+    volume: 0.16,
+    bookingCta: true,
+    bookingStep: true,
+    bookingSuccess: true,
+    paymentSuccess: false,
+  },
+
   crm: {
     enabled: true,
   },

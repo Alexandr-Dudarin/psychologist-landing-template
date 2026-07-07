@@ -35,6 +35,11 @@ import {
   type PublicPricingPackagePlan,
 } from "../../lib/services/getPublicPricingServices";
 import {
+  playBookingStepSound,
+  playBookingSuccessSound,
+  prepareSoundEffects,
+} from "../../lib/sound/soundEffects";
+import {
   initialFormState,
   type BookingMode,
   type BookingFormErrors,
@@ -366,6 +371,10 @@ export function BookingPage() {
   const handleBookingModeChange = (mode: BookingMode) => {
     if (isCompleted) return;
 
+    if (mode !== bookingMode) {
+      playBookingStepSound();
+    }
+
     setBookingMode(mode);
     setSelectedServiceId(null);
     setSelectedPackagePlanId(null);
@@ -381,6 +390,10 @@ export function BookingPage() {
 
   const handlePackagePlanSelect = (packagePlanId: number) => {
     if (isCompleted) return;
+
+    if (packagePlanId !== selectedPackagePlanId) {
+      playBookingStepSound();
+    }
 
     setSelectedPackagePlanId(packagePlanId);
     setSelectedServiceId(null);
@@ -419,6 +432,11 @@ export function BookingPage() {
 
   const handleServiceSelect = (serviceId: number) => {
     if (isCompleted) return;
+
+    if (serviceId !== selectedServiceId) {
+      playBookingStepSound();
+    }
+
     setSelectedServiceId(serviceId);
     setSelectedPackagePlanId(null);
     resetPackageState();
@@ -434,6 +452,11 @@ export function BookingPage() {
 
   const handleDateChange = (date: string) => {
     if (isCompleted) return;
+
+    if (date !== selectedDate) {
+      playBookingStepSound();
+    }
+
     setSelectedDate(date);
     setVisibleMonth(date.slice(0, 7));
     setSelectedSlot(null);
@@ -453,6 +476,11 @@ export function BookingPage() {
 
   const handleSlotSelect = (slot: PublicBookingSlot) => {
     if (isCompleted) return;
+
+    if (slot.startsAt !== selectedSlot?.startsAt) {
+      playBookingStepSound();
+    }
+
     setSelectedSlot(slot);
     setSubmitError(null);
     setSubmitSuccess(null);
@@ -697,6 +725,7 @@ export function BookingPage() {
 
       setConfirmedBooking(response.booking);
       setSubmitSuccess(copy.submitSuccess);
+      playBookingSuccessSound();
 
       if (verifiedPackage && response.booking.clientPackage) {
         setVerifiedPackage({
@@ -742,6 +771,8 @@ export function BookingPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    prepareSoundEffects();
 
     if (isSubmitting) return;
 

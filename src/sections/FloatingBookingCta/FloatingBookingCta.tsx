@@ -8,6 +8,7 @@ import {
   canRenderFloatingBookingCta,
   getBookingTarget,
 } from "../../lib/booking/getBookingTarget";
+import { playBookingCtaSound } from "../../lib/sound/soundEffects";
 import styles from "./FloatingBookingCta.module.css";
 
 function getAdaptiveScrollOffset(scrollOffsetPx: number) {
@@ -61,7 +62,11 @@ export function FloatingBookingCta() {
   return (
     <div className={styles.wrap}>
       <div className={styles.button}>
-        <Button href={bookingTarget} variant="premium">
+        <Button
+          href={bookingTarget}
+          variant="premium"
+          onClick={playBookingCtaSound}
+        >
           {t.ui.buttons.book}
         </Button>
       </div>
