@@ -5,6 +5,7 @@ import { Button } from "../../components/Button/Button";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { useTheme } from "../../app/providers/ThemeProvider";
 import { getBookingTarget } from "../../lib/booking/getBookingTarget";
+import { playBookingCtaSound } from "../../lib/sound/soundEffects";
 import styles from "./Header.module.css";
 
 export function Header() {
@@ -26,6 +27,15 @@ export function Header() {
 
   const handleCloseMenu = () => {
     setIsOpen(false);
+  };
+
+  const handleBookingCtaClick = () => {
+    playBookingCtaSound();
+  };
+
+  const handleMobileBookingCtaClick = () => {
+    playBookingCtaSound();
+    handleCloseMenu();
   };
 
   useEffect(() => {
@@ -135,7 +145,11 @@ export function Header() {
                 </div>
               )}
 
-              <Button href={bookingTarget} variant="premium">
+              <Button
+                href={bookingTarget}
+                variant="premium"
+                onClick={handleBookingCtaClick}
+              >
                 {ui.buttons.book}
               </Button>
 
@@ -216,7 +230,12 @@ export function Header() {
               </div>
             )}
 
-            <Button href={bookingTarget} variant="premium" fullWidth>
+            <Button
+              href={bookingTarget}
+              variant="premium"
+              fullWidth
+              onClick={handleMobileBookingCtaClick}
+            >
               {ui.buttons.book}
             </Button>
           </div>

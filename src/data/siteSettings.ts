@@ -11,7 +11,7 @@ export const siteSettings = {
 
   soundEffects: {
     enabled: true,
-    volume: 0.16,
+    volume: 0.2,
     bookingCta: true,
     bookingStep: true,
     bookingSuccess: true,

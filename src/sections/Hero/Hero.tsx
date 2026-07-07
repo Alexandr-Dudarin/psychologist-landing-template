@@ -4,6 +4,7 @@ import { Container } from "../../components/Container/Container";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { trackPhoneClick, trackTelegramClick } from "../../lib/analytics/trackers";
 import { getBookingTarget } from "../../lib/booking/getBookingTarget";
+import { playBookingCtaSound } from "../../lib/sound/soundEffects";
 import styles from "./Hero.module.css";
 
 export function Hero() {
@@ -29,7 +30,11 @@ export function Hero() {
             </div>
 
             <div className={styles.actions}>
-              <Button variant="premium" href={bookingTarget}>
+              <Button
+                variant="premium"
+                href={bookingTarget}
+                onClick={playBookingCtaSound}
+              >
                 {ui.buttons.book}
               </Button>
 
