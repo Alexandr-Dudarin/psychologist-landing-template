@@ -356,6 +356,12 @@ npm run build
 docs/e2e-testing.md
 ```
 
+Документация по настройкам проекта и feature flags находится в:
+
+```text
+docs/feature-flags.md
+```
+
 ## Локальный запуск
 
 Установка зависимостей:
@@ -429,13 +435,14 @@ api/                # Vercel Serverless API routes
 server/             # server-side бизнес-логика
 database/           # SQL migrations
 public/             # статические assets: favicon, app icons, admin manifest, OG image и QR-код
+docs/               # проектная документация: E2E, настройки, оплата (как совершить тестовую опалту, номер карты и т.д.)
 ```
 
 ## Что демонстрирует проект
 
 * разработку reusable full-stack template;
 * работу с React, TypeScript и Vite;
-* организацию проекта через feature flags и централизованные конфиги;
+* организацию проекта через feature flags, централизованные конфиги и документацию по настройкам;
 * проектирование CRM-логики и UX-сценариев для сервисного бизнеса;
 * работу с PostgreSQL и ручными SQL migrations;
 * serverless API на Vercel;
