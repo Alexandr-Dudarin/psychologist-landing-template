@@ -34,11 +34,11 @@ import {
   getPublicPricingPackagePlans,
   type PublicPricingPackagePlan,
 } from "../../lib/services/getPublicPricingServices";
+import { prepareSoundEffects } from "../../lib/sound/soundEffects";
 import {
-  playBookingStepSound,
-  playBookingSuccessSound,
-  prepareSoundEffects,
-} from "../../lib/sound/soundEffects";
+  playBookingStepFeedback,
+  playBookingSuccessFeedback,
+} from "../../lib/feedback/bookingFeedback";
 import {
   initialFormState,
   type BookingMode,
@@ -372,7 +372,7 @@ export function BookingPage() {
     if (isCompleted) return;
 
     if (mode !== bookingMode) {
-      playBookingStepSound();
+      playBookingStepFeedback();
     }
 
     setBookingMode(mode);
@@ -392,7 +392,7 @@ export function BookingPage() {
     if (isCompleted) return;
 
     if (packagePlanId !== selectedPackagePlanId) {
-      playBookingStepSound();
+      playBookingStepFeedback();
     }
 
     setSelectedPackagePlanId(packagePlanId);
@@ -434,7 +434,7 @@ export function BookingPage() {
     if (isCompleted) return;
 
     if (serviceId !== selectedServiceId) {
-      playBookingStepSound();
+      playBookingStepFeedback();
     }
 
     setSelectedServiceId(serviceId);
@@ -454,7 +454,7 @@ export function BookingPage() {
     if (isCompleted) return;
 
     if (date !== selectedDate) {
-      playBookingStepSound();
+      playBookingStepFeedback();
     }
 
     setSelectedDate(date);
@@ -478,7 +478,7 @@ export function BookingPage() {
     if (isCompleted) return;
 
     if (slot.startsAt !== selectedSlot?.startsAt) {
-      playBookingStepSound();
+      playBookingStepFeedback();
     }
 
     setSelectedSlot(slot);
@@ -725,7 +725,7 @@ export function BookingPage() {
 
       setConfirmedBooking(response.booking);
       setSubmitSuccess(copy.submitSuccess);
-      playBookingSuccessSound();
+      playBookingSuccessFeedback();
 
       if (verifiedPackage && response.booking.clientPackage) {
         setVerifiedPackage({

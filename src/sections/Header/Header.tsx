@@ -5,7 +5,7 @@ import { Button } from "../../components/Button/Button";
 import { useLanguage } from "../../app/providers/LanguageProvider";
 import { useTheme } from "../../app/providers/ThemeProvider";
 import { getBookingTarget } from "../../lib/booking/getBookingTarget";
-import { playBookingCtaSound } from "../../lib/sound/soundEffects";
+import { playBookingCtaFeedback } from "../../lib/feedback/bookingFeedback";
 import styles from "./Header.module.css";
 
 export function Header() {
@@ -30,11 +30,11 @@ export function Header() {
   };
 
   const handleBookingCtaClick = () => {
-    playBookingCtaSound();
+    playBookingCtaFeedback();
   };
 
   const handleMobileBookingCtaClick = () => {
-    playBookingCtaSound();
+    playBookingCtaFeedback();
     handleCloseMenu();
   };
 

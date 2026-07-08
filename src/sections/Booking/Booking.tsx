@@ -22,10 +22,8 @@ import {
   trackFormStart,
   trackFormSubmit,
 } from "../../lib/analytics/trackers";
-import {
-  playBookingSuccessSound,
-  prepareSoundEffects,
-} from "../../lib/sound/soundEffects";
+import { prepareSoundEffects } from "../../lib/sound/soundEffects";
+import { playBookingSuccessFeedback } from "../../lib/feedback/bookingFeedback";
 import { inlineBookingCopyByLanguage } from "./booking.copy";
 import styles from "./Booking.module.css";
 
@@ -197,7 +195,7 @@ export function Booking() {
       });
 
       setIsSuccess(true);
-      playBookingSuccessSound();
+      playBookingSuccessFeedback();
       setForm({
         firstName: "",
         lastName: "",
