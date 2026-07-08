@@ -17,15 +17,18 @@ describe("soundEffects", () => {
     Object.assign(siteSettings.soundEffects, originalSoundEffects);
   });
 
-  it("keeps sound effects disabled by default", () => {
-    expect(siteSettings.soundEffects.enabled).toBe(false);
+  it("respects the global enabled flag", () => {
+    siteSettings.soundEffects.enabled = false;
+
     expect(isSoundEffectEnabled("bookingCta")).toBe(false);
     expect(isSoundEffectEnabled("bookingStep")).toBe(false);
     expect(isSoundEffectEnabled("bookingSuccess")).toBe(false);
+    expect(isSoundEffectEnabled("paymentSuccess")).toBe(false);
   });
 
   it("enables configured sound effects when global flag is enabled", () => {
     siteSettings.soundEffects.enabled = true;
+    siteSettings.soundEffects.volume = 0.16;
 
     expect(isSoundEffectEnabled("bookingCta")).toBe(true);
     expect(isSoundEffectEnabled("bookingStep")).toBe(true);

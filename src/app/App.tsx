@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { AdminInstallManifest } from "../components/AdminInstallManifest/AdminInstallManifest";
 import { initYandexMetrika } from "../lib/analytics/yandexMetrika";
 import { initScrollGoals } from "../lib/analytics/scrollGoals";
 import { AppRouter } from "./router/AppRouter";
@@ -13,5 +14,10 @@ export default function App() {
     };
   }, []);
 
-  return <AppRouter />;
+  return (
+    <>
+      <AdminInstallManifest />
+      <AppRouter />
+    </>
+  );
 }
