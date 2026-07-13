@@ -18,7 +18,7 @@ export const siteSettings = {
     paymentSuccess: false,
   },
 
-    hapticFeedback: {
+  hapticFeedback: {
     enabled: true,
     durationMs: 8,
     bookingCta: true,
@@ -28,6 +28,7 @@ export const siteSettings = {
 
   crm: {
     enabled: true,
+    language: "ru" as "ru" | "en" | "public",
   },
 
   preferredContactMethod: {

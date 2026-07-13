@@ -7,7 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import { useLanguage } from "../app/providers/LanguageProvider";
+import { useAdminLanguage } from "../lib/admin/useAdminLanguage";
 import { AdminButton } from "../components/admin/AdminButton";
 import { AdminFeedback } from "../components/admin/AdminFeedback";
 import { siteSettings } from "../data/siteSettings";
@@ -36,7 +36,9 @@ function isAdminNavItemActive(pathname: string, item: AdminNavItem) {
 }
 
 export function AdminLayout() {
-  const { t } = useLanguage();
+  const { admin } = useAdminLanguage();
+  const layoutCopy = admin.layout;
+  const navCopy = layoutCopy.nav;
   const navigate = useNavigate();
   const location = useLocation();
   const headerRef = useRef<HTMLDivElement | null>(null);
@@ -49,32 +51,32 @@ export function AdminLayout() {
     const items: AdminNavItem[] = [
       {
         to: "/admin",
-        label: t.admin.layout.nav.dashboard,
+        label: navCopy.dashboard,
         end: true,
       },
       {
         to: "/admin/requests",
-        label: t.admin.layout.nav.requests,
+        label: navCopy.requests,
       },
       {
         to: "/admin/clients",
-        label: t.admin.layout.nav.clients,
+        label: navCopy.clients,
       },
       {
         to: "/admin/services",
-        label: t.admin.layout.nav.services,
+        label: navCopy.services,
       },
       {
         to: "/admin/sessions",
-        label: t.admin.layout.nav.sessions,
+        label: navCopy.sessions,
       },
       {
         to: "/admin/notes",
-        label: t.admin.layout.nav.notes,
+        label: navCopy.notes,
       },
       {
         to: "/admin/schedule",
-        label: t.admin.layout.nav.schedule,
+        label: navCopy.schedule,
       },
     ];
 
@@ -99,13 +101,13 @@ export function AdminLayout() {
       },
       {
         to: "/",
-        label: t.admin.layout.nav.backToSite,
+        label: navCopy.backToSite,
         isBackToSite: true,
       }
     );
 
     return items;
-  }, [t.admin.layout.nav]);
+  }, [navCopy]);
 
   const currentSectionLabel =
     navItems.find((item) => isAdminNavItemActive(location.pathname, item))

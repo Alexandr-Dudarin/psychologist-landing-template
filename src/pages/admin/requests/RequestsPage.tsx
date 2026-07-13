@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { useLanguage } from "../../../app/providers/LanguageProvider";
 import { createClientFromRequest } from "../../../lib/api/adminClients";
 import {
   getAdminRequests,
@@ -9,6 +8,7 @@ import {
   markAdminRequestsViewed,
   updateAdminRequestStatus,
 } from "../../../lib/api/adminRequests";
+import { useAdminLanguage } from "../../../lib/admin/useAdminLanguage";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
@@ -46,7 +46,7 @@ function mergeViewedRequests(
 }
 
 export function RequestsPage() {
-  const { t } = useLanguage();
+  const { admin } = useAdminLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<CrmRequestRecord[]>([]);
@@ -150,7 +150,7 @@ export function RequestsPage() {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : t.admin.requests.messages.loadError
+              : admin.requests.messages.loadError
           );
         }
       } finally {
@@ -169,7 +169,7 @@ export function RequestsPage() {
     statusFilter,
     searchQuery,
     highlightedRequestId,
-    t.admin.requests.messages.loadError,
+    admin.requests.messages.loadError,
   ]);
 
   useEffect(() => {
@@ -204,7 +204,7 @@ export function RequestsPage() {
           setOldRequestsError(
             loadError instanceof Error
               ? loadError.message
-              : t.admin.requests.messages.loadError
+              : admin.requests.messages.loadError
           );
         }
       } finally {
@@ -223,7 +223,7 @@ export function RequestsPage() {
     isOldRequestsOpen,
     statusFilter,
     searchQuery,
-    t.admin.requests.messages.loadError,
+    admin.requests.messages.loadError,
   ]);
 
   const newItems = useMemo(
@@ -270,7 +270,7 @@ export function RequestsPage() {
       setError(
         updateError instanceof Error
           ? updateError.message
-          : t.admin.requests.messages.updateStatusError
+          : admin.requests.messages.updateStatusError
       );
     } finally {
       setSavingId(null);
@@ -315,7 +315,7 @@ export function RequestsPage() {
       setError(
         createError instanceof Error
           ? createError.message
-          : t.admin.requests.messages.createClientError
+          : admin.requests.messages.createClientError
       );
     } finally {
       setCreatingClientId(null);
@@ -341,7 +341,7 @@ export function RequestsPage() {
       setOldRequestsError(
         loadError instanceof Error
           ? loadError.message
-          : t.admin.requests.messages.loadError
+          : admin.requests.messages.loadError
       );
     } finally {
       setIsOldRequestsLoading(false);
@@ -357,7 +357,7 @@ export function RequestsPage() {
 
   const statusOptions = requestStatuses.map((status) => ({
     value: status,
-    label: t.admin.requests.statusLabels[status],
+    label: admin.requests.statusLabels[status],
   }));
 
   const hasQuickViewState =
@@ -383,11 +383,11 @@ export function RequestsPage() {
 
   return (
     <main>
-      <h1>{t.admin.requests.title}</h1>
+      <h1>{admin.requests.title}</h1>
 
       <RequestsFilters
-        allStatusesLabel={t.admin.requests.filters.allStatuses}
-        searchPlaceholder={t.admin.requests.filters.searchPlaceholder}
+        allStatusesLabel={admin.requests.filters.allStatuses}
+        searchPlaceholder={admin.requests.filters.searchPlaceholder}
         searchQuery={searchQuery}
         statusFilter={statusFilter}
         statusOptions={statusOptions}
@@ -432,7 +432,7 @@ export function RequestsPage() {
       <AdminFeedback message={successMessage} tone="success" />
 
       {isInitialLoading ? (
-        <p>{t.admin.requests.messages.loading}</p>
+        <p>{admin.requests.messages.loading}</p>
       ) : hasTableSnapshot ? (
         <div className={styles.requestsTableFrame}>
           {isLoading ? (
@@ -473,19 +473,19 @@ export function RequestsPage() {
                     highlightedRequestId={highlightedRequestId}
                     newRequestIds={newRequestIds}
                     statusOptions={statusOptions}
-                    createdLabel={t.admin.requests.table.created}
-                    nameLabel={t.admin.requests.table.name}
-                    phoneLabel={t.admin.requests.table.phone}
-                    emailLabel={t.admin.requests.table.email}
-                    messageLabel={t.admin.requests.table.message}
-                    statusLabel={t.admin.requests.table.status}
-                    clientLabel={t.admin.requests.table.client}
-                    actionsSavingLabel={t.admin.requests.actions.saving}
-                    actionsCreateClientLabel={t.admin.requests.actions.createClient}
+                    createdLabel={admin.requests.table.created}
+                    nameLabel={admin.requests.table.name}
+                    phoneLabel={admin.requests.table.phone}
+                    emailLabel={admin.requests.table.email}
+                    messageLabel={admin.requests.table.message}
+                    statusLabel={admin.requests.table.status}
+                    clientLabel={admin.requests.table.client}
+                    actionsSavingLabel={admin.requests.actions.saving}
+                    actionsCreateClientLabel={admin.requests.actions.createClient}
                     actionsCreatingClientLabel={
-                      t.admin.requests.actions.creatingClient
+                      admin.requests.actions.creatingClient
                     }
-                    actionsCreatedLabel={t.admin.requests.actions.created}
+                    actionsCreatedLabel={admin.requests.actions.created}
                     onStatusChange={handleStatusChange}
                     onCreateClient={handleCreateClient}
                   />
@@ -514,19 +514,19 @@ export function RequestsPage() {
                     highlightedRequestId={highlightedRequestId}
                     newRequestIds={newRequestIds}
                     statusOptions={statusOptions}
-                    createdLabel={t.admin.requests.table.created}
-                    nameLabel={t.admin.requests.table.name}
-                    phoneLabel={t.admin.requests.table.phone}
-                    emailLabel={t.admin.requests.table.email}
-                    messageLabel={t.admin.requests.table.message}
-                    statusLabel={t.admin.requests.table.status}
-                    clientLabel={t.admin.requests.table.client}
-                    actionsSavingLabel={t.admin.requests.actions.saving}
-                    actionsCreateClientLabel={t.admin.requests.actions.createClient}
+                    createdLabel={admin.requests.table.created}
+                    nameLabel={admin.requests.table.name}
+                    phoneLabel={admin.requests.table.phone}
+                    emailLabel={admin.requests.table.email}
+                    messageLabel={admin.requests.table.message}
+                    statusLabel={admin.requests.table.status}
+                    clientLabel={admin.requests.table.client}
+                    actionsSavingLabel={admin.requests.actions.saving}
+                    actionsCreateClientLabel={admin.requests.actions.createClient}
                     actionsCreatingClientLabel={
-                      t.admin.requests.actions.creatingClient
+                      admin.requests.actions.creatingClient
                     }
-                    actionsCreatedLabel={t.admin.requests.actions.created}
+                    actionsCreatedLabel={admin.requests.actions.created}
                     onStatusChange={handleStatusChange}
                     onCreateClient={handleCreateClient}
                   />
@@ -540,7 +540,7 @@ export function RequestsPage() {
           </div>
         </div>
       ) : (
-        <p>{t.admin.requests.messages.empty}</p>
+        <p>{admin.requests.messages.empty}</p>
       )}
 
       <section className={styles.oldRequestsPanel}>
@@ -603,21 +603,21 @@ export function RequestsPage() {
                       highlightedRequestId={null}
                       isStatusChangeDisabled={true}
                       statusOptions={statusOptions}
-                      createdLabel={t.admin.requests.table.created}
-                      nameLabel={t.admin.requests.table.name}
-                      phoneLabel={t.admin.requests.table.phone}
-                      emailLabel={t.admin.requests.table.email}
-                      messageLabel={t.admin.requests.table.message}
-                      statusLabel={t.admin.requests.table.status}
-                      clientLabel={t.admin.requests.table.client}
-                      actionsSavingLabel={t.admin.requests.actions.saving}
+                      createdLabel={admin.requests.table.created}
+                      nameLabel={admin.requests.table.name}
+                      phoneLabel={admin.requests.table.phone}
+                      emailLabel={admin.requests.table.email}
+                      messageLabel={admin.requests.table.message}
+                      statusLabel={admin.requests.table.status}
+                      clientLabel={admin.requests.table.client}
+                      actionsSavingLabel={admin.requests.actions.saving}
                       actionsCreateClientLabel={
-                        t.admin.requests.actions.createClient
+                        admin.requests.actions.createClient
                       }
                       actionsCreatingClientLabel={
-                        t.admin.requests.actions.creatingClient
+                        admin.requests.actions.creatingClient
                       }
-                      actionsCreatedLabel={t.admin.requests.actions.created}
+                      actionsCreatedLabel={admin.requests.actions.created}
                       onStatusChange={handleStatusChange}
                       onCreateClient={handleCreateClient}
                     />
@@ -625,7 +625,7 @@ export function RequestsPage() {
                 </div>
 
                 {oldRequestsHasMore ||
-                  shouldShowBottomOldRequestsHideButton ? (
+                shouldShowBottomOldRequestsHideButton ? (
                   <div className={styles.oldRequestsFooterActions}>
                     {oldRequestsHasMore ? (
                       <AdminButton

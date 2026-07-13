@@ -78,10 +78,10 @@ export type DashboardConfig = {
 
 export const dashboardConfigByLanguage: Record<Language, DashboardConfig> = {
   ru: {
-    title: "CRM dashboard",
+    title: "CRM-панель",
     description:
       "Рабочий обзор на день: ключевые сигналы, ближайшие встречи, краткая сводка расписания и быстрые переходы по CRM.",
-    loading: "Загружаем dashboard...",
+    loading: "Загружаем CRM-панель...",
     loadError: "Не удалось загрузить данные для dashboard.",
     emptyValue: "Нет данных",
     sections: {

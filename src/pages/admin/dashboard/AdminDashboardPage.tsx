@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { useLanguage } from "../../../app/providers/LanguageProvider";
+import { useAdminLanguage } from "../../../lib/admin/useAdminLanguage";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { AdminSection } from "../../../components/admin/AdminSection";
 import { getAdminClients } from "../../../lib/api/adminClients";
@@ -35,10 +35,8 @@ const initialDashboardData: DashboardDataState = {
 };
 
 export function AdminDashboardPage() {
-  const { language } = useLanguage();
-  const currentLanguage = language === "en" ? "en" : "ru";
-  const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
-  const copy = dashboardConfigByLanguage[currentLanguage];
+  const { language: adminLanguage, locale } = useAdminLanguage();
+  const copy = dashboardConfigByLanguage[adminLanguage];
   const [data, setData] = useState<DashboardDataState>(initialDashboardData);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");

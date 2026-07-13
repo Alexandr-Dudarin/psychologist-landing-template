@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { useLanguage } from "../../../app/providers/LanguageProvider";
 import { AdminCollapsibleCreateSection } from "../../../components/admin/AdminCollapsibleCreateSection";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
@@ -14,6 +13,7 @@ import {
   updateClient,
   updateClientReviewPermission,
 } from "../../../lib/api/adminClients";
+import { useAdminLanguage } from "../../../lib/admin/useAdminLanguage";
 import { validatePreferredContactFields } from "../../../lib/preferredContact";
 import type {
   ClientFavoriteFilter,
@@ -48,7 +48,7 @@ const clientSourceLabels: Record<string, string> = {
 const createFormPanelId = "client-create-form-panel";
 
 export function ClientsPage() {
-  const { t } = useLanguage();
+  const { admin } = useAdminLanguage();
   const navigate = useNavigate();
   const preferredContactSettings = siteSettings.preferredContactMethod;
   const [searchParams] = useSearchParams();
@@ -84,9 +84,9 @@ export function ClientsPage() {
     () =>
       clientStatuses.map((status) => ({
         value: status,
-        label: t.admin.clients.statusLabels[status],
+        label: admin.clients.statusLabels[status],
       })),
-    [t.admin.clients.statusLabels]
+    [admin.clients.statusLabels]
   );
 
   const selectedClient = useMemo(
@@ -136,7 +136,7 @@ export function ClientsPage() {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : t.admin.clients.messages.loadError
+              : admin.clients.messages.loadError
           );
         }
       } finally {
@@ -155,7 +155,7 @@ export function ClientsPage() {
     statusFilter,
     favoriteFilter,
     searchQuery,
-    t.admin.clients.messages.loadError,
+    admin.clients.messages.loadError,
   ]);
 
   useEffect(() => {
@@ -255,12 +255,12 @@ export function ClientsPage() {
     };
 
     if (!payload.name) {
-      setError(t.admin.clients.messages.nameRequired);
+      setError(admin.clients.messages.nameRequired);
       return;
     }
 
     if (!payload.phone && !payload.email) {
-      setError(t.admin.clients.messages.phoneOrEmailRequired);
+      setError(admin.clients.messages.phoneOrEmailRequired);
       return;
     }
 
@@ -285,8 +285,8 @@ export function ClientsPage() {
     ) {
       setError(
         preferredContactErrors.preferredContactMethod ??
-        preferredContactErrors.preferredContactValue ??
-        ""
+          preferredContactErrors.preferredContactValue ??
+          ""
       );
       return;
     }
@@ -306,17 +306,17 @@ export function ClientsPage() {
         setStatusFilter("all");
         setFavoriteFilter("all");
         setSearchQuery("");
-        setSuccessMessage(t.admin.clients.messages.alreadyExists);
+        setSuccessMessage(admin.clients.messages.alreadyExists);
         navigate(`/admin/clients?highlightClientId=${result.item.id}`);
       } else {
         await reloadClients();
-        setSuccessMessage(t.admin.clients.messages.createSuccess);
+        setSuccessMessage(admin.clients.messages.createSuccess);
       }
     } catch (createError) {
       setError(
         createError instanceof Error
           ? createError.message
-          : t.admin.clients.messages.createError
+          : admin.clients.messages.createError
       );
     } finally {
       setIsCreating(false);
@@ -410,12 +410,12 @@ export function ClientsPage() {
     };
 
     if (!payload.name) {
-      setError(t.admin.clients.messages.nameRequired);
+      setError(admin.clients.messages.nameRequired);
       return;
     }
 
     if (!payload.phone && !payload.email) {
-      setError(t.admin.clients.messages.phoneOrEmailRequired);
+      setError(admin.clients.messages.phoneOrEmailRequired);
       return;
     }
 
@@ -440,8 +440,8 @@ export function ClientsPage() {
     ) {
       setError(
         preferredContactErrors.preferredContactMethod ??
-        preferredContactErrors.preferredContactValue ??
-        ""
+          preferredContactErrors.preferredContactValue ??
+          ""
       );
       return;
     }
@@ -506,7 +506,7 @@ export function ClientsPage() {
 
   return (
     <main>
-      <h1>{t.admin.clients.title}</h1>
+      <h1>{admin.clients.title}</h1>
 
       <AdminCollapsibleCreateSection
         title="Создание клиента"
@@ -528,14 +528,14 @@ export function ClientsPage() {
           onChange={handleFormChange}
           onLastNameChange={setLastName}
           onSubmit={handleCreateClient}
-          title={t.admin.clients.createForm.title}
+          title={admin.clients.createForm.title}
           namePlaceholder="Имя"
           lastNamePlaceholder="Фамилия"
-          phonePlaceholder={t.admin.clients.createForm.phonePlaceholder}
-          emailPlaceholder={t.admin.clients.createForm.emailPlaceholder}
-          sourcePlaceholder={t.admin.clients.createForm.sourcePlaceholder}
-          submitLabel={t.admin.clients.createForm.submit}
-          submittingLabel={t.admin.clients.createForm.submitting}
+          phonePlaceholder={admin.clients.createForm.phonePlaceholder}
+          emailPlaceholder={admin.clients.createForm.emailPlaceholder}
+          sourcePlaceholder={admin.clients.createForm.sourcePlaceholder}
+          submitLabel={admin.clients.createForm.submit}
+          submittingLabel={admin.clients.createForm.submitting}
         />
       </AdminCollapsibleCreateSection>
 
@@ -554,8 +554,8 @@ export function ClientsPage() {
       ) : null}
 
       <ClientsFilters
-        allStatusesLabel={t.admin.clients.filters.allStatuses}
-        searchPlaceholder={t.admin.clients.filters.searchPlaceholder}
+        allStatusesLabel={admin.clients.filters.allStatuses}
+        searchPlaceholder={admin.clients.filters.searchPlaceholder}
         searchQuery={searchQuery}
         statusFilter={statusFilter}
         favoriteFilter={favoriteFilter}
@@ -601,23 +601,23 @@ export function ClientsPage() {
       <AdminFeedback message={successMessage} tone="success" />
 
       {isInitialLoading ? (
-        <p>{t.admin.clients.messages.loading}</p>
+        <p>{admin.clients.messages.loading}</p>
       ) : displayedItems.length === 0 ? (
         <AdminRefreshableTableArea isRefreshing={isRefreshing}>
-          <p>{t.admin.clients.messages.empty}</p>
+          <p>{admin.clients.messages.empty}</p>
         </AdminRefreshableTableArea>
       ) : (
         <AdminRefreshableTableArea isRefreshing={isRefreshing}>
           <ClientsTable
             items={displayedItems}
-            createdLabel={t.admin.clients.table.created}
-            nameLabel={t.admin.clients.table.name}
-            phoneLabel={t.admin.clients.table.phone}
-            emailLabel={t.admin.clients.table.email}
-            sourceLabel={t.admin.clients.table.source}
-            statusLabel={t.admin.clients.table.status}
-            firstRequestLabel={t.admin.clients.table.firstRequest}
-            statusLabels={t.admin.clients.statusLabels}
+            createdLabel={admin.clients.table.created}
+            nameLabel={admin.clients.table.name}
+            phoneLabel={admin.clients.table.phone}
+            emailLabel={admin.clients.table.email}
+            sourceLabel={admin.clients.table.source}
+            statusLabel={admin.clients.table.status}
+            firstRequestLabel={admin.clients.table.firstRequest}
+            statusLabels={admin.clients.statusLabels}
             sourceLabels={clientSourceLabels}
             favoriteUpdatingId={favoriteUpdatingId}
             highlightedClientId={highlightedClientId}
@@ -632,7 +632,7 @@ export function ClientsPage() {
         <ClientDetailsModal
           client={selectedClient}
           sourceLabels={clientSourceLabels}
-          statusLabels={t.admin.clients.statusLabels}
+          statusLabels={admin.clients.statusLabels}
           onClose={closeClientDetails}
           onReviewPermissionChange={handleUpdateClientReviewPermission}
         />

@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useLanguage } from "../../../app/providers/LanguageProvider";
+import { useAdminLanguage } from "../../../lib/admin/useAdminLanguage";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminFeedback } from "../../../components/admin/AdminFeedback";
 import { getAdminSession, loginAdmin } from "../../../lib/api/adminAuth";
@@ -13,7 +13,7 @@ type LocationState = {
 };
 
 export function AdminLoginPage() {
-  const { t } = useLanguage();
+  const { admin } = useAdminLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const locationState = (location.state as LocationState | null) ?? null;
@@ -79,7 +79,7 @@ export function AdminLoginPage() {
     <main className={styles.page}>
       <div className={styles.inner}>
         <div>
-          <h1>{t.admin.login.title}</h1>
+          <h1>{admin.login.title}</h1>
         </div>
 
         {isCheckingSession ? <p>Проверка сессии...</p> : null}
