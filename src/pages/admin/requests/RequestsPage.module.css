@@ -2,10 +2,6 @@
   composes: controlBase controlSelect from "../../../components/admin/adminUi.module.css";
 }
 
-.searchInput {
-  composes: controlBase controlSearch from "../../../components/admin/adminUi.module.css";
-}
-
 .success {
   color: var(--admin-success);
 }
@@ -140,36 +136,6 @@
   transition: opacity 0.18s ease;
 }
 
-.filtersResetButton.filtersResetButton {
-  flex: 0 0 auto;
-  min-height: 46px;
-  border-color: color-mix(in srgb, var(--admin-danger) 28%, white);
-  background: var(--admin-danger-soft);
-  color: var(--admin-danger);
-  white-space: nowrap;
-}
-
-.filtersResetButton.filtersResetButton:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--admin-danger) 42%, white);
-  background: #fceeee;
-  color: #7f3d3d;
-}
-
-.filtersResetButton.filtersResetButton:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(154, 75, 75, 0.18);
-}
-
-.filtersResetButtonVisible {
-  visibility: visible;
-  pointer-events: auto;
-}
-
-.filtersResetButtonHidden {
-  visibility: hidden;
-  pointer-events: none;
-}
-
 .requestDetailsOverlay {
   position: fixed;
   inset: 0;
@@ -291,10 +257,6 @@
 }
 
 @media (max-width: 640px) {
-  .filtersResetButton.filtersResetButton {
-    width: 100%;
-  }
-
   .newRequestsSection {
     padding: 12px;
     border-radius: 16px;

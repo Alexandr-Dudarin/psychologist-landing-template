@@ -7,7 +7,7 @@ import {
   type CustomSelectOption,
 } from "../../../components/ui/CustomSelect";
 import type { RequestStatus } from "../../../types/request";
-import styles from "./RequestsPage.module.css";
+import styles from "./RequestsFilters.module.css";
 
 type StatusOption = {
   value: RequestStatus;
