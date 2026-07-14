@@ -9,7 +9,7 @@ import {
 
 import type { CrmClientRecord } from "../../../types/client";
 import { CustomCheckbox } from "../../../components/ui/CustomCheckbox";
-import styles from "./SessionsPage.module.css";
+import styles from "./SessionClientCombobox.module.css";
 
 type SessionClientComboboxProps = {
   clients: CrmClientRecord[];
