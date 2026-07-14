@@ -17,7 +17,7 @@ import type { SessionStatus } from "../../../types/session";
 import { sessionStatuses } from "../../../types/session";
 import { sessionStatusLabels } from "./sessionForm";
 import { CustomCheckbox } from "../../../components/ui/CustomCheckbox";
-import styles from "./SessionsPage.module.css";
+import styles from "./SessionsFilters.module.css";
 
 type SessionsFiltersProps = {
   clientFilter: number | "all";
