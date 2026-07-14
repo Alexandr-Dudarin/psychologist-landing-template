@@ -10,7 +10,7 @@ import {
 } from "../../../lib/preferredContact";
 import type { ClientStatus, CrmClientRecord } from "../../../types/client";
 import { splitClientName } from "./clientForm";
-import styles from "./ClientsPage.module.css";
+import styles from "./ClientsTable.module.css";
 
 type ClientsTableProps = {
   items: CrmClientRecord[];
