@@ -6,7 +6,7 @@ import type {
     ClientReviewAdminRecord,
     ClientReviewStatus,
 } from "../../../types/reviews";
-import styles from "./AdminReviewsPage.module.css";
+import styles from "./AdminReviewsTable.module.css";
 import {
     clientReviewStatusLabels,
     getPublicReviewName,
