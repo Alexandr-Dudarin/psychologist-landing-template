@@ -9,7 +9,7 @@ import {
 } from "../../../lib/booking/formatBookingDateTime";
 import type { CrmSessionRecord } from "../../../types/session";
 import { getSessionSourceLabel, sessionStatusLabels } from "./sessionForm";
-import styles from "./SessionsPage.module.css";
+import styles from "./SessionsTable.module.css";
 
 type SessionsTableProps = {
   items: CrmSessionRecord[];
