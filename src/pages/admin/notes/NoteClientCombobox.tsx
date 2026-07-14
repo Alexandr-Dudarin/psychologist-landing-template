@@ -8,7 +8,7 @@ import {
 } from "react";
 
 import type { CrmClientRecord } from "../../../types/client";
-import styles from "./NotesPage.module.css";
+import styles from "./NoteClientCombobox.module.css";
 
 type NoteClientComboboxProps = {
   clients: CrmClientRecord[];
