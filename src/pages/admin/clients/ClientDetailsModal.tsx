@@ -22,7 +22,7 @@ import type {
   UpdateClientReviewPermissionPayload,
 } from "../../../types/client";
 import type { CrmServicePackagePlanRecord } from "../../../types/service";
-import styles from "./ClientsPage.module.css";
+import styles from "./ClientDetailsModal.module.css";
 
 type ClientDetailsModalProps = {
   client: CrmClientRecord;
@@ -197,9 +197,8 @@ export function ClientDetailsModal({
       },
       ...activePackagePlans.map((packagePlan) => ({
         value: String(packagePlan.id),
-        label: `${packagePlan.title} — ${
-          packagePlan.sessionsCount
-        } сесс. / ${formatAdminPriceInput(packagePlan.price)} ₽`,
+        label: `${packagePlan.title} — ${packagePlan.sessionsCount
+          } сесс. / ${formatAdminPriceInput(packagePlan.price)} ₽`,
       })),
     ],
     [activePackagePlans]
@@ -544,7 +543,7 @@ export function ClientDetailsModal({
           )}
         </section>
 
-                <section className={styles.reviewPermissionSection}>
+        <section className={styles.reviewPermissionSection}>
           <div className={styles.reviewPermissionHeader}>
             <div>
               <h3 className={styles.reviewPermissionTitle}>Отзывы</h3>
@@ -593,6 +592,7 @@ export function ClientDetailsModal({
               <AdminButton
                 type="button"
                 variant={isReviewsBlocked ? "secondary" : "primary"}
+                className={!isReviewsBlocked ? styles.blockReviewsButton : undefined}
                 disabled={isReviewPermissionSaving}
                 onClick={handleBlockReviews}
               >
