@@ -23,80 +23,6 @@
   width: 100%;
 }
 
-.requestCreatedColumn {
-  width: 168px;
-}
-
-.requestMessageColumn {
-  width: auto;
-}
-
-.requestPhoneColumn {
-  width: 150px;
-}
-
-.requestEmailColumn {
-  width: 230px;
-}
-
-.requestStatusColumn {
-  width: 200px;
-}
-
-.requestNameColumn {
-  width: 190px;
-}
-
-.requestClientColumn {
-  width: 140px;
-}
-
-.requestsTableScope th.requestCreatedHeader,
-.requestsTableScope td.requestCreatedCell {
-  text-align: left;
-}
-
-.requestsTableScope th.requestMessageHeader,
-.requestsTableScope td.requestMessageCell,
-.requestsTableScope th.requestPhoneHeader,
-.requestsTableScope td.requestPhoneCell,
-.requestsTableScope th.requestEmailHeader,
-.requestsTableScope td.requestEmailCell,
-.requestsTableScope th.requestStatusHeader,
-.requestsTableScope td.requestStatusCell {
-  text-align: center;
-}
-
-.requestsTableScope th.requestNameHeader,
-.requestsTableScope td.requestNameCell {
-  text-align: center;
-}
-
-.requestsTableScope td.requestNameCell {
-  vertical-align: top;
-}
-
-.requestNameCell a,
-.unlinkedClientName {
-  display: inline-flex;
-  justify-content: center;
-  max-width: 100%;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-
-.requestsTableScope th.requestClientHeader,
-.requestsTableScope td.requestClientCell {
-  text-align: right;
-}
-
-.requestMessageCell,
-.requestPhoneCell,
-.requestEmailCell,
-.requestStatusCell {
-  vertical-align: middle;
-}
-
 .requestsTableFrame {
   position: relative;
 }
@@ -157,30 +83,6 @@
   line-height: 1;
 }
 
-.requestNameCell {
-  vertical-align: top;
-  font-weight: 600;
-}
-
-.requestNameContent {
-  display: grid;
-  justify-items: center;
-  gap: 7px;
-}
-
-.requestNameCell a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.requestNameCell a:hover {
-  text-decoration: underline;
-}
-
-.unlinkedClientName {
-  color: var(--admin-text);
-}
-
 .emptyValue {
   display: inline-flex;
   align-items: center;
@@ -189,98 +91,6 @@
   color: var(--admin-text-muted);
   font-size: 1rem;
   line-height: 1.4;
-}
-
-.requestMessageButton {
-  display: grid;
-  width: 100%;
-  gap: 6px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  line-height: 1.45;
-  text-align: center;
-  cursor: pointer;
-}
-
-.requestMessageButton:hover .requestMessageText {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.requestMessageButton:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--admin-primary) 42%, white);
-  outline-offset: 4px;
-  border-radius: 10px;
-}
-
-.requestMessageText {
-  overflow-wrap: anywhere;
-  word-break: normal;
-}
-
-.requestMessageHint {
-  justify-self: center;
-  padding: 4px 10px;
-  border: 1px solid color-mix(in srgb, var(--admin-primary) 22%, white);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--admin-primary) 8%, white);
-  color: var(--admin-primary);
-  font-size: 0.82rem;
-  line-height: 1.2;
-}
-
-.inlineCreateClientButton {
-  margin-top: 8px;
-}
-
-.statusSelect {
-  width: 180px;
-  max-width: 100%;
-  min-width: 180px;
-  margin-inline: auto;
-}
-
-.savingText {
-  composes: secondaryText from "../../../components/admin/adminUi.module.css";
-  margin-top: 6px;
-  text-align: center;
-}
-
-.linkedClientText {
-  composes: secondaryText from "../../../components/admin/adminUi.module.css";
-  margin-bottom: 8px;
-}
-
-.highlightedRow {
-  composes: rowHighlighted from "../../../components/admin/adminUi.module.css";
-}
-
-.requestsTableScope tbody tr.newRequestRow {
-  background: color-mix(in srgb, var(--admin-primary) 6%, white);
-}
-
-.requestsTableScope tbody tr.newRequestRow:hover {
-  background: color-mix(in srgb, var(--admin-primary) 10%, white);
-}
-
-.newRequestBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: fit-content;
-  min-height: 24px;
-  padding: 5px 11px;
-  border: 1px solid color-mix(in srgb, var(--color-accent, #b08a7a) 34%, white);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-accent, #b08a7a) 20%, white);
-  color: color-mix(in srgb, var(--color-accent, #b08a7a) 88%, #4d342a);
-  font-size: 0.82rem;
-  font-weight: 400;
-  line-height: 1.2;
-  box-shadow: 0 6px 14px rgba(120, 82, 64, 0.1);
 }
 
 .quickViewBanner {
@@ -480,71 +290,7 @@
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 1400px) {
-
-  .requestStatusColumn,
-  .requestStatusHeader,
-  .requestStatusCell {
-    display: none;
-  }
-
-  .requestCreatedColumn {
-    width: 160px;
-  }
-
-  .requestNameColumn {
-    width: 190px;
-  }
-}
-
-@media (max-width: 980px) {
-
-  .requestEmailColumn,
-  .requestEmailHeader,
-  .requestEmailCell {
-    display: none;
-  }
-
-  .requestCreatedColumn {
-    width: 150px;
-  }
-
-  .requestNameColumn {
-    width: 180px;
-  }
-}
-
-@media (max-width: 760px) {
-
-  .requestPhoneColumn,
-  .requestPhoneHeader,
-  .requestPhoneCell {
-    display: none;
-  }
-
-  .requestCreatedColumn {
-    width: 140px;
-  }
-
-  .requestNameColumn {
-    width: 170px;
-  }
-}
-
 @media (max-width: 640px) {
-  .requestCreatedColumn {
-    width: 118px;
-  }
-
-  .requestNameColumn {
-    width: 138px;
-  }
-
-  .requestMessageCell {
-    overflow-wrap: anywhere;
-    word-break: normal;
-  }
-
   .filtersResetButton.filtersResetButton {
     width: 100%;
   }
@@ -606,27 +352,6 @@
     right: 10px;
     max-width: calc(100% - 20px);
     font-size: 0.86rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .requestCreatedColumn {
-    width: 106px;
-  }
-
-  .requestNameColumn {
-    width: 126px;
-  }
-
-  .requestCreatedCell,
-  .requestMessageCell,
-  .requestNameCell {
-    font-size: 0.95rem;
-  }
-
-  .requestMessageHint {
-    padding-inline: 8px;
-    font-size: 0.78rem;
   }
 }
 

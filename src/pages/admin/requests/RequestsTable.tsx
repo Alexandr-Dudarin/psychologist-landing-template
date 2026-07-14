@@ -9,7 +9,7 @@ import {
 } from "../../../components/ui/CustomSelect";
 import type { CrmRequestRecord, RequestStatus } from "../../../types/request";
 import { RequestDetailsModal } from "./RequestDetailsModal";
-import styles from "./RequestsPage.module.css";
+import styles from "./RequestsTable.module.css";
 
 const SHOW_CLIENT_COLUMN = false;
 
