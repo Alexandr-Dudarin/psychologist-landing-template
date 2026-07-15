@@ -175,7 +175,7 @@
 .field textarea {
     width: 100%;
     border: 1px solid rgba(123, 107, 98, 0.18);
-    border-radius: 18px;
+    border-radius: var(--radius-m);
     background: rgba(255, 255, 255, 0.78);
     color: var(--color-text, #2f241f);
     font: inherit;
@@ -206,7 +206,7 @@
 .field input:focus,
 .field textarea:focus {
     border-color: rgba(173, 143, 130, 0.58);
-    background: #ffffff;
+    background: var(--color-white);
     box-shadow: 0 0 0 4px rgba(173, 143, 130, 0.14);
 }
 
@@ -285,7 +285,7 @@
 .stateBox {
     padding: 15px 17px;
     border: 1px solid rgba(123, 107, 98, 0.16);
-    border-radius: 18px;
+    border-radius: var(--radius-m);
     background: rgba(255, 255, 255, 0.66);
     color: var(--color-text-muted, #7b6b62);
     line-height: 1.55;
