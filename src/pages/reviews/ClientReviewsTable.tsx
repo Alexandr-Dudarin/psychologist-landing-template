@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { ClientReviewPublicRecord } from "../../types/reviews";
 import type { ClientReviewsTableCopy } from "./clientReviewsPage.copy";
-import styles from "./ClientReviewsPage.module.css";
+import styles from "./ClientReviewsTable.module.css";
 
 type ClientReviewsTableProps = {
   items: ClientReviewPublicRecord[];
