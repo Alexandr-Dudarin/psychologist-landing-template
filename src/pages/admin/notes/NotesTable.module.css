@@ -1,0 +1,266 @@
+.notesTableScope {
+  width: 100%;
+  min-width: 0;
+}
+
+.notesTableScope :global(table) {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.noteClientColumn {
+  width: clamp(160px, 16%, 210px);
+}
+
+.noteSessionColumn {
+  width: 138px;
+}
+
+.noteServiceColumn {
+  width: clamp(160px, 17%, 230px);
+}
+
+.noteTextColumn {
+  width: auto;
+}
+
+.noteCreatedColumn {
+  width: 150px;
+}
+
+.noteActionsColumn {
+  width: 148px;
+}
+
+.noteClientHeader,
+.noteSessionHeader,
+.noteServiceHeader,
+.noteTextHeader,
+.noteCreatedHeader,
+.noteClientCell,
+.noteSessionCell,
+.noteServiceCell,
+.noteTextCell,
+.noteCreatedCell {
+  min-width: 0;
+}
+
+.noteClientCell,
+.noteSessionCell,
+.noteServiceCell,
+.noteCreatedCell {
+  overflow-wrap: anywhere;
+}
+
+.noteTextCell {
+  overflow: hidden;
+}
+
+.noteTextPreview {
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  color: inherit;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.emptyValue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25em;
+  color: var(--admin-text-muted);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.notesTableScope .noteSessionHeader,
+.notesTableScope .noteServiceHeader,
+.notesTableScope .noteTextHeader,
+.notesTableScope .noteCreatedHeader,
+.notesTableScope .noteSessionCell,
+.notesTableScope .noteServiceCell,
+.notesTableScope .noteTextCell,
+.notesTableScope .noteCreatedCell {
+  text-align: center;
+}
+
+.noteTextPreview {
+  text-align: center;
+}
+
+.noteDetailsButton.noteDetailsButton {
+  border-color: color-mix(in srgb, var(--admin-accent) 28%, white);
+  background: var(--admin-accent-soft);
+  color: var(--admin-accent);
+}
+
+.noteDetailsButton.noteDetailsButton:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--admin-accent) 42%, white);
+  background: color-mix(in srgb,
+      var(--admin-accent-soft) 78%,
+      var(--admin-accent) 8%);
+  color: var(--admin-accent);
+}
+
+.actionCell {
+  composes: actionCell from "../../../components/admin/adminUi.module.css";
+  text-align: left;
+  width: 148px;
+  min-width: 148px;
+}
+
+.actionLabelCompact {
+  display: none;
+}
+
+.actionLabelFull {
+  display: inline;
+}
+
+
+.actionsRow {
+  composes: actionGroup from "../../../components/admin/adminUi.module.css";
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.actionsRow>* {
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+
+  .noteCreatedColumn,
+  .noteCreatedHeader,
+  .noteCreatedCell {
+    display: none;
+  }
+
+  .noteClientColumn {
+    width: 190px;
+  }
+
+  .noteServiceColumn {
+    width: 190px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .noteClientColumn {
+    width: 180px;
+  }
+
+  .noteSessionColumn {
+    width: 130px;
+  }
+
+  .noteServiceColumn {
+    width: 180px;
+  }
+
+  .noteActionsColumn,
+  .actionCell {
+    width: 132px;
+    min-width: 132px;
+  }
+}
+
+@media (max-width: 900px) {
+
+  .noteServiceColumn,
+  .noteServiceHeader,
+  .noteServiceCell {
+    display: none;
+  }
+
+  .noteClientColumn {
+    width: 180px;
+  }
+
+  .noteSessionColumn {
+    width: 132px;
+  }
+
+  .noteTextPreview {
+    -webkit-line-clamp: 4;
+  }
+}
+
+@media (max-width: 640px) {
+
+  .noteSessionColumn,
+  .noteSessionHeader,
+  .noteSessionCell {
+    display: none;
+  }
+
+  .noteClientColumn {
+    width: 38%;
+  }
+
+  .noteActionsColumn,
+  .actionCell {
+    width: 112px;
+    min-width: 112px;
+  }
+
+  .notesTableScope :global(th),
+  .notesTableScope :global(td) {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .noteTextPreview {
+    line-height: 1.38;
+    -webkit-line-clamp: 5;
+  }
+
+  .actionsRow>* {
+    min-width: 0;
+    min-height: 34px;
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 0.84rem;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 480px) {
+  .noteClientColumn {
+    width: 36%;
+  }
+
+  .noteActionsColumn,
+  .actionCell {
+    width: 94px;
+    min-width: 94px;
+  }
+
+  .notesTableScope :global(th),
+  .notesTableScope :global(td) {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .actionLabelFull {
+    display: none;
+  }
+
+  .actionLabelCompact {
+    display: inline;
+  }
+
+  .actionsRow>* {
+    min-height: 32px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+}

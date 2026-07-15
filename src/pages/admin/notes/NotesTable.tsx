@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { AdminButton } from "../../../components/admin/AdminButton";
 import { AdminTable } from "../../../components/admin/AdminTable";
 import type { CrmNoteRecord } from "../../../types/note";
-import styles from "./NotesPage.module.css";
+import styles from "./NotesTable.module.css";
 
 type NotesTableProps = {
   items: CrmNoteRecord[];
