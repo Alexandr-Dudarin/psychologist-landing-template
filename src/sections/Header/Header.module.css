@@ -70,7 +70,7 @@
   background: var(--color-surface);
   color: var(--color-text);
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
   transition:
     background-color var(--transition-base),
@@ -96,7 +96,7 @@
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -124,7 +124,7 @@
   width: 46px;
   height: 46px;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background-color: var(--color-surface);
   color: var(--color-text);
   align-items: center;

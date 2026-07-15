@@ -104,7 +104,7 @@
   justify-content: center;
   min-height: 32px;
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 0.92rem;
   font-weight: 700;
   line-height: 1.2;
@@ -200,7 +200,7 @@
   width: 46px;
   height: 46px;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-surface);
   color: var(--color-text);
   display: inline-flex;
@@ -244,7 +244,7 @@
   width: 10px;
   height: 10px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--color-accent) 26%, var(--color-white) 74%);
   cursor: pointer;
   transition:
@@ -291,7 +291,7 @@
   max-width: 100%;
   min-height: 48px;
   padding: 0 22px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-accent);
   color: var(--color-accent-contrast);
   font-weight: 800;
@@ -331,7 +331,7 @@
   width: 52px;
   height: 52px;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-surface);
   color: var(--color-text);
   display: inline-flex;
@@ -418,7 +418,7 @@
   width: 38px;
   height: 38px;
   border: 1px solid color-mix(in srgb, var(--color-border) 78%, white 22%);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--color-surface) 88%, white 12%);
   color: var(--color-text);
   display: inline-flex;
@@ -450,7 +450,7 @@
   width: 10px;
   height: 10px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--color-accent) 26%, var(--color-white) 74%);
   cursor: pointer;
   transition:
@@ -505,7 +505,7 @@
   width: 44px;
   height: 44px;
   border: 1px solid color-mix(in srgb, var(--color-white) 18%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-overlay);
   color: var(--color-white);
   display: inline-flex;
@@ -521,7 +521,7 @@
   width: 48px;
   height: 48px;
   border: 1px solid color-mix(in srgb, var(--color-white) 18%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-overlay);
   color: var(--color-white);
   display: inline-flex;

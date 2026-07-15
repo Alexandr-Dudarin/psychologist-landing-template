@@ -52,7 +52,7 @@
   flex: 0 0 auto;
   width: 28px;
   height: 28px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--color-text);
   font-size: 0;
   line-height: 1;

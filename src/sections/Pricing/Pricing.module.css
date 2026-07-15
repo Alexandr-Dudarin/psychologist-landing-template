@@ -234,7 +234,7 @@
   margin-bottom: 14px;
   padding: 5px 12px;
 
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
   background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
   color: var(--color-accent);
@@ -330,7 +330,7 @@
   justify-content: center;
   min-height: 40px;
   padding: 0 18px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-accent);
   color: var(--color-accent-contrast);
   font-size: 14px;
