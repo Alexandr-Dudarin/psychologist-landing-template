@@ -35,3 +35,6 @@ database-schema.sql
 test-results/
 playwright-report/
 blob-report/
+
+# Local/private project notes
+docs/local-client-adaptation-checklist.md
