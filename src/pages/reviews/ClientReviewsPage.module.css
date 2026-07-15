@@ -554,7 +554,7 @@
         padding: 18px;
         border: 1px solid color-mix(in srgb, var(--color-accent, #ad8f82) 28%, rgba(47, 35, 31, 0.16));
         border-radius: 22px;
-        background: rgba(255, 255, 255, 0.68);
+        background: var(--color-surface-muted);
     }
 
     .reviewsTable tr:last-child {
