@@ -362,6 +362,12 @@ docs/e2e-testing.md
 docs/feature-flags.md
 ```
 
+Карта структуры проекта находится в:
+
+```text
+docs/project-structure-map.md
+```
+
 ## Локальный запуск
 
 Установка зависимостей:
