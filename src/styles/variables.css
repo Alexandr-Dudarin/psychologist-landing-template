@@ -57,6 +57,14 @@
   --radius-l: 28px;
   --radius-pill: 999px;
 
+  --booking-select-bg: #fffdfb;
+  --booking-select-option-hover: #f3e3dc;
+  --booking-select-option-selected: #f7eee9;
+  --booking-select-option-selected-hover: #f0ded6;
+  --booking-select-dropdown-shadow: 0 18px 40px rgba(38, 26, 20, 0.18);
+  --booking-select-dropdown-border: 1px solid color-mix(in srgb, var(--color-border) 88%, white);
+  --booking-select-focus-ring: 0 0 0 4px color-mix(in srgb, var(--color-accent) 12%, transparent);
+
   --container-width: 1200px;
   --container-padding: 20px;
 
