@@ -29,7 +29,7 @@
   overflow: hidden;
   padding: 28px;
 
-  border-radius: 28px;
+  border-radius: var(--radius-l);
   border: 1px solid var(--color-border);
   background-color: var(--color-surface);
   backdrop-filter: blur(14px);

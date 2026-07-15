@@ -17,9 +17,9 @@
     min-height: 100%;
     padding: 16px;
     border-radius: 32px;
-    border: 1px solid color-mix(in srgb, var(--color-border) 82%, white 18%);
+    border: 1px solid var(--glass-border-soft);
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.42)),
+        var(--glass-overlay-gradient),
         var(--color-surface);
     box-shadow: var(--shadow-soft);
 }

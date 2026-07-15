@@ -42,6 +42,8 @@
     linear-gradient(135deg, rgba(217, 207, 244, 0.34), rgba(255, 255, 255, 0.54));
   --gradient-soft-peach:
     linear-gradient(135deg, rgba(239, 200, 184, 0.3), rgba(255, 255, 255, 0.5));
+  --glass-border-soft: color-mix(in srgb, var(--color-border) 82%, white 18%);
+  --glass-overlay-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.42));
 
   --shadow-soft: 0 16px 40px rgba(37, 24, 16, 0.06);
   --shadow-soft-hover: 0 18px 44px rgba(37, 24, 16, 0.08);

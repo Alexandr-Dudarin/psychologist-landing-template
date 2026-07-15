@@ -67,7 +67,7 @@
   gap: 18px;
   padding: 24px;
   border: 1px solid color-mix(in srgb, var(--color-border) 76%, white 24%);
-  border-radius: 28px;
+  border-radius: var(--radius-l);
   background: var(--color-surface);
   box-shadow:
     0 12px 28px rgba(37, 24, 16, 0.045),
@@ -183,7 +183,7 @@
   width: min(100%, 760px);
   margin: 0 auto;
   padding: 22px 24px;
-  border: 1px solid color-mix(in srgb, var(--color-border) 82%, white 18%);
+  border: 1px solid var(--glass-border-soft);
   border-radius: 24px;
   background: color-mix(in srgb, var(--color-surface) 86%, white 14%);
   color: var(--color-text-muted);
@@ -268,7 +268,7 @@
   width: min(100%, 1180px);
   margin: 2px auto 0;
   padding: 18px 20px;
-  border: 1px solid color-mix(in srgb, var(--color-border) 82%, white 18%);
+  border: 1px solid var(--glass-border-soft);
   border-radius: 24px;
   background: color-mix(in srgb, var(--color-surface) 88%, white 12%);
   box-shadow: var(--shadow-soft);
@@ -387,9 +387,9 @@
   margin-inline: auto;
   padding: 0;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--color-border) 82%, white 18%);
+  border: 1px solid var(--glass-border-soft);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.42)),
+    var(--glass-overlay-gradient),
     var(--color-surface);
   box-shadow: var(--shadow-soft);
   position: relative;
