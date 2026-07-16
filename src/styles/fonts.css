@@ -1,0 +1,28 @@
+/*
+  Local font setup placeholder.
+
+  Put licensed .woff2 files into:
+
+  public/fonts/<font-name>/
+
+  Then define @font-face here and use the font through CSS variables
+  in src/styles/variables.css.
+
+  Example:
+
+  @font-face {
+    font-family: "ClientSans";
+    src: url("/fonts/client-sans/ClientSans-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "ClientSans";
+    src: url("/fonts/client-sans/ClientSans-SemiBold.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+*/
