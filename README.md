@@ -474,3 +474,5 @@ docs/               # проектная документация: E2E, наст
 Alexander Dudarin
 
 GitHub: https://github.com/Alexandr-Dudarin
+
+Telegram: @Dudarin23
