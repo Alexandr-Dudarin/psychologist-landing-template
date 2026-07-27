@@ -33,6 +33,7 @@ export const config = {
     goals: {
       formStart: "form_start",
       formSubmit: "form_submit",
+      packagePurchase: "package_purchase_success",
       telegramClick: "telegram_click",
       phoneClick: "phone_click",
       scroll25: "scroll_25",

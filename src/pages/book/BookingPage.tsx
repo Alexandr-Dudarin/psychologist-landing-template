@@ -40,6 +40,10 @@ import {
   playBookingSuccessFeedback,
 } from "../../lib/feedback/bookingFeedback";
 import {
+  trackFormStart,
+  trackFormSubmit,
+} from "../../lib/analytics/trackers";
+import {
   initialFormState,
   type BookingMode,
   type BookingFormErrors,
@@ -54,6 +58,7 @@ export function BookingPage() {
   const [searchParams] = useSearchParams();
   const hasAppliedInitialSearchParams = useRef(false);
   const hasAppliedInitialServiceId = useRef(false);
+  const hasTrackedFormStart = useRef(false);
 
   const currentLanguage = language === "en" ? "en" : "ru";
   const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
@@ -409,6 +414,10 @@ export function BookingPage() {
     field: Field,
     value: BookingFormState[Field]
   ) => {
+    if (!hasTrackedFormStart.current && trackFormStart()) {
+      hasTrackedFormStart.current = true;
+    }
+
     setForm((current) => ({ ...current, [field]: value }));
 
     if (formErrors[field as keyof BookingFormErrors]) {
@@ -776,6 +785,7 @@ export function BookingPage() {
       setConfirmedBooking(response.booking);
       setSubmitSuccess(copy.submitSuccess);
       playBookingSuccessFeedback();
+      trackFormSubmit();
 
       if (verifiedPackage && response.booking.clientPackage) {
         setVerifiedPackage({

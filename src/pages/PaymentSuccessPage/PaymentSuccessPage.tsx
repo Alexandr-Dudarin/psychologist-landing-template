@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import { useLanguage } from "../../app/providers/LanguageProvider";
@@ -14,6 +14,10 @@ import {
   getPaymentStatus,
   type PaymentStatusResponse,
 } from "../../lib/api/payment";
+import {
+  trackFormSubmit,
+  trackPackagePurchase,
+} from "../../lib/analytics/trackers";
 import { paymentSuccessPageCopy } from "./paymentSuccessPage.copy";
 import styles from "./PaymentSuccessPage.module.css";
 
@@ -47,6 +51,7 @@ export function PaymentSuccessPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [didReachPollLimit, setDidReachPollLimit] = useState(false);
+  const trackedPaymentGoalRef = useRef<string | null>(null);
 
   const currentLanguage = language === "en" ? "en" : "ru";
   const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
@@ -162,6 +167,50 @@ export function PaymentSuccessPage() {
     const timer = setTimeout(() => setShowConfetti(true), 200);
     return () => clearTimeout(timer);
   }, [payment?.status]);
+
+  useEffect(() => {
+    if (payment?.status !== "paid") {
+      return;
+    }
+
+    const goalStorageKey = [
+      "yandex-metrika-payment-goal",
+      payment.paymentKind,
+      payment.requestId,
+    ].join(":");
+
+    if (trackedPaymentGoalRef.current === goalStorageKey) {
+      return;
+    }
+
+    try {
+      if (window.sessionStorage.getItem(goalStorageKey) === "sent") {
+        trackedPaymentGoalRef.current = goalStorageKey;
+        return;
+      }
+    } catch {
+      // Аналитика не должна мешать странице оплаты,
+      // если sessionStorage недоступен в текущем браузере.
+    }
+
+    const didTrack =
+      payment.paymentKind === "service_package"
+        ? trackPackagePurchase()
+        : trackFormSubmit();
+
+    if (!didTrack) {
+      return;
+    }
+
+    trackedPaymentGoalRef.current = goalStorageKey;
+
+    try {
+      window.sessionStorage.setItem(goalStorageKey, "sent");
+    } catch {
+      // Цель уже отправлена. Ошибка сохранения маркера
+      // не должна влиять на успешный сценарий оплаты.
+    }
+  }, [payment?.paymentKind, payment?.requestId, payment?.status]);
 
   const bookingStartsAt = payment?.booking.startsAt ?? "";
   const servicePackage = payment?.servicePackage ?? null;
