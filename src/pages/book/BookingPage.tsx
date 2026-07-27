@@ -53,6 +53,7 @@ export function BookingPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const hasAppliedInitialSearchParams = useRef(false);
+  const hasAppliedInitialServiceId = useRef(false);
 
   const currentLanguage = language === "en" ? "en" : "ru";
   const locale = currentLanguage === "ru" ? "ru-RU" : "en-US";
@@ -257,6 +258,55 @@ export function BookingPage() {
       isActive = false;
     };
   }, [copy.errorFallback]);
+
+  useEffect(() => {
+    if (
+      hasAppliedInitialServiceId.current ||
+      isLoading ||
+      !data
+    ) {
+      return;
+    }
+
+    hasAppliedInitialServiceId.current = true;
+
+    const modeParam = searchParams.get("mode");
+
+    // Режимы записи по пакету и покупки пакета используют
+    // собственную логику выбора услуги.
+    if (modeParam === "package" || modeParam === "buy-package") {
+      return;
+    }
+
+    const serviceIdParam = searchParams.get("serviceId");
+
+    if (!serviceIdParam) {
+      return;
+    }
+
+    const serviceId = Number(serviceIdParam);
+
+    if (
+      !Number.isInteger(serviceId) ||
+      serviceId <= 0
+    ) {
+      return;
+    }
+
+    const serviceExists = data.services.some(
+      (service) => service.id === serviceId
+    );
+
+    if (!serviceExists) {
+      return;
+    }
+
+    setBookingMode("regular");
+    setSelectedServiceId(serviceId);
+    setSelectedPackagePlanId(null);
+    resetPackageState();
+    resetSelectionAfterServiceChange();
+  }, [data, isLoading, searchParams]);
 
   useEffect(() => {
     if (isLoading) {

@@ -19,6 +19,7 @@ import styles from "./Pricing.module.css";
 
 type PricingCard = {
   id: string;
+  bookingServiceId?: number;
   title: string;
   price: string;
   description: string;
@@ -57,12 +58,29 @@ function getPackagePurchaseTarget(packagePlanId: number): string {
   return `/book?mode=buy-package&packagePlanId=${packagePlanId}`;
 }
 
+function getServiceBookingId(item: PublicPricingService): number | undefined {
+  if (
+    typeof item.bookingServiceId === "number" &&
+    Number.isInteger(item.bookingServiceId) &&
+    item.bookingServiceId > 0
+  ) {
+    return item.bookingServiceId;
+  }
+
+  const serviceIdFromPublicId = Number(item.id);
+
+  return Number.isInteger(serviceIdFromPublicId) && serviceIdFromPublicId > 0
+    ? serviceIdFromPublicId
+    : undefined;
+}
+
 function mapPricingCards(
   services: PublicPricingService[],
   currentLanguage: "ru" | "en"
 ): PricingCard[] {
   return services.map((item, index) => ({
     id: item.id,
+    bookingServiceId: getServiceBookingId(item),
     title: item.title,
     price: formatServicePrice(item.price, currentLanguage),
     description: item.description?.trim() || "",
@@ -120,8 +138,6 @@ export function Pricing() {
   const { language, t } = useLanguage();
   const currentLanguage = language === "en" ? "en" : "ru";
   const copy = pricingCopyByLanguage[currentLanguage];
-
-  const bookingTarget = getBookingTarget();
 
   const [services, setServices] = useState<PublicPricingService[]>([]);
   const [packagePlans, setPackagePlans] = useState<PublicPricingPackagePlan[]>(
@@ -262,7 +278,13 @@ export function Pricing() {
 
                 <p className={styles.description}>{item.description}</p>
 
-                <Button href={bookingTarget} variant="premium" fullWidth>
+                <Button
+                  href={getBookingTarget({
+                    serviceId: item.bookingServiceId,
+                  })}
+                  variant="premium"
+                  fullWidth
+                >
                   {t.ui.buttons.book}
                 </Button>
               </article>

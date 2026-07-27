@@ -1,5 +1,9 @@
 import { siteSettings } from "../../data/siteSettings";
 
+type BookingTargetOptions = {
+  serviceId?: number | undefined;
+};
+
 export function getBookingEntryMode() {
   return siteSettings.booking.entryMode;
 }
@@ -16,8 +20,28 @@ export function isSeparateBookingPageEnabled() {
   );
 }
 
-export function getBookingTarget() {
-  return isSeparateBookingPageEnabled() ? "/book" : "#booking";
+export function getBookingTarget(
+  options: BookingTargetOptions = {}
+) {
+  if (!isSeparateBookingPageEnabled()) {
+    return "#booking";
+  }
+
+  const { serviceId } = options;
+
+  if (
+    typeof serviceId !== "number" ||
+    !Number.isInteger(serviceId) ||
+    serviceId <= 0
+  ) {
+    return "/book";
+  }
+
+  const searchParams = new URLSearchParams({
+    serviceId: String(serviceId),
+  });
+
+  return `/book?${searchParams.toString()}`;
 }
 
 export function getPricingSourceMode() {

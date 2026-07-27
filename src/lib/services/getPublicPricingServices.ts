@@ -12,6 +12,7 @@ import type {
 // единый формат для публички
 export type PublicPricingService = {
   id: string;
+  bookingServiceId?: number;
   title: string;
   description?: string;
   durationMinutes?: number;
@@ -48,6 +49,7 @@ function mapDatabaseServices(
     .filter((item) => item.isActive)
     .map((item) => ({
       id: String(item.id),
+      bookingServiceId: item.id,
       title: item.title,
       description: item.description ?? undefined,
       durationMinutes: item.durationMinutes,
